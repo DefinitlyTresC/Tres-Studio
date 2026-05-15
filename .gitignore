@@ -1,0 +1,9 @@
+# Image originals live outside the repo ? the site pulls images from Cloudinary at runtime.
+images/
+
+# Local editor / agent settings
+.claude/
+
+# OS cruft
+Thumbs.db
+.DS_Store

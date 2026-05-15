@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Project — Tres Carter</title>
+  <link rel="icon" href="favicon/favicon.ico" />
+  <link rel="apple-touch-icon" href="favicon/apple-touch-icon.png" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <nav class="nav">
+    <a href="index.html" class="nav-link">Work</a>
+    <a href="about.html" class="nav-link">About</a>
+    <a href="mailto:tres@tres.studio" class="nav-link">Contact</a>
+  </nav>
+
+  <div class="detail-hero" id="detail-hero">
+    <img id="hero-img" src="" alt="" />
+    <img id="chancey-mark-detail" class="chancey-mark chancey-mark--detail" src="chancey-logo.png" alt="Chancey Design" style="display:none;" />
+    <div class="detail-hero-overlay">
+      <div class="detail-hero-text">
+        <h1 id="project-name">—</h1>
+        <p id="project-location">—</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="detail-body">
+    <a href="index.html" class="detail-back">← All Projects</a>
+    <div class="detail-meta">
+      <div></div>
+      <p id="project-description" class="detail-description"></p>
+    </div>
+    <div class="detail-gallery" id="detail-gallery"></div>
+  </div>
+
+  <footer>
+    <div class="footer-name">TC</div>
+    <div class="footer-links">
+      <a href="mailto:tres@tres.studio">tres@tres.studio</a>
+      <a href="tel:8132407548">813.240.7548</a>
+      <a href="https://instagram.com/trescarter" target="_blank" rel="noopener">@trescarter</a>
+    </div>
+    <div class="footer-copy">© 2026</div>
+  </footer>
+
+  <script>
+    const wip = "Work in progress.";
+    const chanceyProjects = ["tucker", "ee13", "z07", "flatwood", "creekbridge", "urbanneighbors"];
+
+    function imgs(folder, count) {
+      const arr = [`images/${folder}/cover.png`];
+      for (let i = 1; i <= count; i++) arr.push(`images/${folder}/${i}.png`);
+      return arr;
+    }
+
+    const projects = {
+      tucker:        { name: "The Pointe at Tucker Landing", location: "Point Washington, FL", description: "Tucker Bayou is a conceptual neighborhood planning and architectural study focused on improving community cohesion, streetscape character, and long-term residential value within an existing coastal subdivision. The project explores targeted zoning and design modifications intended to strengthen the pedestrian experience, refine architectural consistency, and support context-sensitive growth while respecting the established identity of the neighborhood. Scope included site planning studies, architectural visualization, community presentation materials, and coordination strategies for stakeholder and board review.", images: imgs("tucker", 45) },
+      ee13:          { name: "Alys Beach EE-13",             location: "Alys Beach, FL",        description: wip, images: imgs("ee13", 7) },
+      z07:           { name: "Alys Beach Z-07",              location: "Alys Beach, FL",        description: wip, images: imgs("z07", 6) },
+      flatwood:      { name: "Flatwood Residence",           location: "Grayton Beach, FL",     description: wip, images: imgs("flatwood", 11) },
+      drome:         { name: "Drome",                        location: "Seaside, FL",           description: wip, images: imgs("drome", 1) },
+      creekbridge:   { name: "19 Creekbridge Way",           location: "Watersound, FL",        description: wip, images: imgs("creekbridge", 5) },
+      urbanneighbors:{ name: "Urban Neighbors",              location: "Tampa, FL",             description: wip, images: imgs("urbanneighbors", 11) },
+      photography:   { name: "Photography",                  location: "FL",                    description: wip, images: imgs("photography", 1) },
+      personalart:   { name: "Personal Art",                 location: "FL",                    description: wip, images: imgs("personalart", 1) },
+      schoolwork:    { name: "School Work",                  location: "AL",                    description: wip, images: imgs("schoolwork", 1) },
+      variousdetails:{ name: "Various Details",              location: "",                      description: wip, images: imgs("variousdetails", 1) },
+    };
+
+    const id = new URLSearchParams(window.location.search).get("id");
+    const p = projects[id];
+    if (p) {
+      document.title = p.name + " — Tres Carter";
+      document.getElementById("project-name").textContent = p.name;
+      document.getElementById("project-location").textContent = p.location;
+      document.getElementById("project-description").textContent = p.description;
+
+      const heroImg = document.getElementById("hero-img");
+      heroImg.src = p.images[0];
+      heroImg.alt = p.name;
+      heroImg.onerror = () => { document.getElementById("detail-hero").style.background = "#e0ddd8"; heroImg.style.display = "none"; };
+
+      if (chanceyProjects.includes(id)) {
+        document.getElementById("chancey-mark-detail").style.display = "block";
+      }
+
+      const gallery = document.getElementById("detail-gallery");
+      p.images.slice(1).forEach((src, i) => {
+        const img = document.createElement("img");
+        img.src = src;
+        img.alt = p.name;
+        img.style.animationDelay = `${i * 0.05}s`;
+        img.classList.add("gallery-img");
+        img.onerror = () => img.style.display = "none";
+        gallery.appendChild(img);
+      });
+
+      // reveal gallery images on scroll
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add("revealed"); observer.unobserve(e.target); } });
+      }, { threshold: 0.05 });
+      document.querySelectorAll(".gallery-img").forEach(img => observer.observe(img));
+    }
+  </script>
+
+</body>
+</html>
