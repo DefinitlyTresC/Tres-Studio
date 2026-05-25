@@ -3,111 +3,154 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Project — Tres Carter</title>
+  <title id="page-title">Project — Tres Carter</title>
   <link rel="icon" href="favicon/favicon.ico" />
-  <link rel="apple-touch-icon" href="favicon/apple-touch-icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
 </head>
 <body>
 
-  <nav class="nav">
-    <a href="index.html" class="nav-link">Work</a>
-    <a href="about.html" class="nav-link">About</a>
-    <a href="mailto:tres@tres.studio" class="nav-link">Contact</a>
-  </nav>
+<div class="dot-grid"></div>
 
-  <div class="detail-hero" id="detail-hero">
-    <img id="hero-img" src="" alt="" />
-    <img id="chancey-mark-detail" class="chancey-mark chancey-mark--detail" src="chancey-logo.png" alt="Chancey Design" style="display:none;" />
-    <div class="detail-hero-overlay">
-      <div class="detail-hero-text">
-        <h1 id="project-name">—</h1>
-        <p id="project-location">—</p>
+<nav class="nav">
+  <a class="mark" href="index.html">Tres Carter<span class="y">.</span></a>
+  <div class="nav-links">
+    <a href="index.html">← Studio</a>
+    <a href="about.html">About</a>
+  </div>
+</nav>
+
+<main id="content">
+  <div class="loading">loading</div>
+</main>
+
+<footer class="footer">
+  <div class="footer-mark">Tres Carter<span class="y-dot"></span></div>
+  <div class="footer-block">
+    <strong>Contact</strong>
+    <a href="mailto:tres@tres.studio">tres@tres.studio</a>
+    <a href="https://instagram.com/trescarter" target="_blank" rel="noopener">@trescarter</a>
+  </div>
+  <div class="footer-block">
+    <strong>Studio</strong>
+    <a href="about.html">About</a>
+    <a href="index.html">Work</a>
+    <a href="lab.html">Lab</a>
+  </div>
+  <div class="footer-block">
+    <strong>Location</strong>
+    <a>Seagrove · 30A</a>
+    <a>Florida</a>
+  </div>
+  <div class="footer-base">
+    <span>© 2026 Tres Carter</span>
+    <span>Built in Florida</span>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script src="https://unpkg.com/lenis@1.1.13/dist/lenis.min.js"></script>
+<script src="config.js"></script>
+<script src="data.js"></script>
+<script src="scroll.js"></script>
+<script>
+// Tiny helpers — kept inline because they're page-specific and short.
+
+// Description rendering: split on blank lines into paragraphs, convert
+// single newlines into <br>. Lets you write multi-paragraph descriptions
+// in the Google Sheet (Alt+Enter to add a line break in a cell) and have
+// them render properly instead of collapsing into one wall of text.
+function renderDescription(text) {
+  if (!text) return '';
+  return text
+    .split(/\n\s*\n/)
+    .map(s => s.trim())
+    .filter(Boolean)
+    .map(para => `<p>${para.replace(/\n/g, '<br>')}</p>`)
+    .join('');
+}
+
+// Render one gallery cell — image or video based on the entry's type.
+// Videos autoplay muted+looped (silent ambient motion) and reuse the same
+// .loaded fade-in pattern the images use, so they don't pop in.
+//
+// useReveal toggles the per-cell fade-up reveal. Long galleries (e.g., the
+// 73-tile thesis page) pass false so 50+ animations don't pile onto the
+// scroll thread. The .loaded fade still triggers per image as they decode.
+function renderMediaCell(m, name, useReveal) {
+  const cls = useReveal ? 'gallery-item reveal' : 'gallery-item';
+  if (m.type === 'video') {
+    return `
+      <div class="${cls}">
+        <video src="${m.url}"
+               autoplay muted loop playsinline preload="metadata"
+               onloadeddata="this.classList.add('loaded')"
+               onerror="this.parentElement.style.display='none'"></video>
+      </div>`;
+  }
+  // decoding="async" tells the browser to decode the bitmap off the main
+  // thread. Big win when scrolling through many large images at once.
+  return `
+    <div class="${cls}">
+      <img src="${m.url}" alt="${name}" loading="lazy" decoding="async"
+           onload="this.classList.add('loaded')"
+           onerror="this.parentElement.style.display='none'" />
+    </div>`;
+}
+
+(async () => {
+  const id = new URLSearchParams(location.search).get('id');
+  if (!id) { location.href = 'index.html'; return; }
+
+  const p = await DATA.getProjectBySlug(id);
+  if (!p) {
+    document.getElementById('content').innerHTML = '<div class="loading">project not found</div>';
+    return;
+  }
+
+  document.getElementById('page-title').textContent = `${p.name} — Tres Carter`;
+  const backHref = p.category ? `category.html?cat=${p.category}` : 'index.html';
+  const backLabel = p.category ? p.category.charAt(0).toUpperCase() + p.category.slice(1) : 'Studio';
+
+  document.getElementById('content').innerHTML = `
+    <section class="detail">
+      <div class="detail-head">
+        <div class="reveal">
+          <div class="detail-eyebrow">— Project</div>
+          <h1 class="detail-title">${p.name}</h1>
+          <div class="detail-loc">${p.location || ''}<span class="y"> · </span>${p.year || ''}</div>
+        </div>
+        <div class="detail-desc reveal">
+          ${renderDescription(p.description)}
+          ${p.designedAt ? `
+            <div class="detail-credit">
+              — Designed at ${p.designedAtUrl
+                ? `<a href="${p.designedAtUrl}" target="_blank" rel="noopener">${p.designedAt}</a>`
+                : `<span>${p.designedAt}</span>`}
+            </div>
+          ` : ''}
+        </div>
       </div>
-    </div>
-  </div>
 
-  <div class="detail-body">
-    <a href="index.html" class="detail-back">← All Projects</a>
-    <div class="detail-meta">
-      <div></div>
-      <p id="project-description" class="detail-description"></p>
-    </div>
-    <div class="detail-gallery" id="detail-gallery"></div>
-  </div>
+      ${p.heroUrl ? `
+        <div class="gallery-item reveal" style="width:100%; margin-top:6rem;">
+          <img src="${p.heroUrl}" alt="${p.name}"
+               onload="this.classList.add('loaded')"
+               onerror="this.parentElement.style.display='none'" />
+        </div>
+      ` : ''}
 
-  <footer>
-    <div class="footer-name">TC</div>
-    <div class="footer-links">
-      <a href="mailto:tres@tres.studio">tres@tres.studio</a>
-      <a href="tel:8132407548">813.240.7548</a>
-      <a href="https://instagram.com/trescarter" target="_blank" rel="noopener">@trescarter</a>
-    </div>
-    <div class="footer-copy">© 2026</div>
-  </footer>
+      <section class="gallery${p.media.length > 50 ? ' gallery--long' : ''}">
+        ${p.media.map(m => renderMediaCell(m, p.name, p.media.length <= 50)).join('')}
+      </section>
 
-  <script>
-    const wip = "Work in progress.";
-    const chanceyProjects = ["tucker", "ee13", "z07", "flatwood", "creekbridge", "urbanneighbors"];
-
-    function imgs(folder, count) {
-      const arr = [`images/${folder}/cover.png`];
-      for (let i = 1; i <= count; i++) arr.push(`images/${folder}/${i}.png`);
-      return arr;
-    }
-
-    const projects = {
-      tucker:        { name: "The Pointe at Tucker Landing", location: "Point Washington, FL", description: "Tucker Bayou is a conceptual neighborhood planning and architectural study focused on improving community cohesion, streetscape character, and long-term residential value within an existing coastal subdivision. The project explores targeted zoning and design modifications intended to strengthen the pedestrian experience, refine architectural consistency, and support context-sensitive growth while respecting the established identity of the neighborhood. Scope included site planning studies, architectural visualization, community presentation materials, and coordination strategies for stakeholder and board review.", images: imgs("tucker", 45) },
-      ee13:          { name: "Alys Beach EE-13",             location: "Alys Beach, FL",        description: wip, images: imgs("ee13", 7) },
-      z07:           { name: "Alys Beach Z-07",              location: "Alys Beach, FL",        description: wip, images: imgs("z07", 6) },
-      flatwood:      { name: "Flatwood Residence",           location: "Grayton Beach, FL",     description: wip, images: imgs("flatwood", 11) },
-      drome:         { name: "Drome",                        location: "Seaside, FL",           description: wip, images: imgs("drome", 1) },
-      creekbridge:   { name: "19 Creekbridge Way",           location: "Watersound, FL",        description: wip, images: imgs("creekbridge", 5) },
-      urbanneighbors:{ name: "Urban Neighbors",              location: "Tampa, FL",             description: wip, images: imgs("urbanneighbors", 11) },
-      photography:   { name: "Photography",                  location: "FL",                    description: wip, images: imgs("photography", 1) },
-      personalart:   { name: "Personal Art",                 location: "FL",                    description: wip, images: imgs("personalart", 1) },
-      schoolwork:    { name: "School Work",                  location: "AL",                    description: wip, images: imgs("schoolwork", 1) },
-      variousdetails:{ name: "Various Details",              location: "",                      description: wip, images: imgs("variousdetails", 1) },
-    };
-
-    const id = new URLSearchParams(window.location.search).get("id");
-    const p = projects[id];
-    if (p) {
-      document.title = p.name + " — Tres Carter";
-      document.getElementById("project-name").textContent = p.name;
-      document.getElementById("project-location").textContent = p.location;
-      document.getElementById("project-description").textContent = p.description;
-
-      const heroImg = document.getElementById("hero-img");
-      heroImg.src = p.images[0];
-      heroImg.alt = p.name;
-      heroImg.onerror = () => { document.getElementById("detail-hero").style.background = "#e0ddd8"; heroImg.style.display = "none"; };
-
-      if (chanceyProjects.includes(id)) {
-        document.getElementById("chancey-mark-detail").style.display = "block";
-      }
-
-      const gallery = document.getElementById("detail-gallery");
-      p.images.slice(1).forEach((src, i) => {
-        const img = document.createElement("img");
-        img.src = src;
-        img.alt = p.name;
-        img.style.animationDelay = `${i * 0.05}s`;
-        img.classList.add("gallery-img");
-        img.onerror = () => img.style.display = "none";
-        gallery.appendChild(img);
-      });
-
-      // reveal gallery images on scroll
-      const observer = new IntersectionObserver((entries) => {
-        entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add("revealed"); observer.unobserve(e.target); } });
-      }, { threshold: 0.05 });
-      document.querySelectorAll(".gallery-img").forEach(img => observer.observe(img));
-    }
-  </script>
+      <a class="detail-back" href="${backHref}">← Back to ${backLabel}</a>
+    </section>
+  `;
+})();
+</script>
 
 </body>
 </html>

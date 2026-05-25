@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title id="page-title">Tres Carter</title>
+  <link rel="icon" href="favicon/favicon.ico" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<div class="dot-grid"></div>
+
+<nav class="nav">
+  <a class="mark" href="index.html">Tres Carter<span class="y">.</span></a>
+  <div class="nav-links">
+    <a href="index.html">← Studio</a>
+    <a href="about.html">About</a>
+  </div>
+</nav>
+
+<main id="content">
+  <div class="loading">loading</div>
+</main>
+
+<footer class="footer">
+  <div class="footer-mark">Tres Carter<span class="y-dot"></span></div>
+  <div class="footer-block">
+    <strong>Contact</strong>
+    <a href="mailto:tres@tres.studio">tres@tres.studio</a>
+    <a href="https://instagram.com/trescarter" target="_blank" rel="noopener">@trescarter</a>
+  </div>
+  <div class="footer-block">
+    <strong>Studio</strong>
+    <a href="about.html">About</a>
+    <a href="index.html">Work</a>
+    <a href="lab.html">Lab</a>
+  </div>
+  <div class="footer-block">
+    <strong>Location</strong>
+    <a>Seagrove · 30A</a>
+    <a>Florida</a>
+  </div>
+  <div class="footer-base">
+    <span>© 2026 Tres Carter</span>
+    <span>Built in Florida</span>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script src="https://unpkg.com/lenis@1.1.13/dist/lenis.min.js"></script>
+<script src="config.js"></script>
+<script src="data.js"></script>
+<script src="scroll.js"></script>
+<script>
+(async () => {
+  const params = new URLSearchParams(location.search);
+  const cat = (params.get('cat') || 'architecture').toLowerCase();
+  const catLabel = cat.charAt(0).toUpperCase() + cat.slice(1);
+  document.getElementById('page-title').textContent = `${catLabel} — Tres Carter`;
+
+  const projects = await DATA.getProjectsByCategory(cat);
+  const content = document.getElementById('content');
+
+  if (!projects.length) {
+    content.innerHTML = `<div class="loading">no projects in ${catLabel} yet</div>`;
+    return;
+  }
+
+  content.innerHTML = `
+    <section class="cat-intro">
+      <div class="reveal">
+        <div class="cat-intro-tag">— Category<span class="y"> · </span>0${cat === 'architecture' ? '1' : '2'}</div>
+        <h1 class="cat-intro-name">${catLabel}</h1>
+      </div>
+      <div class="cat-intro-meta reveal">
+        <strong>${projects.length} projects</strong>
+        2023 — 2026
+      </div>
+    </section>
+
+    <section class="proj-list">
+      ${projects.map((p, i) => `
+        <a class="proj-item reveal" href="project.html?id=${p.slug}">
+          <div class="proj-img">
+            <img src="${p.heroUrlThumb || ''}" alt="${p.name}" loading="lazy" onerror="this.style.display='none'" />
+          </div>
+          <div class="proj-meta">
+            <span class="name">${p.name}</span>
+            <span class="info">${p.location || ''}${p.year ? ' · ' + p.year : ''}</span>
+          </div>
+        </a>
+      `).join('')}
+    </section>
+  `;
+})();
+</script>
+
+</body>
+</html>

@@ -1,461 +1,1521 @@
+/* ════════════════════════════════════════════════════════════════
+   tres.studio — stylesheet
+   Strict palette: white / black / yellow
+   Type: Bebas Neue (display) / DM Sans (body)
+
+   Sections:
+     01. Reset + root variables + base
+     02. Background (dot grid)
+     03. Custom cursor
+     04. Nav
+     05. Page transition
+     06. Home — hero + selected work index + categories
+     07. Category page
+     08. Project detail + gallery (jello-zoom + lightbox)
+     09. Lab
+     10. About
+     11. Footer
+     12. Utilities (reveal, loading)
+     13. Motion + mobile breakpoints
+   ════════════════════════════════════════════════════════════════ */
+
+/* ── 01. Reset + root ─────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --black: #080808;
-  --white: #f8f7f4;
-  --gray: #888;
-  --accent: #c8b89a;
-  --pad: clamp(1.5rem, 5vw, 5rem);
-  --display: 'Bebas Neue', sans-serif;
-  --serif: 'DM Serif Display', Georgia, serif;
-  --body: 'DM Sans', sans-serif;
+  --white:     #FFFFFF;
+  --black:     #0A0A0A;
+  --ink:       #0A0A0A;
+  --ink-soft:  #6B6B6B;
+  --ink-faint: #B5B5B5;
+  --yellow:    #F5CB5C;
+  --line:      #ECECEC;
+
+  --display:   'Bebas Neue', sans-serif;
+  --body:      'DM Sans', system-ui, sans-serif;
+
+  --pad:       clamp(1.5rem, 4vw, 3rem);
+  --pad-lg:    clamp(2rem, 8vw, 7rem);
+
+  --ease:      cubic-bezier(.2, .8, .2, 1);
+  --ease-out:  cubic-bezier(.16, 1, .3, 1);
+
+  --max-content: 1600px;
 }
 
-html { font-size: 16px; scroll-behavior: smooth; }
-
+html { scroll-behavior: auto; }
 body {
   background: var(--white);
-  color: var(--black);
+  color: var(--ink);
   font-family: var(--body);
   font-weight: 300;
+  font-size: 15px;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
+  min-height: 100vh;
+  cursor: none;
+}
+a { color: inherit; text-decoration: none; }
+button { font: inherit; color: inherit; background: none; border: none; cursor: none; }
+img { display: block; max-width: 100%; }
+
+
+/* ── 02. Dot grid background ──────────────────────────────────── */
+/* Desktop values: larger dot + higher opacity so low-DPI displays don't
+   eat the grid. On iOS/touch the 1px/7% values look great — kept those
+   in the mobile override at the bottom of the file. */
+.dot-grid {
+  position: fixed;
+  inset: -80px;
+  z-index: 0;
+  pointer-events: none;
+  background-image: radial-gradient(circle, rgba(10, 10, 10, 0.11) 1.2px, transparent 1.6px);
+  background-size: 32px 32px;
+}
+.dot-grid--dark {
+  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.09) 1.2px, transparent 1.6px);
 }
 
-a { color: inherit; text-decoration: none; }
 
-/* ── Nav ── */
+/* ── 03. Custom cursor ────────────────────────────────────────── */
+.cursor {
+  position: fixed;
+  top: 0; left: 0;
+  width: 6px;
+  height: 6px;
+  background: var(--ink);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9999;
+  transform: translate(-50%, -50%);
+  transition: width 0.4s var(--ease), height 0.4s var(--ease), background-color 0.3s;
+}
+.cursor.hover {
+  width: 52px;
+  height: 52px;
+  background: var(--yellow);
+}
+.cursor-trail {
+  position: fixed;
+  top: 0; left: 0;
+  width: 30px;
+  height: 30px;
+  border: 1px solid rgba(10, 10, 10, 0.2);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9998;
+  transform: translate(-50%, -50%);
+  transition: opacity 0.3s, border-color 0.3s, width 0.4s var(--ease), height 0.4s var(--ease);
+}
+.cursor-trail.hide { opacity: 0; }
+
+body.lab-body .cursor { background: var(--yellow); }
+body.lab-body .cursor.hover { background: var(--white); }
+body.lab-body .cursor-trail { border-color: rgba(255, 255, 255, 0.25); }
+
+@media (hover: none) {
+  body, a, button { cursor: auto !important; }
+  .cursor, .cursor-trail { display: none !important; }
+}
+
+
+/* ── 04. Nav ──────────────────────────────────────────────────── */
 .nav {
   position: fixed;
-  top: 0; right: 0;
+  top: 0; left: 0; right: 0;
   z-index: 100;
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 0.4rem;
-  padding: 1.6rem var(--pad);
-}
-
-.nav-link {
-  font-size: 0.62rem;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--black);
-  transition: opacity 0.2s;
-  display: block;
-}
-
-.nav-link:hover { opacity: 0.4; }
-
-/* ── Hero ── */
-.hero {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  padding: 0 var(--pad) 4rem;
-  position: relative;
-  border-bottom: 1px solid #e0ddd8;
-  overflow: hidden;
-}
-
-.hero-label {
-  position: absolute;
-  top: 2rem;
-  left: var(--pad);
-  font-size: 0.58rem;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--gray);
-}
-
-.hero-name {
-  display: flex;
-  flex-direction: column;
-  line-height: 0.88;
-}
-
-.hero-tres,
-.hero-carter {
-  display: block;
-  font-family: var(--display);
-  font-size: clamp(5.5rem, 20vw, 21rem);
-  letter-spacing: -0.01em;
-  will-change: transform, opacity;
-  transition: transform 0s, opacity 0s;
-}
-
-.hero-tres { color: var(--black); }
-
-.hero-carter {
-  color: transparent;
-  -webkit-text-stroke: 2px var(--black);
-}
-
-.hero-scroll {
-  position: absolute;
-  bottom: 2rem;
-  right: var(--pad);
-  font-size: 0.58rem;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--gray);
-  writing-mode: vertical-rl;
-  animation: fadeScroll 2s ease 1.5s both;
-}
-
-@keyframes fadeScroll {
-  from { opacity: 0; transform: translateY(10px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-/* ── Reveal on scroll ── */
-.reveal {
-  opacity: 0;
-  transform: translateY(30px);
-  transition: opacity 0.7s ease, transform 0.7s ease;
-}
-
-.reveal.revealed {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.gallery-img {
-  opacity: 0;
-  transform: translateY(20px);
-  transition: opacity 0.6s ease, transform 0.6s ease;
-}
-
-.gallery-img.revealed {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-/* ── Work ── */
-.work {
-  padding: 0 var(--pad) 8rem;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  background: #e0ddd8;
-}
-
-/* ── Project Cards ── */
-.project {
-  display: block;
-  background: var(--white);
-  overflow: hidden;
-  position: relative;
-  cursor: pointer;
-}
-
-.project-img {
-  width: 100%;
-  overflow: hidden;
-  background: #e8e6e1;
-}
-
-.project--wide  .project-img { aspect-ratio: 21/9; }
-.project--half  .project-img { aspect-ratio: 4/3; }
-.project--third .project-img { aspect-ratio: 1/1; }
-
-.project-img img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-  transition: transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94), filter 0.4s;
-  filter: saturate(0.88);
-}
-
-.project:hover .project-img img {
-  transform: scale(1.05);
-  filter: saturate(1.1);
-}
-
-.project-img.no-img { background: #e0ddd8; }
-
-/* ── Chancey credit mark ── */
-.chancey-mark {
-  position: absolute;
-  bottom: 12px;
-  right: 12px;
-  width: clamp(50px, 7%, 80px);
-  height: auto !important;
-  aspect-ratio: auto !important;
-  object-fit: contain !important;
-  filter: brightness(0) invert(1);
-  opacity: 0.65;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem var(--pad);
   pointer-events: none;
-  z-index: 2;
-  transition: opacity 0.3s;
+  mix-blend-mode: difference;
+  color: var(--white);
+}
+.nav > * { pointer-events: auto; }
+.nav .mark {
+  font-family: var(--display);
+  font-size: 0.95rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+.nav .mark .y { color: var(--yellow); }
+.nav-links { display: flex; gap: 1.8rem; }
+.nav-links a {
+  font-size: 0.6rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  font-weight: 400;
+  transition: opacity 0.25s;
+}
+.nav-links a:hover { opacity: 0.55; }
+
+
+/* ── 05. Page transition (soft horizontal swipe) ──────────────── */
+.page-transition {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  pointer-events: none;
+  background: var(--line);
+  transform: translateX(-100%);
+  will-change: transform;
+}
+.page-transition.covering {
+  transition: transform 0.6s cubic-bezier(0.5, 0, 0.2, 1);
+}
+.page-transition.revealing {
+  transition: transform 0.78s cubic-bezier(0.2, 0, 0.2, 1);
+}
+.pt-pressed {
+  transition: transform 0.18s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  transform: scale(0.98) !important;
+}
+body.pt-locking, body.pt-locking * { cursor: none !important; }
+body.pt-locking { overflow: hidden; }
+
+/* During the transition, freeze every transition/animation on the page so
+   the panel is the only thing moving. This is what makes the swipe glide
+   on content pages the same way it does on the (already-still) lab page. */
+body.pt-locking .proj-item,
+body.pt-locking .index-row,
+body.pt-locking .cat-link,
+body.pt-locking .gallery-item,
+body.pt-locking .reveal,
+body.pt-locking .hero-name,
+body.pt-locking .hero-name .y-dot {
+  transition: none !important;
+  animation: none !important;
 }
 
-.project:hover .chancey-mark { opacity: 0.85; }
 
-.chancey-mark--detail {
-  width: clamp(80px, 8%, 130px);
-  bottom: 24px;
-  right: 24px;
-  opacity: 0.7;
-}
-
-.project-img { position: relative; }
-
-.project-info {
+/* ── 06. Home — hero + index + categories ─────────────────────── */
+.hero {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 100vh;
+  z-index: 1;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 1.1rem 1.4rem;
-  border-top: 1px solid #e0ddd8;
-  gap: 1.5rem;
+  justify-content: center;
+  pointer-events: none;
 }
-
-.project-num {
+.hero-inner {
+  text-align: center;
+  padding: 0 var(--pad);
+}
+.hero-name {
   font-family: var(--display);
-  font-size: 1rem;
-  color: var(--accent);
-  letter-spacing: 0.05em;
-  flex-shrink: 0;
-}
-
-.project-name {
-  font-size: 0.8rem;
-  font-weight: 400;
-  letter-spacing: 0.04em;
-  margin-bottom: 0.2rem;
-}
-
-.project-loc {
-  font-size: 0.56rem;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--gray);
-}
-
-.project-cta {
-  font-size: 0.62rem;
-  letter-spacing: 0.12em;
-  color: var(--gray);
-  transition: color 0.2s, transform 0.2s;
-  flex-shrink: 0;
-}
-
-.project:hover .project-cta {
-  color: var(--black);
-  transform: translateX(4px);
-}
-
-/* ── Rows ── */
-.project-row { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; }
-.project-row--three { grid-template-columns: 1fr 1fr 1fr; }
-
-/* ── Project Detail ── */
-.detail-hero {
-  height: 65vh;
-  overflow: hidden;
+  font-size: clamp(6rem, 26vw, 28rem);
+  line-height: 0.85;
+  letter-spacing: -0.018em;
+  color: var(--ink);
   position: relative;
-  background: #e0ddd8;
+  animation: hero-in 1.4s var(--ease-out) both;
+}
+/* Bebas Neue lacks a tight T-R kerning pair, leaving a visible gap at this
+   size. Pulling the first letter's right margin negative compensates.
+   Targets .letter (added by hammer.js) when wrapping is done, AND the
+   raw ::first-letter for the brief window before that runs. */
+.hero-name::first-letter,
+.hero-name .letter:first-child {
+  letter-spacing: -0.07em;
+  margin-right: -0.04em;
+}
+.hero-name .y-dot {
+  position: absolute;
+  bottom: 0.16em;
+  right: -0.18em;
+  width: 0.14em;
+  height: 0.14em;
+  background: var(--yellow);
+  border-radius: 50%;
+  /* Hero has pointer-events:none so clicks pass through to content
+     underneath; the dot opts back in so it can be grabbed. */
+  pointer-events: auto;
+  /* Class-toggled visibility — dot.js adds/removes .is-visible based
+     on scroll position. Transitions both directions smoothly, no
+     keyframe restart flicker. */
+  transform: scale(0);
+  opacity: 0;
+  transform-origin: center;
+  transition:
+    transform 0.85s var(--ease-out),
+    opacity 0.55s var(--ease-out);
+}
+.hero-name .y-dot.is-visible {
+  transform: scale(1);
+  opacity: 1;
 }
 
-.detail-hero img {
+/* ─── Easter egg: free dot + goal + particles (homepage only) ───
+   The dot starts captive inside .hero-name. On first interaction
+   (mousedown/touch) dot.js promotes it to position:fixed and adds
+   .y-dot--free; physics take over from there. */
+.hero-name .y-dot--free {
+  position: fixed;
+  z-index: 1000;
+  cursor: grab;
+  bottom: auto;
+  right: auto;
+  /* Lock to its captive size so it doesn't reflow when extracted */
+  width: clamp(0.84rem, 3.64vw, 3.92rem);   /* = 0.14em × hero-name font clamp */
+  height: clamp(0.84rem, 3.64vw, 3.92rem);
+  /* Free dot is positioned per-frame by JS — disable the captive
+     transitions so they don't fight the physics. */
+  transition: none;
+  will-change: transform, left, top;
+  touch-action: none;
+}
+.hero-name .y-dot--grabbing { cursor: grabbing; }
+
+.hero-goal {
+  position: fixed;
+  bottom: 3rem;
+  left: 50%;
+  transform: translateX(-50%) translateY(24px);
+  z-index: 90;
+  opacity: 0;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.85rem;
+  transition:
+    opacity 0.55s var(--ease-out),
+    transform 0.65s var(--ease-out);
+}
+.hero-goal.visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+.hero-goal-target {
+  width: 76px;
+  height: 76px;
+  border: 1.5px dashed var(--yellow);
+  border-radius: 50%;
+  position: relative;
+  transition: transform 0.35s var(--ease), border-color 0.3s;
+}
+.hero-goal-target::before {
+  content: "";
+  position: absolute;
+  inset: 14px;
+  border: 1px solid var(--yellow);
+  border-radius: 50%;
+  opacity: 0.45;
+  transition: opacity 0.3s;
+}
+.hero-goal.flash .hero-goal-target {
+  transform: scale(1.25);
+  border-color: var(--ink);
+}
+.hero-goal.flash .hero-goal-target::before {
+  opacity: 1;
+  background: var(--yellow);
+}
+.hero-goal-label {
+  font-family: var(--display);
+  font-size: 0.62rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.dot-particle {
+  position: fixed;
+  background: var(--yellow);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 200;
+  will-change: transform, opacity;
+}
+
+@media (max-width: 900px), (hover: none) {
+  .hero-goal-target { width: 64px; height: 64px; }
+  .hero-goal-target::before { inset: 12px; }
+  .hero-goal { bottom: 2rem; }
+}
+
+/* ── Basketball hoop (slides in from left when the dot is freed) ── */
+.hoop {
+  position: fixed;
+  left: 2.5rem;
+  top: 42%;
+  z-index: 90;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateX(-180%) translateY(-50%);
+  transition:
+    opacity 0.45s var(--ease-out),
+    transform 0.95s cubic-bezier(0.22, 1.3, 0.36, 1);
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+}
+.hoop.visible {
+  opacity: 1;
+  transform: translateX(0) translateY(-50%);
+}
+.hoop-target {
+  /* Bigger than the original hero-goal-target (76px) — 180px = 2.4× —
+     paired with a 0.95 scoring radius in dot.js. Easier to hit by design. */
+  width: 180px;
+  height: 180px;
+  border: 1.5px dashed var(--yellow);
+  border-radius: 50%;
+  position: relative;
+  flex-shrink: 0;
+  transition: transform 0.35s var(--ease), border-color 0.3s;
+}
+.hoop-target::before {
+  content: "";
+  position: absolute;
+  inset: 36px;
+  border: 1px solid var(--yellow);
+  border-radius: 50%;
+  opacity: 0.45;
+  transition: opacity 0.3s, background 0.3s;
+}
+.hoop.flash .hoop-target {
+  transform: scale(1.15);
+  border-color: var(--ink);
+}
+.hoop.flash .hoop-target::before {
+  opacity: 1;
+  background: var(--yellow);
+}
+.hoop-counter {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  pointer-events: none;
+}
+.hoop-counter-label {
+  font-size: 0.55rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  font-family: var(--display);
+}
+.hoop-counter-value {
+  font-family: var(--display);
+  font-size: 2.2rem;
+  letter-spacing: 0.04em;
+  color: var(--ink);
+  line-height: 0.9;
+  display: inline-block;
+  transform-origin: left center;
+}
+.hoop-counter-value.punch {
+  animation: counter-punch 0.55s var(--ease);
+}
+@keyframes counter-punch {
+  0%   { transform: scale(1);    color: var(--ink); }
+  30%  { transform: scale(1.4);  color: var(--yellow); }
+  100% { transform: scale(1);    color: var(--ink); }
+}
+@media (max-width: 900px), (hover: none) {
+  .hoop { left: 1.25rem; gap: 0.9rem; }
+  .hoop-target { width: 130px; height: 130px; }
+  .hoop-target::before { inset: 24px; }
+  .hoop-counter-value { font-size: 1.6rem; }
+}
+
+/* ── Hammer (grabbable, smashes letters on swing) ──────────────── */
+.hammer {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 60px;
+  height: 80px;
+  z-index: 1000;
+  cursor: grab;
+  pointer-events: auto;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+  will-change: transform;
+  /* Resting transform is set inline by hammer.js. When .hammer--resting is
+     toggled on drag-release, this transition makes the snap-back smooth. */
+}
+.hammer.hammer--resting {
+  transition: transform 0.55s cubic-bezier(0.22, 1.3, 0.36, 1);
+}
+.hammer.hammer--grabbing { cursor: grabbing; }
+.hammer-svg {
   width: 100%;
   height: 100%;
-  object-fit: cover;
   display: block;
+  pointer-events: none;
+}
+@media (max-width: 900px), (hover: none) {
+  .hammer { width: 50px; height: 66px; }
 }
 
-.detail-hero-overlay {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(to top, rgba(8,8,8,0.55) 0%, transparent 60%);
+/* Smashable letter spans (added by hammer.js inside .hero-name and
+   .cat-link .label). When smashed, visibility:hidden hides the original
+   while preserving the layout box — the dot's bounce-collision rects
+   still match, the .hero-name still has its full width, and only the
+   physics clone (.letter-chunk) actually moves. */
+.hero-name .letter,
+.cat-link .label .letter {
+  display: inline-block;
+  transform-origin: center center;
+  transition: opacity 0.15s;
+}
+.hero-name .letter.smashed,
+.cat-link .label .letter.smashed {
+  visibility: hidden;
+}
+
+.letter-chunk {
+  position: fixed;
+  display: inline-block;
+  pointer-events: none;
+  z-index: 998;
+  will-change: transform;
+  transform-origin: center center;
+  /* No transition — physics drives this each frame. */
+}
+
+.hammer-reset {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%) translateY(10px);
+  z-index: 1001;
+  font-family: var(--display);
+  font-size: 0.6rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  padding: 0.7rem 1.3rem;
+  border: 1px solid var(--line);
+  background: var(--white);
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 0.4s var(--ease),
+    transform 0.5s var(--ease),
+    color 0.2s,
+    background 0.2s,
+    border-color 0.2s;
+}
+.hammer-reset.visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(-50%) translateY(0);
+}
+.hammer-reset:hover {
+  color: var(--ink);
+  background: var(--yellow);
+  border-color: var(--yellow);
+}
+
+@keyframes hero-in {
+  from { opacity: 0; letter-spacing: -0.005em; }
+  to   { opacity: 1; letter-spacing: -0.018em; }
+}
+.hero-spacer {
+  height: 100vh;
+  pointer-events: none;
+}
+
+.content {
+  position: relative;
+  z-index: 2;
+  background: var(--white);
+}
+
+/* Selected work — numbered list */
+.index {
+  padding: 10rem var(--pad-lg) 6rem;
+  max-width: var(--max-content);
+  margin: 0 auto;
+}
+.index-head {
   display: flex;
-  align-items: flex-end;
-  padding: 3rem var(--pad);
+  justify-content: space-between;
+  align-items: baseline;
+  padding-bottom: 2.5rem;
+  margin-bottom: 4rem;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.6rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.index-row {
+  display: grid;
+  grid-template-columns: 60px 1fr auto auto;
+  align-items: center;
+  gap: 2rem;
+  padding: 2.2rem 0;
+  border-bottom: 1px solid var(--line);
+  position: relative;
+  transition: padding 0.65s var(--ease);
+}
+.index-row:hover { padding-left: 2rem; }
+.index-row .num {
+  font-family: var(--display);
+  font-size: 0.85rem;
+  letter-spacing: 0.05em;
+  color: var(--ink-faint);
+}
+.index-row .name {
+  font-family: var(--display);
+  font-size: clamp(1.6rem, 3vw, 2.6rem);
+  letter-spacing: 0.015em;
+  line-height: 0.95;
+  transition: color 0.4s, transform 0.65s var(--ease);
+}
+.index-row:hover .name { color: var(--ink); }
+.index-row .loc,
+.index-row .year {
+  font-size: 0.6rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.index-row .year { font-family: var(--display); }
+
+/* Yellow tick that slides in on hover */
+.index-row::before {
+  content: '';
+  position: absolute;
+  left: -2rem;
+  top: 50%;
+  width: 1.4rem;
+  height: 2px;
+  background: var(--yellow);
+  transform: translateY(-50%) scaleX(0);
+  transform-origin: left;
+  transition: transform 0.65s var(--ease);
+}
+.index-row:hover::before { transform: translateY(-50%) scaleX(1); }
+
+/* Floating thumbnail preview, tracks the cursor */
+.index-row .preview {
+  position: fixed;
+  top: 0; left: 0;
+  width: 220px;
+  aspect-ratio: 4/3;
+  background: var(--line);
+  pointer-events: none;
+  opacity: 0;
+  transform: scale(0.92) rotate(-2deg);
+  transition: opacity 0.4s var(--ease), transform 0.5s var(--ease);
+  z-index: 50;
+  overflow: hidden;
+  will-change: transform, opacity;
+}
+.index-row .preview img { width: 100%; height: 100%; object-fit: cover; }
+.index-row:hover .preview {
+  opacity: 1;
+  transform: scale(1) rotate(0deg);
 }
 
-.detail-hero-text h1 {
+/* Category entry — 3-up minimal */
+.cats {
+  padding: 8rem var(--pad-lg) 6rem;
+  border-top: 1px solid var(--line);
+  max-width: var(--max-content);
+  margin: 0 auto;
+}
+.cats-head {
+  font-size: 0.6rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin-bottom: 4rem;
+}
+.cats-list { display: flex; flex-direction: column; }
+.cat-link {
+  display: grid;
+  grid-template-columns: 60px 1fr auto;
+  align-items: center;
+  gap: 2rem;
+  padding: 3rem 0;
+  border-top: 1px solid var(--line);
+  position: relative;
+  transition: padding 0.65s var(--ease);
+}
+.cat-link:last-child { border-bottom: 1px solid var(--line); }
+.cat-link:hover { padding-left: 2rem; }
+.cat-link .num {
+  font-family: var(--display);
+  font-size: 0.85rem;
+  letter-spacing: 0.05em;
+  color: var(--ink-faint);
+}
+.cat-link .label {
   font-family: var(--display);
   font-size: clamp(3rem, 8vw, 7rem);
-  color: var(--white);
-  line-height: 0.9;
-  margin-bottom: 0.5rem;
+  letter-spacing: 0.005em;
+  line-height: 0.85;
+  transition: color 0.3s;
 }
-
-.detail-hero-text p {
-  font-size: 0.62rem;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: rgba(248,247,244,0.6);
-}
-
-.detail-body {
-  padding: 4rem var(--pad) 8rem;
-}
-
-.detail-back {
-  display: inline-block;
+.cat-link:hover .label { color: var(--yellow); }
+.cat-link .meta {
   font-size: 0.6rem;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: var(--gray);
-  margin-bottom: 3rem;
-  transition: color 0.2s;
+  color: var(--ink-soft);
+  text-align: right;
 }
 
-.detail-back:hover { color: var(--black); }
 
-.detail-meta {
+/* ── 07. Category page ────────────────────────────────────────── */
+.cat-intro {
+  padding: 10rem var(--pad-lg) 4rem;
   display: grid;
-  grid-template-columns: 1fr 2fr;
+  grid-template-columns: 5fr 7fr;
   gap: 4rem;
-  margin-bottom: 4rem;
-  padding-bottom: 3rem;
-  border-bottom: 1px solid #e0ddd8;
+  align-items: end;
+  max-width: var(--max-content);
+  margin: 0 auto;
+}
+.cat-intro-tag {
+  font-size: 0.6rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin-bottom: 2rem;
+}
+.cat-intro-tag .y { color: var(--yellow); }
+.cat-intro-name {
+  font-family: var(--display);
+  font-size: clamp(4rem, 12vw, 14rem);
+  line-height: 0.85;
+  letter-spacing: -0.01em;
+}
+.cat-intro-meta {
+  text-align: right;
+  align-self: end;
+  padding-bottom: 0.8rem;
+  font-size: 0.6rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.cat-intro-meta strong {
+  display: block;
+  font-family: var(--display);
+  font-size: 1rem;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.4em;
+  color: var(--ink);
+  font-weight: 400;
 }
 
-.detail-description {
-  font-size: 0.88rem;
-  line-height: 1.9;
-  color: #555;
-  font-weight: 300;
-}
-
-.detail-gallery {
+/* Project grid — clean 2-column, no editorial offsets. */
+.proj-list {
+  padding: 4rem var(--pad-lg) 8rem;
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 2px;
-  background: #e0ddd8;
+  column-gap: clamp(1.5rem, 3vw, 3rem);
+  row-gap: clamp(4rem, 7vw, 7rem);
+  max-width: var(--max-content);
+  margin: 0 auto;
 }
-
-.detail-gallery img {
-  width: 100%;
-  aspect-ratio: 4/3;
-  object-fit: cover;
+.proj-item {
   display: block;
-  background: #e8e6e1;
+  position: relative;
+  will-change: transform, opacity;
+  transform-origin: center center;
 }
+/* Subtle staircase: every other tile drops a touch so the rows aren't
+   rigidly aligned. Keeps an editorial feel without leaving any tile
+   stranded alone in the middle of the page. */
+.proj-item:nth-child(even) { margin-top: clamp(2rem, 4vw, 4rem); }
 
-.detail-gallery img:first-child {
-  grid-column: 1 / -1;
-  aspect-ratio: 16/9;
+.proj-img {
+  width: 100%;
+  overflow: hidden;
+  background: var(--line);
 }
-
-/* ── About ── */
-.about-hero {
-  padding: 8rem var(--pad) 0;
+.proj-img img {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: cover;
+  transition: transform 1.5s var(--ease);
 }
+.proj-item:hover .proj-img img { transform: scale(1.04); }
 
-.about-hero h1 {
+.proj-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-top: 1rem;
+  padding: 0 0.2rem;
+}
+.proj-meta .name {
   font-family: var(--display);
-  font-size: clamp(5rem, 16vw, 14rem);
-  line-height: 0.88;
-  color: var(--black);
-  margin-bottom: 4rem;
+  font-size: clamp(1.1rem, 1.6vw, 1.4rem);
+  letter-spacing: 0.015em;
+  line-height: 1;
+}
+.proj-meta .info {
+  font-size: 0.6rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
 }
 
-.about-grid {
+
+/* ── 08. Project detail + gallery ─────────────────────────────── */
+.detail {
+  margin-top: 6rem;
+  padding: 0 var(--pad-lg) 10rem;
+  max-width: var(--max-content);
+  margin-left: auto;
+  margin-right: auto;
+}
+.detail-head {
   display: grid;
   grid-template-columns: 5fr 7fr;
   gap: 5rem;
-  padding: 4rem var(--pad) 8rem;
-  border-top: 1px solid #e0ddd8;
+  align-items: end;
+  padding: 2rem 0 6rem;
+  border-bottom: 1px solid var(--line);
 }
+.detail-eyebrow {
+  font-size: 0.6rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin-bottom: 1.5rem;
+}
+.detail-title {
+  font-family: var(--display);
+  font-size: clamp(3rem, 7vw, 6rem);
+  line-height: 0.88;
+  letter-spacing: -0.002em;
+}
+.detail-loc {
+  font-size: 0.6rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin-top: 1.5rem;
+}
+.detail-loc .y { color: var(--yellow); }
+.detail-desc {
+  font-size: 1rem;
+  line-height: 1.85;
+  color: var(--ink-soft);
+  max-width: 52ch;
+  margin-left: auto;
+}
+.detail-desc p { margin: 0; }
+.detail-credit {
+  margin-top: 2.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--line);
+  font-size: 0.6rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  line-height: 1;
+}
+.detail-credit span,
+.detail-credit a {
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: 1.4em;
+  letter-spacing: 0.08em;
+  color: var(--ink);
+  margin-left: 0.5em;
+  /* Hidden link: no underline, no color shift on hover. Cursor changes
+     to pointer (default <a> behavior) so the link is still discoverable
+     by hover, but visually it reads as plain credit text. */
+  text-decoration: none;
+}
+.detail-back {
+  display: inline-block;
+  margin-top: 2rem;
+  font-size: 0.6rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  transition: color 0.2s, transform 0.4s var(--ease);
+}
+.detail-back:hover { color: var(--ink); transform: translateX(-6px); }
 
-.about-img {
-  aspect-ratio: 3/4;
-  background: #e0ddd8;
+/* Gallery — landscape jello-zoom grid */
+.gallery {
+  padding-top: 5rem;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: clamp(0.5rem, 0.8vw, 0.85rem);
+}
+.gallery-item {
+  aspect-ratio: 3/2;
+  background: var(--line);
   overflow: hidden;
+  position: relative;
+  cursor: zoom-in;
+  border-radius: 10px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transform-origin: center center;
+  will-change: transform;
+  /* content-visibility: auto skips paint/composite for cells whose layout
+     box is off-screen. The aspect-ratio above locks layout size so the grid
+     stays stable. Biggest single perf win on long galleries (thesis: 73). */
+  content-visibility: auto;
+  contain-intrinsic-size: auto 220px;
+  transition:
+    transform 0.65s cubic-bezier(0.25, 1, 0.5, 1),
+    box-shadow 0.5s ease;
 }
-
-.about-img img {
+.gallery-item img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+.gallery-item img.loaded { opacity: 1; }
+/* Video gallery items get full parity with img: same fill, same fade-in.
+   Used for embedded clips (autoplay, muted, looped) like the z07 construction
+   walkthrough. data.js routes any .mp4/.webm/.mov path to Cloudinary's video
+   CDN automatically. */
+.gallery-item video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+.gallery-item video.loaded { opacity: 1; }
+
+@media (hover: hover) {
+  .gallery-item:hover:not(.zoomed):not(.pushed) {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  }
 }
 
-.about-text h2 {
-  font-family: var(--serif);
-  font-size: clamp(1.4rem, 2.5vw, 2rem);
-  font-weight: 400;
-  font-style: italic;
-  margin-bottom: 2rem;
-  line-height: 1.3;
+.gallery .gallery-item.zoomed {
+  z-index: 20;
+  transform: scale(3.5);
+  border-radius: 14px;
+  box-shadow:
+    0 30px 70px rgba(0, 0, 0, 0.22),
+    0 10px 24px rgba(0, 0, 0, 0.12);
+  transition:
+    transform 1.2s cubic-bezier(0.34, 1.4, 0.5, 1),
+    box-shadow 0.85s ease,
+    border-radius 0.7s ease;
+}
+.gallery .gallery-item.pushed {
+  z-index: 1;
+  transition: transform 1.1s cubic-bezier(0.34, 1.4, 0.5, 1);
+}
+.gallery.has-zoom .gallery-item:not(.zoomed) img,
+.gallery.has-zoom .gallery-item:not(.zoomed) video {
+  filter: saturate(0.78) brightness(0.92);
+  transition: filter 0.5s ease;
 }
 
-.about-text p {
-  font-size: 0.88rem;
-  line-height: 1.9;
-  color: #444;
-  margin-bottom: 1.2rem;
-}
-
-.about-actions {
-  margin-top: 3rem;
-  padding-top: 2rem;
-  border-top: 1px solid #e0ddd8;
-  display: flex;
-  gap: 2rem;
-  flex-wrap: wrap;
-}
-
-.about-action {
-  font-size: 0.6rem;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--gray);
-  transition: color 0.2s;
-}
-
-.about-action:hover { color: var(--black); }
-
-/* ── Footer ── */
-footer {
+/* Lightbox — fullscreen expanded tile.
+   Selector intentionally matches .zoomed's 3-class specificity so .expanded
+   wins the cascade if both classes ever briefly coexist (e.g. a hover timer
+   firing immediately after a click). */
+.gallery .gallery-item.expanded {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  aspect-ratio: auto;
+  z-index: 200;
+  background: rgba(10, 10, 10, 0.55);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  cursor: zoom-out;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 2rem var(--pad);
-  border-top: 1px solid #e0ddd8;
-  background: var(--white);
-  gap: 2rem;
-  flex-wrap: wrap;
+  justify-content: center;
+  padding: 4rem;
+  border-radius: 0;
+  transform: none;
+  transition: none;
+}
+.gallery .gallery-item.expanded img,
+.gallery .gallery-item.expanded video {
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  filter: none;
+  border-radius: 6px;
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.5);
 }
 
-.footer-name {
-  font-family: var(--display);
-  font-size: 1.4rem;
-  letter-spacing: 0.05em;
-  color: var(--accent);
+/* Lightbox prev/next arrows — injected by scroll.js when a tile is expanded.
+   Container is pointer-events:none so the backdrop still receives clicks
+   (clicking dark area closes); the buttons themselves re-enable pointer
+   events so they remain interactive. */
+.lightbox-arrows {
+  position: fixed;
+  inset: 0;
+  z-index: 250;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.4s var(--ease);
 }
+.lightbox-arrows.visible { opacity: 1; }
 
-.footer-links {
+.lightbox-arrow {
+  position: absolute;
+  top: 50%;
+  width: 56px;
+  height: 56px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(10, 10, 10, 0.45);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-radius: 50%;
+  color: rgba(255, 255, 255, 0.9);
+  cursor: none;
+  pointer-events: auto;
   display: flex;
-  gap: 2rem;
-  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition:
+    background 0.3s,
+    border-color 0.3s,
+    color 0.3s,
+    transform 0.35s var(--ease);
+}
+.lightbox-arrow svg { width: 22px; height: 22px; pointer-events: none; }
+.lightbox-arrow:hover {
+  background: var(--yellow);
+  color: var(--black);
+  border-color: var(--yellow);
+}
+.lightbox-arrow--prev {
+  left: 2rem;
+  transform: translateY(-50%);
+}
+.lightbox-arrow--prev:hover { transform: translateY(-50%) translateX(-4px); }
+.lightbox-arrow--next {
+  right: 2rem;
+  transform: translateY(-50%);
+}
+.lightbox-arrow--next:hover { transform: translateY(-50%) translateX(4px); }
+
+/* Blur everything behind the lightbox */
+body.lightbox-open .gallery > .gallery-item:not(.expanded) {
+  filter: blur(14px) saturate(0.7);
+  transition: filter 0.5s ease;
+}
+body.lightbox-open .nav,
+body.lightbox-open .footer,
+body.lightbox-open .detail-head,
+body.lightbox-open .detail-back,
+body.lightbox-open .dot-grid {
+  filter: blur(10px);
+  transition: filter 0.5s ease;
 }
 
-.footer-links a,
-.footer-copy {
-  font-size: 0.58rem;
-  letter-spacing: 0.16em;
+
+/* ── 09. Lab ──────────────────────────────────────────────────── */
+.lab-body {
+  background: var(--black);
+  color: var(--white);
+  min-height: 100vh;
+  cursor: none;
+  overflow: hidden;
+}
+.lab-body .nav { color: var(--white); mix-blend-mode: normal; }
+
+.lab-stage {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  touch-action: none;
+  user-select: none;
+}
+.lab-mark {
+  position: absolute;
+  bottom: 2rem;
+  left: var(--pad);
+  font-family: var(--display);
+  font-size: 1rem;
+  letter-spacing: 0.24em;
+  color: var(--yellow);
+  z-index: 2;
+  pointer-events: none;
+}
+.lab-hint {
+  position: absolute;
+  bottom: 2rem;
+  right: var(--pad);
+  font-size: 0.55rem;
+  letter-spacing: 0.3em;
   text-transform: uppercase;
-  color: var(--gray);
-  transition: color 0.2s;
+  color: rgba(255, 255, 255, 0.35);
+  z-index: 2;
+  pointer-events: none;
+}
+.lab-reset {
+  position: absolute;
+  top: 5rem;
+  right: var(--pad);
+  font-size: 0.55rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
+  padding: 0.65rem 1.2rem;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: none;
+  transition: all 0.3s;
+  z-index: 5;
+}
+.lab-reset:hover {
+  color: var(--black);
+  background: var(--yellow);
+  border-color: var(--yellow);
 }
 
-.footer-links a:hover { color: var(--black); }
+.ios-icon {
+  position: absolute;
+  top: 0; left: 0;
+  width: 78px;
+  height: 78px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: none;
+  will-change: transform;
+  transform-origin: center;
+}
+.ios-icon svg {
+  width: 38px;
+  height: 38px;
+  pointer-events: none;
+}
+.ios-icon--yellow { background: var(--yellow); }
+.ios-icon--yellow svg { color: var(--black); }
+.ios-icon--white { background: var(--white); }
+.ios-icon--white svg { color: var(--black); }
+.ios-icon--black { background: #1a1a1a; border: 1px solid rgba(255, 255, 255, 0.1); }
+.ios-icon--black svg { color: var(--yellow); }
 
-/* ── Responsive ── */
-@media (max-width: 768px) {
-  .hero-tres, .hero-carter { font-size: clamp(4.5rem, 22vw, 8rem); }
-  .project-row, .project-row--three { grid-template-columns: 1fr; }
-  .project--wide .project-img { aspect-ratio: 4/3; }
-  .detail-meta { grid-template-columns: 1fr; gap: 2rem; }
-  .about-grid { grid-template-columns: 1fr; gap: 3rem; }
-  .detail-gallery { grid-template-columns: 1fr; }
-  .detail-gallery img:first-child { grid-column: 1; aspect-ratio: 4/3; }
-  footer { flex-direction: column; align-items: flex-start; gap: 1rem; }
-  .footer-links { flex-direction: column; gap: 0.6rem; }
+.ios-icon-label {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%) translateY(-4px);
+  font-family: var(--display);
+  font-size: 0.7rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.85);
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease, transform 0.4s var(--ease);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+}
+@media (hover: hover) {
+  .ios-icon:hover .ios-icon-label {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+/* Lab gravity slider */
+.lab-gravity {
+  position: absolute;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  z-index: 5;
+  pointer-events: auto;
+}
+.lab-gravity-label {
+  font-family: var(--display);
+  font-size: 0.55rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.4);
+  transition: color 0.3s;
+}
+.lab-gravity:hover .lab-gravity-label { color: var(--yellow); }
+.lab-gravity-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.lab-gravity-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 120px;
+  height: 20px;
+  background: transparent;
+  outline: none;
+  cursor: none;
+}
+.lab-gravity-slider::-webkit-slider-runnable-track {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.18);
+}
+.lab-gravity-slider::-moz-range-track {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.18);
+}
+.lab-gravity-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 9px;
+  height: 9px;
+  margin-top: -4px;
+  border-radius: 50%;
+  background: var(--yellow);
+  cursor: none;
+  transition: transform 0.25s ease, box-shadow 0.3s;
+}
+.lab-gravity-slider::-moz-range-thumb {
+  width: 9px;
+  height: 9px;
+  border: none;
+  border-radius: 50%;
+  background: var(--yellow);
+  cursor: none;
+}
+.lab-gravity-slider:hover::-webkit-slider-thumb {
+  transform: scale(1.4);
+  box-shadow: 0 0 0 6px rgba(245, 203, 92, 0.12);
+}
+.lab-gravity-tick {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 1px;
+  height: 7px;
+  background: rgba(255, 255, 255, 0.25);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+
+/* ── 10. About ────────────────────────────────────────────────── */
+.about {
+  margin-top: 8rem;
+  padding: 4rem var(--pad-lg) 8rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6rem;
+  max-width: var(--max-content);
+  margin-left: auto;
+  margin-right: auto;
+}
+.about-side {
+  position: sticky;
+  top: 8rem;
+  align-self: start;
+}
+.about-name {
+  font-family: var(--display);
+  font-size: clamp(4rem, 9vw, 8rem);
+  line-height: 0.85;
+  letter-spacing: -0.005em;
+}
+.about-name .y { color: var(--yellow); }
+.about-img {
+  width: 70%;
+  margin-top: 3rem;
+  aspect-ratio: 3/4;
+  background: var(--line);
+  overflow: hidden;
+}
+.about-img img { width: 100%; height: 100%; object-fit: cover; }
+
+.about-body { padding-top: 2rem; }
+.about-tag {
+  font-size: 0.6rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin-bottom: 2rem;
+}
+.about-body h2 {
+  font-family: var(--display);
+  font-size: clamp(2rem, 3.5vw, 3rem);
+  font-weight: 400;
+  letter-spacing: 0.005em;
+  line-height: 1.05;
+  margin-bottom: 2.5rem;
+}
+.about-body p {
+  font-size: 1rem;
+  line-height: 1.85;
+  color: var(--ink-soft);
+  margin-bottom: 1.5rem;
+}
+
+/* ─── Typewriter (about page) ─────────────────────────────────
+   Lines stream in character-by-character. A yellow block cursor
+   sits at the end of whichever .about-line is currently last —
+   it visually "moves down" each time a new line begins. After
+   the run completes, .done softens the cursor to gray and slows
+   its blink, giving it that "chatbot is idle" feeling. */
+.about-typer {
+  font-size: 1.1rem;
+  line-height: 1.85;
+  color: var(--ink-soft);
+  margin-bottom: 0;
+  min-height: 18rem; /* prevent layout jump as text grows in */
+}
+.about-typer .about-line {
+  margin: 0 0 1.5em 0;
+  min-height: 1em;
+  font-size: inherit;
+  line-height: inherit;
+  color: inherit;
+}
+.about-typer .about-line:last-child::after {
+  content: "";
+  display: inline-block;
+  width: 0.45em;
+  height: 1em;
+  background: var(--yellow);
+  margin-left: 0.18em;
+  vertical-align: -0.12em;
+  animation: about-blink 1.06s steps(2, end) infinite;
+}
+.about-typer.done .about-line:last-child::after {
+  background: var(--ink-faint);
+  animation-duration: 1.5s;
+}
+@keyframes about-blink {
+  0%, 50%      { opacity: 1; }
+  50.01%, 100% { opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .about-typer .about-line:last-child::after { animation: none; opacity: 0.5; }
+}
+.about-actions {
+  margin-top: 3.5rem;
+  padding-top: 2.5rem;
+  border-top: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  /* Hidden until the typewriter finishes — JS adds .ready to fade them in */
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.7s var(--ease-out), transform 0.7s var(--ease-out);
+}
+.about-actions.ready {
+  opacity: 1;
+  transform: translateY(0);
+}
+.about-actions a {
+  font-size: 0.62rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  transition: color 0.2s, padding 0.4s var(--ease);
+}
+.about-actions a:hover { color: var(--ink); padding-left: 1rem; }
+
+
+/* ── 11. Footer ───────────────────────────────────────────────── */
+.footer {
+  border-top: 1px solid var(--line);
+  padding: 4rem var(--pad-lg) 2rem;
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 3rem;
+  align-items: start;
+  font-size: 0.6rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  max-width: var(--max-content);
+  margin: 0 auto;
+}
+.footer-block strong {
+  display: block;
+  color: var(--ink);
+  font-family: var(--display);
+  font-size: 0.85rem;
+  letter-spacing: 0.1em;
+  margin-bottom: 1.4rem;
+  font-weight: 400;
+}
+.footer-block a { display: block; margin-bottom: 0.6rem; transition: color 0.2s; }
+.footer-block a:hover { color: var(--ink); }
+.footer-mark {
+  font-family: var(--display);
+  font-size: clamp(2.5rem, 7vw, 6rem);
+  letter-spacing: 0.005em;
+  line-height: 0.85;
+  color: var(--ink);
+}
+/* Slide-in-from-left entrance, overrides the default .reveal fade-up.
+   The mark is auto-tagged .reveal by scroll.js so this hooks in automatically. */
+.footer-mark.reveal {
+  opacity: 0;
+  transform: translateX(-25vw);
+  transition:
+    opacity 0.6s var(--ease-out),
+    transform 1.3s cubic-bezier(0.22, 1.4, 0.36, 1);
+}
+.footer-mark.reveal.in {
+  opacity: 1;
+  transform: translateX(0);
+}
+.footer-mark .y-dot {
+  display: inline-block;
+  width: 0.16em;
+  height: 0.16em;
+  background: var(--yellow);
+  border-radius: 50%;
+  margin-left: 0.05em;
+  vertical-align: baseline;
+}
+.footer-base {
+  grid-column: 1 / -1;
+  margin-top: 4rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  color: var(--ink-faint);
+}
+
+
+/* ── 12. Utilities ────────────────────────────────────────────── */
+.reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.95s var(--ease-out), transform 0.95s var(--ease-out);
+}
+.reveal.in {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.loading {
+  padding: 10rem var(--pad);
+  text-align: center;
+  color: var(--ink-faint);
+  font-size: 0.6rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+}
+
+
+/* ── 13. Motion + responsive ──────────────────────────────────── */
+@media (max-width: 900px) {
+  .index { padding: 6rem var(--pad) 3rem; }
+  .index-row { grid-template-columns: 40px 1fr; gap: 1rem; padding: 1.4rem 0; }
+  .index-row .loc,
+  .index-row .year,
+  .index-row .preview { display: none; }
+
+  .cats { padding: 4rem var(--pad) 3rem; }
+  .cat-link { grid-template-columns: 40px 1fr; padding: 1.6rem 0; }
+  .cat-link .meta { display: none; }
+
+  .cat-intro { grid-template-columns: 1fr; gap: 1rem; padding: 8rem var(--pad) 3rem; }
+  .cat-intro-meta { text-align: left; }
+
+  .proj-list {
+    grid-template-columns: 1fr;
+    padding: 3rem var(--pad) 5rem;
+    gap: 3rem;
+  }
+  .proj-item,
+  .proj-item:nth-child(even) {
+    grid-column: 1;
+    margin: 0;
+  }
+
+  .detail { padding: 0 var(--pad) 5rem; margin-top: 6rem; }
+  .detail-head { grid-template-columns: 1fr; gap: 2rem; padding: 1rem 0 3rem; }
+  .detail-desc { margin-left: 0; }
+
+  .gallery {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+    padding-top: 3rem;
+  }
+  .gallery-item {
+    cursor: pointer;
+    border-radius: 8px;
+  }
+  .gallery-item.zoomed,
+  .gallery-item.pushed {
+    transform: none !important;
+    z-index: auto;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  }
+  .gallery.has-zoom .gallery-item:not(.zoomed) img,
+  .gallery.has-zoom .gallery-item:not(.zoomed) video { filter: none; }
+  .gallery-item.expanded { padding: 1rem; }
+  .lightbox-arrow {
+    width: 42px;
+    height: 42px;
+    cursor: pointer;
+  }
+  .lightbox-arrow svg { width: 18px; height: 18px; }
+  .lightbox-arrow--prev { left: 0.75rem; }
+  .lightbox-arrow--next { right: 0.75rem; }
+
+  .about { grid-template-columns: 1fr; gap: 3rem; padding: 4rem var(--pad); margin-top: 6rem; }
+  .about-side { position: static; }
+  .about-img { width: 100%; }
+
+  .footer { grid-template-columns: 1fr; gap: 2rem; padding: 3rem var(--pad) 2rem; }
+  .footer-base { flex-direction: column; gap: 1rem; }
+
+  .ios-icon { width: 62px; height: 62px; border-radius: 16px; }
+  .ios-icon svg { width: 30px; height: 30px; }
+  /* The "drag to release" hint is for cursor users — touch users just drag
+     intuitively, and on narrow viewports the hint collides with the gravity
+     slider. Hide it on mobile/touch. */
+  .lab-hint { display: none; }
+}
+
+/* Mobile + touch — push scrollables onto their own composite layer, kill blend modes */
+@media (max-width: 900px), (hover: none) {
+  .dot-grid {
+    background-image: radial-gradient(circle, rgba(10, 10, 10, 0.07) 1px, transparent 1.4px);
+    background-size: 36px 36px;
+  }
+  .dot-grid--dark {
+    background-image: radial-gradient(circle, rgba(255, 255, 255, 0.06) 1px, transparent 1.4px);
+  }
+  .proj-item, .gallery-item, .index-row {
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    transform: translateZ(0);
+  }
+  .nav { mix-blend-mode: normal; color: var(--ink); }
+  .lab-body .nav { color: var(--white); }
+}
+
+/* Respect users who want less motion */
+@media (prefers-reduced-motion: reduce) {
+  .reveal, .reveal.in { opacity: 1 !important; transform: none !important; transition: none !important; }
+  .proj-item, .gallery-item, .index-row { transform: none !important; opacity: 1 !important; }
+  .hero-name { animation: none !important; }
+  .hero-name .y-dot { transition: none !important; transform: scale(1) !important; opacity: 1 !important; }
+  .dot-grid { transform: none !important; }
 }

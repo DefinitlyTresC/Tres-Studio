@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lab — Tres Carter</title>
+  <link rel="icon" href="favicon/favicon.ico" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="lab-body">
+
+<div class="dot-grid dot-grid--dark"></div>
+
+<nav class="nav">
+  <a class="mark" href="index.html">Tres Carter<span class="y">.</span></a>
+  <div class="nav-links">
+    <a href="index.html">← Studio</a>
+  </div>
+</nav>
+
+<div class="lab-stage" id="labStage">
+  <div class="lab-mark">Lab — Drift</div>
+  <div class="lab-hint">drag to release</div>
+  <button class="lab-reset" id="labReset">Reset</button>
+  <div class="lab-gravity">
+    <span class="lab-gravity-label">Gravity</span>
+    <div class="lab-gravity-wrap">
+      <span class="lab-gravity-tick"></span>
+      <input type="range" id="gravitySlider" class="lab-gravity-slider" min="-1" max="1" step="0.02" value="0">
+    </div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/lenis@1.1.13/dist/lenis.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+<script src="scroll.js"></script>
+<script>
+// Lab icons. First row = the four working experiments (drift, plan,
+// birds, field) — each has a slug so tapping routes to labs/{slug}.html.
+// Second row = decorative placeholders for future labs: still bounce
+// around in the physics, but no slug means tapping doesn't navigate.
+const LAB_ICONS = [
+  { n: 'Drift', slug: 'drift', v: 'black',  svg: '<path d="M3 8c2-2 4-2 6 0s4 2 6 0 4-2 6 0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M5 12c2-2 4-2 6 0s4 2 6 0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M3 16c2-2 4-2 6 0s4 2 6 0 4-2 6 0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>' },
+  { n: 'Plan',  slug: 'plan',  v: 'yellow', svg: '<rect x="3" y="3" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8"/><line x1="3" y1="11" x2="21" y2="11" stroke="currentColor" stroke-width="1.5"/><line x1="11" y1="3" x2="11" y2="21" stroke="currentColor" stroke-width="1.5"/><rect x="11.5" y="11.5" width="9" height="9" fill="currentColor" opacity=".25"/>' },
+  { n: 'Birds', slug: 'birds', v: 'white',  svg: '<path d="M3 13l3-2 3 2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M10 8l3-2 3 2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 18l3-2 3 2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>' },
+  { n: 'Field', slug: 'field', v: 'black',  svg: '<g stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"><path d="M5 7l2.5 2"/><path d="M12 6l-1 3"/><path d="M18 7l-2.5 2"/><path d="M5 12.5l2.5 1.5"/><path d="M12 12l1.5 2"/><path d="M18.5 12l-1.5 2.5"/><path d="M5 17.5l2.5-1"/><path d="M12 18l1-2"/><path d="M18 17l-2.5-1"/></g>' },
+  // Decorative placeholders — no slug = no navigation, just physics
+  { n: 'Sound', v: 'yellow', svg: '<path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/><path d="M17 8c1.5 1.5 1.5 6.5 0 8" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/>' },
+  { n: '3D',    v: 'white',  svg: '<path d="M12 3l8 5v8l-8 5-8-5V8l8-5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M12 3v18M4 8l8 5 8-5" stroke="currentColor" stroke-width="2" fill="none"/>' },
+  { n: 'Type',  v: 'black',  svg: '<path d="M4 6h16M12 6v14M8 20h8" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>' },
+  { n: 'Color', v: 'yellow', svg: '<circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="9" cy="9" r="2" fill="currentColor"/><circle cx="15" cy="9" r="2" fill="currentColor" opacity=".6"/><circle cx="12" cy="15" r="2" fill="currentColor" opacity=".4"/>' },
+];
+
+const stage = document.getElementById('labStage');
+// Read dimensions after layout has settled — fall back to window if stage reports 0
+let W = stage.clientWidth || window.innerWidth;
+let H = stage.clientHeight || window.innerHeight;
+const ICON = window.innerWidth < 700 ? 62 : 78;
+
+const engine = Matter.Engine.create();
+engine.gravity.y = 0;
+engine.gravity.x = 0;
+const world = engine.world;
+
+const wallOpts = { isStatic: true, restitution: 0.9, render: { visible: false } };
+Matter.World.add(world, [
+  Matter.Bodies.rectangle(W/2, -10, W*2, 20, wallOpts),
+  Matter.Bodies.rectangle(W/2, H+10, W*2, 20, wallOpts),
+  Matter.Bodies.rectangle(-10, H/2, 20, H*2, wallOpts),
+  Matter.Bodies.rectangle(W+10, H/2, 20, H*2, wallOpts),
+]);
+
+const bodies = [];
+const elements = [];
+
+const cols = W < 700 ? 3 : 4;
+const rows = Math.ceil(LAB_ICONS.length / cols);
+const colGap = ICON + 70;
+const rowGap = ICON + 90;
+const gridW = cols * colGap - 70;
+const gridH = rows * rowGap - 90;
+const startX = (W - gridW) / 2 + ICON/2;
+const startY = (H - gridH) / 2 + ICON/2;
+
+LAB_ICONS.forEach((def, i) => {
+  const col = i % cols;
+  const row = Math.floor(i / cols);
+  const x = startX + col * colGap;
+  const y = startY + row * rowGap;
+
+  const body = Matter.Bodies.rectangle(x, y, ICON, ICON, {
+    chamfer: { radius: 16 },
+    restitution: 0.95,
+    friction: 0.0,
+    frictionAir: 0.0025,
+    density: 0.0008,
+    isStatic: true,
+  });
+  bodies.push(body);
+  Matter.World.add(world, body);
+
+  const el = document.createElement('div');
+  el.className = `ios-icon ios-icon--${def.v}`;
+  el.style.width = ICON + 'px';
+  el.style.height = ICON + 'px';
+  el.innerHTML = `<svg viewBox="0 0 24 24">${def.svg}</svg><span class="ios-icon-label">${def.n}</span>`;
+  el.style.transform = `translate(${x - ICON/2}px, ${y - ICON/2}px)`;
+  stage.appendChild(el);
+  elements.push(el);
+
+  let downPos = null;
+  let moved = false;
+  let downTime = 0;
+  let lastTime = 0;
+  let lastX = 0, lastY = 0;
+  let velX = 0, velY = 0;
+
+  const onDown = (e) => {
+    const p = (e.touches && e.touches[0]) || e;
+    downPos = { x: p.clientX, y: p.clientY };
+    lastX = p.clientX; lastY = p.clientY;
+    lastTime = Date.now();
+    moved = false;
+    downTime = Date.now();
+    velX = 0; velY = 0;
+  };
+  const onMove = (e) => {
+    if (!downPos) return;
+    const p = (e.touches && e.touches[0]) || e;
+    const dx = p.clientX - downPos.x;
+    const dy = p.clientY - downPos.y;
+    if (Math.hypot(dx, dy) > 6 && !moved) {
+      moved = true;
+      if (body.isStatic) Matter.Body.setStatic(body, false);
+    }
+    if (moved && !body.isStatic) {
+      const now = Date.now();
+      const dt = Math.max(1, now - lastTime);
+      velX = (p.clientX - lastX) / dt * 16;
+      velY = (p.clientY - lastY) / dt * 16;
+      const rect = stage.getBoundingClientRect();
+      Matter.Body.setPosition(body, { x: p.clientX - rect.left, y: p.clientY - rect.top });
+      lastX = p.clientX; lastY = p.clientY; lastTime = now;
+      e.preventDefault();
+    }
+  };
+  const onUp = () => {
+    if (!downPos) return;
+    const dt = Date.now() - downTime;
+    if (!moved && dt < 350) {
+      // Tap detected — open the lab page if a destination is defined
+      el.animate(
+        [{ transform: el.style.transform + ' scale(1)' },
+         { transform: el.style.transform + ' scale(0.86)' },
+         { transform: el.style.transform + ' scale(1)' }],
+        { duration: 200, easing: 'ease-out' }
+      );
+      const dest = def.href || (def.slug ? `labs/${def.slug}.html` : null);
+      if (dest) {
+        setTimeout(() => { location.href = dest; }, 180);
+      }
+    } else if (moved && !body.isStatic) {
+      Matter.Body.setVelocity(body, { x: velX * 0.8, y: velY * 0.8 });
+      Matter.Body.setAngularVelocity(body, (Math.random() - 0.5) * 0.04);
+    }
+    downPos = null;
+  };
+
+  el.addEventListener('mousedown', onDown);
+  el.addEventListener('touchstart', onDown, { passive: false });
+  window.addEventListener('mousemove', onMove);
+  window.addEventListener('touchmove', onMove, { passive: false });
+  window.addEventListener('mouseup', onUp);
+  window.addEventListener('touchend', onUp);
+});
+
+function tick() {
+  Matter.Engine.update(engine, 1000/60);
+  for (let i = 0; i < bodies.length; i++) {
+    const b = bodies[i];
+    elements[i].style.transform = `translate(${b.position.x - ICON/2}px, ${b.position.y - ICON/2}px) rotate(${b.angle}rad)`;
+  }
+  requestAnimationFrame(tick);
+}
+tick();
+
+// Animated reset: glide each icon back to its home grid spot.
+// Time-based position interpolation (not velocity-based) — Matter physics
+// doesn't get to fight us mid-animation, so there's no micro-jitter or
+// oscillation. Just a slow eased glide.
+let resetActive = false;
+document.getElementById('labReset').addEventListener('click', () => {
+  if (resetActive) return;
+  resetActive = true;
+  const homes = bodies.map((b, i) => {
+    const col = i % cols;
+    const row = Math.floor(i / cols);
+    return { x: startX + col * colGap, y: startY + row * rowGap };
+  });
+  // Snapshot each body's current pose so we can interpolate from there
+  const starts = bodies.map(b => ({
+    x: b.position.x,
+    y: b.position.y,
+    angle: b.angle,
+  }));
+  const startTime = Date.now();
+  const DURATION = 2800; // ms — slow, buttery settle
+  // Unpin everything so we can move bodies directly
+  bodies.forEach(b => {
+    if (b.isStatic) Matter.Body.setStatic(b, false);
+  });
+  function animateReset() {
+    const elapsed = Date.now() - startTime;
+    const t = Math.min(1, elapsed / DURATION);
+    // easeInOutCubic — gentle release, smooth middle, soft landing
+    const eased = t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t + 2, 3) / 2;
+    bodies.forEach((b, i) => {
+      const home = homes[i];
+      const start = starts[i];
+      Matter.Body.setPosition(b, {
+        x: start.x + (home.x - start.x) * eased,
+        y: start.y + (home.y - start.y) * eased,
+      });
+      Matter.Body.setAngle(b, start.angle * (1 - eased));
+      // Zero out velocity each frame so physics doesn't drag the body
+      // away from the interpolated path
+      Matter.Body.setVelocity(b, { x: 0, y: 0 });
+      Matter.Body.setAngularVelocity(b, 0);
+    });
+    if (t < 1) {
+      requestAnimationFrame(animateReset);
+    } else {
+      // Final snap + pin
+      bodies.forEach((b, i) => {
+        Matter.Body.setStatic(b, true);
+        Matter.Body.setPosition(b, homes[i]);
+        Matter.Body.setAngle(b, 0);
+        Matter.Body.setVelocity(b, { x: 0, y: 0 });
+        Matter.Body.setAngularVelocity(b, 0);
+      });
+      resetActive = false;
+    }
+  }
+  animateReset();
+});
+
+
+// ─── Gravity slider — drives engine.gravity.y in real time ───────────────
+const gravitySlider = document.getElementById('gravitySlider');
+function applyGravity() {
+  const v = parseFloat(gravitySlider.value);
+  engine.gravity.y = v * 0.6;  // scale; matter.js default gravity is 1
+  // If any body is still pinned static, release them so gravity can act
+  bodies.forEach(b => { if (b.isStatic) Matter.Body.setStatic(b, false); });
+}
+gravitySlider.addEventListener('input', applyGravity);
+
+// The Reset button also zeros gravity + slider. Attached separately so
+// this concern lives next to the gravity code rather than mixed into
+// the position-animation handler above.
+document.getElementById('labReset').addEventListener('click', () => {
+  gravitySlider.value = 0;
+  engine.gravity.y = 0;
+  engine.gravity.x = 0;
+});
+
+</script>
+
+</body>
+</html>

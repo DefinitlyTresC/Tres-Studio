@@ -5,50 +5,165 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>About — Tres Carter</title>
   <link rel="icon" href="favicon/favicon.ico" />
-  <link rel="apple-touch-icon" href="favicon/apple-touch-icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
 </head>
 <body>
 
-  <nav class="nav">
-    <a href="index.html" class="nav-link">Work</a>
-    <a href="about.html" class="nav-link">About</a>
-    <a href="mailto:tres@tres.studio" class="nav-link">Contact</a>
-  </nav>
+<div class="dot-grid"></div>
 
-  <div class="about-hero">
-    <h1>About</h1>
+<nav class="nav">
+  <a class="mark" href="index.html">Tres Carter<span class="y">.</span></a>
+  <div class="nav-links">
+    <a href="index.html">← Studio</a>
+    <a href="mailto:tres@tres.studio">Contact</a>
   </div>
+</nav>
 
-  <div class="about-grid">
+<main class="about">
+  <aside class="about-side reveal">
+    <h1 class="about-name">Tres<br/>Carter<span class="y">.</span></h1>
     <div class="about-img">
       <img src="headshot.jpg" alt="Tres Carter" onerror="this.style.display='none'" />
     </div>
-    <div class="about-text">
-      <h2>Architectural designer based on Florida's 30A corridor.</h2>
-      <p>I'm an architectural designer at Chancey Design in Seagrove Beach, working primarily on 30A — Alys Beach, Grayton, Seaside, and Point Washington. My projects span luxury residential, commercial mixed-use, urban planning and design guidelines, and the occasional restaurant that wasn't supposed to be mine but ended up being mine. I see projects through from first sketch to construction documents, with the occasional quasi-judicial hearing presentation along the way.</p>
-      <p>I studied architecture at Auburn, where my thesis was a 3D-printed artist residency in Kyoto. That project is also where I learned that constraints tend to make better buildings than freedom does, and that's most of what I've been exploring ever since. In my work, in the side projects on this website, and in the tools I build.</p>
-      <div class="about-actions">
-        <a href="resume.pdf" target="_blank" class="about-action">Resume ↓</a>
-        <a href="mailto:tres@tres.studio" class="about-action">tres@tres.studio</a>
-        <a href="tel:8132407548" class="about-action">813.240.7548</a>
-        <a href="https://instagram.com/trescarter" target="_blank" rel="noopener" class="about-action">@trescarter</a>
-      </div>
-    </div>
-  </div>
-
-  <footer>
-    <div class="footer-name">TC</div>
-    <div class="footer-links">
+  </aside>
+  <section class="about-body">
+    <div class="about-tag reveal">— About · 03</div>
+    <div class="about-typer" id="typer" aria-live="polite"></div>
+    <div class="about-actions">
+      <a href="resume.pdf" target="_blank">Resume ↓</a>
       <a href="mailto:tres@tres.studio">tres@tres.studio</a>
-      <a href="tel:8132407548">813.240.7548</a>
       <a href="https://instagram.com/trescarter" target="_blank" rel="noopener">@trescarter</a>
     </div>
-    <div class="footer-copy">© 2026</div>
-  </footer>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="footer-mark">Tres Carter<span class="y-dot"></span></div>
+  <div class="footer-block">
+    <strong>Contact</strong>
+    <a href="mailto:tres@tres.studio">tres@tres.studio</a>
+    <a href="https://instagram.com/trescarter" target="_blank" rel="noopener">@trescarter</a>
+  </div>
+  <div class="footer-block">
+    <strong>Studio</strong>
+    <a href="about.html">About</a>
+    <a href="index.html">Work</a>
+    <a href="lab.html">Lab</a>
+  </div>
+  <div class="footer-block">
+    <strong>Location</strong>
+    <a>Seagrove · 30A</a>
+    <a>Florida</a>
+  </div>
+  <div class="footer-base">
+    <span>© 2026 Tres Carter</span>
+    <span>Built in Florida</span>
+  </div>
+</footer>
+
+<script src="https://unpkg.com/lenis@1.1.13/dist/lenis.min.js"></script>
+<script src="scroll.js"></script>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// ABOUT — content. Edit these lines freely. Each entry is a
+// paragraph; the typewriter handles all spacing and timing.
+// Add or remove lines as you like — no other code changes needed.
+// ═══════════════════════════════════════════════════════════════
+const ABOUT_LINES = [
+  "hey, i'm tres carter.",
+  "i build things... websites, games, tools, houses, whole neighborhoods, design guidelines, the occasional commercial mixed-use or resutrants.",
+  "i live on 30a with my cat exploring point washington and experimenting with projection mapping",
+  "i work on my car. i play a few instruments, none particularly well.",
+  "day job: architectural designer at chancey in seagrove. auburn architecture before that.",
+  "the rest is in the studio. say hi → tres@tres.studio",
+];
+
+// ─── Typewriter engine — you shouldn't need to touch any of this ───
+(() => {
+  const typer   = document.getElementById('typer');
+  const actions = document.querySelector('.about-actions');
+  if (!typer) return;
+
+  // Honor reduced-motion preference — drop everything in instantly.
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    ABOUT_LINES.forEach(text => {
+      const p = document.createElement('p');
+      p.className = 'about-line';
+      p.textContent = text;
+      typer.appendChild(p);
+    });
+    typer.classList.add('done');
+    if (actions) actions.classList.add('ready');
+    return;
+  }
+
+  // Timing knobs
+  const CHAR_MS  = 28;   // base ms per character
+  const PUNCT_MS = 110;  // extra pause after . , : — ! ?
+  const LINE_MS  = 380;  // pause between paragraphs
+  const START_MS = 550;  // pause before the first character
+
+  let cancelled = false;
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+  async function run() {
+    await sleep(START_MS);
+    for (let i = 0; i < ABOUT_LINES.length; i++) {
+      if (cancelled) return;
+      const p = document.createElement('p');
+      p.className = 'about-line';
+      typer.appendChild(p);
+      const text = ABOUT_LINES[i];
+      for (let c = 0; c < text.length; c++) {
+        if (cancelled) { p.textContent = text; break; }
+        p.textContent += text[c];
+        let wait = CHAR_MS;
+        if (/[.,!?—:]/.test(text[c])) wait += PUNCT_MS;
+        await sleep(wait);
+      }
+      if (cancelled) break;
+      if (i < ABOUT_LINES.length - 1) await sleep(LINE_MS);
+    }
+    finish();
+  }
+
+  function finish() {
+    if (cancelled && typer.classList.contains('done')) return;
+    cancelled = true;
+    // Complete any partially-typed line first
+    const lastIdx = typer.children.length - 1;
+    if (lastIdx >= 0 && lastIdx < ABOUT_LINES.length) {
+      typer.children[lastIdx].textContent = ABOUT_LINES[lastIdx];
+    }
+    // Drop in any remaining paragraphs
+    for (let i = lastIdx + 1; i < ABOUT_LINES.length; i++) {
+      const p = document.createElement('p');
+      p.className = 'about-line';
+      p.textContent = ABOUT_LINES[i];
+      typer.appendChild(p);
+    }
+    typer.classList.add('done');
+    setTimeout(() => actions && actions.classList.add('ready'), 500);
+  }
+
+  // Skip the typing on click in the body, or Space / Enter
+  document.querySelector('.about-body').addEventListener('click', () => {
+    if (!cancelled) finish();
+  });
+  document.addEventListener('keydown', (e) => {
+    if ((e.key === ' ' || e.key === 'Enter') && !cancelled) {
+      e.preventDefault();
+      finish();
+    }
+  });
+
+  run();
+})();
+</script>
 
 </body>
 </html>
