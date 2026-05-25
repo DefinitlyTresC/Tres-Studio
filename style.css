@@ -118,6 +118,22 @@ body.lab-body .cursor-trail { border-color: rgba(255, 255, 255, 0.25); }
   .cursor, .cursor-trail { display: none !important; }
 }
 
+/* Focus — keyboard users only. With cursor: none on desktop the custom
+   cursor doesn't render for keyboard nav, so the focus ring is the only
+   feedback. Ink on light pages, yellow on the dark lab page (and lightbox
+   arrows, which sit on a dark backdrop). :focus is killed for click users
+   — :focus-visible already gates by input modality. */
+:focus { outline: none; }
+:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+.lab-body :focus-visible,
+.lightbox-arrow:focus-visible {
+  outline-color: var(--yellow);
+}
+
 
 /* ── 04. Nav ──────────────────────────────────────────────────── */
 .nav {
@@ -269,59 +285,6 @@ body.pt-locking .hero-name .y-dot {
 }
 .hero-name .y-dot--grabbing { cursor: grabbing; }
 
-.hero-goal {
-  position: fixed;
-  bottom: 3rem;
-  left: 50%;
-  transform: translateX(-50%) translateY(24px);
-  z-index: 90;
-  opacity: 0;
-  pointer-events: none;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.85rem;
-  transition:
-    opacity 0.55s var(--ease-out),
-    transform 0.65s var(--ease-out);
-}
-.hero-goal.visible {
-  opacity: 1;
-  transform: translateX(-50%) translateY(0);
-}
-.hero-goal-target {
-  width: 76px;
-  height: 76px;
-  border: 1.5px dashed var(--yellow);
-  border-radius: 50%;
-  position: relative;
-  transition: transform 0.35s var(--ease), border-color 0.3s;
-}
-.hero-goal-target::before {
-  content: "";
-  position: absolute;
-  inset: 14px;
-  border: 1px solid var(--yellow);
-  border-radius: 50%;
-  opacity: 0.45;
-  transition: opacity 0.3s;
-}
-.hero-goal.flash .hero-goal-target {
-  transform: scale(1.25);
-  border-color: var(--ink);
-}
-.hero-goal.flash .hero-goal-target::before {
-  opacity: 1;
-  background: var(--yellow);
-}
-.hero-goal-label {
-  font-family: var(--display);
-  font-size: 0.62rem;
-  letter-spacing: 0.3em;
-  text-transform: uppercase;
-  color: var(--ink-faint);
-}
-
 .dot-particle {
   position: fixed;
   background: var(--yellow);
@@ -329,12 +292,6 @@ body.pt-locking .hero-name .y-dot {
   pointer-events: none;
   z-index: 200;
   will-change: transform, opacity;
-}
-
-@media (max-width: 900px), (hover: none) {
-  .hero-goal-target { width: 64px; height: 64px; }
-  .hero-goal-target::before { inset: 12px; }
-  .hero-goal { bottom: 2rem; }
 }
 
 /* ── Basketball hoop (slides in from left when the dot is freed) ── */
@@ -358,8 +315,8 @@ body.pt-locking .hero-name .y-dot {
   transform: translateX(0) translateY(-50%);
 }
 .hoop-target {
-  /* Bigger than the original hero-goal-target (76px) — 180px = 2.4× —
-     paired with a 0.95 scoring radius in dot.js. Easier to hit by design. */
+  /* Big and forgiving by design — 180px paired with a 0.95 scoring radius
+     in dot.js makes hits easy enough to feel like a reward, not a feat. */
   width: 180px;
   height: 180px;
   border: 1.5px dashed var(--yellow);
@@ -1252,20 +1209,6 @@ body.lightbox-open .dot-grid {
   color: var(--ink-soft);
   margin-bottom: 2rem;
 }
-.about-body h2 {
-  font-family: var(--display);
-  font-size: clamp(2rem, 3.5vw, 3rem);
-  font-weight: 400;
-  letter-spacing: 0.005em;
-  line-height: 1.05;
-  margin-bottom: 2.5rem;
-}
-.about-body p {
-  font-size: 1rem;
-  line-height: 1.85;
-  color: var(--ink-soft);
-  margin-bottom: 1.5rem;
-}
 
 /* ─── Typewriter (about page) ─────────────────────────────────
    Lines stream in character-by-character. A yellow block cursor
@@ -1358,7 +1301,8 @@ body.lightbox-open .dot-grid {
   margin-bottom: 1.4rem;
   font-weight: 400;
 }
-.footer-block a { display: block; margin-bottom: 0.6rem; transition: color 0.2s; }
+.footer-block a,
+.footer-block span { display: block; margin-bottom: 0.6rem; transition: color 0.2s; }
 .footer-block a:hover { color: var(--ink); }
 .footer-mark {
   font-family: var(--display);

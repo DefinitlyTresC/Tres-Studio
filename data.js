@@ -87,9 +87,7 @@ const DATA = (() => {
       year:         row['Year'],
       status:       (row['Status'] || '').trim(),
       order:        parseInt(row['Order']) || 999,
-      tags:         row['Tags'],
       description:  row['Description'],
-      externalLink: row['External Link'],
       heroUrl:      joinUrl((row['Hero Image'] || '').trim(), CONFIG.HERO_TRANSFORM),
       heroUrlThumb: joinUrl((row['Hero Image'] || '').trim(), CONFIG.THUMB_TRANSFORM),
       // Designed At + URL come from the sheet's two new columns. When the

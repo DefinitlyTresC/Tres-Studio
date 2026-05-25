@@ -192,7 +192,7 @@ tick();
 // doesn't get to fight us mid-animation, so there's no micro-jitter or
 // oscillation. Just a slow eased glide.
 let resetActive = false;
-document.getElementById('labReset').addEventListener('click', () => {
+function resetIconsHome() {
   if (resetActive) return;
   resetActive = true;
   const homes = bodies.map((b, i) => {
@@ -245,7 +245,7 @@ document.getElementById('labReset').addEventListener('click', () => {
     }
   }
   animateReset();
-});
+}
 
 
 // ─── Gravity slider — drives engine.gravity.y in real time ───────────────
@@ -258,13 +258,15 @@ function applyGravity() {
 }
 gravitySlider.addEventListener('input', applyGravity);
 
-// The Reset button also zeros gravity + slider. Attached separately so
-// this concern lives next to the gravity code rather than mixed into
-// the position-animation handler above.
+// One Reset click → zero gravity + slider, then glide icons home. Gravity
+// zeroing happens unconditionally so a second click during an in-flight
+// animation still neutralizes the slider; resetIconsHome guards against
+// stacking animations.
 document.getElementById('labReset').addEventListener('click', () => {
   gravitySlider.value = 0;
   engine.gravity.y = 0;
   engine.gravity.x = 0;
+  resetIconsHome();
 });
 
 </script>
