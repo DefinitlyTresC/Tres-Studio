@@ -24,7 +24,7 @@ const DATA = (() => {
   }
 
   async function fetchCSV(url) {
-    if (!url || url.includes('REPLACE_WITH_YOUR_PUBLISH_LINK')) {
+    if (!url) {
       console.warn('Sheet URL not configured in config.js');
       return [];
     }

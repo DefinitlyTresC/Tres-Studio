@@ -147,11 +147,21 @@ try {
 } catch (e) { console.error('Lenis init failed:', e); }
 
 
-// ── 3. Liquid cursor (desktop only) ────────────────────────────
+// ── 3. Liquid cursor with context labels (desktop only) ────────
+// On hover the cursor expands to a yellow circle. For the major
+// interactive surfaces (galleries, project rows, category tiles,
+// draggables, back links, external links) the expanded cursor also
+// gets a short label inside — "View", "Open", "Enter", "Grab", etc.
+// Labels are chosen via LABEL_MAP, walking entries in order and
+// stopping at the first match so more-specific selectors can be
+// listed before generic ones.
 try {
   if (window.matchMedia('(hover: hover)').matches) {
     const cursor = document.createElement('div');
     cursor.className = 'cursor';
+    const cursorLabel = document.createElement('span');
+    cursorLabel.className = 'cursor-label';
+    cursor.appendChild(cursorLabel);
     document.body.appendChild(cursor);
 
     const trail = document.createElement('div');
@@ -174,7 +184,28 @@ try {
       requestAnimationFrame(trailLoop);
     })();
 
-    const HOVERABLE = 'a, button, .index-row, .proj-item, .cat-link, .ios-icon, [data-hover]';
+    // Order matters — first match wins. Put specific selectors first.
+    const LABEL_MAP = [
+      { selector: '.gallery-item',                            label: 'View' },
+      { selector: '.proj-item, .index-row',                   label: 'Open' },
+      { selector: '.cat-link',                                label: 'Enter' },
+      { selector: '.ios-icon',                                label: 'Open' },
+      { selector: '.lab-index-card--alt',                     label: 'Step' },
+      { selector: '.lab-index-card',                          label: 'Enter' },
+      { selector: '.hero-name .letter, .letter-chunk',        label: 'Grab' },
+      { selector: '.hero-name .y-dot, .y-dot--free',          label: 'Grab' },
+      { selector: '.detail-back, .back-link',                 label: 'Back' },
+      { selector: 'a[target="_blank"]',                       label: '↗' },
+      { selector: 'a[href^="mailto:"]',                       label: 'Email' },
+    ];
+    function labelFor(el) {
+      for (let i = 0; i < LABEL_MAP.length; i++) {
+        if (el.matches(LABEL_MAP[i].selector)) return LABEL_MAP[i].label;
+      }
+      return '';
+    }
+
+    const HOVERABLE = 'a, button, .index-row, .proj-item, .cat-link, .ios-icon, .hero-name .letter, .letter-chunk, [data-hover]';
     function bindHoverables() {
       document.querySelectorAll(HOVERABLE).forEach(el => {
         if (el._cb) return;
@@ -182,10 +213,18 @@ try {
         el.addEventListener('mouseenter', () => {
           cursor.classList.add('hover');
           trail.classList.add('hide');
+          const text = labelFor(el);
+          cursorLabel.textContent = text;
+          cursor.classList.toggle('has-label', !!text);
         });
         el.addEventListener('mouseleave', () => {
-          cursor.classList.remove('hover');
+          cursor.classList.remove('hover', 'has-label');
           trail.classList.remove('hide');
+          // Defer clearing the text until the fade-out has settled, so
+          // the label doesn't pop blank during the shrink animation.
+          setTimeout(() => {
+            if (!cursor.classList.contains('hover')) cursorLabel.textContent = '';
+          }, 250);
         });
       });
     }

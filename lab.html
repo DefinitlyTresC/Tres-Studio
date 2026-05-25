@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Lab — Tres Carter</title>
   <link rel="icon" href="favicon/favicon.ico" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -10,7 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
 </head>
-<body class="lab-body">
+<body class="lab-body lab-index-body">
 
 <div class="dot-grid dot-grid--dark"></div>
 
@@ -21,254 +21,242 @@
   </div>
 </nav>
 
-<div class="lab-stage" id="labStage">
-  <div class="lab-mark">Lab — Drift</div>
-  <div class="lab-hint">drag to release</div>
-  <button class="lab-reset" id="labReset">Reset</button>
-  <div class="lab-gravity">
-    <span class="lab-gravity-label">Gravity</span>
-    <div class="lab-gravity-wrap">
-      <span class="lab-gravity-tick"></span>
-      <input type="range" id="gravitySlider" class="lab-gravity-slider" min="-1" max="1" step="0.02" value="0">
-    </div>
-  </div>
-</div>
+<main class="lab-index">
+  <header class="lab-index-head">
+    <div class="lab-index-tag">— Lab · 03</div>
+    <h1 class="lab-index-title" id="labTitle">Experiments</h1>
+    <p class="lab-index-sub" id="labSub" aria-live="polite"></p>
+  </header>
+
+  <ol class="lab-index-list" id="labList">
+
+    <li><a class="lab-index-card reveal" href="labs/drift.html" data-hover>
+      <span class="num">01</span>
+      <div class="body">
+        <h2 class="name">Drift</h2>
+        <p class="tag">Fluid study, six lenses · ink on still water</p>
+        <p class="meta">WebGL · 2026</p>
+      </div>
+      <div class="preview">
+        <svg viewBox="0 0 140 90" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <g fill="none" stroke="rgba(255,255,255,0.55)" stroke-width="1" stroke-linecap="round">
+            <path d="M0 22 Q35 8 70 22 T140 22">
+              <animate attributeName="d"
+                values="M0 22 Q35 8 70 22 T140 22;M0 22 Q35 36 70 22 T140 22;M0 22 Q35 8 70 22 T140 22"
+                dur="7s" repeatCount="indefinite" />
+            </path>
+            <path d="M0 45 Q35 30 70 45 T140 45">
+              <animate attributeName="d"
+                values="M0 45 Q35 60 70 45 T140 45;M0 45 Q35 28 70 45 T140 45;M0 45 Q35 60 70 45 T140 45"
+                dur="6s" repeatCount="indefinite" />
+            </path>
+            <path d="M0 68 Q35 53 70 68 T140 68" stroke="rgba(245,203,92,0.85)">
+              <animate attributeName="d"
+                values="M0 68 Q35 82 70 68 T140 68;M0 68 Q35 52 70 68 T140 68;M0 68 Q35 82 70 68 T140 68"
+                dur="8s" repeatCount="indefinite" />
+            </path>
+          </g>
+        </svg>
+      </div>
+      <span class="arrow">→</span>
+    </a></li>
+
+    <li><a class="lab-index-card reveal" href="labs/plan.html" data-hover>
+      <span class="num">02</span>
+      <div class="body">
+        <h2 class="name">Plan</h2>
+        <p class="tag">Langton's ant · constraint variations</p>
+        <p class="meta">Canvas · 2025</p>
+      </div>
+      <div class="preview">
+        <svg viewBox="0 0 140 90" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <g stroke="rgba(255,255,255,0.18)" stroke-width="0.6">
+            <path d="M0 15 H140 M0 30 H140 M0 45 H140 M0 60 H140 M0 75 H140" />
+            <path d="M15 0 V90 M30 0 V90 M45 0 V90 M60 0 V90 M75 0 V90 M90 0 V90 M105 0 V90 M120 0 V90" />
+          </g>
+          <g fill="rgba(255,255,255,0.18)">
+            <rect x="46" y="46" width="14" height="14" />
+            <rect x="61" y="46" width="14" height="14" />
+            <rect x="61" y="31" width="14" height="14" />
+            <rect x="76" y="31" width="14" height="14" />
+          </g>
+          <rect x="46" y="61" width="14" height="14" fill="rgba(245,203,92,0.95)">
+            <animate attributeName="x"
+              values="46;46;61;61;76;76;61;61;46;46"
+              dur="5s" repeatCount="indefinite" />
+            <animate attributeName="y"
+              values="61;46;46;31;31;46;46;61;61;61"
+              dur="5s" repeatCount="indefinite" />
+          </rect>
+        </svg>
+      </div>
+      <span class="arrow">→</span>
+    </a></li>
+
+    <li><a class="lab-index-card reveal" href="labs/birds.html" data-hover>
+      <span class="num">03</span>
+      <div class="body">
+        <h2 class="name">Birds</h2>
+        <p class="tag">Flocking with rogues · boids in formation</p>
+        <p class="meta">Canvas · 2025</p>
+      </div>
+      <div class="preview">
+        <svg viewBox="0 0 140 90" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <g fill="rgba(255,255,255,0.6)">
+            <!-- chevrons drifting across — six birds, two rogues -->
+            <g transform="translate(0 0)">
+              <animateTransform attributeName="transform" type="translate"
+                values="-40 0; 180 0" dur="14s" repeatCount="indefinite" />
+              <polygon points="20,40 14,43 16,40 14,37" />
+              <polygon points="34,30 28,33 30,30 28,27" />
+              <polygon points="48,42 42,45 44,42 42,39" />
+              <polygon points="62,32 56,35 58,32 56,29" />
+              <polygon points="76,44 70,47 72,44 70,41" fill="rgba(245,203,92,0.95)" />
+              <polygon points="90,34 84,37 86,34 84,31" />
+            </g>
+            <g transform="translate(0 0)">
+              <animateTransform attributeName="transform" type="translate"
+                values="-30 30; 190 30" dur="11s" repeatCount="indefinite" />
+              <polygon points="20,40 14,43 16,40 14,37" />
+              <polygon points="36,32 30,35 32,32 30,29" fill="rgba(245,203,92,0.95)" />
+              <polygon points="50,44 44,47 46,44 44,41" />
+            </g>
+          </g>
+        </svg>
+      </div>
+      <span class="arrow">→</span>
+    </a></li>
+
+    <li><a class="lab-index-card reveal" href="labs/field.html" data-hover>
+      <span class="num">04</span>
+      <div class="body">
+        <h2 class="name">Field</h2>
+        <p class="tag">Vector flow + released disturbances</p>
+        <p class="meta">Canvas · 2025</p>
+      </div>
+      <div class="preview">
+        <svg viewBox="0 0 140 90" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <g stroke="rgba(255,255,255,0.6)" stroke-width="1" stroke-linecap="round" fill="none">
+            <!-- small vector field grid swirling around center -->
+            <g>
+              <animateTransform attributeName="transform" type="rotate"
+                from="0 70 45" to="360 70 45" dur="18s" repeatCount="indefinite" />
+              <line x1="20" y1="18" x2="28" y2="22" />
+              <line x1="50" y1="14" x2="58" y2="20" />
+              <line x1="82" y1="14" x2="90" y2="20" />
+              <line x1="112" y1="18" x2="120" y2="22" />
+              <line x1="20" y1="42" x2="28" y2="42" />
+              <line x1="50" y1="36" x2="58" y2="42" />
+              <line x1="82" y1="36" x2="90" y2="42" />
+              <line x1="112" y1="42" x2="120" y2="42" />
+              <line x1="20" y1="66" x2="28" y2="64" />
+              <line x1="50" y1="68" x2="58" y2="62" />
+              <line x1="82" y1="68" x2="90" y2="62" />
+              <line x1="112" y1="66" x2="120" y2="64" />
+            </g>
+            <circle cx="70" cy="45" r="4" fill="rgba(245,203,92,0.9)" stroke="none">
+              <animate attributeName="r" values="3;9;3" dur="3.5s" repeatCount="indefinite" />
+              <animate attributeName="opacity" values="0.9;0;0.9" dur="3.5s" repeatCount="indefinite" />
+            </circle>
+          </g>
+        </svg>
+      </div>
+      <span class="arrow">→</span>
+    </a></li>
+
+    <li><a class="lab-index-card lab-index-card--alt reveal" href="labs/alternates.html" data-hover>
+      <span class="num">∞</span>
+      <div class="body">
+        <h2 class="name">Alternates</h2>
+        <p class="tag">Parallel universes of this site — same content, different physics</p>
+        <p class="meta">Ongoing · 1 universe live</p>
+      </div>
+      <div class="preview">
+        <svg viewBox="0 0 140 90" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <g fill="none" stroke-width="1">
+            <rect x="22" y="14" width="60" height="60" stroke="rgba(255,255,255,0.4)">
+              <animate attributeName="x" values="22;14;22" dur="7s" repeatCount="indefinite" />
+            </rect>
+            <rect x="42" y="22" width="60" height="60" stroke="rgba(245,203,92,0.55)" fill="rgba(245,203,92,0.05)">
+              <animate attributeName="x" values="42;52;42" dur="7s" repeatCount="indefinite" />
+            </rect>
+            <rect x="60" y="14" width="60" height="60" stroke="rgba(255,255,255,0.4)">
+              <animate attributeName="x" values="60;68;60" dur="7s" repeatCount="indefinite" />
+            </rect>
+          </g>
+        </svg>
+      </div>
+      <span class="arrow">→</span>
+    </a></li>
+
+  </ol>
+
+  <footer class="lab-index-foot">
+    <span>— End</span>
+    <a href="mailto:tres@tres.studio" data-hover>tres@tres.studio</a>
+  </footer>
+</main>
 
 <script src="https://unpkg.com/lenis@1.1.13/dist/lenis.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
 <script src="scroll.js"></script>
+<script src="flow-field.js"></script>
 <script>
-// Lab icons. First row = the four working experiments (drift, plan,
-// birds, field) — each has a slug so tapping routes to labs/{slug}.html.
-// Second row = decorative placeholders for future labs: still bounce
-// around in the physics, but no slug means tapping doesn't navigate.
-const LAB_ICONS = [
-  { n: 'Drift', slug: 'drift', v: 'black',  svg: '<path d="M3 8c2-2 4-2 6 0s4 2 6 0 4-2 6 0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M5 12c2-2 4-2 6 0s4 2 6 0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M3 16c2-2 4-2 6 0s4 2 6 0 4-2 6 0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>' },
-  { n: 'Plan',  slug: 'plan',  v: 'yellow', svg: '<rect x="3" y="3" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8"/><line x1="3" y1="11" x2="21" y2="11" stroke="currentColor" stroke-width="1.5"/><line x1="11" y1="3" x2="11" y2="21" stroke="currentColor" stroke-width="1.5"/><rect x="11.5" y="11.5" width="9" height="9" fill="currentColor" opacity=".25"/>' },
-  { n: 'Birds', slug: 'birds', v: 'white',  svg: '<path d="M3 13l3-2 3 2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M10 8l3-2 3 2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 18l3-2 3 2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>' },
-  { n: 'Field', slug: 'field', v: 'black',  svg: '<g stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"><path d="M5 7l2.5 2"/><path d="M12 6l-1 3"/><path d="M18 7l-2.5 2"/><path d="M5 12.5l2.5 1.5"/><path d="M12 12l1.5 2"/><path d="M18.5 12l-1.5 2.5"/><path d="M5 17.5l2.5-1"/><path d="M12 18l1-2"/><path d="M18 17l-2.5-1"/></g>' },
-  // Decorative placeholders — no slug = no navigation, just physics
-  { n: 'Sound', v: 'yellow', svg: '<path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/><path d="M17 8c1.5 1.5 1.5 6.5 0 8" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/>' },
-  { n: '3D',    v: 'white',  svg: '<path d="M12 3l8 5v8l-8 5-8-5V8l8-5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M12 3v18M4 8l8 5 8-5" stroke="currentColor" stroke-width="2" fill="none"/>' },
-  { n: 'Type',  v: 'black',  svg: '<path d="M4 6h16M12 6v14M8 20h8" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>' },
-  { n: 'Color', v: 'yellow', svg: '<circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="9" cy="9" r="2" fill="currentColor"/><circle cx="15" cy="9" r="2" fill="currentColor" opacity=".6"/><circle cx="12" cy="15" r="2" fill="currentColor" opacity=".4"/>' },
-];
+// ─────────────────────────────────────────────────────────────────
+// Lab index — intro animation + card magnetic-tilt
+//
+// On load: typewriter the subtitle, then stagger-reveal the cards.
+// Magnetic-tilt: as the cursor crosses a card, the preview eases
+// slightly toward it for a soft parallax feel.
+// ─────────────────────────────────────────────────────────────────
+(() => {
+  'use strict';
 
-const stage = document.getElementById('labStage');
-// Read dimensions after layout has settled — fall back to window if stage reports 0
-let W = stage.clientWidth || window.innerWidth;
-let H = stage.clientHeight || window.innerHeight;
-const ICON = window.innerWidth < 700 ? 62 : 78;
+  // ─── Subtitle typewriter ──────────────────────────────────────
+  const SUB_TEXT = 'Living sketches and side projects — each one a small investigation. Open one, or step through to another universe.';
+  const sub = document.getElementById('labSub');
 
-const engine = Matter.Engine.create();
-engine.gravity.y = 0;
-engine.gravity.x = 0;
-const world = engine.world;
-
-const wallOpts = { isStatic: true, restitution: 0.9, render: { visible: false } };
-Matter.World.add(world, [
-  Matter.Bodies.rectangle(W/2, -10, W*2, 20, wallOpts),
-  Matter.Bodies.rectangle(W/2, H+10, W*2, 20, wallOpts),
-  Matter.Bodies.rectangle(-10, H/2, 20, H*2, wallOpts),
-  Matter.Bodies.rectangle(W+10, H/2, 20, H*2, wallOpts),
-]);
-
-const bodies = [];
-const elements = [];
-
-const cols = W < 700 ? 3 : 4;
-const rows = Math.ceil(LAB_ICONS.length / cols);
-const colGap = ICON + 70;
-const rowGap = ICON + 90;
-const gridW = cols * colGap - 70;
-const gridH = rows * rowGap - 90;
-const startX = (W - gridW) / 2 + ICON/2;
-const startY = (H - gridH) / 2 + ICON/2;
-
-LAB_ICONS.forEach((def, i) => {
-  const col = i % cols;
-  const row = Math.floor(i / cols);
-  const x = startX + col * colGap;
-  const y = startY + row * rowGap;
-
-  const body = Matter.Bodies.rectangle(x, y, ICON, ICON, {
-    chamfer: { radius: 16 },
-    restitution: 0.95,
-    friction: 0.0,
-    frictionAir: 0.0025,
-    density: 0.0008,
-    isStatic: true,
-  });
-  bodies.push(body);
-  Matter.World.add(world, body);
-
-  const el = document.createElement('div');
-  el.className = `ios-icon ios-icon--${def.v}`;
-  el.style.width = ICON + 'px';
-  el.style.height = ICON + 'px';
-  el.innerHTML = `<svg viewBox="0 0 24 24">${def.svg}</svg><span class="ios-icon-label">${def.n}</span>`;
-  el.style.transform = `translate(${x - ICON/2}px, ${y - ICON/2}px)`;
-  stage.appendChild(el);
-  elements.push(el);
-
-  let downPos = null;
-  let moved = false;
-  let downTime = 0;
-  let lastTime = 0;
-  let lastX = 0, lastY = 0;
-  let velX = 0, velY = 0;
-
-  const onDown = (e) => {
-    const p = (e.touches && e.touches[0]) || e;
-    downPos = { x: p.clientX, y: p.clientY };
-    lastX = p.clientX; lastY = p.clientY;
-    lastTime = Date.now();
-    moved = false;
-    downTime = Date.now();
-    velX = 0; velY = 0;
-  };
-  const onMove = (e) => {
-    if (!downPos) return;
-    const p = (e.touches && e.touches[0]) || e;
-    const dx = p.clientX - downPos.x;
-    const dy = p.clientY - downPos.y;
-    if (Math.hypot(dx, dy) > 6 && !moved) {
-      moved = true;
-      if (body.isStatic) Matter.Body.setStatic(body, false);
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    sub.textContent = SUB_TEXT;
+  } else {
+    let i = 0;
+    function typeOne() {
+      if (i > SUB_TEXT.length) return;
+      sub.textContent = SUB_TEXT.slice(0, i);
+      i++;
+      const ch = SUB_TEXT[i - 1] || '';
+      const wait = /[.,—]/.test(ch) ? 120 : 26;
+      setTimeout(typeOne, wait);
     }
-    if (moved && !body.isStatic) {
-      const now = Date.now();
-      const dt = Math.max(1, now - lastTime);
-      velX = (p.clientX - lastX) / dt * 16;
-      velY = (p.clientY - lastY) / dt * 16;
-      const rect = stage.getBoundingClientRect();
-      Matter.Body.setPosition(body, { x: p.clientX - rect.left, y: p.clientY - rect.top });
-      lastX = p.clientX; lastY = p.clientY; lastTime = now;
-      e.preventDefault();
-    }
-  };
-  const onUp = () => {
-    if (!downPos) return;
-    const dt = Date.now() - downTime;
-    if (!moved && dt < 350) {
-      // Tap detected — open the lab page if a destination is defined
-      el.animate(
-        [{ transform: el.style.transform + ' scale(1)' },
-         { transform: el.style.transform + ' scale(0.86)' },
-         { transform: el.style.transform + ' scale(1)' }],
-        { duration: 200, easing: 'ease-out' }
-      );
-      const dest = def.href || (def.slug ? `labs/${def.slug}.html` : null);
-      if (dest) {
-        setTimeout(() => { location.href = dest; }, 180);
-      }
-    } else if (moved && !body.isStatic) {
-      Matter.Body.setVelocity(body, { x: velX * 0.8, y: velY * 0.8 });
-      Matter.Body.setAngularVelocity(body, (Math.random() - 0.5) * 0.04);
-    }
-    downPos = null;
-  };
-
-  el.addEventListener('mousedown', onDown);
-  el.addEventListener('touchstart', onDown, { passive: false });
-  window.addEventListener('mousemove', onMove);
-  window.addEventListener('touchmove', onMove, { passive: false });
-  window.addEventListener('mouseup', onUp);
-  window.addEventListener('touchend', onUp);
-});
-
-function tick() {
-  Matter.Engine.update(engine, 1000/60);
-  for (let i = 0; i < bodies.length; i++) {
-    const b = bodies[i];
-    elements[i].style.transform = `translate(${b.position.x - ICON/2}px, ${b.position.y - ICON/2}px) rotate(${b.angle}rad)`;
+    setTimeout(typeOne, 520);
   }
-  requestAnimationFrame(tick);
-}
-tick();
 
-// Animated reset: glide each icon back to its home grid spot.
-// Time-based position interpolation (not velocity-based) — Matter physics
-// doesn't get to fight us mid-animation, so there's no micro-jitter or
-// oscillation. Just a slow eased glide.
-let resetActive = false;
-function resetIconsHome() {
-  if (resetActive) return;
-  resetActive = true;
-  const homes = bodies.map((b, i) => {
-    const col = i % cols;
-    const row = Math.floor(i / cols);
-    return { x: startX + col * colGap, y: startY + row * rowGap };
+  // ─── Staggered card reveal ────────────────────────────────────
+  const cards = document.querySelectorAll('.lab-index-card');
+  cards.forEach((card, i) => {
+    setTimeout(() => card.classList.add('in'), 200 + i * 90);
   });
-  // Snapshot each body's current pose so we can interpolate from there
-  const starts = bodies.map(b => ({
-    x: b.position.x,
-    y: b.position.y,
-    angle: b.angle,
-  }));
-  const startTime = Date.now();
-  const DURATION = 2800; // ms — slow, buttery settle
-  // Unpin everything so we can move bodies directly
-  bodies.forEach(b => {
-    if (b.isStatic) Matter.Body.setStatic(b, false);
-  });
-  function animateReset() {
-    const elapsed = Date.now() - startTime;
-    const t = Math.min(1, elapsed / DURATION);
-    // easeInOutCubic — gentle release, smooth middle, soft landing
-    const eased = t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t + 2, 3) / 2;
-    bodies.forEach((b, i) => {
-      const home = homes[i];
-      const start = starts[i];
-      Matter.Body.setPosition(b, {
-        x: start.x + (home.x - start.x) * eased,
-        y: start.y + (home.y - start.y) * eased,
-      });
-      Matter.Body.setAngle(b, start.angle * (1 - eased));
-      // Zero out velocity each frame so physics doesn't drag the body
-      // away from the interpolated path
-      Matter.Body.setVelocity(b, { x: 0, y: 0 });
-      Matter.Body.setAngularVelocity(b, 0);
+
+  // ─── Magnetic-tilt on cards ───────────────────────────────────
+  // As the cursor crosses a card horizontally, the preview eases
+  // slightly toward the cursor — a soft parallax that hints the
+  // preview is "watching" you.
+  cards.forEach(card => {
+    const preview = card.querySelector('.preview');
+    if (!preview) return;
+    let rect = null;
+    card.addEventListener('mouseenter', () => { rect = card.getBoundingClientRect(); });
+    card.addEventListener('mousemove', (e) => {
+      if (!rect) rect = card.getBoundingClientRect();
+      const dx = (e.clientX - (rect.left + rect.width / 2)) / rect.width;
+      const dy = (e.clientY - (rect.top  + rect.height / 2)) / rect.height;
+      preview.style.transform = `translate(${dx * -8}px, ${dy * -4}px)`;
     });
-    if (t < 1) {
-      requestAnimationFrame(animateReset);
-    } else {
-      // Final snap + pin
-      bodies.forEach((b, i) => {
-        Matter.Body.setStatic(b, true);
-        Matter.Body.setPosition(b, homes[i]);
-        Matter.Body.setAngle(b, 0);
-        Matter.Body.setVelocity(b, { x: 0, y: 0 });
-        Matter.Body.setAngularVelocity(b, 0);
-      });
-      resetActive = false;
-    }
-  }
-  animateReset();
-}
-
-
-// ─── Gravity slider — drives engine.gravity.y in real time ───────────────
-const gravitySlider = document.getElementById('gravitySlider');
-function applyGravity() {
-  const v = parseFloat(gravitySlider.value);
-  engine.gravity.y = v * 0.6;  // scale; matter.js default gravity is 1
-  // If any body is still pinned static, release them so gravity can act
-  bodies.forEach(b => { if (b.isStatic) Matter.Body.setStatic(b, false); });
-}
-gravitySlider.addEventListener('input', applyGravity);
-
-// One Reset click → zero gravity + slider, then glide icons home. Gravity
-// zeroing happens unconditionally so a second click during an in-flight
-// animation still neutralizes the slider; resetIconsHome guards against
-// stacking animations.
-document.getElementById('labReset').addEventListener('click', () => {
-  gravitySlider.value = 0;
-  engine.gravity.y = 0;
-  engine.gravity.x = 0;
-  resetIconsHome();
-});
-
+    card.addEventListener('mouseleave', () => {
+      preview.style.transform = '';
+      rect = null;
+    });
+  });
+})();
 </script>
 
 </body>

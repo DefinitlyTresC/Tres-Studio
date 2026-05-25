@@ -60,10 +60,13 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
 img { display: block; max-width: 100%; }
 
 
-/* ── 02. Dot grid background ──────────────────────────────────── */
-/* Desktop values: larger dot + higher opacity so low-DPI displays don't
-   eat the grid. On iOS/touch the 1px/7% values look great — kept those
-   in the mobile override at the bottom of the file. */
+/* ── 02. Background — static dot grid + reactive flow field ──── */
+/* Pages that include flow-field.js get their .dot-grid swapped out
+   for a <canvas class="flow-field"> at runtime — the canvas paints
+   short line segments that swing away from the cursor (and from the
+   ball, on the homepage). Pages without the script keep the static
+   dots. The dot-grid styles stay as the no-JS / reduced-motion
+   fallback. */
 .dot-grid {
   position: fixed;
   inset: -80px;
@@ -74,6 +77,12 @@ img { display: block; max-width: 100%; }
 }
 .dot-grid--dark {
   background-image: radial-gradient(circle, rgba(255, 255, 255, 0.09) 1.2px, transparent 1.6px);
+}
+.flow-field {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
 }
 
 
@@ -89,11 +98,38 @@ img { display: block; max-width: 100%; }
   z-index: 9999;
   transform: translate(-50%, -50%);
   transition: width 0.4s var(--ease), height 0.4s var(--ease), background-color 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
 }
 .cursor.hover {
   width: 52px;
   height: 52px;
   background: var(--yellow);
+}
+/* Label inside the expanded cursor — appears on hover over major
+   interactive surfaces (galleries, project rows, drag handles, etc.).
+   scroll.js's LABEL_MAP decides the text per element type. The
+   appear transition has a delay so the label waits for the circle to
+   grow before fading in; the disappear transition has no delay so it
+   gets out of the way fast. */
+.cursor-label {
+  font-family: var(--display);
+  font-size: 0.5rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink);
+  opacity: 0;
+  transform: translateY(2px);
+  transition: opacity 0.18s var(--ease), transform 0.2s var(--ease);
+  white-space: nowrap;
+  pointer-events: none;
+}
+.cursor.has-label .cursor-label {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.22s var(--ease) 0.18s, transform 0.25s var(--ease) 0.18s;
 }
 .cursor-trail {
   position: fixed;
@@ -230,17 +266,23 @@ body.pt-locking .hero-name .y-dot {
   animation: hero-in 1.4s var(--ease-out) both;
 }
 /* Bebas Neue lacks a tight T-R kerning pair, leaving a visible gap at this
-   size. Pulling the first letter's right margin negative compensates.
-   Targets .letter (added by hammer.js) when wrapping is done, AND the
+   size. Pulling the first letter's right margin negative compensates. The
+   matching leftward translate shifts the T itself the same amount so the
+   visible T-R join stays tight — the translate and margin-right MUST stay
+   in sync or a visible gap opens between T and R.
+   Targets .letter (added by letters.js) when wrapping is done, AND the
    raw ::first-letter for the brief window before that runs. */
 .hero-name::first-letter,
 .hero-name .letter:first-child {
   letter-spacing: -0.07em;
-  margin-right: -0.04em;
+  margin-right: -0.07em;
+}
+.hero-name .letter:first-child {
+  transform: translateX(-0.07em);
 }
 .hero-name .y-dot {
   position: absolute;
-  bottom: 0.16em;
+  bottom: 0.04em;
   right: -0.18em;
   width: 0.14em;
   height: 0.14em;
@@ -249,6 +291,13 @@ body.pt-locking .hero-name .y-dot {
   /* Hero has pointer-events:none so clicks pass through to content
      underneath; the dot opts back in so it can be grabbed. */
   pointer-events: auto;
+  /* Touch hardening for iOS — without these the OS treats a touch on
+     the dot as scroll intent and cancels pointer events before the
+     drag commits. */
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
   /* Class-toggled visibility — dot.js adds/removes .is-visible based
      on scroll position. Transitions both directions smoothly, no
      keyframe restart flicker. */
@@ -259,18 +308,33 @@ body.pt-locking .hero-name .y-dot {
     transform 0.85s var(--ease-out),
     opacity 0.55s var(--ease-out);
 }
+/* Invisible hit-area extender — the dot is ~14px on iPhones, well
+   below iOS's 44px touch-target minimum. ::before extends the
+   tappable area outward without changing the visual size. Catches
+   taps for the parent .y-dot via event bubbling. */
+.hero-name .y-dot::before {
+  content: '';
+  position: absolute;
+  inset: -16px;
+  border-radius: 50%;
+}
 .hero-name .y-dot.is-visible {
   transform: scale(1);
   opacity: 1;
 }
 
-/* ─── Easter egg: free dot + goal + particles (homepage only) ───
+/* ─── Free dot (homepage only) ──────────────────────────────────
    The dot starts captive inside .hero-name. On first interaction
    (mousedown/touch) dot.js promotes it to position:fixed and adds
-   .y-dot--free; physics take over from there. */
+   .y-dot--free — zero-gravity physics take over from there. The
+   dot stays wherever the user leaves it. Releasing with the dot
+   over TRES glides it home and triggers the letter wave. */
 .hero-name .y-dot--free {
   position: fixed;
-  z-index: 1000;
+  /* Sits at hero's stacking level so .content (z:2) cleanly covers
+     it when the user scrolls past the hero — keeps the playground
+     from floating in front of the index/category sections. */
+  z-index: 1;
   cursor: grab;
   bottom: auto;
   right: auto;
@@ -285,132 +349,8 @@ body.pt-locking .hero-name .y-dot {
 }
 .hero-name .y-dot--grabbing { cursor: grabbing; }
 
-.dot-particle {
-  position: fixed;
-  background: var(--yellow);
-  border-radius: 50%;
-  pointer-events: none;
-  z-index: 200;
-  will-change: transform, opacity;
-}
 
-/* ── Basketball hoop (slides in from left when the dot is freed) ── */
-.hoop {
-  position: fixed;
-  left: 2.5rem;
-  top: 42%;
-  z-index: 90;
-  pointer-events: none;
-  opacity: 0;
-  transform: translateX(-180%) translateY(-50%);
-  transition:
-    opacity 0.45s var(--ease-out),
-    transform 0.95s cubic-bezier(0.22, 1.3, 0.36, 1);
-  display: flex;
-  align-items: center;
-  gap: 1.2rem;
-}
-.hoop.visible {
-  opacity: 1;
-  transform: translateX(0) translateY(-50%);
-}
-.hoop-target {
-  /* Big and forgiving by design — 180px paired with a 0.95 scoring radius
-     in dot.js makes hits easy enough to feel like a reward, not a feat. */
-  width: 180px;
-  height: 180px;
-  border: 1.5px dashed var(--yellow);
-  border-radius: 50%;
-  position: relative;
-  flex-shrink: 0;
-  transition: transform 0.35s var(--ease), border-color 0.3s;
-}
-.hoop-target::before {
-  content: "";
-  position: absolute;
-  inset: 36px;
-  border: 1px solid var(--yellow);
-  border-radius: 50%;
-  opacity: 0.45;
-  transition: opacity 0.3s, background 0.3s;
-}
-.hoop.flash .hoop-target {
-  transform: scale(1.15);
-  border-color: var(--ink);
-}
-.hoop.flash .hoop-target::before {
-  opacity: 1;
-  background: var(--yellow);
-}
-.hoop-counter {
-  display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
-  pointer-events: none;
-}
-.hoop-counter-label {
-  font-size: 0.55rem;
-  letter-spacing: 0.3em;
-  text-transform: uppercase;
-  color: var(--ink-faint);
-  font-family: var(--display);
-}
-.hoop-counter-value {
-  font-family: var(--display);
-  font-size: 2.2rem;
-  letter-spacing: 0.04em;
-  color: var(--ink);
-  line-height: 0.9;
-  display: inline-block;
-  transform-origin: left center;
-}
-.hoop-counter-value.punch {
-  animation: counter-punch 0.55s var(--ease);
-}
-@keyframes counter-punch {
-  0%   { transform: scale(1);    color: var(--ink); }
-  30%  { transform: scale(1.4);  color: var(--yellow); }
-  100% { transform: scale(1);    color: var(--ink); }
-}
-@media (max-width: 900px), (hover: none) {
-  .hoop { left: 1.25rem; gap: 0.9rem; }
-  .hoop-target { width: 130px; height: 130px; }
-  .hoop-target::before { inset: 24px; }
-  .hoop-counter-value { font-size: 1.6rem; }
-}
-
-/* ── Hammer (grabbable, smashes letters on swing) ──────────────── */
-.hammer {
-  position: fixed;
-  left: 0;
-  top: 0;
-  width: 60px;
-  height: 80px;
-  z-index: 1000;
-  cursor: grab;
-  pointer-events: auto;
-  user-select: none;
-  -webkit-user-select: none;
-  touch-action: none;
-  will-change: transform;
-  /* Resting transform is set inline by hammer.js. When .hammer--resting is
-     toggled on drag-release, this transition makes the snap-back smooth. */
-}
-.hammer.hammer--resting {
-  transition: transform 0.55s cubic-bezier(0.22, 1.3, 0.36, 1);
-}
-.hammer.hammer--grabbing { cursor: grabbing; }
-.hammer-svg {
-  width: 100%;
-  height: 100%;
-  display: block;
-  pointer-events: none;
-}
-@media (max-width: 900px), (hover: none) {
-  .hammer { width: 50px; height: 66px; }
-}
-
-/* Smashable letter spans (added by hammer.js inside .hero-name and
+/* Smashable letter spans (added by letters.js inside .hero-name and
    .cat-link .label). When smashed, visibility:hidden hides the original
    while preserving the layout box — the dot's bounce-collision rects
    still match, the .hero-name still has its full width, and only the
@@ -425,22 +365,53 @@ body.pt-locking .hero-name .y-dot {
 .cat-link .label .letter.smashed {
   visibility: hidden;
 }
+/* TRES letters are individually grabbable. The parent .hero has
+   pointer-events: none for click-through; we opt back in per-letter.
+   Cat-link letters intentionally inherit the parent <a>'s pointer
+   behavior so single clicks still navigate to the category. The
+   -webkit-* hardening prevents iOS from showing the long-press menu
+   or selecting text during drag. */
+.hero-name .letter {
+  pointer-events: auto;
+  cursor: grab;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+.hero-name .letter:active {
+  cursor: grabbing;
+}
 
+/* Letter chunk — the visible clone created on smash. Pointer events
+   stay on so a chunk lying on the page can be re-grabbed and tossed
+   around again. z-index sits at the hero's stacking level so .content
+   covers chunks cleanly when scrolling past the hero. */
 .letter-chunk {
   position: fixed;
   display: inline-block;
-  pointer-events: none;
-  z-index: 998;
+  pointer-events: auto;
+  cursor: grab;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  z-index: 1;
   will-change: transform;
   transform-origin: center center;
-  /* No transition — physics drives this each frame. */
+  /* No transition — physics drives transform each frame. */
+}
+.letter-chunk.dragging {
+  cursor: grabbing;
 }
 
-.hammer-reset {
+/* Reset button — top-right text chip styled to match the lab's reset.
+   Fades in via .visible when at least one letter has been knocked
+   loose. Auto-hides when scroll-past-hero cleanup triggers. */
+.letters-reset {
   position: fixed;
-  bottom: 2rem;
-  left: 50%;
-  transform: translateX(-50%) translateY(10px);
+  top: 5rem;
+  right: var(--pad);
   z-index: 1001;
   font-family: var(--display);
   font-size: 0.6rem;
@@ -449,26 +420,33 @@ body.pt-locking .hero-name .y-dot {
   color: var(--ink-soft);
   padding: 0.7rem 1.3rem;
   border: 1px solid var(--line);
-  background: var(--white);
+  background: rgba(255, 255, 255, 0.6);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
   cursor: pointer;
   opacity: 0;
   pointer-events: none;
+  transform: translateY(-8px);
   transition:
-    opacity 0.4s var(--ease),
-    transform 0.5s var(--ease),
-    color 0.2s,
-    background 0.2s,
-    border-color 0.2s;
+    opacity 0.35s var(--ease),
+    transform 0.4s var(--ease),
+    color 0.25s,
+    background 0.25s,
+    border-color 0.25s;
 }
-.hammer-reset.visible {
+.letters-reset.visible {
   opacity: 1;
   pointer-events: auto;
-  transform: translateX(-50%) translateY(0);
+  transform: translateY(0);
 }
-.hammer-reset:hover {
-  color: var(--ink);
+.letters-reset:hover {
+  color: var(--black);
   background: var(--yellow);
   border-color: var(--yellow);
+}
+body.past-hero .letters-reset.visible {
+  opacity: 0;
+  pointer-events: none;
 }
 
 @keyframes hero-in {
@@ -996,7 +974,12 @@ body.lightbox-open .dot-grid {
 .lab-stage {
   position: relative;
   width: 100vw;
+  /* dvh tracks the *dynamic* viewport — on iOS Safari the URL bar's
+     show/hide swing changes innerHeight by ~80px, and with 100vh the
+     bottom row of icons ended up below the visible area when the bar
+     was showing. Fallback to 100vh keeps older browsers working. */
   height: 100vh;
+  height: 100dvh;
   overflow: hidden;
   touch-action: none;
   user-select: none;
@@ -1166,6 +1149,250 @@ body.lightbox-open .dot-grid {
   background: rgba(255, 255, 255, 0.25);
   transform: translate(-50%, -50%);
   pointer-events: none;
+}
+
+
+/* ── Lab Index (new lab.html + labs/alternates.html) ──────────────
+   Vertical stack of experiment cards. Each card is a horizontal
+   banner with a number, name, tagline, meta, and a small SVG
+   preview that hints at the experiment's signature visual. The
+   page scrolls (overriding .lab-body's overflow:hidden).            */
+
+.lab-index-body {
+  overflow-x: hidden;
+  overflow-y: auto;
+  cursor: none;
+}
+@media (hover: none) {
+  .lab-index-body { cursor: auto; }
+}
+
+.lab-index {
+  position: relative;
+  z-index: 2;
+  padding: clamp(6rem, 14vh, 11rem) var(--pad-lg) 4rem;
+  max-width: var(--max-content);
+  margin: 0 auto;
+}
+
+.lab-index-head {
+  margin-bottom: clamp(3rem, 8vh, 6rem);
+  max-width: 38rem;
+}
+.lab-index-tag {
+  font-family: var(--display);
+  font-size: 0.7rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--yellow);
+  margin-bottom: 1.2rem;
+  opacity: 0;
+  transform: translateY(8px);
+  animation: lab-fade-up 0.7s var(--ease-out) 0.1s forwards;
+}
+.lab-index-title {
+  font-family: var(--display);
+  font-size: clamp(4rem, 13vw, 11rem);
+  line-height: 0.88;
+  letter-spacing: -0.012em;
+  color: var(--white);
+  margin-bottom: 1.4rem;
+  opacity: 0;
+  transform: translateY(16px);
+  animation: lab-fade-up 1s var(--ease-out) 0.25s forwards;
+}
+.lab-index-sub {
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.55);
+  min-height: 3em; /* reserve space so typewriter doesn't shift cards */
+}
+
+@keyframes lab-fade-up {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.lab-index-list {
+  list-style: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  margin: 0;
+  padding: 0;
+}
+.lab-index-list li { list-style: none; }
+
+.lab-index-card {
+  display: grid;
+  grid-template-columns: 4.5rem 1fr 160px 2rem;
+  gap: 2rem;
+  align-items: center;
+  padding: 2.4rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--white);
+  text-decoration: none;
+  position: relative;
+  opacity: 0;
+  transform: translateY(22px);
+  transition:
+    opacity 0.7s var(--ease-out),
+    transform 0.7s var(--ease-out),
+    background-color 0.35s var(--ease),
+    padding-left 0.45s var(--ease);
+}
+.lab-index-card.in {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.lab-index-card .num {
+  font-family: var(--display);
+  font-size: 1rem;
+  letter-spacing: 0.22em;
+  color: rgba(255, 255, 255, 0.4);
+  transition: color 0.35s var(--ease), transform 0.45s var(--ease);
+}
+
+.lab-index-card .body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  min-width: 0;
+}
+.lab-index-card .name {
+  font-family: var(--display);
+  font-size: clamp(2.2rem, 5.4vw, 3.8rem);
+  letter-spacing: 0.015em;
+  line-height: 0.92;
+  color: var(--white);
+  text-transform: uppercase;
+  position: relative;
+  display: inline-block;
+  align-self: flex-start;
+}
+.lab-index-card .name::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -0.18em;
+  height: 1.5px;
+  width: 100%;
+  background: var(--yellow);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.55s var(--ease);
+}
+.lab-index-card:hover .name::after {
+  transform: scaleX(1);
+}
+.lab-index-card .tag {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.6);
+  line-height: 1.4;
+  margin-top: 0.4rem;
+}
+.lab-index-card .meta {
+  font-family: var(--display);
+  font-size: 0.6rem;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.35);
+  margin-top: 0.5rem;
+}
+
+.lab-index-card .preview {
+  width: 100%;
+  max-width: 160px;
+  aspect-ratio: 14 / 9;
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 3px;
+  position: relative;
+  overflow: hidden;
+  transition:
+    background-color 0.35s var(--ease),
+    border-color 0.35s var(--ease),
+    transform 0.4s var(--ease);
+  will-change: transform;
+}
+.lab-index-card .preview svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.lab-index-card:hover .preview {
+  background: rgba(245, 203, 92, 0.05);
+  border-color: rgba(245, 203, 92, 0.55);
+}
+
+.lab-index-card .arrow {
+  font-family: var(--display);
+  font-size: 1.4rem;
+  color: rgba(255, 255, 255, 0.35);
+  transition: color 0.35s var(--ease), transform 0.4s var(--ease);
+  justify-self: end;
+}
+.lab-index-card:hover {
+  padding-left: 1.2rem;
+}
+.lab-index-card:hover .num {
+  color: var(--yellow);
+}
+.lab-index-card:hover .arrow {
+  color: var(--yellow);
+  transform: translateX(6px);
+}
+
+/* Alternates is the "different" card — subtle yellow tint baseline */
+.lab-index-card--alt {
+  background: rgba(245, 203, 92, 0.035);
+}
+.lab-index-card--alt .num {
+  color: var(--yellow);
+  font-size: 1.4rem;
+}
+
+/* Placeholder for upcoming alternates — no hover effects, dim */
+.lab-index-card--placeholder {
+  opacity: 0.42;
+  cursor: default;
+  pointer-events: none;
+}
+.lab-index-card--placeholder.in {
+  opacity: 0.42; /* lock past the in-animation */
+}
+.lab-index-card--placeholder .name::after { display: none; }
+.lab-index-card--placeholder:hover { padding-left: 0; }
+
+.lab-index-foot {
+  margin-top: 4rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  font-family: var(--display);
+  font-size: 0.6rem;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.4);
+}
+.lab-index-foot a { color: rgba(255, 255, 255, 0.55); text-decoration: none; transition: color 0.25s; }
+.lab-index-foot a:hover { color: var(--yellow); }
+
+@media (max-width: 760px) {
+  .lab-index {
+    padding: 5rem 1.3rem 3rem;
+  }
+  .lab-index-head { margin-bottom: 3rem; }
+  .lab-index-sub { font-size: 0.85rem; min-height: 4em; }
+  .lab-index-card {
+    grid-template-columns: 3rem 1fr 1.5rem;
+    gap: 1rem;
+    padding: 1.8rem 0;
+  }
+  .lab-index-card .preview { display: none; }
+  .lab-index-card .name { font-size: clamp(2rem, 9vw, 3rem); }
+  .lab-index-card .arrow { font-size: 1.2rem; }
+  .lab-index-card:hover { padding-left: 0.4rem; }
 }
 
 

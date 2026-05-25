@@ -2,8 +2,9 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Drift — Tres Studio Lab</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Drift — Tres Carter</title>
+<link rel="icon" href="../favicon/favicon.ico">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
@@ -675,15 +676,6 @@ $('advClose').addEventListener('click', () => $('adv').classList.remove('open'))
 $('saveBtn').addEventListener('click', saveImg);
 $('clearBtn').addEventListener('click', () => { clearSim(); savePulse(); });
 
-window.addEventListener('keydown', e => {
-  const k = e.key.toLowerCase();
-  if (k >= '1' && k <= '6') { setStudy(parseInt(k,10) - 1); dismissHint(); }
-  else if (k === 'c') { clearSim(); dismissHint(); }
-  else if (k === 's') { saveImg(); }
-  else if (k === '?' || k === '/') { $('adv').classList.toggle('open'); }
-  else if (k === 'escape') { $('adv').classList.remove('open'); }
-});
-
 // ════════════════════════════════════════════════
 // WebGL2 fluid sim (Navier-Stokes, semi-Lagrangian)
 // ════════════════════════════════════════════════
@@ -696,6 +688,18 @@ if (!gl) {
 }
 gl.getExtension('EXT_color_buffer_float');
 gl.getExtension('EXT_color_buffer_half_float');
+
+// Keydown shortcuts — bound AFTER the WebGL check so a failed sim
+// doesn't leave orphaned listeners that try to manipulate elements
+// the early-return replaced with the error fallback.
+window.addEventListener('keydown', e => {
+  const k = e.key.toLowerCase();
+  if (k >= '1' && k <= '6') { setStudy(parseInt(k,10) - 1); dismissHint(); }
+  else if (k === 'c') { clearSim(); dismissHint(); }
+  else if (k === 's') { saveImg(); }
+  else if (k === '?' || k === '/') { $('adv').classList.toggle('open'); }
+  else if (k === 'escape') { $('adv').classList.remove('open'); }
+});
 
 // ─── Shaders ───
 const VS = `#version 300 es
