@@ -4,6 +4,7 @@
 const DATA = (() => {
 
   let _projects = null;
+  let _labs = null;
 
   // Cloudinary uses /image/upload/ for images and /video/upload/ for video.
   // joinUrl swaps the base when kind === 'video' so a single sheet cell can
@@ -23,7 +24,7 @@ const DATA = (() => {
   }
 
   async function fetchCSV(url) {
-    if (!url) {
+    if (!url || url.includes('REPLACE_WITH_YOUR_PUBLISH_LINK')) {
       console.warn('Sheet URL not configured in config.js');
       return [];
     }
@@ -124,5 +125,26 @@ const DATA = (() => {
     return all.filter(p => p.category === cat.toLowerCase());
   }
 
-  return { getProjects, getProjectBySlug, getProjectsByCategory };
+  async function getLabs() {
+    if (_labs) return _labs;
+    try {
+      const rows = await fetchCSV(CONFIG.LAB_CSV_URL);
+      _labs = rows.filter(r => (r['Slug'] || '').trim()).map(r => ({
+        name:      r['Display Name'],
+        slug:      r['Slug'],
+        type:      r['Type'],
+        status:    r['Status'],
+        liveUrl:   r['Live URL'],
+        repoUrl:   r['Repo URL'],
+        stack:     r['Tech Stack'],
+        desc:      r['Description'],
+      }));
+      return _labs;
+    } catch (e) {
+      console.error('Failed to load labs:', e);
+      return [];
+    }
+  }
+
+  return { getProjects, getProjectBySlug, getProjectsByCategory, getLabs };
 })();

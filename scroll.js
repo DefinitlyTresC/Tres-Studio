@@ -3,6 +3,7 @@
 //
 // Each section is wrapped in try/catch so one failure doesn't kill
 // the others. Sections, in order:
+//   0. Shared DOM-mutation batcher (used by sections 3/4/6/7 + letters.js)
 //   1. Page transition (soft horizontal swipe)
 //   2. Lenis smooth scroll
 //   3. Custom liquid cursor
@@ -11,6 +12,35 @@
 //   6. Subtle scroll-tilt on project tiles
 //   7. Gallery jello-zoom + lightbox
 // ════════════════════════════════════════════════════════════════
+
+
+// ── 0. DOM mutation batcher ────────────────────────────────────
+// Several modules need to re-bind handlers whenever the DOM changes
+// (categories load async, project tiles render after a Sheet fetch,
+// the dot/letters wrap text once visible). Instead of every module
+// opening its own MutationObserver — five of them, all watching the
+// same subtree — they share this one. Listeners get coalesced into
+// a single rAF tick so a burst of mutations (e.g. innerHTML = ...)
+// fires each subscriber exactly once per frame.
+window.DOMBatch = (() => {
+  const listeners = new Set();
+  let scheduled = false;
+  function flush() {
+    scheduled = false;
+    listeners.forEach(fn => { try { fn(); } catch (e) { console.error(e); } });
+  }
+  function schedule() {
+    if (scheduled) return;
+    scheduled = true;
+    requestAnimationFrame(flush);
+  }
+  new MutationObserver(schedule).observe(document.body, {
+    childList: true, subtree: true,
+  });
+  return {
+    onMutate(fn) { listeners.add(fn); fn(); },  // fire once immediately
+  };
+})();
 
 
 // ── 1. Page transition ─────────────────────────────────────────
@@ -127,6 +157,10 @@ try {
       syncTouch: false,
       lerp: isTouch ? 0.1 : 0.085,
     });
+    // Expose so inline scripts (homepage accordion, etc.) can drive
+    // smooth-scrolls through the same instance instead of fighting
+    // window.scrollTo native scroll.
+    window.lenis = lenis;
     (function raf(time) {
       lenis.raf(time);
       requestAnimationFrame(raf);
@@ -187,16 +221,18 @@ try {
     // Order matters — first match wins. Put specific selectors first.
     const LABEL_MAP = [
       { selector: '.gallery-item',                            label: 'View' },
+      { selector: '.panel-card',                              label: 'Open' },
       { selector: '.proj-item, .index-row',                   label: 'Open' },
-      { selector: '.cat-link',                                label: 'Enter' },
-      { selector: '.ios-icon',                                label: 'Open' },
+      { selector: '.cat-link.open',                           label: 'Close' },
+      { selector: '.cat-link',                                label: 'Open' },
       { selector: '.lab-index-card--alt',                     label: 'Step' },
       { selector: '.lab-index-card',                          label: 'Enter' },
       { selector: '.hero-name .letter, .letter-chunk',        label: 'Grab' },
       { selector: '.hero-name .y-dot, .y-dot--free',          label: 'Grab' },
+      { selector: '.detail-nav-link',                         label: 'Open' },
       { selector: '.detail-back, .back-link',                 label: 'Back' },
       { selector: 'a[target="_blank"]',                       label: '↗' },
-      { selector: 'a[href^="mailto:"]',                       label: 'Email' },
+      { selector: 'a[href^="mailto:"]',                       label: 'Copy' },
     ];
     function labelFor(el) {
       for (let i = 0; i < LABEL_MAP.length; i++) {
@@ -228,8 +264,7 @@ try {
         });
       });
     }
-    bindHoverables();
-    new MutationObserver(bindHoverables).observe(document.body, { childList: true, subtree: true });
+    DOMBatch.onMutate(bindHoverables);
   }
 } catch (e) { console.error('Cursor init failed:', e); }
 
@@ -263,18 +298,91 @@ try {
     // Exclude .footer-mark — its own observer above handles it on a loop
     document.querySelectorAll('.reveal:not(.in):not(.footer-mark)').forEach(el => obs.observe(el));
   }
-  bindReveals();
-  new MutationObserver(bindReveals).observe(document.body, { childList: true, subtree: true });
+  DOMBatch.onMutate(bindReveals);
 } catch (e) { console.error('Reveal observer failed:', e); }
 
 
-// ── 5. Index hover-preview tracking ────────────────────────────
+// ── 4b. Click-to-copy email ────────────────────────────────────
+// Clicking a mailto: link copies the address to the clipboard and
+// briefly swaps the link text to "Copied". Most people don't have
+// a mail client configured on desktop and the mailto open dialog is
+// annoying — copying is the better default. Users can still right-
+// click → "Copy Email Address" or "Email Link" if they want the
+// original behavior; modifier-clicks bypass the intercept.
 try {
-  document.addEventListener('mousemove', (e) => {
-    document.querySelectorAll('.index-row:hover .preview').forEach(p => {
-      p.style.left = (e.clientX + 30) + 'px';
-      p.style.top = (e.clientY - 90) + 'px';
+  document.addEventListener('click', (e) => {
+    const a = e.target.closest('a[href^="mailto:"]');
+    if (!a) return;
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    const email = a.getAttribute('href').replace(/^mailto:/i, '').split('?')[0];
+    if (!email) return;
+    e.preventDefault();
+
+    const restore = a.textContent;
+    function flash(msg) {
+      a.textContent = msg;
+      a.classList.add('copied');
+      clearTimeout(a._copyTimer);
+      a._copyTimer = setTimeout(() => {
+        a.textContent = restore;
+        a.classList.remove('copied');
+      }, 1400);
+    }
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(email)
+        .then(() => flash('Copied ✓'))
+        .catch(() => flash(email));
+    } else {
+      // Pre-clipboard-API fallback — execCommand on a temp textarea
+      const ta = document.createElement('textarea');
+      ta.value = email;
+      ta.setAttribute('readonly', '');
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand('copy'); flash('Copied ✓'); }
+      catch (err) { flash(email); }
+      document.body.removeChild(ta);
+    }
+  });
+} catch (e) { console.error('Copy email init failed:', e); }
+
+
+// ── 5. Index hover-preview tracking ────────────────────────────
+// rAF-batched so the position update runs at most once per frame even
+// when mousemove fires faster. Also caches the hovered preview element
+// (one lookup per pointerenter/leave instead of querySelectorAll per move).
+try {
+  let hoveredPreview = null;
+  let px = 0, py = 0;
+  let scheduled = false;
+  function apply() {
+    scheduled = false;
+    if (hoveredPreview) {
+      hoveredPreview.style.left = (px + 30) + 'px';
+      hoveredPreview.style.top  = (py - 90) + 'px';
+    }
+  }
+  function bindIndexRows() {
+    document.querySelectorAll('.index-row').forEach(row => {
+      if (row._previewBound) return;
+      row._previewBound = true;
+      const preview = row.querySelector('.preview');
+      if (!preview) return;
+      row.addEventListener('pointerenter', () => { hoveredPreview = preview; });
+      row.addEventListener('pointerleave', () => {
+        if (hoveredPreview === preview) hoveredPreview = null;
+      });
     });
+  }
+  if (window.DOMBatch) DOMBatch.onMutate(bindIndexRows); else bindIndexRows();
+  document.addEventListener('mousemove', (e) => {
+    if (!hoveredPreview) return;
+    px = e.clientX;
+    py = e.clientY;
+    if (!scheduled) { scheduled = true; requestAnimationFrame(apply); }
   });
 } catch (e) { console.error('Preview track failed:', e); }
 
@@ -308,8 +416,7 @@ try {
   function bindTiles() {
     document.querySelectorAll('.proj-item').forEach(el => visObs.observe(el));
   }
-  bindTiles();
-  new MutationObserver(bindTiles).observe(document.body, { childList: true, subtree: true });
+  DOMBatch.onMutate(bindTiles);
 
   let scheduled = false;
   function updateTilt() {
@@ -551,7 +658,6 @@ try {
       });
     }
 
-    bindGalleries();
-    new MutationObserver(bindGalleries).observe(document.body, { childList: true, subtree: true });
+    DOMBatch.onMutate(bindGalleries);
   }
 } catch (e) { console.error('Gallery init failed:', e); }

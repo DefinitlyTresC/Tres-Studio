@@ -87,11 +87,14 @@ window.Letters = (() => {
     document.querySelectorAll('.hero-name').forEach(el => wrap(el, { draggable: true }));
     document.querySelectorAll('.cat-link .label').forEach(el => wrap(el, { draggable: false }));
   }
-  wrapAll();
-  // Category tiles render after a Sheet fetch — wrap when they appear.
-  new MutationObserver(wrapAll).observe(document.body, {
-    childList: true, subtree: true,
-  });
+  // Category tiles render after a Sheet fetch — re-wrap when they appear.
+  // Uses the shared DOM mutation batcher in scroll.js (fires once per rAF
+  // across all subscribers, instead of every module opening its own observer).
+  if (window.DOMBatch) {
+    DOMBatch.onMutate(wrapAll);
+  } else {
+    wrapAll();
+  }
 
   // ─── Hit testing (used by dot.js for ball-letter collision) ──
   function findHit(x, y) {

@@ -4,13 +4,26 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title id="page-title">Project — Tres Carter</title>
+  <meta name="description" id="page-desc" content="Project by Tres Carter." />
+  <meta name="theme-color" content="#FFFFFF" />
+
+  <meta property="og:type" content="article" />
+  <meta property="og:title" id="og-title" content="Project — Tres Carter" />
+  <meta property="og:description" id="og-desc" content="Project by Tres Carter." />
+  <meta property="og:image" id="og-image" content="" />
+  <meta property="og:site_name" content="Tres Carter" />
+  <meta name="twitter:card" content="summary_large_image" />
+
   <link rel="icon" href="favicon/favicon.ico" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="preconnect" href="https://res.cloudinary.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+
+<a class="skip" href="#content">Skip to content</a>
 
 <div class="dot-grid"></div>
 
@@ -21,6 +34,8 @@
     <a href="about.html">About</a>
   </div>
 </nav>
+
+<div class="read-progress" id="readProgress" aria-hidden="true"></div>
 
 <main id="content">
   <div class="loading">loading</div>
@@ -100,19 +115,101 @@ function renderMediaCell(m, name, useReveal) {
     </div>`;
 }
 
+function setMetaContent(id, value) {
+  const el = document.getElementById(id);
+  if (el) el.setAttribute('content', value);
+}
+
+// Reading progress — yellow line at top of page scrolls 0% → 100% as
+// the user moves through the detail body. rAF-throttled to one paint
+// per frame. Skipped under reduced-motion.
+function initReadProgress() {
+  const bar = document.getElementById('readProgress');
+  if (!bar) return;
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    bar.style.display = 'none';
+    return;
+  }
+  let scheduled = false;
+  function update() {
+    scheduled = false;
+    const doc = document.documentElement;
+    const max = doc.scrollHeight - window.innerHeight;
+    const ratio = max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0;
+    bar.style.transform = `scaleX(${ratio})`;
+  }
+  function onScroll() {
+    if (scheduled) return;
+    scheduled = true;
+    requestAnimationFrame(update);
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', onScroll);
+  update();
+}
+
 (async () => {
   const id = new URLSearchParams(location.search).get('id');
   if (!id) { location.href = 'index.html'; return; }
 
-  const p = await DATA.getProjectBySlug(id);
+  // Pull the full list in parallel so we can compute prev/next without
+  // a second fetch — getProjects() is memoized inside DATA.
+  const [p, all] = await Promise.all([DATA.getProjectBySlug(id), DATA.getProjects()]);
   if (!p) {
-    document.getElementById('content').innerHTML = '<div class="loading">project not found</div>';
+    document.getElementById('content').innerHTML = `
+      <section class="empty-cat">
+        <h1 class="empty-cat-name">Not found</h1>
+        <p class="empty-cat-msg">No project matches "${id}".</p>
+        <a class="empty-cat-back" href="index.html">← Back to studio</a>
+      </section>`;
     return;
   }
 
-  document.getElementById('page-title').textContent = `${p.name} — Tres Carter`;
+  const title = `${p.name} — Tres Carter`;
+  document.getElementById('page-title').textContent = title;
+  setMetaContent('og-title', title);
+  // Build a short description from the project: location · year + first
+  // sentence of the body. Falls back to a generic line.
+  const firstLine = (p.description || '').split(/\n+/)[0].trim();
+  const descParts = [];
+  if (p.location) descParts.push(p.location);
+  if (p.year)     descParts.push(p.year);
+  const desc = (firstLine || descParts.join(' · ') || `Project by Tres Carter.`).slice(0, 200);
+  setMetaContent('page-desc', desc);
+  setMetaContent('og-desc', desc);
+  if (p.heroUrl) setMetaContent('og-image', p.heroUrl);
+
   const backHref = p.category ? `category.html?cat=${p.category}` : 'index.html';
   const backLabel = p.category ? p.category.charAt(0).toUpperCase() + p.category.slice(1) : 'Studio';
+
+  // Prev/next within the same category, ordered by the sheet's Order column.
+  // Wraps around so the end loops back to the start.
+  const siblings = p.category ? all.filter(x => x.category === p.category) : [];
+  const idx = siblings.findIndex(x => x.slug === p.slug);
+  let prev = null, next = null;
+  if (idx >= 0 && siblings.length > 1) {
+    prev = siblings[(idx - 1 + siblings.length) % siblings.length];
+    next = siblings[(idx + 1) % siblings.length];
+  }
+
+  const navHtml = (prev || next) ? `
+    <nav class="detail-nav" aria-label="More projects in ${backLabel}">
+      ${prev ? `
+        <a class="detail-nav-link detail-nav-link--prev" href="project.html?id=${prev.slug}" data-hover>
+          <span class="detail-nav-arrow">←</span>
+          <span class="detail-nav-meta">Previous</span>
+          <span class="detail-nav-name">${prev.name}</span>
+        </a>
+      ` : '<span></span>'}
+      ${next ? `
+        <a class="detail-nav-link detail-nav-link--next" href="project.html?id=${next.slug}" data-hover>
+          <span class="detail-nav-meta">Next</span>
+          <span class="detail-nav-name">${next.name}</span>
+          <span class="detail-nav-arrow">→</span>
+        </a>
+      ` : '<span></span>'}
+    </nav>
+  ` : '';
 
   document.getElementById('content').innerHTML = `
     <section class="detail">
@@ -136,7 +233,7 @@ function renderMediaCell(m, name, useReveal) {
 
       ${p.heroUrl ? `
         <div class="gallery-item reveal" style="width:100%; margin-top:6rem;">
-          <img src="${p.heroUrl}" alt="${p.name}"
+          <img src="${p.heroUrl}" alt="${p.name}" fetchpriority="high" decoding="async"
                onload="this.classList.add('loaded')"
                onerror="this.parentElement.style.display='none'" />
         </div>
@@ -146,9 +243,13 @@ function renderMediaCell(m, name, useReveal) {
         ${p.media.map(m => renderMediaCell(m, p.name, p.media.length <= 50)).join('')}
       </section>
 
+      ${navHtml}
+
       <a class="detail-back" href="${backHref}">← Back to ${backLabel}</a>
     </section>
   `;
+
+  initReadProgress();
 })();
 </script>
 

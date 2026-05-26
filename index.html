@@ -3,14 +3,28 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Tres Carter</title>
+  <title>Tres Carter — Architecture &amp; Studio</title>
+  <meta name="description" content="Portfolio of Tres Carter — architectural design, personal projects, and interactive lab experiments. Based on 30A, Florida." />
+  <meta name="theme-color" content="#FFFFFF" />
+  <link rel="canonical" href="https://tres.studio/" />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Tres Carter — Architecture &amp; Studio" />
+  <meta property="og:description" content="Architectural design, personal projects, and interactive lab experiments." />
+  <meta property="og:url" content="https://tres.studio/" />
+  <meta property="og:site_name" content="Tres Carter" />
+  <meta name="twitter:card" content="summary_large_image" />
+
   <link rel="icon" href="favicon/favicon.ico" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="preconnect" href="https://res.cloudinary.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+
+<a class="skip" href="#content">Skip to content</a>
 
 <div class="dot-grid"></div>
 
@@ -29,7 +43,7 @@
 </section>
 <div class="hero-spacer"></div>
 
-<main class="content">
+<main class="content" id="content">
 
   <section class="index">
     <div class="index-head">
@@ -79,20 +93,314 @@
 <script src="flow-field.js"></script>
 <script src="letters.js"></script>
 <script src="dot.js"></script>
+<script src="hero-fx.js"></script>
 <script>
+// ═══════════════════════════════════════════════════════════════
+// Homepage script — Selected Work list + category accordion
+//
+// Categories no longer navigate to category.html on click; they
+// drop down inline. The whole site stays on one page until you
+// click into a specific project. State machine:
+//
+//   click Architecture (closed) → opens, smooth scroll to link
+//   click Architecture (open)   → closes
+//   click Personal (Arch open)  → closes Arch + opens Personal in parallel
+//
+// First open of Architecture/Personal triggers an async render of
+// the project cards into .panel-inner. Subsequent opens reuse the
+// already-rendered cards (data-loaded flag). Lab is hand-curated
+// so it renders synchronously at boot.
+//
+// The card reveal uses a CSS-only "unroll" effect — each card has
+// its index set as --i, and the transition-delay multiplies that.
+// So they cascade in like a paper scroll unrolling top-to-bottom.
+// ═══════════════════════════════════════════════════════════════
+
+const LAB_CARDS = [
+  {
+    href: 'labs/drift.html',
+    name: 'Drift',
+    info: 'Fluid study, six lenses',
+    svg: `<svg viewBox="0 0 140 90" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <g fill="none" stroke="rgba(255,255,255,0.55)" stroke-width="1" stroke-linecap="round">
+        <path d="M0 22 Q35 8 70 22 T140 22">
+          <animate attributeName="d"
+            values="M0 22 Q35 8 70 22 T140 22;M0 22 Q35 36 70 22 T140 22;M0 22 Q35 8 70 22 T140 22"
+            dur="7s" repeatCount="indefinite" />
+        </path>
+        <path d="M0 45 Q35 30 70 45 T140 45">
+          <animate attributeName="d"
+            values="M0 45 Q35 60 70 45 T140 45;M0 45 Q35 28 70 45 T140 45;M0 45 Q35 60 70 45 T140 45"
+            dur="6s" repeatCount="indefinite" />
+        </path>
+        <path d="M0 68 Q35 53 70 68 T140 68" stroke="rgba(245,203,92,0.85)">
+          <animate attributeName="d"
+            values="M0 68 Q35 82 70 68 T140 68;M0 68 Q35 52 70 68 T140 68;M0 68 Q35 82 70 68 T140 68"
+            dur="8s" repeatCount="indefinite" />
+        </path>
+      </g></svg>`,
+  },
+  {
+    href: 'labs/plan.html',
+    name: 'Plan',
+    info: 'Langton’s ant — constraint variations',
+    svg: `<svg viewBox="0 0 140 90" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <g stroke="rgba(255,255,255,0.18)" stroke-width="0.6">
+        <path d="M0 15 H140 M0 30 H140 M0 45 H140 M0 60 H140 M0 75 H140" />
+        <path d="M15 0 V90 M30 0 V90 M45 0 V90 M60 0 V90 M75 0 V90 M90 0 V90 M105 0 V90 M120 0 V90" />
+      </g>
+      <g fill="rgba(255,255,255,0.18)">
+        <rect x="46" y="46" width="14" height="14" />
+        <rect x="61" y="46" width="14" height="14" />
+        <rect x="61" y="31" width="14" height="14" />
+        <rect x="76" y="31" width="14" height="14" />
+      </g>
+      <rect x="46" y="61" width="14" height="14" fill="rgba(245,203,92,0.95)">
+        <animate attributeName="x" values="46;46;61;61;76;76;61;61;46;46" dur="5s" repeatCount="indefinite" />
+        <animate attributeName="y" values="61;46;46;31;31;46;46;61;61;61" dur="5s" repeatCount="indefinite" />
+      </rect></svg>`,
+  },
+  {
+    href: 'labs/birds.html',
+    name: 'Birds',
+    info: 'Flocking with rogues',
+    svg: `<svg viewBox="0 0 140 90" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <g fill="rgba(255,255,255,0.6)">
+        <g transform="translate(0 0)">
+          <animateTransform attributeName="transform" type="translate" values="-40 0; 180 0" dur="14s" repeatCount="indefinite" />
+          <polygon points="20,40 14,43 16,40 14,37" />
+          <polygon points="34,30 28,33 30,30 28,27" />
+          <polygon points="48,42 42,45 44,42 42,39" />
+          <polygon points="62,32 56,35 58,32 56,29" />
+          <polygon points="76,44 70,47 72,44 70,41" fill="rgba(245,203,92,0.95)" />
+          <polygon points="90,34 84,37 86,34 84,31" />
+        </g>
+        <g transform="translate(0 0)">
+          <animateTransform attributeName="transform" type="translate" values="-30 30; 190 30" dur="11s" repeatCount="indefinite" />
+          <polygon points="20,40 14,43 16,40 14,37" />
+          <polygon points="36,32 30,35 32,32 30,29" fill="rgba(245,203,92,0.95)" />
+          <polygon points="50,44 44,47 46,44 44,41" />
+        </g>
+      </g></svg>`,
+  },
+  {
+    href: 'labs/field.html',
+    name: 'Field',
+    info: 'Vector flow + released disturbances',
+    svg: `<svg viewBox="0 0 140 90" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <g stroke="rgba(255,255,255,0.6)" stroke-width="1" stroke-linecap="round" fill="none">
+        <g>
+          <animateTransform attributeName="transform" type="rotate" from="0 70 45" to="360 70 45" dur="18s" repeatCount="indefinite" />
+          <line x1="20" y1="18" x2="28" y2="22" />
+          <line x1="50" y1="14" x2="58" y2="20" />
+          <line x1="82" y1="14" x2="90" y2="20" />
+          <line x1="112" y1="18" x2="120" y2="22" />
+          <line x1="20" y1="42" x2="28" y2="42" />
+          <line x1="50" y1="36" x2="58" y2="42" />
+          <line x1="82" y1="36" x2="90" y2="42" />
+          <line x1="112" y1="42" x2="120" y2="42" />
+          <line x1="20" y1="66" x2="28" y2="64" />
+          <line x1="50" y1="68" x2="58" y2="62" />
+          <line x1="82" y1="68" x2="90" y2="62" />
+          <line x1="112" y1="66" x2="120" y2="64" />
+        </g>
+        <circle cx="70" cy="45" r="4" fill="rgba(245,203,92,0.9)" stroke="none">
+          <animate attributeName="r" values="3;9;3" dur="3.5s" repeatCount="indefinite" />
+          <animate attributeName="opacity" values="0.9;0;0.9" dur="3.5s" repeatCount="indefinite" />
+        </circle>
+      </g></svg>`,
+  },
+  {
+    href: 'labs/echo.html',
+    name: 'Echo',
+    info: 'Ring resonance — stars from intersections',
+    svg: `<svg viewBox="0 0 140 90" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <g fill="none" stroke="rgba(245,203,92,0.85)" stroke-width="0.7">
+        <circle cx="38" cy="34" r="6">
+          <animate attributeName="r" values="2;42;2" dur="3.6s" repeatCount="indefinite" />
+          <animate attributeName="opacity" values="0.9;0;0.9" dur="3.6s" repeatCount="indefinite" />
+        </circle>
+        <circle cx="96" cy="30" r="6">
+          <animate attributeName="r" values="2;40;2" dur="3.6s" begin="0.6s" repeatCount="indefinite" />
+          <animate attributeName="opacity" values="0.9;0;0.9" dur="3.6s" begin="0.6s" repeatCount="indefinite" />
+        </circle>
+        <circle cx="70" cy="62" r="6">
+          <animate attributeName="r" values="2;38;2" dur="3.6s" begin="1.2s" repeatCount="indefinite" />
+          <animate attributeName="opacity" values="0.9;0;0.9" dur="3.6s" begin="1.2s" repeatCount="indefinite" />
+        </circle>
+      </g>
+      <g fill="rgba(245,203,92,0.95)">
+        <circle cx="67" cy="32" r="1.4">
+          <animate attributeName="r" values="1.4;2.2;1.4" dur="1.6s" repeatCount="indefinite" />
+        </circle>
+        <circle cx="54" cy="48" r="1.4">
+          <animate attributeName="r" values="1.4;2.2;1.4" dur="1.6s" begin="0.4s" repeatCount="indefinite" />
+        </circle>
+        <circle cx="83" cy="46" r="1.4">
+          <animate attributeName="r" values="1.4;2.2;1.4" dur="1.6s" begin="0.8s" repeatCount="indefinite" />
+        </circle>
+      </g>
+      <g stroke="rgba(245,203,92,0.7)" stroke-width="0.4" stroke-linecap="round">
+        <line x1="63" y1="32" x2="71" y2="32" />
+        <line x1="67" y1="28" x2="67" y2="36" />
+        <line x1="50" y1="48" x2="58" y2="48" />
+        <line x1="54" y1="44" x2="54" y2="52" />
+        <line x1="79" y1="46" x2="87" y2="46" />
+        <line x1="83" y1="42" x2="83" y2="50" />
+      </g>
+      <circle cx="20" cy="70" r="6" fill="rgba(0,0,0,0.6)" stroke="rgba(255,255,255,0.18)" stroke-width="0.4">
+        <animate attributeName="cx" values="-10;150" dur="9s" repeatCount="indefinite" />
+      </circle></svg>`,
+  },
+  {
+    href: 'labs/alternates.html',
+    name: 'Alternates',
+    info: 'Parallel universes — same content, different physics',
+    svg: `<svg viewBox="0 0 140 90" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <g fill="none" stroke-width="1">
+        <rect x="22" y="14" width="60" height="60" stroke="rgba(255,255,255,0.4)">
+          <animate attributeName="x" values="22;14;22" dur="7s" repeatCount="indefinite" />
+        </rect>
+        <rect x="42" y="22" width="60" height="60" stroke="rgba(245,203,92,0.55)" fill="rgba(245,203,92,0.05)">
+          <animate attributeName="x" values="42;52;42" dur="7s" repeatCount="indefinite" />
+        </rect>
+        <rect x="60" y="14" width="60" height="60" stroke="rgba(255,255,255,0.4)">
+          <animate attributeName="x" values="60;68;60" dur="7s" repeatCount="indefinite" />
+        </rect>
+      </g></svg>`,
+  },
+];
+
+function renderProjectCards(container, projs) {
+  if (!projs.length) {
+    container.innerHTML = '<div class="panel-empty">No projects yet.</div>';
+    return;
+  }
+  container.innerHTML = `
+    <div class="panel-grid">
+      ${projs.map(p => `
+        <a class="panel-card" href="project.html?id=${p.slug}" data-hover>
+          <div class="panel-card-media">
+            <img src="${p.heroUrlThumb || ''}" alt="${p.name}" loading="lazy" decoding="async" onerror="this.style.display='none'" />
+          </div>
+          <h3 class="panel-card-name">${p.name}</h3>
+          <p class="panel-card-info">${[p.location, p.year].filter(Boolean).join(' · ')}</p>
+        </a>
+      `).join('')}
+    </div>`;
+}
+
+function renderLabPanel(container) {
+  container.innerHTML = `
+    <div class="panel-grid panel-grid--lab">
+      ${LAB_CARDS.map(c => `
+        <a class="panel-card panel-card--lab" href="${c.href}" data-hover>
+          <div class="panel-card-media">${c.svg}</div>
+          <h3 class="panel-card-name">${c.name}</h3>
+          <p class="panel-card-info">${c.info}</p>
+        </a>
+      `).join('')}
+    </div>`;
+}
+
+function scrollToLink(link) {
+  if (!link) return;
+  const rect = link.getBoundingClientRect();
+  const targetY = window.scrollY + rect.top - 90;
+  if (window.lenis) {
+    window.lenis.scrollTo(targetY, { duration: 0.95 });
+  } else {
+    window.scrollTo({ top: targetY, behavior: 'smooth' });
+  }
+}
+
+function revealCards(panel) {
+  panel.querySelectorAll('.panel-card').forEach((card, i) => {
+    card.style.setProperty('--i', i);
+    // Two rAFs: first lets the panel start its height transition, the
+    // second commits the .in class so the card's transition delay can
+    // pick up cleanly from a fresh frame.
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => card.classList.add('in'));
+    });
+  });
+}
+
+async function openPanel(panel) {
+  // Cancel any pending card-reset timer from a previous close on this
+  // same panel — otherwise re-opening within 520ms of closing would
+  // strip .in from the cards mid-reveal.
+  if (panel._resetTimer) {
+    clearTimeout(panel._resetTimer);
+    panel._resetTimer = null;
+  }
+
+  // Render content BEFORE flipping .open so the panel's natural
+  // height resolves to the right size on the first frame of the
+  // grid-template-rows transition. Otherwise it'd expand to 0
+  // (empty), then snap to full height once cards render — visible
+  // pop. getProjectsByCategory is async but memoized after the
+  // first call, so this is effectively a microtask delay.
+  const cat = panel.dataset.cat;
+  if (!panel.dataset.loaded && (cat === 'architecture' || cat === 'personal')) {
+    panel.dataset.loaded = '1';
+    const projs = await DATA.getProjectsByCategory(cat);
+    renderProjectCards(panel.querySelector('.panel-inner'), projs);
+  }
+
+  panel.classList.add('open');
+  panel.setAttribute('aria-hidden', 'false');
+  const link = document.querySelector(`.cat-link[data-cat="${panel.dataset.cat}"]`);
+  if (link) {
+    link.classList.add('open');
+    link.setAttribute('aria-expanded', 'true');
+  }
+
+  revealCards(panel);
+}
+
+function closePanel(panel) {
+  panel.classList.remove('open');
+  panel.setAttribute('aria-hidden', 'true');
+  const link = document.querySelector(`.cat-link[data-cat="${panel.dataset.cat}"]`);
+  if (link) {
+    link.classList.remove('open');
+    link.setAttribute('aria-expanded', 'false');
+  }
+  // Reset card states after the height collapse so the next open
+  // re-triggers the unroll-reveal from scratch. Stored on the panel
+  // so openPanel can cancel it if the user re-opens this panel
+  // before the reset fires.
+  clearTimeout(panel._resetTimer);
+  panel._resetTimer = setTimeout(() => {
+    panel.querySelectorAll('.panel-card.in').forEach(c => c.classList.remove('in'));
+    panel._resetTimer = null;
+  }, 520);
+}
+
+function activatePanel(cat) {
+  const target = document.querySelector(`.cat-panel[data-cat="${cat}"]`);
+  if (!target) return;
+  const currentlyOpen = document.querySelector('.cat-panel.open');
+  if (currentlyOpen === target) {
+    closePanel(target);
+    return;
+  }
+  if (currentlyOpen) closePanel(currentlyOpen);
+  openPanel(target);
+  scrollToLink(document.querySelector(`.cat-link[data-cat="${cat}"]`));
+}
+
 (async () => {
   const projects = await DATA.getProjects();
 
-  // Selected work — curated order. Each slug pulled by name so this
-  // list stays the homepage source of truth no matter how the sheet
-  // is sorted. Edit this array to reshuffle which projects show up.
+  // ─── Selected work — curated order ─────────────────────────
   const FEATURED_SLUGS = ['tucker', 'ee13', 'z07', 'drome', 'personalart', 'photography'];
   const featured = FEATURED_SLUGS
     .map(slug => projects.find(p => p.slug === slug))
     .filter(Boolean);
   const listEl = document.getElementById('indexList');
   listEl.innerHTML = '';
-
   featured.forEach((p, i) => {
     const row = document.createElement('a');
     row.className = 'index-row reveal';
@@ -107,24 +415,71 @@
     listEl.appendChild(row);
   });
 
-  // Categories
+  // ─── Category accordion ────────────────────────────────────
   const cats = [
-    { key: 'architecture', name: 'Architecture', num: '01', href: 'category.html?cat=architecture' },
-    { key: 'personal',     name: 'Personal',     num: '02', href: 'category.html?cat=personal' },
-    { key: 'lab',          name: 'Lab',          num: '03', href: 'lab.html' },
+    { key: 'architecture', name: 'Architecture', num: '01' },
+    { key: 'personal',     name: 'Personal',     num: '02' },
+    { key: 'lab',          name: 'Lab',          num: '03' },
   ];
   const catEl = document.getElementById('catList');
   cats.forEach(cat => {
     const projs = projects.filter(p => p.category === cat.key);
-    const link = document.createElement('a');
+    const metaText = cat.key === 'lab' ? 'Experiments' : `${projs.length} projects`;
+
+    // Toggle button (semantically a button — these no longer navigate)
+    const link = document.createElement('button');
+    link.type = 'button';
     link.className = 'cat-link reveal';
-    link.href = cat.href;
+    link.dataset.cat = cat.key;
+    link.setAttribute('aria-expanded', 'false');
+    link.setAttribute('aria-controls', `panel-${cat.key}`);
     link.innerHTML = `
       <span class="num">${cat.num}</span>
       <span class="label">${cat.name}</span>
-      <span class="meta">${cat.key === 'lab' ? 'Experiments' : projs.length + ' projects'} →</span>
+      <span class="meta">${metaText}</span>
+      <span class="cat-chev" aria-hidden="true"></span>
     `;
     catEl.appendChild(link);
+
+    // Drop-down panel
+    const panel = document.createElement('section');
+    panel.className = 'cat-panel';
+    panel.id = `panel-${cat.key}`;
+    panel.dataset.cat = cat.key;
+    panel.setAttribute('aria-hidden', 'true');
+    panel.innerHTML = `<div class="panel-inner"></div>`;
+    catEl.appendChild(panel);
+
+    // Lab is hand-curated — render now so the first open is instant
+    if (cat.key === 'lab') {
+      renderLabPanel(panel.querySelector('.panel-inner'));
+      panel.dataset.loaded = '1';
+    }
+  });
+
+  // Delegated toggle handler
+  catEl.addEventListener('click', e => {
+    const link = e.target.closest('.cat-link');
+    if (!link) return;
+    activatePanel(link.dataset.cat);
+  });
+
+  // Keyboard support — arrows move between cat-links, ESC closes
+  catEl.addEventListener('keydown', e => {
+    const link = e.target.closest('.cat-link');
+    if (!link) return;
+    const links = Array.from(catEl.querySelectorAll('.cat-link'));
+    const idx = links.indexOf(link);
+    if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+      e.preventDefault();
+      links[(idx + 1) % links.length].focus();
+    } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+      e.preventDefault();
+      links[(idx - 1 + links.length) % links.length].focus();
+    } else if (e.key === 'Escape') {
+      const open = document.querySelector('.cat-panel.open');
+      if (open) closePanel(open);
+    }
   });
 })();
 </script>

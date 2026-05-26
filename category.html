@@ -4,13 +4,25 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title id="page-title">Tres Carter</title>
+  <meta name="description" id="page-desc" content="Selected work — Tres Carter." />
+  <meta name="theme-color" content="#FFFFFF" />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:title" id="og-title" content="Tres Carter" />
+  <meta property="og:description" id="og-desc" content="Selected work — Tres Carter." />
+  <meta property="og:site_name" content="Tres Carter" />
+  <meta name="twitter:card" content="summary" />
+
   <link rel="icon" href="favicon/favicon.ico" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="preconnect" href="https://res.cloudinary.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+
+<a class="skip" href="#content">Skip to content</a>
 
 <div class="dot-grid"></div>
 
@@ -56,24 +68,49 @@
 <script src="data.js"></script>
 <script src="scroll.js"></script>
 <script>
+// Category numbering — matches the cats array on the homepage so the
+// "— Category · NN" eyebrow stays in sync if new categories are added.
+const CATEGORY_NUM = { architecture: '01', personal: '02' };
+
+function setMeta(name, value) {
+  const el = document.getElementById(name);
+  if (el) {
+    if ('content' in el && el.tagName !== 'TITLE') el.setAttribute('content', value);
+    else el.textContent = value;
+  }
+}
+
 (async () => {
   const params = new URLSearchParams(location.search);
   const cat = (params.get('cat') || 'architecture').toLowerCase();
   const catLabel = cat.charAt(0).toUpperCase() + cat.slice(1);
-  document.getElementById('page-title').textContent = `${catLabel} — Tres Carter`;
+  const num = CATEGORY_NUM[cat] || '·';
+  const title = `${catLabel} — Tres Carter`;
+
+  setMeta('page-title', title);
+  setMeta('og-title', title);
+  const desc = `${catLabel} work by Tres Carter.`;
+  setMeta('page-desc', desc);
+  setMeta('og-desc', desc);
 
   const projects = await DATA.getProjectsByCategory(cat);
   const content = document.getElementById('content');
 
   if (!projects.length) {
-    content.innerHTML = `<div class="loading">no projects in ${catLabel} yet</div>`;
+    content.innerHTML = `
+      <section class="empty-cat">
+        <div class="empty-cat-tag">— Category<span class="y"> · </span>${num}</div>
+        <h1 class="empty-cat-name">${catLabel}</h1>
+        <p class="empty-cat-msg">No projects in ${catLabel.toLowerCase()} yet.</p>
+        <a class="empty-cat-back" href="index.html">← Back to studio</a>
+      </section>`;
     return;
   }
 
   content.innerHTML = `
     <section class="cat-intro">
       <div class="reveal">
-        <div class="cat-intro-tag">— Category<span class="y"> · </span>0${cat === 'architecture' ? '1' : '2'}</div>
+        <div class="cat-intro-tag">— Category<span class="y"> · </span>${num}</div>
         <h1 class="cat-intro-name">${catLabel}</h1>
       </div>
       <div class="cat-intro-meta reveal">
@@ -83,10 +120,10 @@
     </section>
 
     <section class="proj-list">
-      ${projects.map((p, i) => `
+      ${projects.map(p => `
         <a class="proj-item reveal" href="project.html?id=${p.slug}">
           <div class="proj-img">
-            <img src="${p.heroUrlThumb || ''}" alt="${p.name}" loading="lazy" onerror="this.style.display='none'" />
+            <img src="${p.heroUrlThumb || ''}" alt="${p.name}" loading="lazy" decoding="async" onerror="this.style.display='none'" />
           </div>
           <div class="proj-meta">
             <span class="name">${p.name}</span>

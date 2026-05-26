@@ -4,6 +4,17 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Lab — Tres Carter</title>
+  <meta name="description" content="Interactive lab — living sketches and side projects. Flow fields, flocking, fluid studies, and alternate site universes." />
+  <meta name="theme-color" content="#0A0A0A" />
+  <link rel="canonical" href="https://tres.studio/lab.html" />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Lab — Tres Carter" />
+  <meta property="og:description" content="Living sketches and side projects — flow fields, flocking, fluid studies, alternate universes." />
+  <meta property="og:url" content="https://tres.studio/lab.html" />
+  <meta property="og:site_name" content="Tres Carter" />
+  <meta name="twitter:card" content="summary_large_image" />
+
   <link rel="icon" href="favicon/favicon.ico" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -11,6 +22,8 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body class="lab-body lab-index-body">
+
+<a class="skip" href="#content">Skip to content</a>
 
 <div class="dot-grid dot-grid--dark"></div>
 
@@ -21,7 +34,7 @@
   </div>
 </nav>
 
-<main class="lab-index">
+<main class="lab-index" id="content">
   <header class="lab-index-head">
     <div class="lab-index-tag">— Lab · 03</div>
     <h1 class="lab-index-title" id="labTitle">Experiments</h1>
@@ -157,6 +170,120 @@
             <circle cx="70" cy="45" r="4" fill="rgba(245,203,92,0.9)" stroke="none">
               <animate attributeName="r" values="3;9;3" dur="3.5s" repeatCount="indefinite" />
               <animate attributeName="opacity" values="0.9;0;0.9" dur="3.5s" repeatCount="indefinite" />
+            </circle>
+          </g>
+        </svg>
+      </div>
+      <span class="arrow">→</span>
+    </a></li>
+
+    <li><a class="lab-index-card reveal" href="labs/echo.html" data-hover>
+      <span class="num">05</span>
+      <div class="body">
+        <h2 class="name">Echo</h2>
+        <p class="tag">Ring resonance · stars from intersections</p>
+        <p class="meta">Canvas · 2026</p>
+      </div>
+      <div class="preview">
+        <svg viewBox="0 0 140 90" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <!-- Three rings expanding from different origins. Where they cross, a yellow star is born. -->
+          <g fill="none" stroke="rgba(245,203,92,0.85)" stroke-width="0.7">
+            <circle cx="38" cy="34" r="6">
+              <animate attributeName="r" values="2;42;2" dur="3.6s" repeatCount="indefinite" />
+              <animate attributeName="opacity" values="0.9;0;0.9" dur="3.6s" repeatCount="indefinite" />
+            </circle>
+            <circle cx="96" cy="30" r="6">
+              <animate attributeName="r" values="2;40;2" dur="3.6s" begin="0.6s" repeatCount="indefinite" />
+              <animate attributeName="opacity" values="0.9;0;0.9" dur="3.6s" begin="0.6s" repeatCount="indefinite" />
+            </circle>
+            <circle cx="70" cy="62" r="6">
+              <animate attributeName="r" values="2;38;2" dur="3.6s" begin="1.2s" repeatCount="indefinite" />
+              <animate attributeName="opacity" values="0.9;0;0.9" dur="3.6s" begin="1.2s" repeatCount="indefinite" />
+            </circle>
+          </g>
+          <!-- Persistent stars at typical intersection points — pulse to feel alive -->
+          <g fill="rgba(245,203,92,0.95)">
+            <circle cx="67" cy="32" r="1.4">
+              <animate attributeName="r" values="1.4;2.2;1.4" dur="1.6s" repeatCount="indefinite" />
+            </circle>
+            <circle cx="54" cy="48" r="1.4">
+              <animate attributeName="r" values="1.4;2.2;1.4" dur="1.6s" begin="0.4s" repeatCount="indefinite" />
+            </circle>
+            <circle cx="83" cy="46" r="1.4">
+              <animate attributeName="r" values="1.4;2.2;1.4" dur="1.6s" begin="0.8s" repeatCount="indefinite" />
+            </circle>
+          </g>
+          <!-- 4-point glints on stars -->
+          <g stroke="rgba(245,203,92,0.7)" stroke-width="0.4" stroke-linecap="round">
+            <line x1="63" y1="32" x2="71" y2="32" />
+            <line x1="67" y1="28" x2="67" y2="36" />
+            <line x1="50" y1="48" x2="58" y2="48" />
+            <line x1="54" y1="44" x2="54" y2="52" />
+            <line x1="79" y1="46" x2="87" y2="46" />
+            <line x1="83" y1="42" x2="83" y2="50" />
+          </g>
+          <!-- A faint void drifting through -->
+          <circle cx="20" cy="70" r="6" fill="rgba(0,0,0,0.6)" stroke="rgba(255,255,255,0.18)" stroke-width="0.4">
+            <animate attributeName="cx" values="-10;150" dur="9s" repeatCount="indefinite" />
+          </circle>
+        </svg>
+      </div>
+      <span class="arrow">→</span>
+    </a></li>
+
+    <li><a class="lab-index-card reveal" href="labs/pulse.html" data-hover>
+      <span class="num">06</span>
+      <div class="body">
+        <h2 class="name">Pulse</h2>
+        <p class="tag">Hypnotic rings · thread the gap before it closes</p>
+        <p class="meta">Canvas · 2026</p>
+      </div>
+      <div class="preview">
+        <svg viewBox="0 0 140 90" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <!-- Concentric color rings expanding from a center iris.
+               Each ring has a gap on the right side; the yellow scout
+               sits at the orbit radius and threads through the gap. -->
+          <defs>
+            <clipPath id="pulseFrame"><rect x="0" y="0" width="140" height="90" /></clipPath>
+          </defs>
+          <g clip-path="url(#pulseFrame)" transform="translate(70 45)">
+            <!-- Background rings — each is an arc with a gap at angle 0 (right side).
+                 stroke-dasharray skips a segment, creating the gap. -->
+            <g fill="none" stroke-linecap="butt">
+              <circle r="44" stroke="#FF1F5A" stroke-width="8"
+                stroke-dasharray="220 56" stroke-dashoffset="28"
+                transform="rotate(0)">
+                <animate attributeName="r" values="44;58;44" dur="3.6s" repeatCount="indefinite" />
+                <animate attributeName="opacity" values="0.95;0;0.95" dur="3.6s" repeatCount="indefinite" />
+              </circle>
+              <circle r="32" stroke="#9B59FF" stroke-width="8"
+                stroke-dasharray="170 44" stroke-dashoffset="22"
+                transform="rotate(0)">
+                <animate attributeName="r" values="32;46;32" dur="3.6s" begin="0.45s" repeatCount="indefinite" />
+                <animate attributeName="opacity" values="0.95;0;0.95" dur="3.6s" begin="0.45s" repeatCount="indefinite" />
+              </circle>
+              <circle r="22" stroke="#2EE6E1" stroke-width="8"
+                stroke-dasharray="118 32" stroke-dashoffset="16"
+                transform="rotate(0)">
+                <animate attributeName="r" values="22;34;22" dur="3.6s" begin="0.9s" repeatCount="indefinite" />
+                <animate attributeName="opacity" values="0.95;0;0.95" dur="3.6s" begin="0.9s" repeatCount="indefinite" />
+              </circle>
+              <circle r="14" stroke="#F5F5F5" stroke-width="6"
+                stroke-dasharray="74 22" stroke-dashoffset="11"
+                transform="rotate(0)">
+                <animate attributeName="r" values="14;24;14" dur="3.6s" begin="1.35s" repeatCount="indefinite" />
+                <animate attributeName="opacity" values="0.95;0;0.95" dur="3.6s" begin="1.35s" repeatCount="indefinite" />
+              </circle>
+            </g>
+            <!-- Center iris -->
+            <circle r="5" fill="#F5CB5C">
+              <animate attributeName="r" values="4;6;4" dur="1.4s" repeatCount="indefinite" />
+            </circle>
+            <circle r="2" fill="#0A0A0A" />
+            <!-- Scout dot — orbits at the gap radius, perfectly aligned with gaps -->
+            <circle r="2.2" fill="#F5CB5C" cx="36" cy="0">
+              <animateTransform attributeName="transform" type="rotate"
+                values="-12 0 0; 12 0 0; -12 0 0" dur="3.2s" repeatCount="indefinite" />
             </circle>
           </g>
         </svg>

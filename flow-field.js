@@ -328,9 +328,7 @@ window.FlowField = (() => {
   const RIPPLE_IGNORE = [
     'a', 'button', 'input', 'textarea',
     '.letter', '.letter-chunk', '.y-dot',
-    '.ios-icon', '.lab-reset',
-    '.lab-gravity-slider', '.lab-gravity',
-    '.nav', '.footer', '.adv', '.modes',
+    '.nav', '.footer',
     '[data-hover]',
   ].join(', ');
 

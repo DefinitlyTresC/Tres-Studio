@@ -113,7 +113,15 @@
     document.body.classList.toggle('past-hero', !inHero);
   }
   window.addEventListener('scroll', updateScrollState, { passive: true });
-  setTimeout(updateScrollState, 480);
+  // Wait until web-fonts are ready before measuring the captive dot —
+  // Bebas Neue load can shift the hero's bounding box by a few px and
+  // strand the dot off-target. Falls back to a short timeout if the
+  // Font Loading API isn't available.
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(updateScrollState);
+  } else {
+    setTimeout(updateScrollState, 480);
+  }
 
   // ─── Detach (captive → free) ──────────────────────────────────
   function freeDot() {
