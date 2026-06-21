@@ -10,7 +10,11 @@
   node_bundler = "esbuild"
 
 # Don't serve the function source as a downloadable static file.
+# force = true is required so this overrides the actual file that exists under
+# the repo-root publish dir. (Does NOT affect the live endpoint at
+# /.netlify/functions/* — different path, leading dot.)
 [[redirects]]
   from = "/netlify/*"
   to = "/index.html"
   status = 404
+  force = true
