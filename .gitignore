@@ -7,3 +7,6 @@ images/
 # OS cruft
 Thumbs.db
 .DS_Store
+
+# Node deps (installed by Netlify at build time)
+node_modules/

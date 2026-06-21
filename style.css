@@ -1734,6 +1734,68 @@ body.lightbox-open .dot-grid {
   color: var(--ink-faint);
 }
 
+/* Visitor counter — injected into .footer-base by counter.js. Inherits the
+   footer's 0.6rem / uppercase / 0.22em look automatically. */
+.visit-counter {
+  display: inline-flex;
+  align-items: center;
+  gap: 1.1rem;
+  opacity: 0;
+  transition: opacity 0.6s var(--ease-out);
+}
+.visit-counter.vc-in { opacity: 1; }
+.vc-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45em;
+  white-space: nowrap;
+}
+.vc-dot {
+  width: 0.42em;
+  height: 0.42em;
+  border-radius: 50%;
+  background: var(--yellow);
+  animation: vc-pulse 2.4s ease-out infinite;
+}
+@keyframes vc-pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(245, 203, 92, 0.6); }
+  70%  { box-shadow: 0 0 0 0.5em rgba(245, 203, 92, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(245, 203, 92, 0); }
+}
+.vc-total {
+  font: inherit;
+  color: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+.vc-total:hover { color: var(--ink); }
+.vc-live-num,
+.vc-total-num {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+.vc-jackpot .vc-total-num { color: var(--yellow); }
+.vc-jackpot { animation: vc-shake 0.4s ease; }
+@keyframes vc-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-2px); }
+  40% { transform: translateX(2px); }
+  60% { transform: translateX(-1px); }
+  80% { transform: translateX(1px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .vc-dot,
+  .vc-jackpot { animation: none; }
+}
+
 
 /* ── 12. Utilities ────────────────────────────────────────────── */
 .reveal {

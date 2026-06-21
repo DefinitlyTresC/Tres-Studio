@@ -1,0 +1,9 @@
+{
+  "name": "tres-studio-site",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Static portfolio site. package.json exists only to declare the Netlify Functions dependency used by the visitor counter.",
+  "dependencies": {
+    "@netlify/blobs": "^10.0.0"
+  }
+}

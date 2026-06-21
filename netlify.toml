@@ -1,0 +1,16 @@
+# Pins the existing pure-static, publish-from-root deploy so that adding a
+# package.json (needed only for the @netlify/blobs dependency) can NOT make
+# Netlify auto-detect a framework, run a build, or change the publish dir.
+[build]
+  command = ""      # no build step — static files publish as-is
+  publish = "."     # keep publishing straight from the repo root, like before
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
+# Don't serve the function source as a downloadable static file.
+[[redirects]]
+  from = "/netlify/*"
+  to = "/index.html"
+  status = 404
