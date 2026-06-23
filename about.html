@@ -4,13 +4,13 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>About — Tres.</title>
-  <meta name="description" content="Architectural designer based on 30A in Florida. Currently designing at Chancey, formerly Auburn Architecture." />
+  <meta name="description" content="Tres Carter — architectural designer on 30A, Florida." />
   <meta name="theme-color" content="#080808" />
   <link rel="canonical" href="https://tres.studio/about.html" />
 
   <meta property="og:type" content="profile" />
   <meta property="og:title" content="About — Tres." />
-  <meta property="og:description" content="Architectural designer based on 30A in Florida." />
+  <meta property="og:description" content="Tres Carter — architectural designer on 30A." />
   <meta property="og:url" content="https://tres.studio/about.html" />
   <meta property="og:site_name" content="Tres." />
   <meta name="twitter:card" content="summary" />
@@ -18,7 +18,6 @@
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23080808'/%3E%3Ccircle cx='16' cy='16' r='6' fill='%23ff5a1f'/%3E%3C/svg%3E" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link rel="preconnect" href="https://res.cloudinary.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
 
@@ -36,11 +35,21 @@
 
   <!-- Visitor counter (live + total) -->
   <script defer src="counter.js"></script>
+
+  <style>
+    .about-min{max-width:var(--wrap);margin:0 auto;padding:clamp(150px,28vh,340px) var(--pad) clamp(80px,14vh,160px);min-height:72vh}
+    .about-lede{font-family:var(--disp);font-weight:300;font-size:clamp(20px,2.8vw,30px);line-height:1.4;color:var(--sage);
+      max-width:34ch;margin:clamp(22px,4vh,38px) 0 clamp(32px,6vh,52px)}
+    .am-actions{display:flex;flex-wrap:wrap;gap:12px}
+    .am-actions a{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+      border:1.5px solid var(--line2);border-radius:30px;padding:11px 20px;color:var(--bone);
+      transition:background .35s,color .35s,border-color .35s}
+    .am-actions a:hover{background:var(--accent);border-color:var(--accent);color:var(--d0)}
+  </style>
 </head>
 <body>
 
 <a class="skip" href="#content">Skip to content</a>
-
 <div class="frame" aria-hidden="true"><span class="reg tl"></span><span class="reg tr"></span><span class="reg bl"></span><span class="reg br"></span></div>
 
 <nav class="nav">
@@ -51,22 +60,14 @@
   </div>
 </nav>
 
-<main class="about" id="content">
-  <aside class="about-side reveal">
-    <h1 class="about-name">Tres<br/>Carter<span class="y">.</span></h1>
-    <div class="about-img">
-      <img src="headshot.jpg" alt="Tres Carter" onerror="this.style.display='none'" />
-    </div>
-  </aside>
-  <section class="about-body">
-    <div class="about-tag">— About · 04</div>
-    <div class="about-typer" id="typer" aria-live="polite"></div>
-    <div class="about-actions">
-      <a href="resume.pdf" target="_blank">Resume ↓</a>
-      <a href="mailto:tres@tres.studio">tres@tres.studio</a>
-      <a href="https://instagram.com/trescarter" target="_blank" rel="noopener">@trescarter</a>
-    </div>
-  </section>
+<main class="about-min" id="content">
+  <div class="about-tag reveal">— About</div>
+  <h1 class="about-name reveal">Tres<br>Carter<span class="y">.</span></h1>
+  <p class="about-lede reveal">Architectural designer on 30A, Florida.</p>
+  <div class="am-actions reveal">
+    <a href="mailto:tres@tres.studio">tres@tres.studio</a>
+    <a href="https://instagram.com/trescarter" target="_blank" rel="noopener">@trescarter</a>
+  </div>
 </main>
 
 <footer class="footer">
@@ -94,88 +95,5 @@
 </footer>
 
 <script src="brand.js"></script>
-<script>
-// ═══════════════════════════════════════════════════════════════
-// ABOUT — content. Edit these lines freely. Each is a paragraph;
-// the typewriter handles spacing and timing.
-// ═══════════════════════════════════════════════════════════════
-const ABOUT_LINES = [
-  "hey, i'm tres carter.",
-  "i build things... websites, games, tools, houses, whole neighborhoods, design guidelines, the occasional commercial mixed-use or restaurant.",
-  "i live on 30a with my cat, exploring point washington and experimenting with projection mapping.",
-  "i work on my car. i play a few instruments, none particularly well.",
-  "day job: architectural designer at chancey in seagrove. auburn architecture before that.",
-  "the rest is in the studio. say hi → tres@tres.studio",
-];
-
-// ─── Typewriter engine ───
-(() => {
-  const typer   = document.getElementById('typer');
-  const actions = document.querySelector('.about-actions');
-  if (!typer) return;
-
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    ABOUT_LINES.forEach(text => {
-      const p = document.createElement('p');
-      p.className = 'about-line';
-      p.textContent = text;
-      typer.appendChild(p);
-    });
-    typer.classList.add('done');
-    if (actions) actions.classList.add('ready');
-    return;
-  }
-
-  const CHAR_MS = 26, PUNCT_MS = 110, LINE_MS = 360, START_MS = 600;
-  let cancelled = false;
-  const sleep = ms => new Promise(r => setTimeout(r, ms));
-
-  async function run() {
-    await sleep(START_MS);
-    for (let i = 0; i < ABOUT_LINES.length; i++) {
-      if (cancelled) return;
-      const p = document.createElement('p');
-      p.className = 'about-line';
-      typer.appendChild(p);
-      const text = ABOUT_LINES[i];
-      for (let c = 0; c < text.length; c++) {
-        if (cancelled) { p.textContent = text; break; }
-        p.textContent += text[c];
-        let wait = CHAR_MS;
-        if (/[.,!?—:]/.test(text[c])) wait += PUNCT_MS;
-        await sleep(wait);
-      }
-      if (cancelled) break;
-      if (i < ABOUT_LINES.length - 1) await sleep(LINE_MS);
-    }
-    finish();
-  }
-
-  function finish() {
-    if (cancelled && typer.classList.contains('done')) return;
-    cancelled = true;
-    const lastIdx = typer.children.length - 1;
-    if (lastIdx >= 0 && lastIdx < ABOUT_LINES.length) {
-      typer.children[lastIdx].textContent = ABOUT_LINES[lastIdx];
-    }
-    for (let i = lastIdx + 1; i < ABOUT_LINES.length; i++) {
-      const p = document.createElement('p');
-      p.className = 'about-line';
-      p.textContent = ABOUT_LINES[i];
-      typer.appendChild(p);
-    }
-    typer.classList.add('done');
-    setTimeout(() => actions && actions.classList.add('ready'), 480);
-  }
-
-  document.querySelector('.about-body').addEventListener('click', () => { if (!cancelled) finish(); });
-  document.addEventListener('keydown', (e) => {
-    if ((e.key === ' ' || e.key === 'Enter') && !cancelled) { e.preventDefault(); finish(); }
-  });
-
-  run();
-})();
-</script>
-
 </body>
 </html>
