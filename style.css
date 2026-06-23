@@ -306,6 +306,8 @@ body.lb-open{overflow:hidden}
 .footer-base{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;
   border-top:1.5px solid var(--line);padding-top:18px;margin-top:14px;
   font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--mist)}
+.footer-base a{border-bottom:1px solid var(--line);padding-bottom:2px;transition:color .3s,border-color .3s}
+.footer-base a:hover{color:var(--accent);border-color:var(--accent)}
 
 /* ── visitor counter widget (injected into .footer-base by counter.js) ─
    Uses currentColor so it adapts to dark OR light footers. */

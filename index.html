@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tres. — Multidisciplinary designer · 30A</title>
-<meta name="description" content="Tres Carter — architecture, art, and code from 30A, Florida. Selected work across architecture, personal projects, an interactive lab, and free tools." />
+<meta name="description" content="Tres Carter — architecture, art, and code from 30A, Florida." />
 <meta name="theme-color" content="#080808" />
 <link rel="canonical" href="https://tres.studio/" />
 
@@ -39,12 +39,11 @@
 <style>
   :root{
     --d0:#080808; --d1:#101010; --d2:#181818; --d3:#252525;
-    --sage:#f4f4f2; --sage2:#cfcfcf; --mist:#9a9a9a;
-    --bone:#f4f4f3; --accent:#ff5a1f;
+    --sage:#f4f4f2; --mist:#9a9a9a; --bone:#f4f4f3; --accent:#ff5a1f;
     --line:rgba(255,255,255,.12); --line2:rgba(255,255,255,.30);
     --mono:'Space Mono',ui-monospace,monospace; --disp:'Oswald',system-ui,sans-serif;
     --mech:cubic-bezier(.16,1,.3,1); --snap:cubic-bezier(.62,0,.34,1);
-    --fh:600px; --th:100vh;
+    --fh:560px; --th:100vh;
   }
   *{box-sizing:border-box;margin:0;padding:0}
   html{-webkit-text-size-adjust:100%}
@@ -56,27 +55,28 @@
   .skip{position:absolute;left:-9999px;top:0;background:var(--accent);color:var(--d0);font-family:var(--mono);font-size:12px;padding:10px 16px;z-index:300}
   .skip:focus{left:8px;top:8px}
 
-  /* MUCHO-STYLE FOOTER (behind the page) */
-  .footer{position:relative;z-index:2;min-height:var(--fh);
+  /* FOOTER — fixed behind the page; the sheet lifts off it at the bottom */
+  .footer{position:fixed;left:0;right:0;bottom:0;z-index:0;min-height:var(--fh);
     background:linear-gradient(180deg,#ffffff,var(--sage));color:var(--d0);
-    display:flex;flex-direction:column;justify-content:space-between;gap:36px;padding:clamp(40px,6vw,76px) clamp(24px,4vw,56px)}
-  .footer a{color:var(--d0);text-decoration:none}
-  .f-top{display:grid;grid-template-columns:1.6fr 1fr auto;gap:24px;border-bottom:1.5px solid rgba(11,21,18,.35);padding-bottom:32px}
+    display:flex;flex-direction:column;justify-content:space-between;gap:40px;padding:clamp(28px,4vw,60px)}
+  .footer a{color:var(--d0)}
+  .f-top{display:grid;grid-template-columns:1.6fr 1fr auto;gap:24px;border-bottom:1.5px solid rgba(11,21,18,.3);padding-bottom:34px}
   .f-stmt{font-family:var(--disp);font-weight:500;font-size:clamp(26px,4vw,46px);line-height:1.02;max-width:16ch}
   .f-stmt .pd{color:var(--accent)}
-  .f-talk{font-family:var(--disp);font-weight:400;font-size:clamp(15px,2vw,19px);line-height:1.2}
+  .f-talk{font-family:var(--disp);font-weight:300;font-size:clamp(15px,2vw,19px);line-height:1.25;color:#333}
   .f-pill{justify-self:end;align-self:start;font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;
-    border:1.5px solid var(--d0);border-radius:30px;padding:9px 18px;cursor:pointer;transition:background .4s,color .4s}
+    border:1.5px solid var(--d0);border-radius:30px;padding:10px 20px;transition:background .4s,color .4s}
   .f-pill:hover{background:var(--d0);color:var(--sage)}
-  .f-bot{display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px;align-items:end;font-family:var(--mono);font-size:11px;letter-spacing:.05em;text-transform:uppercase;line-height:1.8}
-  .f-bot .lbl{opacity:.6;display:block;margin-bottom:6px}
+  .f-bot{display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px;align-items:end;font-family:var(--mono);font-size:11px;letter-spacing:.05em;text-transform:uppercase;line-height:1.9}
+  .f-bot .lbl{opacity:.55;display:block;margin-bottom:6px}
+  .f-bot a{transition:opacity .3s}.f-bot a:hover{opacity:.55}
   .f-social{display:flex;gap:16px;margin-top:4px}
-  .f-social a{border-bottom:1px solid rgba(11,21,18,.35);transition:border-color .3s}
-  .f-social a:hover{border-color:var(--accent)}
-  .f-meta{grid-column:1/-1;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;align-items:center;
-    border-top:1.5px solid rgba(11,21,18,.35);padding-top:16px;margin-top:8px;font-size:10px;opacity:.85}
+  .f-meta{grid-column:1/-1;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;
+    border-top:1.5px solid rgba(11,21,18,.3);padding-top:16px;font-size:10px;opacity:.85}
+  .f-meta a{border-bottom:1px solid rgba(11,21,18,.35);transition:border-color .3s}
+  .f-meta a:hover{border-color:var(--accent)}
 
-  /* visitor counter (injected into .footer-base by counter.js) — dark on the light footer via currentColor */
+  /* visitor counter (counter.js injects into .footer-base) — currentColor adapts to the white sheet */
   .visit-counter{display:inline-flex;align-items:center;gap:14px;font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;
     opacity:0;transform:translateY(5px);transition:opacity .6s var(--mech),transform .6s var(--mech)}
   .visit-counter.vc-in{opacity:1;transform:none}
@@ -89,28 +89,27 @@
   .vc-total-num{font-weight:700}
   .visit-counter.vc-jackpot .vc-total-num{color:var(--accent)}
 
-  /* TOP PANEL: Tres. masthead (fixed) */
+  /* MASTHEAD — fixed; hides once the sheet has covered it so the footer can reveal */
   .masthead{position:fixed;top:0;left:0;right:0;height:var(--th);z-index:0;overflow:hidden;
     background:linear-gradient(180deg,var(--d0) 0%,var(--d1) 55%,var(--d2) 100%);
-    display:flex;flex-direction:column;padding:clamp(14px,2.6vw,42px)}
+    display:flex;flex-direction:column;padding:clamp(14px,2.6vw,42px);
+    transition:opacity .35s ease}
+  body.past-hero .masthead{opacity:0;visibility:hidden;pointer-events:none}
   .mast-wrap{max-width:1180px;width:100%;margin:0 auto;flex:1;display:flex;flex-direction:column}
-  .masthead .hero{margin:auto 0;padding-top:0;padding-bottom:0}
 
   .frame{position:fixed;inset:0;pointer-events:none;z-index:60}
 
-  /* MIDDLE SHEET (lifts to reveal footer, slides over masthead) */
-  .site{position:relative;z-index:1;margin-top:var(--th);min-height:100vh;
+  /* MIDDLE SHEET */
+  .site{position:relative;z-index:1;margin-top:var(--th);margin-bottom:var(--fh);min-height:100vh;
     background:#0a0a0a;border-top:1px solid var(--line2);
-    box-shadow:0 -34px 64px -14px rgba(0,0,0,.75);
-    padding:clamp(14px,2.6vw,42px)}
+    box-shadow:0 -34px 64px -14px rgba(0,0,0,.75);padding:clamp(14px,2.6vw,42px)}
 
   .reg{position:absolute;width:18px;height:18px;pointer-events:none;z-index:5}
   .reg::before,.reg::after{content:"";position:absolute;background:var(--line2)}
   .reg::before{width:18px;height:1.5px}.reg::after{width:1.5px;height:18px}
-  .reg.tl{top:18px;left:18px}.reg.tl::before{transform-origin:left}.reg.tl::after{transform-origin:top}
-  .reg.tr{top:18px;right:18px}.reg.tr::before,.reg.tr::after{right:0}.reg.tr::before{transform-origin:right}.reg.tr::after{transform-origin:top}
-  .reg.bl{bottom:18px;left:18px}.reg.bl::before,.reg.bl::after{bottom:0}.reg.bl::before{transform-origin:left}.reg.bl::after{transform-origin:bottom}
-  .reg.br{bottom:18px;right:18px}.reg.br::before,.reg.br::after{bottom:0;right:0}.reg.br::before{transform-origin:right}.reg.br::after{transform-origin:bottom}
+  .reg.tl{top:18px;left:18px}.reg.tr{top:18px;right:18px}.reg.tr::before,.reg.tr::after{right:0}
+  .reg.bl{bottom:18px;left:18px}.reg.bl::before,.reg.bl::after{bottom:0}
+  .reg.br{bottom:18px;right:18px}.reg.br::before,.reg.br::after{bottom:0;right:0}
   .js .reg::before{animation:dX .7s var(--mech) both}.js .reg::after{animation:dY .7s var(--mech) both}
   .js .reg.tl::before,.js .reg.tl::after{animation-delay:.1s}
   .js .reg.tr::before,.js .reg.tr::after{animation-delay:.22s}
@@ -130,7 +129,7 @@
   .js .reveal.in{opacity:1;transform:none}
 
   /* HERO */
-  .hero{padding:clamp(40px,9vh,120px) 4px clamp(30px,5vh,60px);display:grid;grid-template-columns:1fr auto;gap:34px;align-items:end}
+  .hero{margin:auto 0;padding:clamp(40px,9vh,120px) 4px clamp(30px,5vh,60px);display:grid;grid-template-columns:1fr auto;gap:34px;align-items:end}
   .wm{font-family:var(--disp);font-weight:700;font-size:clamp(86px,18vw,200px);line-height:.76;letter-spacing:-.015em}
   .wm .pd{color:var(--accent)}
   .lede{font-family:var(--disp);font-weight:300;font-size:clamp(18px,2.7vw,26px);color:var(--mist);margin-top:18px;max-width:24ch}
@@ -148,67 +147,28 @@
 
   /* GENRE INDEX */
   .gindex{border-top:1.5px solid var(--line);margin:0 4px}
-  .gx{position:relative;display:block;padding:24px 0 22px;border-bottom:1px solid var(--line);overflow:hidden;cursor:pointer;color:inherit}
+  .gx{position:relative;display:block;padding:clamp(22px,4vh,40px) 0;border-bottom:1px solid var(--line);overflow:hidden;cursor:pointer;color:inherit}
   .gindex .gx:last-child{border-bottom:0}
   .gx::after{content:"";position:absolute;left:0;bottom:-1px;height:2px;width:100%;background:var(--accent);transform:scaleX(0);transform-origin:left;transition:transform .65s var(--snap)}
   .gx:hover::after{transform:scaleX(1)}
   .gnum{position:absolute;right:0;top:50%;transform:translateY(-50%);font-family:var(--disp);font-weight:700;
-    font-size:clamp(82px,15vw,150px);line-height:.7;color:var(--bone);opacity:.07;z-index:0;pointer-events:none;transition:opacity .6s,transform .7s var(--mech)}
-  .gx:hover .gnum{opacity:.13;transform:translateY(-50%) translateX(-12px)}
+    font-size:clamp(82px,15vw,150px);line-height:.7;color:var(--bone);opacity:.06;z-index:0;pointer-events:none;transition:opacity .6s,transform .7s var(--mech)}
+  .gx:hover .gnum{opacity:.12;transform:translateY(-50%) translateX(-12px)}
   .gname{position:relative;z-index:1;font-family:var(--disp);font-weight:600;font-size:clamp(30px,5.4vw,52px);
     text-transform:uppercase;letter-spacing:.005em;line-height:1;transition:transform .6s var(--mech)}
   .gx:hover .gname{transform:translateX(12px)}
   .gname .sec{font-family:var(--mono);font-size:12px;letter-spacing:.1em;color:var(--accent);vertical-align:middle;margin-right:14px}
-  .gmeta{position:relative;z-index:1;font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--mist);margin-top:10px;transition:transform .6s var(--mech)}
-  .gx:hover .gmeta{transform:translateX(12px)}
-  .gcount{position:absolute;right:0;bottom:22px;z-index:1;font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:var(--accent)}
+  .gcount{position:relative;z-index:1;font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--mist);margin-top:12px;transition:transform .6s var(--mech)}
+  .gx:hover .gcount{transform:translateX(12px)}
+  .gcount b{color:var(--accent);font-weight:400}
 
-  /* STANDARDS STRIP */
-  .strip{margin:clamp(40px,7vh,80px) 4px 0}
-  .tb{display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1.5px solid var(--line);padding-bottom:7px;margin-bottom:24px;
-    font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--mist)}
-  .tb .no{background:var(--bone);color:var(--d0);padding:2px 8px;letter-spacing:.1em}
-  .note{font-family:var(--mono);font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--mist);margin:16px 0 0}
-  .blk{padding:0 0 clamp(34px,6vh,64px)}
+  .scrollcue{text-align:center;font-family:var(--mono);font-size:16px;color:var(--mist);opacity:.45;padding:clamp(24px,5vh,48px) 0 4px}
 
-  .sw-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));border:1.5px solid var(--line)}
-  .sw{padding:14px;border-right:1.5px solid var(--line);min-height:118px;display:flex;flex-direction:column;justify-content:space-between;transition:transform .5s var(--mech)}
-  .sw:hover{transform:translateY(-6px)}.sw:last-child{border-right:0}
-  .sw .ro{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;opacity:.8}
-  .sw .nm{font-family:var(--disp);font-weight:600;font-size:16px;text-transform:uppercase;letter-spacing:.02em}
-  .sw .hx{font-family:var(--mono);font-size:11px;letter-spacing:.04em;opacity:.85}
-
-  .type-grid{display:grid;gap:24px}
-  .spec{border-left:3px solid var(--accent);padding-left:18px}
-  .role{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);margin-bottom:8px}
-  .role b{color:var(--mist);font-weight:400}
-  .sp-num{font-family:var(--disp);font-weight:700;font-size:clamp(58px,10vw,92px);line-height:.82}
-  .sp-head{font-family:var(--disp);font-weight:600;font-size:clamp(30px,5.4vw,52px);line-height:.95;text-transform:uppercase}
-  .sp-mono{font-family:var(--mono);font-size:14px;letter-spacing:.05em;text-transform:uppercase}
-
-  .rec{border:1.5px solid var(--line)}
-  .axon{background:var(--bone);position:relative;padding:18px 0 12px}
-  .axon .atag{position:absolute;top:0;right:0;background:var(--d0);color:var(--bone);font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;padding:4px 11px}
-  .axon svg{display:block;width:min(440px,84%);height:auto;margin:6px auto 0}
-  .axon .acap{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#777;text-align:center;margin-top:6px}
-  .recbody{display:grid;grid-template-columns:auto 1fr;gap:22px;align-items:end;padding:22px;border-top:1.5px solid var(--line)}
-  .recbody .rn{font-family:var(--disp);font-weight:700;font-size:clamp(72px,12vw,124px);line-height:.74}
-  .recbody .rt{font-family:var(--disp);font-weight:600;font-size:clamp(22px,3.6vw,34px);text-transform:uppercase;line-height:.95}
-  .recbody .rt span{color:var(--accent)}
-  .recbody .rm{font-family:var(--mono);font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--mist);line-height:1.9;margin-top:9px}
-  .recbody .rk{display:flex;flex-wrap:wrap;gap:6px;margin-top:11px}
-  .recbody .rk span{font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;border:1px solid var(--line);padding:3px 8px}
-  a.reclink{display:block;transition:transform .5s var(--mech)}
-  a.reclink:hover{transform:translateY(-4px)}
-
-  .scrollcue{text-align:center;font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--mist);opacity:.6;padding:14px}
-
-  /* DOCK — bottom panel: genres → wheel */
+  /* DOCK — genres → wheel */
   .modal{position:fixed;inset:0;z-index:200;opacity:0;pointer-events:none;transition:opacity .5s ease}
   .modal::before{content:"";position:absolute;inset:0;background:rgba(0,0,0,.45);backdrop-filter:blur(0);-webkit-backdrop-filter:blur(0);transition:backdrop-filter .7s ease,-webkit-backdrop-filter .7s ease,background .5s}
   .modal.on{opacity:1;pointer-events:auto}
   .modal.on::before{backdrop-filter:blur(15px);-webkit-backdrop-filter:blur(15px);background:rgba(0,0,0,.5)}
-
   .dock{position:absolute;left:0;right:0;bottom:0;height:min(86vh,880px);
     background:#0c0c0c;border-top:1.5px solid var(--line2);border-radius:18px 18px 0 0;
     transform:translateY(100%);transition:transform .7s var(--mech);
@@ -224,14 +184,11 @@
   .dock-hd .x{cursor:pointer;border:1px solid var(--line2);border-radius:50%;width:34px;height:34px;display:flex;align-items:center;justify-content:center;color:var(--bone);transition:background .3s,color .3s,border-color .3s}
   .dock-hd .x:hover{background:var(--accent);color:var(--d0);border-color:var(--accent)}
   .dock-body{position:relative;flex:1;min-height:0}
-
   .bubbles{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:clamp(14px,3.5vw,44px)}
   .bub{position:relative;width:clamp(132px,19vw,196px);aspect-ratio:1/1;border-radius:50%;padding:0;
     border:1.5px solid var(--line2);background:rgba(255,255,255,.02);cursor:pointer;color:var(--bone);
-    display:flex;align-items:center;justify-content:center;
-    opacity:0;transform:scale(.6) translateY(26px);
-    transition:opacity .6s var(--mech),transform .6s var(--mech),border-color .35s,background .35s;
-    transition-delay:calc(var(--bi)*.07s)}
+    display:flex;align-items:center;justify-content:center;opacity:0;transform:scale(.6) translateY(26px);
+    transition:opacity .6s var(--mech),transform .6s var(--mech),border-color .35s,background .35s;transition-delay:calc(var(--bi)*.07s)}
   .modal.on .dock.state-genres .bubbles:not(.pushed) .bub{opacity:1;transform:none}
   .bubbles.pushed .bub{opacity:0;transform:translateX(calc(var(--bx)*72px)) translateY(175%) scale(.4);transition-delay:calc(var(--bi)*.05s)}
   .bub:hover{border-color:var(--accent);background:rgba(255,90,31,.06)}
@@ -242,9 +199,7 @@
   .bub:hover .bub-ic svg{stroke:var(--accent)}
   .bub-nm{font-family:var(--disp);font-weight:600;font-size:clamp(15px,2vw,19px);text-transform:uppercase;color:var(--bone);letter-spacing:.01em}
   .bub-ct{font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:var(--accent)}
-
-  .wheel{position:absolute;inset:0;perspective:1500px;opacity:0;transform:translateY(46px);pointer-events:none;
-    transition:opacity .6s var(--mech),transform .7s var(--mech)}
+  .wheel{position:absolute;inset:0;perspective:1500px;opacity:0;transform:translateY(46px);pointer-events:none;transition:opacity .6s var(--mech),transform .7s var(--mech)}
   .dock.state-wheel .wheel{opacity:1;transform:none;pointer-events:auto}
   .proj{position:absolute;left:50%;top:50%;width:min(280px,62vw);aspect-ratio:3/4;margin:0;color:inherit;
     transform-style:preserve-3d;will-change:transform,opacity;border:1px solid var(--line2);overflow:hidden;border-radius:6px;cursor:pointer;
@@ -267,10 +222,9 @@
   @media(max-width:760px){
     .hero{grid-template-columns:1fr;align-items:start}
     .cluster{align-items:flex-start}.readout{text-align:left}
-    .recbody{grid-template-columns:1fr;align-items:start}
     .f-top{grid-template-columns:1fr}.f-pill{justify-self:start}
     .f-bot{grid-template-columns:1fr 1fr}
-    :root{--fh:760px}
+    :root{--fh:680px}
   }
   @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -278,18 +232,32 @@
 <body>
 <a class="skip" href="#work">Skip to content</a>
 
+<!-- FOOTER (fixed behind the page) -->
+<footer class="footer">
+  <div class="f-top">
+    <div class="f-stmt scram" data-text="Designing across architecture, art, and code">Designing across architecture, art, and code<span class="pd">.</span></div>
+    <div class="f-talk">Based on 30A.<br>Open to the right work.</div>
+    <a class="f-pill hovscram" data-text="Get in touch" href="mailto:tres@tres.studio">Get in touch</a>
+  </div>
+  <div class="f-bot">
+    <div><span class="lbl">Location</span>Seagrove · 30A<br>Florida, USA</div>
+    <div><span class="lbl">Contact</span><a class="hovscram" data-text="tres@tres.studio" href="mailto:tres@tres.studio">tres@tres.studio</a>
+      <div class="f-social"><a href="https://instagram.com/trescarter" target="_blank" rel="noopener">IG</a><a href="lab.html">Lab</a><a href="about.html">About</a></div></div>
+    <div><span class="lbl">Index</span><a href="category.html?cat=architecture">01 Architecture</a><br><a href="category.html?cat=personal">02 Personal</a><br><a href="lab.html">03 Lab</a><br><a href="mailto:tres@tres.studio?subject=Downloads">04 Downloads</a></div>
+    <div class="f-meta footer-base"><span>© 2026 Tres Carter</span><a href="privacy.html">Privacy</a></div>
+  </div>
+</footer>
+
 <!-- PERSISTENT FRAME -->
 <div class="frame" aria-hidden="true"><span class="reg tl"></span><span class="reg tr"></span><span class="reg bl"></span><span class="reg br"></span></div>
 
-<!-- TOP PANEL: Tres. masthead (fixed) -->
+<!-- MASTHEAD (fixed) -->
 <section class="masthead" id="masthead">
   <div class="wrap mast-wrap">
     <div class="topbar">
       <span>Tres. · Seagrove · 30A · FL</span>
       <span>T <span class="clk" id="clk">00:00:00</span> CST<span class="cur"></span></span>
     </div>
-
-    <!-- HERO -->
     <section class="hero">
       <div>
         <h1 class="wm reveal"><span class="scram" data-text="Tres">Tres</span><span class="pd">.</span></h1>
@@ -311,127 +279,46 @@
   </div>
 </section>
 
-<!-- MIDDLE SHEET: slides over masthead + footer -->
+<!-- MIDDLE SHEET -->
 <div class="site" id="work">
   <div class="wrap">
-
-    <!-- GENRE INDEX -->
-    <nav class="gindex" id="gindex" aria-label="Work by genre">
+    <nav class="gindex" aria-label="Work by genre">
       <a class="gx reveal" href="category.html?cat=architecture">
         <div class="gnum">01</div>
         <div class="gname"><span class="sec">01</span><span class="scram hovscram" data-text="Architecture">Architecture</span></div>
-        <div class="gmeta">Chancey Design · mentored by Cameron Hughes</div>
         <div class="gcount" data-count="architecture">—</div>
       </a>
       <a class="gx reveal" href="category.html?cat=personal">
         <div class="gnum">02</div>
         <div class="gname"><span class="sec">02</span><span class="scram hovscram" data-text="Personal">Personal</span></div>
-        <div class="gmeta">Art · Photography · Music</div>
         <div class="gcount" data-count="personal">—</div>
       </a>
       <a class="gx reveal" href="lab.html">
         <div class="gnum">03</div>
         <div class="gname"><span class="sec">03</span><span class="scram hovscram" data-text="Lab">Lab</span></div>
-        <div class="gmeta">Experiments &amp; small tools</div>
-        <div class="gcount" data-count="lab">07</div>
+        <div class="gcount" data-count="lab"><b>07</b> experiments</div>
       </a>
       <a class="gx reveal" href="mailto:tres@tres.studio?subject=Tres%20Downloads">
         <div class="gnum">04</div>
         <div class="gname"><span class="sec">04</span><span class="scram hovscram" data-text="Downloads">Downloads</span></div>
-        <div class="gmeta">Free Tres pyRevit extensions · donations welcome</div>
-        <div class="gcount" data-count="downloads">WIP</div>
+        <div class="gcount" data-count="downloads">Soon</div>
       </a>
     </nav>
-
-    <!-- STANDARDS STRIP -->
-    <div class="strip">
-      <div class="blk">
-        <div class="tb reveal"><span class="no">A-01</span><span class="scram" data-text="Material Schedule">Material Schedule</span><span>Neutral</span></div>
-        <div class="sw-grid reveal">
-          <div class="sw" style="background:var(--d0);color:var(--bone)"><div class="ro">Ground</div><div><div class="nm">Black</div><div class="hx">#080808</div></div></div>
-          <div class="sw" style="background:var(--d2);color:var(--bone)"><div class="ro">Ground · mid</div><div><div class="nm">Charcoal</div><div class="hx">#181818</div></div></div>
-          <div class="sw" style="background:var(--mist);color:var(--d0)"><div class="ro">Secondary</div><div><div class="nm">Gray</div><div class="hx">#9A9A9A</div></div></div>
-          <div class="sw" style="background:var(--sage);color:var(--d0)"><div class="ro">Footer / sheets</div><div><div class="nm">White</div><div class="hx">#F4F4F2</div></div></div>
-          <div class="sw" style="background:var(--accent);color:var(--d0)"><div class="ro">Accent</div><div><div class="nm">Bright Orange</div><div class="hx">#FF5A1F</div></div></div>
-        </div>
-        <div class="note reveal">White, gray, black — a subtle dark ombre for depth, bright orange the only accent.</div>
-      </div>
-
-      <div class="blk">
-        <div class="tb reveal"><span class="no">A-02</span><span class="scram" data-text="Notation and Type">Notation &amp; Type</span><span>2 faces</span></div>
-        <div class="type-grid">
-          <div class="spec reveal"><div class="role">Display / numerals — <b>Oswald</b></div><div class="sp-num"><span class="scram" data-text="01">01</span> · <span class="scram" data-text="04">04</span> · <span class="scram" data-text="07">07</span> · <span class="scram" data-text="11">11</span></div></div>
-          <div class="spec reveal"><div class="role">Data / notation — <b>Space Mono</b></div><div class="sp-mono">Project No. 07 // 2025 // Residential // Alys Beach</div></div>
-        </div>
-        <div class="note reveal">No serif, no italics. Letters scramble on load and on hover.</div>
-      </div>
-
-      <div class="blk">
-        <div class="tb reveal"><span class="no">A-03</span><span class="scram" data-text="Project Record">Project Record</span><span>Featured</span></div>
-        <a class="rec reveal reclink" id="recLink" href="#">
-          <div class="axon">
-            <span class="atag">Enscape · iso export</span>
-            <svg class="axon-svg" viewBox="0 0 460 280" aria-label="Isometric project render">
-              <defs>
-                <pattern id="ht" width="6" height="6" patternUnits="userSpaceOnUse"><circle cx="3" cy="3" r="1.15" fill="#111111" opacity="0.4"/></pattern>
-                <pattern id="ht2" width="6" height="6" patternUnits="userSpaceOnUse"><circle cx="3" cy="3" r="1.5" fill="#111111" opacity="0.8"/></pattern>
-              </defs>
-              <polygon class="fillfade" points="230,268 410,180 230,92 50,180" fill="url(#ht)"/>
-              <polygon class="fillfade" points="230,218 300,183 300,108 230,143" fill="url(#ht2)"/>
-              <polygon class="draw" points="230,268 410,180 230,92 50,180" fill="none" stroke="#111111" stroke-width="1.4" stroke-linejoin="round"/>
-              <polygon class="draw" points="230,218 300,183 300,108 230,143" fill="none" stroke="#111111" stroke-width="2.2" stroke-linejoin="round"/>
-              <polygon class="draw" points="230,218 160,183 160,108 230,143" fill="none" stroke="#111111" stroke-width="2.2" stroke-linejoin="round"/>
-              <polygon class="draw" points="230,143 300,108 230,73 160,108" fill="none" stroke="#111111" stroke-width="2.2" stroke-linejoin="round"/>
-              <line class="draw" x1="230" y1="218" x2="230" y2="143" stroke="#111111" stroke-width="2.2"/>
-            </svg>
-            <div class="acap" id="recCap">Fig. 01 — not to scale</div>
-          </div>
-          <div class="recbody">
-            <div class="rn" id="recNum">01</div>
-            <div>
-              <div class="rt" id="recTitle"><span>Featured</span> Project</div>
-              <div class="rm" id="recMeta">Loading record…</div>
-              <div class="rk" id="recTags"><span>Residential</span><span>Built</span></div>
-            </div>
-          </div>
-        </a>
-        <div class="note reveal">Pulled live from the studio sheet — newest architecture record on file.</div>
-      </div>
-    </div>
-
-    <div class="scrollcue">↓ keep scrolling</div>
+    <div class="scrollcue" aria-hidden="true">↓</div>
   </div>
 </div>
-
-<!-- FOOTER (white sheet, in-flow at the end) -->
-<footer class="footer">
-  <div class="f-top">
-    <div class="f-stmt scram" data-text="Designing across architecture, art, and code">Designing across architecture, art, and code<span class="pd">.</span></div>
-    <div class="f-talk">Based on 30A.<br>Open to the right work.</div>
-    <a class="f-pill hovscram" data-text="Get in touch" href="mailto:tres@tres.studio">Get in touch</a>
-  </div>
-  <div class="f-bot">
-    <div><span class="lbl">Location</span>Seagrove · 30A<br>Florida, USA</div>
-    <div><span class="lbl">Contact</span><a class="hovscram" data-text="tres@tres.studio" href="mailto:tres@tres.studio">tres@tres.studio</a>
-      <div class="f-social"><a class="hovscram" data-text="IG" href="https://instagram.com/trescarter" target="_blank" rel="noopener">IG</a><a class="hovscram" data-text="Lab" href="lab.html">Lab</a><a class="hovscram" data-text="About" href="about.html">About</a></div></div>
-    <div><span class="lbl">Index</span><a href="category.html?cat=architecture">01 Architecture</a><br><a href="category.html?cat=personal">02 Personal</a><br><a href="lab.html">03 Lab</a><br><a href="mailto:tres@tres.studio?subject=Downloads">04 Downloads</a></div>
-    <div class="f-meta footer-base"><span>© 2026 Tres Carter</span><span>tres.studio</span><span>Sheets → Cloudinary → Netlify</span></div>
-  </div>
-</footer>
 
 <!-- PROJECT WHEEL MODAL -->
 <div class="modal" id="modal" aria-hidden="true">
   <div class="dock state-genres" id="dock">
     <div class="dock-hd">
-      <span class="dock-title" id="dockTitle">All work · by genre of creation</span>
+      <span class="dock-title" id="dockTitle">All work · by genre</span>
       <span class="dock-tools"><span class="back" id="dockBack" role="button" tabindex="0">← genres</span><span class="x" id="modalX" role="button" tabindex="0" aria-label="Close">✕</span></span>
     </div>
     <div class="dock-body">
       <div class="bubbles" id="bubbles"></div>
-      <div class="wheel" id="wheel">
-        <div class="dock-empty">Nothing on file here yet — check back soon.</div>
-      </div>
-      <div class="dock-ft" id="dockFt">scroll or drag to spin · click a card to open · esc for genres</div>
+      <div class="wheel" id="wheel"><div class="dock-empty">Nothing on file here yet.</div></div>
+      <div class="dock-ft" id="dockFt">drag to spin · click a card to open · esc for genres</div>
     </div>
   </div>
 </div>
@@ -449,6 +336,15 @@
   function tick(){ if(clk) clk.textContent=new Date().toLocaleTimeString('en-US',{hour12:false}); }
   tick(); setInterval(tick,1000);
 
+  /* hide the masthead once the sheet has covered it, so the footer can reveal */
+  var pastHero=false;
+  function onScroll(){
+    var should = window.scrollY > window.innerHeight*0.9;
+    if(should!==pastHero){ pastHero=should; document.body.classList.toggle('past-hero',should); }
+  }
+  window.addEventListener('scroll',onScroll,{passive:true});
+  window.addEventListener('resize',onScroll); onScroll();
+
   /* scramble */
   var CH="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#%/—";
   function scramble(el,dur){
@@ -463,37 +359,22 @@
     el._raf=requestAnimationFrame(f);
   }
   document.querySelectorAll('.hovscram').forEach(function(el){
-    if(reduce) return;
-    el.addEventListener('mouseenter',function(){ scramble(el,680); });
+    if(reduce) return; el.addEventListener('mouseenter',function(){ scramble(el,680); });
   });
-
-  /* axon draw */
-  function prep(){
-    document.querySelectorAll('.draw').forEach(function(e){var L=e.getTotalLength?e.getTotalLength():600;e.style.strokeDasharray=L;e.style.strokeDashoffset=L;});
-    document.querySelectorAll('.fillfade').forEach(function(e){e.style.opacity='0';});
-  }
-  function runDraw(c){
-    var ps=c.querySelectorAll('.draw');
-    ps.forEach(function(p,i){p.style.transition='stroke-dashoffset 1.1s '+(i*0.18)+'s cubic-bezier(.62,0,.34,1)';requestAnimationFrame(function(){p.style.strokeDashoffset='0';});});
-    c.querySelectorAll('.fillfade').forEach(function(f){f.style.transition='opacity .9s '+(ps.length*0.18+0.1)+'s ease';requestAnimationFrame(function(){f.style.opacity='1';});});
-  }
 
   if(reduce){
     document.querySelectorAll('.reveal').forEach(function(e){e.classList.add('in');});
     document.querySelectorAll('.scram').forEach(function(e){e.textContent=e.dataset.text||e.textContent;});
-    document.querySelectorAll('.fillfade').forEach(function(e){e.style.opacity='1';});
   } else {
-    prep();
     setTimeout(function(){
       var io=new IntersectionObserver(function(es){
         es.forEach(function(en){ if(!en.isIntersecting) return; var el=en.target; el.classList.add('in');
           el.querySelectorAll&&el.querySelectorAll('.scram').forEach(function(s){scramble(s,1300);});
           if(el.classList.contains('scram')) scramble(el,1300);
-          if(el.classList.contains('axon-svg')) runDraw(el);
           io.unobserve(el);
         });
       },{threshold:.18,rootMargin:'0px 0px -6% 0px'});
-      document.querySelectorAll('.reveal,.scram,.axon-svg').forEach(function(e){io.observe(e);});
+      document.querySelectorAll('.reveal,.scram').forEach(function(e){io.observe(e);});
     },650);
   }
 
@@ -505,84 +386,48 @@
     downloads:'<line x1="32" y1="14" x2="32" y2="38"/><polyline points="22,30 32,40 42,30" fill="none"/><polyline points="16,44 16,50 48,50 48,44" fill="none"/>'
   };
   var BX={architecture:-1.4,personal:-0.5,lab:0.5,downloads:1.4};
-
-  /* curated lab + downloads entries (no sheet rows) */
   var LAB=[
     {name:'Drift',href:'labs/drift.html'},{name:'Plan',href:'labs/plan.html'},
     {name:'Birds',href:'labs/birds.html'},{name:'Field',href:'labs/field.html'},
     {name:'Echo',href:'labs/echo.html'},{name:'Pulse',href:'labs/pulse.html'},
     {name:'Alternates',href:'labs/alternates.html'}
   ];
-  var DOWNLOADS=[]; // WIP — none published yet
-
   function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
   function pad2(n){return String(n).padStart(2,'0');}
 
-  /* ── build dock + counts from real data ──────────────────────────── */
-  var GENRES={}; // genre -> [{name, href, img, icon, genreLabel}]
+  var GENRES={};
   function buildFrom(projects){
     var arch=projects.filter(function(p){return p.category==='architecture';});
     var pers=projects.filter(function(p){return p.category==='personal';});
-
     GENRES.architecture=arch.map(function(p){return {name:p.name,href:'project.html?id='+encodeURIComponent(p.slug),img:p.heroUrlThumb,genre:'architecture',label:'Architecture'};});
     GENRES.personal    =pers.map(function(p){return {name:p.name,href:'project.html?id='+encodeURIComponent(p.slug),img:p.heroUrlThumb,genre:'personal',label:'Personal'};});
     GENRES.lab         =LAB.map(function(l){return {name:l.name,href:l.href,img:null,genre:'lab',label:'Lab'};});
-    GENRES.downloads   =DOWNLOADS.map(function(d){return {name:d.name,href:d.href,img:null,genre:'downloads',label:'Downloads'};});
+    GENRES.downloads   =[];
 
-    /* genre-index live counts */
-    setCount('architecture',arch.length?pad2(arch.length)+' projects':'WIP');
-    setCount('personal',pers.length?pad2(pers.length)+' projects':'WIP');
-    setCount('lab','07 experiments');
-    setCount('downloads','WIP');
+    setCount('architecture',arch.length?'<b>'+pad2(arch.length)+'</b> projects':'Soon');
+    setCount('personal',pers.length?'<b>'+pad2(pers.length)+'</b> projects':'Soon');
 
-    /* bubbles */
-    var bubbles=document.getElementById('bubbles');
     var order=['architecture','personal','lab','downloads'];
     var names={architecture:'Architecture',personal:'Personal',lab:'Lab',downloads:'Downloads'};
-    bubbles.innerHTML=order.map(function(g,i){
-      var n=GENRES[g].length, ct=g==='downloads'?'WIP':(g==='lab'?'07 experiments':pad2(n)+(n===1?' project':' projects'));
+    document.getElementById('bubbles').innerHTML=order.map(function(g,i){
+      var n=GENRES[g].length, ct=g==='downloads'?'Soon':(g==='lab'?'07 experiments':pad2(n)+(n===1?' project':' projects'));
       return '<button class="bub" data-genre="'+g+'" data-name="'+names[g]+'" style="--bi:'+i+';--bx:'+BX[g]+'">'+
         '<span class="bub-inner"><span class="bub-ic"><svg viewBox="0 0 64 64">'+ICONS[g]+'</svg></span>'+
         '<span class="bub-nm">'+names[g]+'</span><span class="bub-ct">'+ct+'</span></span></button>';
     }).join('');
-
-    /* featured project record — newest architecture entry */
-    if(arch.length){ fillRecord(arch[0]); }
-
     initDock();
   }
-  function setCount(genre,text){
-    var el=document.querySelector('.gcount[data-count="'+genre+'"]'); if(el) el.textContent=text;
-  }
-  function fillRecord(p){
-    var link=document.getElementById('recLink'); if(link) link.href='project.html?id='+encodeURIComponent(p.slug);
-    var num=document.getElementById('recNum'); if(num&&p.id) num.textContent=pad2(p.id);
-    var t=document.getElementById('recTitle');
-    if(t){ var parts=(p.name||'Project').split(' '); var last=parts.pop(); t.innerHTML=esc(parts.join(' '))+(parts.length?' ':'')+'<span>'+esc(last)+'</span>'; }
-    var meta=document.getElementById('recMeta');
-    if(meta){ var bits=[]; if(p.id)bits.push('Project No. '+pad2(p.id)); if(p.year)bits.push(p.year); if(p.location)bits.push(p.location);
-      var l2=[]; if(p.designedAt)l2.push(p.designedAt); if(p.status)l2.push('status: '+p.status.toLowerCase());
-      meta.innerHTML=esc(bits.join(' · '))+(l2.length?'<br>'+esc(l2.join(' · ')):''); }
-    var cap=document.getElementById('recCap'); if(cap) cap.textContent='Fig. 01 — '+esc(p.name)+' · not to scale';
-    var tags=document.getElementById('recTags');
-    if(tags){ var tg=[]; if(p.category)tg.push(p.category); if(p.subcategory)tg.push(p.subcategory); if(p.status)tg.push(p.status);
-      if(!tg.length)tg=['Residential','Built']; tags.innerHTML=tg.map(function(x){return '<span>'+esc(x)+'</span>';}).join(''); }
-  }
+  function setCount(genre,html){ var el=document.querySelector('.gcount[data-count="'+genre+'"]'); if(el) el.innerHTML=html; }
 
-  /* ── DOCK: genres → project wheel ───────────────────────────────── */
-  var modal=document.getElementById('modal');
-  var dock=document.getElementById('dock');
-  var wheel=document.getElementById('wheel');
-  var bubbles=document.getElementById('bubbles');
-  var dockTitle=document.getElementById('dockTitle');
-  var dockBack=document.getElementById('dockBack');
-  var emptyEl=wheel.querySelector('.dock-empty');
+  /* ── DOCK ────────────────────────────────────────────────────────── */
+  var modal=document.getElementById('modal'), dock=document.getElementById('dock'),
+      wheel=document.getElementById('wheel'), bubbles=document.getElementById('bubbles'),
+      dockTitle=document.getElementById('dockTitle'), dockBack=document.getElementById('dockBack');
   var items=[], N=0, pos=0, target=0, vel=0, raf=null, wheelOn=false, opened=false;
   var drag=false, dragX=0, dragStart=0, dragMoved=false;
 
   function buildWheel(genre){
     var list=GENRES[genre]||[];
-    // clear old cards (keep the empty notice element)
     [].slice.call(wheel.querySelectorAll('.proj')).forEach(function(p){p.remove();});
     list.forEach(function(it,i){
       var a=document.createElement('a');
@@ -596,8 +441,7 @@
     });
     items=[].slice.call(wheel.querySelectorAll('.proj'));
     N=items.length; pos=target=(N-1)/2; vel=0;
-    wheel.classList.toggle('is-empty',N===0);
-    render();
+    wheel.classList.toggle('is-empty',N===0); render();
   }
   function render(){
     if(!N) return;
@@ -613,17 +457,16 @@
   }
   function loop(){ if(!wheelOn) return; vel+=(target-pos)*0.09; vel*=0.78; pos+=vel; render(); raf=requestAnimationFrame(loop); }
   function clampT(){ target=Math.max(0,Math.min(N-1,target)); }
-
   function openDock(){ if(opened) return; opened=true;
     dock.classList.add('state-genres'); dock.classList.remove('state-wheel');
     bubbles.classList.remove('pushed'); wheelOn=false;
-    dockTitle.textContent='All work · by genre of creation';
+    dockTitle.textContent='All work · by genre';
     modal.classList.add('on'); modal.setAttribute('aria-hidden','false'); document.body.classList.add('locked');
   }
   function toWheel(genre,name){
     bubbles.classList.add('pushed');
     var cnt=(GENRES[genre]||[]).length;
-    dockTitle.textContent=name+' · '+(genre==='downloads'?'WIP':(cnt<10?'0'+cnt:''+cnt));
+    dockTitle.textContent=name+' · '+(genre==='downloads'?'Soon':(cnt<10?'0'+cnt:''+cnt));
     setTimeout(function(){
       buildWheel(genre);
       dock.classList.remove('state-genres'); dock.classList.add('state-wheel');
@@ -632,12 +475,10 @@
   }
   function toGenres(){ wheelOn=false; cancelAnimationFrame(raf);
     dock.classList.remove('state-wheel'); dock.classList.add('state-genres');
-    bubbles.classList.remove('pushed'); dockTitle.textContent='All work · by genre of creation';
-  }
+    bubbles.classList.remove('pushed'); dockTitle.textContent='All work · by genre'; }
   function closeDock(){ opened=false; wheelOn=false; cancelAnimationFrame(raf);
     modal.classList.remove('on'); modal.setAttribute('aria-hidden','true'); document.body.classList.remove('locked');
-    setTimeout(function(){ dock.classList.remove('state-wheel'); dock.classList.add('state-genres'); bubbles.classList.remove('pushed'); },520);
-  }
+    setTimeout(function(){ dock.classList.remove('state-wheel'); dock.classList.add('state-genres'); bubbles.classList.remove('pushed'); },520); }
 
   function initDock(){
     var evBtn=document.getElementById('evBtn'); if(evBtn) evBtn.addEventListener('click',openDock);
@@ -657,12 +498,9 @@
     modal.addEventListener('wheel',function(e){ if(!opened) return; e.preventDefault();
       if(wheelOn){ target += (Math.abs(e.deltaY)>Math.abs(e.deltaX)?e.deltaY:e.deltaX)*0.004; clampT(); }
     },{passive:false});
-
-    /* drag-to-spin, but let a genuine click navigate */
     function down(x){ if(!wheelOn) return; drag=true; dragMoved=false; dragStart=x; dragX=target; }
     function move(x){ if(!drag||!wheelOn) return; var sp=Math.min(248,wheel.clientWidth*0.32);
-      if(Math.abs(x-dragStart)>5) dragMoved=true;
-      target=dragX-(x-dragStart)/sp; clampT(); }
+      if(Math.abs(x-dragStart)>5) dragMoved=true; target=dragX-(x-dragStart)/sp; clampT(); }
     function up(){ drag=false; }
     wheel.addEventListener('pointerdown',function(e){ down(e.clientX); });
     window.addEventListener('pointermove',function(e){ move(e.clientX); });
@@ -670,19 +508,13 @@
     wheel.addEventListener('touchstart',function(e){ down(e.touches[0].clientX); },{passive:true});
     wheel.addEventListener('touchmove',function(e){ if(wheelOn){ e.preventDefault(); move(e.touches[0].clientX);} },{passive:false});
     wheel.addEventListener('touchend',up);
-    /* suppress navigation if the pointer was dragged */
     wheel.addEventListener('click',function(e){ if(dragMoved){ e.preventDefault(); e.stopPropagation(); } },true);
     window.addEventListener('resize',function(){ if(wheelOn) render(); });
   }
 
-  /* ── load data, then wire everything (graceful if it fails) ──────── */
   (async function(){
-    try{
-      var projects=await DATA.getProjects();
-      buildFrom(projects||[]);
-    }catch(err){
-      buildFrom([]); // dock still opens with lab/downloads; counts show WIP
-    }
+    try{ var projects=await DATA.getProjects(); buildFrom(projects||[]); }
+    catch(err){ buildFrom([]); }
   })();
 })();
 </script>
