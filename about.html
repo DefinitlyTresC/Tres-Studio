@@ -3,22 +3,23 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>About — Tres Carter</title>
+  <title>About — Tres.</title>
   <meta name="description" content="Architectural designer based on 30A in Florida. Currently designing at Chancey, formerly Auburn Architecture." />
-  <meta name="theme-color" content="#FFFFFF" />
+  <meta name="theme-color" content="#080808" />
   <link rel="canonical" href="https://tres.studio/about.html" />
 
   <meta property="og:type" content="profile" />
-  <meta property="og:title" content="About — Tres Carter" />
+  <meta property="og:title" content="About — Tres." />
   <meta property="og:description" content="Architectural designer based on 30A in Florida." />
   <meta property="og:url" content="https://tres.studio/about.html" />
-  <meta property="og:site_name" content="Tres Carter" />
+  <meta property="og:site_name" content="Tres." />
   <meta name="twitter:card" content="summary" />
 
-  <link rel="icon" href="favicon/favicon.ico" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23080808'/%3E%3Ccircle cx='16' cy='16' r='6' fill='%23ff5a1f'/%3E%3C/svg%3E" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="preconnect" href="https://res.cloudinary.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
 
   <!-- Umami analytics (Tres Studio) -->
@@ -40,12 +41,12 @@
 
 <a class="skip" href="#content">Skip to content</a>
 
-<div class="dot-grid"></div>
+<div class="frame" aria-hidden="true"><span class="reg tl"></span><span class="reg tr"></span><span class="reg bl"></span><span class="reg br"></span></div>
 
 <nav class="nav">
-  <a class="mark" href="index.html">Tres Carter<span class="y">.</span></a>
+  <a class="mark" href="index.html">Tres<span class="y">.</span></a>
   <div class="nav-links">
-    <a href="index.html">← Studio</a>
+    <a href="index.html">← Index</a>
     <a href="mailto:tres@tres.studio">Contact</a>
   </div>
 </nav>
@@ -58,7 +59,7 @@
     </div>
   </aside>
   <section class="about-body">
-    <div class="about-tag reveal">— About · 03</div>
+    <div class="about-tag">— About · 04</div>
     <div class="about-typer" id="typer" aria-live="polite"></div>
     <div class="about-actions">
       <a href="resume.pdf" target="_blank">Resume ↓</a>
@@ -69,54 +70,50 @@
 </main>
 
 <footer class="footer">
-  <div class="footer-mark">Tres Carter<span class="y-dot"></span></div>
+  <div class="footer-mark">Tres<span class="y-dot">.</span></div>
   <div class="footer-block">
     <strong>Contact</strong>
     <a href="mailto:tres@tres.studio">tres@tres.studio</a>
     <a href="https://instagram.com/trescarter" target="_blank" rel="noopener">@trescarter</a>
   </div>
   <div class="footer-block">
-    <strong>Studio</strong>
-    <a href="about.html">About</a>
+    <strong>Index</strong>
     <a href="index.html">Work</a>
     <a href="lab.html">Lab</a>
+    <a href="about.html">About</a>
   </div>
   <div class="footer-block">
     <strong>Location</strong>
     <span>Seagrove · 30A</span>
-    <span>Florida</span>
+    <span>Florida, USA</span>
   </div>
   <div class="footer-base">
     <span>© 2026 Tres Carter</span>
-    <span>Built in Florida</span>
+    <span>Built on 30A</span>
   </div>
 </footer>
 
-<script src="https://unpkg.com/lenis@1.1.13/dist/lenis.min.js"></script>
-<script src="scroll.js"></script>
-
+<script src="brand.js"></script>
 <script>
 // ═══════════════════════════════════════════════════════════════
-// ABOUT — content. Edit these lines freely. Each entry is a
-// paragraph; the typewriter handles all spacing and timing.
-// Add or remove lines as you like — no other code changes needed.
+// ABOUT — content. Edit these lines freely. Each is a paragraph;
+// the typewriter handles spacing and timing.
 // ═══════════════════════════════════════════════════════════════
 const ABOUT_LINES = [
   "hey, i'm tres carter.",
-  "i build things... websites, games, tools, houses, whole neighborhoods, design guidelines, the occasional commercial mixed-use or restaurants.",
-  "i live on 30a with my cat exploring point washington and experimenting with projection mapping",
+  "i build things... websites, games, tools, houses, whole neighborhoods, design guidelines, the occasional commercial mixed-use or restaurant.",
+  "i live on 30a with my cat, exploring point washington and experimenting with projection mapping.",
   "i work on my car. i play a few instruments, none particularly well.",
   "day job: architectural designer at chancey in seagrove. auburn architecture before that.",
   "the rest is in the studio. say hi → tres@tres.studio",
 ];
 
-// ─── Typewriter engine — you shouldn't need to touch any of this ───
+// ─── Typewriter engine ───
 (() => {
   const typer   = document.getElementById('typer');
   const actions = document.querySelector('.about-actions');
   if (!typer) return;
 
-  // Honor reduced-motion preference — drop everything in instantly.
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
     ABOUT_LINES.forEach(text => {
       const p = document.createElement('p');
@@ -129,12 +126,7 @@ const ABOUT_LINES = [
     return;
   }
 
-  // Timing knobs
-  const CHAR_MS  = 28;   // base ms per character
-  const PUNCT_MS = 110;  // extra pause after . , : — ! ?
-  const LINE_MS  = 380;  // pause between paragraphs
-  const START_MS = 550;  // pause before the first character
-
+  const CHAR_MS = 26, PUNCT_MS = 110, LINE_MS = 360, START_MS = 600;
   let cancelled = false;
   const sleep = ms => new Promise(r => setTimeout(r, ms));
 
@@ -162,12 +154,10 @@ const ABOUT_LINES = [
   function finish() {
     if (cancelled && typer.classList.contains('done')) return;
     cancelled = true;
-    // Complete any partially-typed line first
     const lastIdx = typer.children.length - 1;
     if (lastIdx >= 0 && lastIdx < ABOUT_LINES.length) {
       typer.children[lastIdx].textContent = ABOUT_LINES[lastIdx];
     }
-    // Drop in any remaining paragraphs
     for (let i = lastIdx + 1; i < ABOUT_LINES.length; i++) {
       const p = document.createElement('p');
       p.className = 'about-line';
@@ -175,18 +165,12 @@ const ABOUT_LINES = [
       typer.appendChild(p);
     }
     typer.classList.add('done');
-    setTimeout(() => actions && actions.classList.add('ready'), 500);
+    setTimeout(() => actions && actions.classList.add('ready'), 480);
   }
 
-  // Skip the typing on click in the body, or Space / Enter
-  document.querySelector('.about-body').addEventListener('click', () => {
-    if (!cancelled) finish();
-  });
+  document.querySelector('.about-body').addEventListener('click', () => { if (!cancelled) finish(); });
   document.addEventListener('keydown', (e) => {
-    if ((e.key === ' ' || e.key === 'Enter') && !cancelled) {
-      e.preventDefault();
-      finish();
-    }
+    if ((e.key === ' ' || e.key === 'Enter') && !cancelled) { e.preventDefault(); finish(); }
   });
 
   run();

@@ -3,22 +3,22 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title id="page-title">Project — Tres Carter</title>
+  <title id="page-title">Project — Tres.</title>
   <meta name="description" id="page-desc" content="Project by Tres Carter." />
-  <meta name="theme-color" content="#FFFFFF" />
+  <meta name="theme-color" content="#080808" />
 
   <meta property="og:type" content="article" />
-  <meta property="og:title" id="og-title" content="Project — Tres Carter" />
+  <meta property="og:title" id="og-title" content="Project — Tres." />
   <meta property="og:description" id="og-desc" content="Project by Tres Carter." />
   <meta property="og:image" id="og-image" content="" />
-  <meta property="og:site_name" content="Tres Carter" />
+  <meta property="og:site_name" content="Tres." />
   <meta name="twitter:card" content="summary_large_image" />
 
-  <link rel="icon" href="favicon/favicon.ico" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23080808'/%3E%3Ccircle cx='16' cy='16' r='6' fill='%23ff5a1f'/%3E%3C/svg%3E" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="preconnect" href="https://res.cloudinary.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
 
   <!-- Umami analytics (Tres Studio) -->
@@ -40,58 +40,54 @@
 
 <a class="skip" href="#content">Skip to content</a>
 
-<div class="dot-grid"></div>
+<div class="frame" aria-hidden="true"><span class="reg tl"></span><span class="reg tr"></span><span class="reg bl"></span><span class="reg br"></span></div>
+<div class="read-progress" id="readProgress" aria-hidden="true"></div>
 
 <nav class="nav">
-  <a class="mark" href="index.html">Tres Carter<span class="y">.</span></a>
+  <a class="mark" href="index.html">Tres<span class="y">.</span></a>
   <div class="nav-links">
-    <a href="index.html">← Studio</a>
+    <a href="index.html">← Index</a>
     <a href="about.html">About</a>
   </div>
 </nav>
 
-<div class="read-progress" id="readProgress" aria-hidden="true"></div>
-
 <main id="content">
-  <div class="loading">loading</div>
+  <div class="loading">Loading</div>
 </main>
 
 <footer class="footer">
-  <div class="footer-mark">Tres Carter<span class="y-dot"></span></div>
+  <div class="footer-mark">Tres<span class="y-dot">.</span></div>
   <div class="footer-block">
     <strong>Contact</strong>
     <a href="mailto:tres@tres.studio">tres@tres.studio</a>
     <a href="https://instagram.com/trescarter" target="_blank" rel="noopener">@trescarter</a>
   </div>
   <div class="footer-block">
-    <strong>Studio</strong>
-    <a href="about.html">About</a>
+    <strong>Index</strong>
     <a href="index.html">Work</a>
     <a href="lab.html">Lab</a>
+    <a href="about.html">About</a>
   </div>
   <div class="footer-block">
     <strong>Location</strong>
     <span>Seagrove · 30A</span>
-    <span>Florida</span>
+    <span>Florida, USA</span>
   </div>
   <div class="footer-base">
     <span>© 2026 Tres Carter</span>
-    <span>Built in Florida</span>
+    <span>Built on 30A</span>
   </div>
 </footer>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-<script src="https://unpkg.com/lenis@1.1.13/dist/lenis.min.js"></script>
 <script src="config.js"></script>
 <script src="data.js"></script>
-<script src="scroll.js"></script>
+<script src="brand.js"></script>
 <script>
-// Tiny helpers — kept inline because they're page-specific and short.
+// Page-specific helpers — short, so kept inline.
 
-// Description rendering: split on blank lines into paragraphs, convert
-// single newlines into <br>. Lets you write multi-paragraph descriptions
-// in the Google Sheet (Alt+Enter to add a line break in a cell) and have
-// them render properly instead of collapsing into one wall of text.
+// Description rendering: split on blank lines into paragraphs, single
+// newlines → <br>. Lets multi-paragraph sheet cells (Alt+Enter) render right.
 function renderDescription(text) {
   if (!text) return '';
   return text
@@ -102,28 +98,18 @@ function renderDescription(text) {
     .join('');
 }
 
-// Render one gallery cell — image or video based on the entry's type.
-// Videos autoplay muted+looped (silent ambient motion) and reuse the same
-// .loaded fade-in pattern the images use, so they don't pop in.
-//
-// useReveal toggles the per-cell fade-up reveal. Long galleries (e.g., the
-// 73-tile thesis page) pass false so 50+ animations don't pile onto the
-// scroll thread. The .loaded fade still triggers per image as they decode.
-function renderMediaCell(m, name, useReveal) {
-  const cls = useReveal ? 'gallery-item reveal' : 'gallery-item';
+// One gallery cell — image or video by type. Videos autoplay muted+looped.
+function renderMediaCell(m, name) {
   if (m.type === 'video') {
     return `
-      <div class="${cls}">
-        <video src="${m.url}"
-               autoplay muted loop playsinline preload="metadata"
+      <div class="gallery-item reveal">
+        <video src="${m.url}" autoplay muted loop playsinline preload="metadata"
                onloadeddata="this.classList.add('loaded')"
                onerror="this.parentElement.style.display='none'"></video>
       </div>`;
   }
-  // decoding="async" tells the browser to decode the bitmap off the main
-  // thread. Big win when scrolling through many large images at once.
   return `
-    <div class="${cls}">
+    <div class="gallery-item reveal">
       <img src="${m.url}" alt="${name}" loading="lazy" decoding="async"
            onload="this.classList.add('loaded')"
            onerror="this.parentElement.style.display='none'" />
@@ -135,16 +121,11 @@ function setMetaContent(id, value) {
   if (el) el.setAttribute('content', value);
 }
 
-// Reading progress — yellow line at top of page scrolls 0% → 100% as
-// the user moves through the detail body. rAF-throttled to one paint
-// per frame. Skipped under reduced-motion.
+// Reading progress — orange line fills 0→100% through the body. rAF-throttled.
 function initReadProgress() {
   const bar = document.getElementById('readProgress');
   if (!bar) return;
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    bar.style.display = 'none';
-    return;
-  }
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { bar.style.display = 'none'; return; }
   let scheduled = false;
   function update() {
     scheduled = false;
@@ -153,11 +134,7 @@ function initReadProgress() {
     const ratio = max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0;
     bar.style.transform = `scaleX(${ratio})`;
   }
-  function onScroll() {
-    if (scheduled) return;
-    scheduled = true;
-    requestAnimationFrame(update);
-  }
+  function onScroll() { if (scheduled) return; scheduled = true; requestAnimationFrame(update); }
   window.addEventListener('scroll', onScroll, { passive: true });
   window.addEventListener('resize', onScroll);
   update();
@@ -167,24 +144,21 @@ function initReadProgress() {
   const id = new URLSearchParams(location.search).get('id');
   if (!id) { location.href = 'index.html'; return; }
 
-  // Pull the full list in parallel so we can compute prev/next without
-  // a second fetch — getProjects() is memoized inside DATA.
   const [p, all] = await Promise.all([DATA.getProjectBySlug(id), DATA.getProjects()]);
   if (!p) {
     document.getElementById('content').innerHTML = `
       <section class="empty-cat">
-        <h1 class="empty-cat-name">Not found</h1>
+        <div class="empty-cat-tag">— Not found</div>
+        <h1 class="empty-cat-name">404</h1>
         <p class="empty-cat-msg">No project matches "${id}".</p>
         <a class="empty-cat-back" href="index.html">← Back to studio</a>
       </section>`;
     return;
   }
 
-  const title = `${p.name} — Tres Carter`;
+  const title = `${p.name} — Tres.`;
   document.getElementById('page-title').textContent = title;
   setMetaContent('og-title', title);
-  // Build a short description from the project: location · year + first
-  // sentence of the body. Falls back to a generic line.
   const firstLine = (p.description || '').split(/\n+/)[0].trim();
   const descParts = [];
   if (p.location) descParts.push(p.location);
@@ -195,10 +169,9 @@ function initReadProgress() {
   if (p.heroUrl) setMetaContent('og-image', p.heroUrl);
 
   const backHref = p.category ? `category.html?cat=${p.category}` : 'index.html';
-  const backLabel = p.category ? p.category.charAt(0).toUpperCase() + p.category.slice(1) : 'Studio';
+  const backLabel = p.category ? p.category.charAt(0).toUpperCase() + p.category.slice(1) : 'Index';
 
-  // Prev/next within the same category, ordered by the sheet's Order column.
-  // Wraps around so the end loops back to the start.
+  // Prev/next within the same category, ordered by the sheet's Order column. Wraps.
   const siblings = p.category ? all.filter(x => x.category === p.category) : [];
   const idx = siblings.findIndex(x => x.slug === p.slug);
   let prev = null, next = null;
@@ -207,32 +180,34 @@ function initReadProgress() {
     next = siblings[(idx + 1) % siblings.length];
   }
 
+  // Spec-sheet metadata line — Project No · year · location · status.
+  const specBits = [];
+  if (p.id)       specBits.push(`No. ${String(p.id).padStart(2,'0')}`);
+  if (p.year)     specBits.push(p.year);
+  if (p.location) specBits.push(p.location);
+  if (p.status)   specBits.push(p.status);
+
   const navHtml = (prev || next) ? `
     <nav class="detail-nav" aria-label="More projects in ${backLabel}">
       ${prev ? `
-        <a class="detail-nav-link detail-nav-link--prev" href="project.html?id=${prev.slug}" data-hover>
-          <span class="detail-nav-arrow">←</span>
-          <span class="detail-nav-meta">Previous</span>
+        <a class="detail-nav-link detail-nav-link--prev" href="project.html?id=${prev.slug}">
+          <span class="detail-nav-meta"><span class="detail-nav-arrow">←</span> Previous</span>
           <span class="detail-nav-name">${prev.name}</span>
-        </a>
-      ` : '<span></span>'}
+        </a>` : '<span></span>'}
       ${next ? `
-        <a class="detail-nav-link detail-nav-link--next" href="project.html?id=${next.slug}" data-hover>
-          <span class="detail-nav-meta">Next</span>
+        <a class="detail-nav-link detail-nav-link--next" href="project.html?id=${next.slug}">
+          <span class="detail-nav-meta">Next <span class="detail-nav-arrow">→</span></span>
           <span class="detail-nav-name">${next.name}</span>
-          <span class="detail-nav-arrow">→</span>
-        </a>
-      ` : '<span></span>'}
-    </nav>
-  ` : '';
+        </a>` : '<span></span>'}
+    </nav>` : '';
 
   document.getElementById('content').innerHTML = `
     <section class="detail">
       <div class="detail-head">
         <div class="reveal">
-          <div class="detail-eyebrow">— Project</div>
+          <div class="detail-eyebrow">— ${backLabel} · Project</div>
           <h1 class="detail-title">${p.name}</h1>
-          <div class="detail-loc">${p.location || ''}<span class="y"> · </span>${p.year || ''}</div>
+          <div class="detail-loc">${specBits.join(' · ')}</div>
         </div>
         <div class="detail-desc reveal">
           ${renderDescription(p.description)}
@@ -241,21 +216,21 @@ function initReadProgress() {
               — Designed at ${p.designedAtUrl
                 ? `<a href="${p.designedAtUrl}" target="_blank" rel="noopener">${p.designedAt}</a>`
                 : `<span>${p.designedAt}</span>`}
-            </div>
-          ` : ''}
+            </div>` : ''}
         </div>
       </div>
 
       ${p.heroUrl ? `
-        <div class="gallery-item reveal" style="width:100%; margin-top:6rem;">
-          <img src="${p.heroUrl}" alt="${p.name}" fetchpriority="high" decoding="async"
-               onload="this.classList.add('loaded')"
-               onerror="this.parentElement.style.display='none'" />
-        </div>
-      ` : ''}
+        <section class="gallery" style="margin-top:clamp(40px,8vh,90px)">
+          <div class="gallery-item reveal">
+            <img src="${p.heroUrl}" alt="${p.name}" fetchpriority="high" decoding="async"
+                 onload="this.classList.add('loaded')"
+                 onerror="this.parentElement.style.display='none'" />
+          </div>
+        </section>` : ''}
 
       <section class="gallery${p.media.length > 50 ? ' gallery--long' : ''}">
-        ${p.media.map(m => renderMediaCell(m, p.name, p.media.length <= 50)).join('')}
+        ${p.media.map(m => renderMediaCell(m, p.name)).join('')}
       </section>
 
       ${navHtml}
@@ -264,6 +239,7 @@ function initReadProgress() {
     </section>
   `;
 
+  if (window.TRES) window.TRES.scan(document.getElementById('content'));
   initReadProgress();
 })();
 </script>

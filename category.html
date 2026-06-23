@@ -3,21 +3,21 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title id="page-title">Tres Carter</title>
+  <title id="page-title">Tres.</title>
   <meta name="description" id="page-desc" content="Selected work — Tres Carter." />
-  <meta name="theme-color" content="#FFFFFF" />
+  <meta name="theme-color" content="#080808" />
 
   <meta property="og:type" content="website" />
-  <meta property="og:title" id="og-title" content="Tres Carter" />
+  <meta property="og:title" id="og-title" content="Tres." />
   <meta property="og:description" id="og-desc" content="Selected work — Tres Carter." />
-  <meta property="og:site_name" content="Tres Carter" />
+  <meta property="og:site_name" content="Tres." />
   <meta name="twitter:card" content="summary" />
 
-  <link rel="icon" href="favicon/favicon.ico" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23080808'/%3E%3Ccircle cx='16' cy='16' r='6' fill='%23ff5a1f'/%3E%3C/svg%3E" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="preconnect" href="https://res.cloudinary.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
 
   <!-- Umami analytics (Tres Studio) -->
@@ -39,60 +39,57 @@
 
 <a class="skip" href="#content">Skip to content</a>
 
-<div class="dot-grid"></div>
+<div class="frame" aria-hidden="true"><span class="reg tl"></span><span class="reg tr"></span><span class="reg bl"></span><span class="reg br"></span></div>
 
 <nav class="nav">
-  <a class="mark" href="index.html">Tres Carter<span class="y">.</span></a>
+  <a class="mark" href="index.html">Tres<span class="y">.</span></a>
   <div class="nav-links">
-    <a href="index.html">← Studio</a>
+    <a href="index.html">← Index</a>
     <a href="about.html">About</a>
   </div>
 </nav>
 
 <main id="content">
-  <div class="loading">loading</div>
+  <div class="loading">Loading</div>
 </main>
 
 <footer class="footer">
-  <div class="footer-mark">Tres Carter<span class="y-dot"></span></div>
+  <div class="footer-mark">Tres<span class="y-dot">.</span></div>
   <div class="footer-block">
     <strong>Contact</strong>
     <a href="mailto:tres@tres.studio">tres@tres.studio</a>
     <a href="https://instagram.com/trescarter" target="_blank" rel="noopener">@trescarter</a>
   </div>
   <div class="footer-block">
-    <strong>Studio</strong>
-    <a href="about.html">About</a>
+    <strong>Index</strong>
     <a href="index.html">Work</a>
     <a href="lab.html">Lab</a>
+    <a href="about.html">About</a>
   </div>
   <div class="footer-block">
     <strong>Location</strong>
     <span>Seagrove · 30A</span>
-    <span>Florida</span>
+    <span>Florida, USA</span>
   </div>
   <div class="footer-base">
     <span>© 2026 Tres Carter</span>
-    <span>Built in Florida</span>
+    <span>Built on 30A</span>
   </div>
 </footer>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-<script src="https://unpkg.com/lenis@1.1.13/dist/lenis.min.js"></script>
 <script src="config.js"></script>
 <script src="data.js"></script>
-<script src="scroll.js"></script>
+<script src="brand.js"></script>
 <script>
-// Category numbering — matches the cats array on the homepage so the
-// "— Category · NN" eyebrow stays in sync if new categories are added.
-const CATEGORY_NUM = { architecture: '01', personal: '02' };
+// Category numbering — kept in sync with the homepage genre index.
+const CATEGORY_NUM = { architecture: '01', personal: '02', lab: '03' };
 
-function setMeta(name, value) {
-  const el = document.getElementById(name);
-  if (el) {
-    if ('content' in el && el.tagName !== 'TITLE') el.setAttribute('content', value);
-    else el.textContent = value;
-  }
+function setMeta(id, value) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  if (el.tagName === 'TITLE') el.textContent = value;
+  else el.setAttribute('content', value);
 }
 
 (async () => {
@@ -100,7 +97,7 @@ function setMeta(name, value) {
   const cat = (params.get('cat') || 'architecture').toLowerCase();
   const catLabel = cat.charAt(0).toUpperCase() + cat.slice(1);
   const num = CATEGORY_NUM[cat] || '·';
-  const title = `${catLabel} — Tres Carter`;
+  const title = `${catLabel} — Tres.`;
 
   setMeta('page-title', title);
   setMeta('og-title', title);
@@ -114,22 +111,23 @@ function setMeta(name, value) {
   if (!projects.length) {
     content.innerHTML = `
       <section class="empty-cat">
-        <div class="empty-cat-tag">— Category<span class="y"> · </span>${num}</div>
+        <div class="empty-cat-tag">— Category · ${num}</div>
         <h1 class="empty-cat-name">${catLabel}</h1>
         <p class="empty-cat-msg">No projects in ${catLabel.toLowerCase()} yet.</p>
         <a class="empty-cat-back" href="index.html">← Back to studio</a>
       </section>`;
+    if (window.TRES) window.TRES.scan(content);
     return;
   }
 
   content.innerHTML = `
     <section class="cat-intro">
       <div class="reveal">
-        <div class="cat-intro-tag">— Category<span class="y"> · </span>${num}</div>
+        <div class="cat-intro-tag">— Category · ${num}</div>
         <h1 class="cat-intro-name">${catLabel}</h1>
       </div>
       <div class="cat-intro-meta reveal">
-        <strong>${projects.length} projects</strong>
+        <strong>${String(projects.length).padStart(2,'0')} projects</strong>
         2023 — 2026
       </div>
     </section>
@@ -142,12 +140,14 @@ function setMeta(name, value) {
           </div>
           <div class="proj-meta">
             <span class="name">${p.name}</span>
-            <span class="info">${p.location || ''}${p.year ? ' · ' + p.year : ''}</span>
+            <span class="info">${[p.location, p.year].filter(Boolean).join(' · ')}</span>
           </div>
         </a>
       `).join('')}
     </section>
   `;
+
+  if (window.TRES) window.TRES.scan(content);
 })();
 </script>
 
