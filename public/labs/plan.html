@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+<title>Plan — Tres Carter</title>
+<link rel="icon" href="../favicon/favicon.ico" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --white:   #FFFFFF;
+    --black:   #0A0A0A;
+    --yellow:  #F5CB5C;
+    --ink-soft:  rgba(255, 255, 255, 0.55);
+    --ink-faint: rgba(255, 255, 255, 0.28);
+    --line:      rgba(255, 255, 255, 0.10);
+    --display: 'Bebas Neue', sans-serif;
+    --body:    'DM Sans', system-ui, sans-serif;
+    --ease:    cubic-bezier(.2, .8, .2, 1);
+  }
+
+  html, body {
+    width: 100%;
+    height: 100%;
+    background: var(--black);
+    color: var(--white);
+    font-family: var(--body);
+    font-weight: 300;
+    overflow: hidden;
+    touch-action: none;
+    overscroll-behavior: none;
+    -webkit-font-smoothing: antialiased;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  /* ── FULL-BLEED CANVAS ─────────────────────────── */
+  canvas#world {
+    display: block;
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    cursor: crosshair;
+    touch-action: none;
+    z-index: 0;
+  }
+
+  /* Atmospheric layers above the canvas, below UI */
+  .dot-grid {
+    position: fixed;
+    inset: -40px;
+    z-index: 1;
+    pointer-events: none;
+    background-image: radial-gradient(circle, rgba(255, 255, 255, 0.045) 1px, transparent 1.4px);
+    background-size: 36px 36px;
+    mix-blend-mode: screen;
+    opacity: 0.45;
+  }
+  .vignette {
+    position: fixed;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+    background: radial-gradient(
+      ellipse at center,
+      transparent 40%,
+      rgba(10, 10, 10, 0.45) 100%
+    );
+  }
+
+  /* ── NAV ───────────────────────────────────────── */
+  .nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 20;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem clamp(1.5rem, 4vw, 3rem);
+    padding-top: max(1.5rem, env(safe-area-inset-top));
+    pointer-events: none;
+  }
+  .nav > * { pointer-events: auto; }
+  .nav .mark {
+    font-family: var(--display);
+    font-size: 0.95rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--white);
+    text-decoration: none;
+  }
+  .nav .mark .y { color: var(--yellow); }
+  .nav .back {
+    font-size: 0.6rem;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--white);
+    text-decoration: none;
+    font-weight: 400;
+    transition: opacity 0.25s;
+  }
+  .nav .back:hover { opacity: 0.55; }
+
+  /* ── RULE DECK (top center) ────────────────────── */
+  .rule-deck {
+    position: fixed;
+    top: 4.5rem;
+    top: calc(max(1.5rem, env(safe-area-inset-top)) + 3rem);
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 15;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.9rem 1.1rem 0.75rem;
+    background: rgba(10, 10, 10, 0.6);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    max-width: calc(100vw - 2rem);
+  }
+  .rule-label {
+    font-size: 0.5rem;
+    letter-spacing: 0.36em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 0.1rem;
+  }
+  .rule-row {
+    display: flex;
+    gap: 0.3rem;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: nowrap;
+    min-height: 2.6rem;
+  }
+  .rule-letter {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2.4rem;
+    font-family: var(--display);
+    font-size: 1.55rem;
+    line-height: 1;
+    letter-spacing: 0;
+    border-radius: 6px;
+    cursor: pointer;
+    user-select: none;
+    transition:
+      background-color 0.25s var(--ease),
+      color 0.25s var(--ease),
+      transform 0.18s var(--ease);
+    will-change: transform;
+  }
+  .rule-letter.L {
+    color: rgba(255, 255, 255, 0.72);
+    background: rgba(255, 255, 255, 0.045);
+  }
+  .rule-letter.R {
+    color: var(--black);
+    background: var(--yellow);
+  }
+  .rule-letter:hover { transform: translateY(-2px); }
+  .rule-letter.flip {
+    animation: flipPulse 0.32s var(--ease);
+  }
+  @keyframes flipPulse {
+    0%   { transform: scaleX(1) translateY(0); }
+    40%  { transform: scaleX(0.1) translateY(-2px); }
+    100% { transform: scaleX(1) translateY(-2px); }
+  }
+  .rule-actions {
+    display: flex;
+    gap: 0.4rem;
+    margin-top: 0.15rem;
+  }
+  .ra-btn {
+    appearance: none;
+    background: none;
+    border: 1px solid var(--line);
+    color: rgba(255, 255, 255, 0.55);
+    font-family: var(--body);
+    font-size: 0.95rem;
+    line-height: 1;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: 999px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s, background-color 0.2s, border-color 0.2s, transform 0.15s;
+    padding: 0;
+  }
+  .ra-btn:hover {
+    color: var(--black);
+    background: var(--yellow);
+    border-color: var(--yellow);
+  }
+  .ra-btn:active { transform: scale(0.88); }
+  .ra-btn.disabled {
+    opacity: 0.32;
+    pointer-events: none;
+  }
+
+  /* ── SPEED DECK (bottom center) ────────────────── */
+  .speed-deck {
+    position: fixed;
+    bottom: 3.5rem;
+    bottom: calc(max(3.5rem, env(safe-area-inset-bottom) + 2.5rem));
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 15;
+    width: clamp(280px, 52vw, 640px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.55rem;
+    pointer-events: none;
+  }
+  .speed-track {
+    position: relative;
+    width: 100%;
+    height: 32px;
+    cursor: ew-resize;
+    pointer-events: auto;
+    touch-action: none;
+    display: flex;
+    align-items: center;
+  }
+  .speed-track::before {
+    content: '';
+    position: absolute;
+    left: 0; right: 0;
+    top: 50%;
+    height: 1px;
+    margin-top: -0.5px;
+    background: rgba(255, 255, 255, 0.18);
+  }
+  .speed-track .ticks {
+    position: absolute;
+    left: 0; right: 0;
+    top: 50%;
+    height: 1px;
+    pointer-events: none;
+  }
+  .speed-track .ticks::before,
+  .speed-track .ticks::after {
+    content: '';
+    position: absolute;
+    width: 1px;
+    height: 5px;
+    background: rgba(255, 255, 255, 0.2);
+    top: -2px;
+  }
+  .speed-track .ticks::before { left: 0; }
+  .speed-track .ticks::after  { right: 0; }
+  .speed-fill {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    margin-top: -0.5px;
+    height: 1px;
+    background: var(--yellow);
+    pointer-events: none;
+    width: 0%;
+  }
+  .speed-thumb {
+    position: absolute;
+    top: 50%;
+    left: 0%;
+    width: 12px;
+    height: 12px;
+    margin-left: -6px;
+    margin-top: -6px;
+    background: var(--yellow);
+    border-radius: 50%;
+    pointer-events: none;
+    box-shadow:
+      0 0 0 0 rgba(245, 203, 92, 0.55),
+      0 0 18px rgba(245, 203, 92, 0.55);
+    transition: transform 0.2s var(--ease), box-shadow 0.25s var(--ease);
+  }
+  .speed-track:hover .speed-thumb,
+  .speed-track.dragging .speed-thumb {
+    transform: scale(1.5);
+    box-shadow: 0 0 26px rgba(245, 203, 92, 0.75);
+  }
+  .speed-range {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    font-size: 0.48rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    font-variant-numeric: tabular-nums;
+  }
+  .speed-readout {
+    font-family: var(--display);
+    font-size: 0.95rem;
+    letter-spacing: 0.34em;
+    color: var(--ink-soft);
+    font-variant-numeric: tabular-nums;
+    text-align: center;
+  }
+  .speed-readout.paused {
+    color: var(--ink-faint);
+    letter-spacing: 0.45em;
+  }
+  .speed-readout .unit {
+    color: var(--ink-faint);
+    margin-left: 0.25rem;
+  }
+
+  /* ── CORNER MARKS ──────────────────────────────── */
+  .mark-bottom {
+    position: fixed;
+    bottom: 2rem;
+    bottom: max(1.5rem, calc(env(safe-area-inset-bottom) + 0.8rem));
+    left: clamp(1.5rem, 4vw, 3rem);
+    z-index: 12;
+    font-family: var(--display);
+    font-size: 1rem;
+    letter-spacing: 0.24em;
+    color: var(--yellow);
+    pointer-events: none;
+  }
+  .meta-bottom {
+    position: fixed;
+    bottom: 2rem;
+    bottom: max(1.5rem, calc(env(safe-area-inset-bottom) + 0.8rem));
+    right: clamp(1.5rem, 4vw, 3rem);
+    z-index: 12;
+    font-size: 0.55rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+    pointer-events: none;
+  }
+  .meta-bottom .step { color: var(--ink-soft); }
+
+  /* ── HINT (auto-fades) ────────────────────────── */
+  .hint {
+    position: fixed;
+    bottom: 11rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 12;
+    font-size: 0.55rem;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    color: rgba(245, 203, 92, 0.62);
+    pointer-events: none;
+    transition: opacity 0.9s ease;
+    white-space: nowrap;
+    text-align: center;
+  }
+  .hint.gone { opacity: 0; }
+
+  /* ── PRESS RING FEEDBACK ──────────────────────── */
+  .seed-ring {
+    position: fixed;
+    border: 1.5px solid var(--yellow);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 8;
+    transform: translate(-50%, -50%);
+    will-change: transform, opacity;
+  }
+
+  /* ── MOBILE ───────────────────────────────────── */
+  @media (max-width: 700px) {
+    .nav { padding: 0.9rem 1.1rem; }
+    .nav .mark { font-size: 0.82rem; }
+    .nav .back { font-size: 0.55rem; }
+
+    .rule-deck {
+      top: calc(max(0.9rem, env(safe-area-inset-top)) + 2.6rem);
+      padding: 0.7rem 0.8rem 0.6rem;
+      gap: 0.45rem;
+      border-radius: 14px;
+    }
+    .rule-label { font-size: 0.45rem; letter-spacing: 0.3em; }
+    .rule-letter {
+      width: 1.55rem;
+      height: 1.85rem;
+      font-size: 1.2rem;
+    }
+    .rule-row { gap: 0.22rem; }
+    .ra-btn {
+      width: 1.55rem;
+      height: 1.55rem;
+      font-size: 0.85rem;
+    }
+
+    .speed-deck {
+      bottom: calc(max(2.6rem, env(safe-area-inset-bottom) + 2rem));
+      width: 78vw;
+      gap: 0.4rem;
+    }
+    .speed-readout { font-size: 0.78rem; letter-spacing: 0.3em; }
+
+    .mark-bottom { font-size: 0.78rem; left: 1.1rem; letter-spacing: 0.2em; }
+    .meta-bottom { right: 1.1rem; font-size: 0.48rem; letter-spacing: 0.22em; }
+    .hint { bottom: 8.5rem; font-size: 0.5rem; letter-spacing: 0.24em; }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="world"></canvas>
+<div class="dot-grid"></div>
+<div class="vignette"></div>
+
+<nav class="nav">
+  <a class="mark" href="../index.html">Tres Carter<span class="y">.</span></a>
+  <a class="back" href="../lab.html">← Lab</a>
+</nav>
+
+<div class="rule-deck">
+  <div class="rule-label">Constraint</div>
+  <div class="rule-row" id="ruleRow"></div>
+  <div class="rule-actions">
+    <button class="ra-btn" id="addBtn"     title="Add state">+</button>
+    <button class="ra-btn" id="removeBtn"  title="Remove last state">−</button>
+    <button class="ra-btn" id="shuffleBtn" title="Randomize rule">⟳</button>
+    <button class="ra-btn" id="clearBtn"   title="Reset canvas (R)">↻</button>
+  </div>
+</div>
+
+<div class="speed-deck">
+  <div class="speed-track" id="speedTrack">
+    <div class="ticks"></div>
+    <div class="speed-fill" id="speedFill"></div>
+    <div class="speed-thumb" id="speedThumb"></div>
+  </div>
+  <div class="speed-range">
+    <span>STOP</span>
+    <span>1M / S</span>
+  </div>
+  <div class="speed-readout" id="spsOut">PAUSED</div>
+</div>
+
+<div class="mark-bottom">Lab — Plan</div>
+<div class="meta-bottom"><span class="step" id="stepOut">0</span> steps</div>
+<div class="hint" id="hint">drag the slider · tap canvas to seed an ant</div>
+
+<script>
+(function () {
+  'use strict';
+
+  // ══════════════════════════════════════════════════════════
+  //  SETUP — canvas, world, palette, ants, simulation state
+  // ══════════════════════════════════════════════════════════
+  const canvas = document.getElementById('world');
+  const ctx = canvas.getContext('2d', { alpha: false });
+  if (!ctx) return;
+
+  const isCoarse = window.matchMedia('(pointer: coarse)').matches;
+  const isSmall  = window.innerWidth < 700;
+  const isMobile = isCoarse || isSmall;
+
+  // Cell size in CSS pixels — each cell renders as a crisp square block.
+  // Smaller = finer detail, more cells per screen.
+  const CELL_SIZE = isMobile ? 4 : 3;
+
+  // World grid (set in setupWorld)
+  let LW = 0, LH = 0;
+  let cells   = null;
+  let imgData = null;
+  let pixels  = null;
+  let off     = null;
+  let oCtx    = null;
+
+  // Simulation
+  let rule = 'RL';
+  let palette = [];
+  let ants = [];
+  let steps = 0;
+
+  // Time control — accumulator-based, so the simulation runs at exactly
+  // the chosen sps regardless of framerate (or hits its time budget).
+  let sps = 0;
+  let accumulator = 0;
+  let lastTime = performance.now();
+  const TIME_BUDGET_MS = 12; // per-frame sim budget — keeps UI responsive
+
+  // ══════════════════════════════════════════════════════════
+  //  WORLD SETUP — builds offscreen canvas + cell array
+  //  Rebuilt on first load and on resize.
+  // ══════════════════════════════════════════════════════════
+  function setupWorld() {
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    LW = Math.max(40, Math.floor(vw / CELL_SIZE));
+    LH = Math.max(40, Math.floor(vh / CELL_SIZE));
+
+    off = document.createElement('canvas');
+    off.width = LW;
+    off.height = LH;
+    oCtx = off.getContext('2d', { alpha: false });
+    oCtx.fillStyle = '#0A0A0A';
+    oCtx.fillRect(0, 0, LW, LH);
+    imgData = oCtx.getImageData(0, 0, LW, LH);
+    pixels  = imgData.data;
+
+    cells = new Uint8Array(LW * LH);
+
+    // Main canvas backing — match viewport at devicePixelRatio
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    canvas.width  = Math.floor(vw * dpr);
+    canvas.height = Math.floor(vh * dpr);
+    canvas.style.width  = vw + 'px';
+    canvas.style.height = vh + 'px';
+    ctx.imageSmoothingEnabled = false;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+
+  // ══════════════════════════════════════════════════════════
+  //  RULE & PALETTE
+  // ══════════════════════════════════════════════════════════
+  function buildPalette(k) {
+    palette = new Array(k);
+    palette[0] = [10, 10, 10]; // state 0 = background black
+    if (k === 2) {
+      palette[1] = [255, 255, 255];
+      return;
+    }
+    // States 1..k-1 interpolate from white → yellow
+    for (let i = 1; i < k; i++) {
+      const t = (i - 1) / (k - 2);
+      palette[i] = [
+        Math.round(255 - t * 10),
+        Math.round(255 - t * 52),
+        Math.round(255 - t * 163),
+      ];
+    }
+  }
+
+  function renderRuleRow() {
+    const row = document.getElementById('ruleRow');
+    row.innerHTML = '';
+    for (let i = 0; i < rule.length; i++) {
+      const ch = rule[i];
+      const el = document.createElement('div');
+      el.className = 'rule-letter ' + ch;
+      el.textContent = ch;
+      el.dataset.idx = i;
+      el.addEventListener('click', (e) => {
+        e.stopPropagation();
+        flipState(i, el);
+      });
+      row.appendChild(el);
+    }
+    // Disable remove if at minimum
+    document.getElementById('removeBtn').classList.toggle('disabled', rule.length <= 2);
+    document.getElementById('addBtn').classList.toggle('disabled', rule.length >= 12);
+  }
+
+  // Repaint every cell using the current palette — used after the rule
+  // changes (palette shifts) or after states are remapped.
+  function redrawAllCells() {
+    const len = cells.length;
+    for (let i = 0; i < len; i++) {
+      const c = palette[cells[i]];
+      const p = i * 4;
+      pixels[p]     = c[0];
+      pixels[p + 1] = c[1];
+      pixels[p + 2] = c[2];
+      pixels[p + 3] = 255;
+    }
+  }
+
+  function setRule(r, opts) {
+    opts = opts || {};
+    const oldLen = rule.length;
+    rule = r;
+    buildPalette(rule.length);
+
+    // If shortening: remap stale cell states down via modulo
+    if (rule.length < oldLen) {
+      const k = rule.length;
+      for (let i = 0; i < cells.length; i++) {
+        if (cells[i] >= k) cells[i] = cells[i] % k;
+      }
+    }
+    // Palette colors change with length too — repaint everything
+    if (rule.length !== oldLen || opts.repaint) redrawAllCells();
+
+    renderRuleRow();
+  }
+
+  function flipState(i, el) {
+    const chars = rule.split('');
+    chars[i] = chars[i] === 'L' ? 'R' : 'L';
+    setRule(chars.join(''));
+    // Re-grab the now-recreated element by index and play the flip animation
+    const row = document.getElementById('ruleRow');
+    const newEl = row.children[i];
+    if (newEl) {
+      newEl.classList.add('flip');
+      setTimeout(() => newEl.classList.remove('flip'), 340);
+    }
+  }
+
+  function addState() {
+    if (rule.length >= 12) return;
+    setRule(rule + (Math.random() < 0.5 ? 'L' : 'R'));
+  }
+
+  function removeState() {
+    if (rule.length <= 2) return;
+    setRule(rule.slice(0, -1));
+  }
+
+  function randomizeRule() {
+    const k = 2 + Math.floor(Math.random() * 8); // 2..9
+    let s = '';
+    let hasL = false, hasR = false;
+    for (let i = 0; i < k; i++) {
+      const c = Math.random() < 0.5 ? 'L' : 'R';
+      s += c;
+      hasL = hasL || c === 'L';
+      hasR = hasR || c === 'R';
+    }
+    if (!hasL) s = s.slice(0, -1) + 'L';
+    if (!hasR) s = 'R' + s.slice(1);
+    setRule(s);
+  }
+
+  // ══════════════════════════════════════════════════════════
+  //  SIMULATION
+  // ══════════════════════════════════════════════════════════
+  function stepAnt(a) {
+    const idx = a.y * LW + a.x;
+    const s = cells[idx];
+    // 'L' = 76, 'R' = 82
+    const cmd = rule.charCodeAt(s);
+    a.dir = cmd === 82 ? (a.dir + 1) & 3 : (a.dir + 3) & 3;
+    const ns = (s + 1) % rule.length;
+    cells[idx] = ns;
+    // inline paintCell — the hot loop
+    const p = idx * 4;
+    const c = palette[ns];
+    pixels[p]     = c[0];
+    pixels[p + 1] = c[1];
+    pixels[p + 2] = c[2];
+    pixels[p + 3] = 255;
+    // move forward, wrapping at world edges
+    if      (a.dir === 0) a.y = (a.y - 1 + LH) % LH;
+    else if (a.dir === 1) a.x = (a.x + 1) % LW;
+    else if (a.dir === 2) a.y = (a.y + 1) % LH;
+    else                  a.x = (a.x - 1 + LW) % LW;
+  }
+
+  function addAnt(x, y, dir) {
+    if (x < 0 || x >= LW || y < 0 || y >= LH) return false;
+    ants.push({ x: x | 0, y: y | 0, dir: dir != null ? dir : (Math.random() * 4) | 0 });
+    return true;
+  }
+
+  function clearWorld(seedCenter) {
+    cells.fill(0);
+    const len = pixels.length;
+    for (let i = 0; i < len; i += 4) {
+      pixels[i]     = 10;
+      pixels[i + 1] = 10;
+      pixels[i + 2] = 10;
+      pixels[i + 3] = 255;
+    }
+    ants.length = 0;
+    steps = 0;
+    accumulator = 0;
+    if (seedCenter) addAnt((LW / 2) | 0, (LH / 2) | 0, 0);
+  }
+
+  // ══════════════════════════════════════════════════════════
+  //  RENDER
+  // ══════════════════════════════════════════════════════════
+  function render() {
+    oCtx.putImageData(imgData, 0, 0);
+
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    ctx.fillStyle = '#0A0A0A';
+    ctx.fillRect(0, 0, vw, vh);
+
+    // Nearest-neighbor scale to viewport — clean integer-pixel blocks
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(off, 0, 0, LW, LH, 0, 0, LW * CELL_SIZE, LH * CELL_SIZE);
+
+    // Yellow ants on top, with glow
+    const sz = Math.max(2, CELL_SIZE * 1.4);
+    ctx.shadowColor = '#F5CB5C';
+    ctx.shadowBlur  = 10;
+    ctx.fillStyle   = '#F5CB5C';
+    for (let i = 0; i < ants.length; i++) {
+      const a = ants[i];
+      ctx.fillRect(
+        a.x * CELL_SIZE - sz / 2 + CELL_SIZE / 2,
+        a.y * CELL_SIZE - sz / 2 + CELL_SIZE / 2,
+        sz, sz
+      );
+    }
+    ctx.shadowBlur = 0;
+  }
+
+  // ══════════════════════════════════════════════════════════
+  //  MAIN LOOP — accumulator-based timing
+  //  At sps=0 we skip the sim entirely. At sps=1M we cap via time budget.
+  // ══════════════════════════════════════════════════════════
+  let lastStepText = 0;
+  function tick(now) {
+    // dt clamped — prevents huge step-jump after tab switch / sleep
+    const dt = Math.min(100, now - lastTime);
+    lastTime = now;
+
+    if (sps > 0 && ants.length > 0) {
+      accumulator += (sps * dt) / 1000;
+      let stepsToDo = Math.floor(accumulator);
+      accumulator -= stepsToDo;
+
+      const start = performance.now();
+      let done = 0;
+      while (done < stepsToDo) {
+        const aLen = ants.length;
+        for (let j = 0; j < aLen; j++) stepAnt(ants[j]);
+        steps++;
+        done++;
+        // Budget guard — check every 1024 steps to keep frame responsive
+        if ((done & 1023) === 0 && performance.now() - start > TIME_BUDGET_MS) break;
+      }
+      // If we couldn't keep up, drop unfulfilled debt (don't lock the page)
+      if (done < stepsToDo) accumulator = 0;
+    }
+
+    render();
+
+    if (now - lastStepText > 180) {
+      document.getElementById('stepOut').textContent = steps.toLocaleString();
+      lastStepText = now;
+    }
+
+    requestAnimationFrame(tick);
+  }
+
+  // ══════════════════════════════════════════════════════════
+  //  SPEED SLIDER — custom drag, exponential mapping
+  //  Slider value 0..1  →  0 sps or 10^0..10^6 sps (1 to 1,000,000)
+  // ══════════════════════════════════════════════════════════
+  let sliderValue = 0;
+  const PAUSE_DEAD = 0.018;  // bottom 1.8% snaps to paused
+
+  function sliderToSps(s) {
+    if (s < PAUSE_DEAD) return 0;
+    const t = (s - PAUSE_DEAD) / (1 - PAUSE_DEAD);
+    return Math.round(Math.pow(10, t * 6));
+  }
+
+  function spsToSlider(sps) {
+    if (sps <= 0) return 0;
+    return PAUSE_DEAD + (Math.log10(Math.max(1, sps)) / 6) * (1 - PAUSE_DEAD);
+  }
+
+  function fmtSps(n) {
+    if (n === 0) return 'PAUSED';
+    if (n >= 1e6) return (n / 1e6).toFixed(2).replace(/\.?0+$/, '') + 'M';
+    if (n >= 1e3) return (n / 1e3).toFixed(n >= 1e4 ? 0 : 1).replace(/\.0$/, '') + 'K';
+    return n.toString();
+  }
+
+  function setSliderVisual(v) {
+    sliderValue = Math.max(0, Math.min(1, v));
+    const pct = (sliderValue * 100).toFixed(3);
+    document.getElementById('speedFill').style.width  = pct + '%';
+    document.getElementById('speedThumb').style.left  = pct + '%';
+    sps = sliderToSps(sliderValue);
+    const out = document.getElementById('spsOut');
+    out.classList.toggle('paused', sps === 0);
+    if (sps === 0) {
+      out.textContent = 'PAUSED';
+    } else {
+      out.innerHTML = fmtSps(sps) + '<span class="unit">SPS</span>';
+    }
+  }
+
+  // Slider drag handling
+  const track  = document.getElementById('speedTrack');
+  let sliderDragging = false;
+  function sliderFromEvent(e) {
+    const rect = track.getBoundingClientRect();
+    const clientX = (e.touches && e.touches[0]) ? e.touches[0].clientX : e.clientX;
+    setSliderVisual((clientX - rect.left) / rect.width);
+  }
+  track.addEventListener('pointerdown', (e) => {
+    sliderDragging = true;
+    track.classList.add('dragging');
+    try { track.setPointerCapture(e.pointerId); } catch (_) {}
+    sliderFromEvent(e);
+    e.preventDefault();
+  });
+  track.addEventListener('pointermove', (e) => {
+    if (sliderDragging) sliderFromEvent(e);
+  });
+  function endSliderDrag(e) {
+    if (!sliderDragging) return;
+    sliderDragging = false;
+    track.classList.remove('dragging');
+    try { track.releasePointerCapture(e.pointerId); } catch (_) {}
+  }
+  track.addEventListener('pointerup', endSliderDrag);
+  track.addEventListener('pointercancel', endSliderDrag);
+
+  // ══════════════════════════════════════════════════════════
+  //  CANVAS — tap-to-seed an ant, drag for a trail
+  // ══════════════════════════════════════════════════════════
+  let canvasDragging = false;
+  let lastSeed = { x: -9999, y: -9999 };
+  let hintGone = false;
+  const SEED_MIN_DIST_SQ = 8 * 8;
+
+  function dismissHint() {
+    if (hintGone) return;
+    hintGone = true;
+    document.getElementById('hint').classList.add('gone');
+  }
+
+  function spawnRing(clientX, clientY) {
+    const ring = document.createElement('div');
+    ring.className = 'seed-ring';
+    ring.style.left = clientX + 'px';
+    ring.style.top  = clientY + 'px';
+    ring.style.width  = '8px';
+    ring.style.height = '8px';
+    ring.style.opacity = '0.85';
+    document.body.appendChild(ring);
+    requestAnimationFrame(() => {
+      ring.style.transition = 'transform 0.7s cubic-bezier(.16,1,.3,1), opacity 0.7s ease-out';
+      ring.style.transform = 'translate(-50%, -50%) scale(7)';
+      ring.style.opacity = '0';
+    });
+    setTimeout(() => ring.remove(), 720);
+  }
+
+  function trySeedAt(clientX, clientY, force) {
+    const lx = (clientX / CELL_SIZE) | 0;
+    const ly = (clientY / CELL_SIZE) | 0;
+    if (lx < 0 || lx >= LW || ly < 0 || ly >= LH) return;
+    if (!force) {
+      const dx = lx - lastSeed.x;
+      const dy = ly - lastSeed.y;
+      if (dx * dx + dy * dy < SEED_MIN_DIST_SQ) return;
+    }
+    if (addAnt(lx, ly)) {
+      lastSeed = { x: lx, y: ly };
+      if (force) spawnRing(clientX, clientY);
+      dismissHint();
+    }
+  }
+
+  canvas.addEventListener('pointerdown', (e) => {
+    if (e.button !== undefined && e.button !== 0) return;
+    canvasDragging = true;
+    lastSeed = { x: -9999, y: -9999 };
+    try { canvas.setPointerCapture(e.pointerId); } catch (_) {}
+    trySeedAt(e.clientX, e.clientY, true);
+  });
+  canvas.addEventListener('pointermove', (e) => {
+    if (canvasDragging) trySeedAt(e.clientX, e.clientY, false);
+  });
+  function endCanvasDrag(e) {
+    if (!canvasDragging) return;
+    canvasDragging = false;
+    try { canvas.releasePointerCapture(e.pointerId); } catch (_) {}
+  }
+  canvas.addEventListener('pointerup', endCanvasDrag);
+  canvas.addEventListener('pointercancel', endCanvasDrag);
+
+  // ══════════════════════════════════════════════════════════
+  //  CONTROL WIRING
+  // ══════════════════════════════════════════════════════════
+  document.getElementById('addBtn').addEventListener('click', (e) => {
+    e.stopPropagation(); addState(); dismissHint();
+  });
+  document.getElementById('removeBtn').addEventListener('click', (e) => {
+    e.stopPropagation(); removeState(); dismissHint();
+  });
+  document.getElementById('shuffleBtn').addEventListener('click', (e) => {
+    e.stopPropagation(); randomizeRule(); dismissHint();
+  });
+  document.getElementById('clearBtn').addEventListener('click', (e) => {
+    e.stopPropagation(); clearWorld(true); dismissHint();
+  });
+
+  // Keyboard
+  let prePauseSlider = 0;
+  window.addEventListener('keydown', (e) => {
+    if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
+    if (e.code === 'KeyR') {
+      e.preventDefault();
+      clearWorld(true);
+    } else if (e.code === 'Space') {
+      e.preventDefault();
+      if (sps > 0) {
+        prePauseSlider = sliderValue;
+        setSliderVisual(0);
+      } else {
+        setSliderVisual(prePauseSlider || 0.45);
+      }
+    } else if (e.code === 'KeyN') {
+      // 'N' for new random rule
+      e.preventDefault();
+      randomizeRule();
+    }
+  });
+
+  // Resize — rebuild world (debounced)
+  let resizeTimer = null;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
+      const oldRule = rule;
+      setupWorld();
+      buildPalette(oldRule.length);
+      clearWorld(true);
+    }, 160);
+  });
+
+  // Auto-fade hint
+  setTimeout(dismissHint, 10000);
+
+  // ══════════════════════════════════════════════════════════
+  //  BOOT
+  // ══════════════════════════════════════════════════════════
+  setupWorld();
+  setRule('RL');
+  clearWorld(true);
+  // Default slider position: mid-low (~316 sps) — slow enough to see the
+  // ant moving, fast enough that something happens immediately
+  setSliderVisual(0.42);
+
+  lastTime = performance.now();
+  requestAnimationFrame(tick);
+
+})();
+</script>
+
+</body>
+</html>
