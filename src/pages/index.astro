@@ -1,0 +1,14 @@
+---
+// TEMPORARY Phase 1 scaffold. The real homepage is self-contained (inline CSS)
+// and gets ported in Phase 3 — it does NOT use Base.astro. This page exists
+// only so the deploy preview shows the shared masthead + footer working.
+import Base from '../layouts/Base.astro';
+---
+
+<Base title="Tres. — astro-migration" description="Phase 1 scaffold — base layout parity check.">
+  <main id="content" style="max-width:var(--wrap);margin:0 auto;padding:clamp(140px,24vh,300px) var(--pad);text-align:center">
+    <div class="eyebrow">— astro-migration · Phase 1</div>
+    <h1 style="font-family:var(--disp);font-weight:700;text-transform:uppercase;font-size:clamp(40px,9vw,90px);line-height:.9;margin-top:16px">Scaffold</h1>
+    <p class="note" style="margin-top:20px">Base layout + global stylesheet — temporary placeholder. Real pages land in later phases.</p>
+  </main>
+</Base>

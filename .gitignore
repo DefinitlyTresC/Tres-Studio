@@ -10,3 +10,7 @@ Thumbs.db
 
 # Node deps (installed by Netlify at build time)
 node_modules/
+
+# Astro build output + generated types
+dist/
+.astro/

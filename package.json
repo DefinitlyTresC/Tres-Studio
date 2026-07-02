@@ -1,9 +1,16 @@
 {
   "name": "tres-studio-site",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "private": true,
-  "description": "Static portfolio site. package.json exists only to declare the Netlify Functions dependency used by the visitor counter.",
+  "description": "tres.studio portfolio. Astro static build; Google Sheet content is read at build time. @netlify/blobs serves the visitor-counter function.",
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview"
+  },
   "dependencies": {
-    "@netlify/blobs": "^10.0.0"
+    "@netlify/blobs": "^10.0.0",
+    "astro": "^5.0.0"
   }
 }

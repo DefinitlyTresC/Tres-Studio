@@ -1,0 +1,99 @@
+---
+// Base.astro — shared shell for the v2 "drawing set" brand pages.
+// Ports the exact masthead/nav + footer that category/project/lab/about.html
+// share, plus the canonical <head> (fonts, theme-color, favicon, analytics).
+// Homepage (index.html) is self-contained and is NOT built on this layout;
+// its port is Phase 3.
+//
+// Props default to the site-wide "Tres." title/description used on
+// category.html so a page that passes nothing still matches current output.
+interface Props {
+  title?: string;
+  description?: string;
+}
+const {
+  title = 'Tres.',
+  description = 'Selected work — Tres Carter.',
+} = Astro.props;
+
+// Bundled + hashed by Astro; injects the <link> into <head> automatically.
+import '../styles/global.css';
+---
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{title}</title>
+  <meta name="description" content={description} />
+  <meta name="theme-color" content="#080808" />
+
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23080808'/%3E%3Ccircle cx='16' cy='16' r='6' fill='%23ff5a1f'/%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+
+  <!-- Umami analytics (Tres Studio) — data-domains scopes tracking to the real
+       site so Netlify deploy-preview / branch URLs don't pollute stats. -->
+  <script is:inline defer src="https://cloud.umami.is/script.js" data-website-id="96e73988-106a-415e-bf80-5e10ffaec0dc" data-domains="tres.studio"></script>
+
+  <!-- Microsoft Clarity (heatmaps + session recordings) — guarded so it only
+       loads on the production host, keeping preview/branch traffic out of
+       recordings. Same as the original snippet, wrapped in a host check. -->
+  <script is:inline type="text/javascript">
+    if (location.hostname === 'tres.studio') {
+      (function(c,l,a,r,i,t,y){
+          c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+          t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+          y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+      })(window, document, "clarity", "script", "xang6oq7f9");
+    }
+  </script>
+
+  <!-- Visitor counter (live + total) -->
+  <script is:inline defer src="/counter.js"></script>
+</head>
+<body>
+
+<a class="skip" href="#content">Skip to content</a>
+
+<div class="frame" aria-hidden="true"><span class="reg tl"></span><span class="reg tr"></span><span class="reg bl"></span><span class="reg br"></span></div>
+
+<nav class="nav">
+  <a class="mark" href="index.html">Tres<span class="y">.</span></a>
+  <div class="nav-links">
+    <a href="index.html">← Index</a>
+    <a href="about.html">About</a>
+  </div>
+</nav>
+
+<slot />
+
+<footer class="footer">
+  <div class="footer-mark">Tres<span class="y-dot">.</span></div>
+  <div class="footer-block">
+    <strong>Contact</strong>
+    <a href="mailto:tres@tres.studio">tres@tres.studio</a>
+    <a href="https://instagram.com/trescarter" target="_blank" rel="noopener">@trescarter</a>
+  </div>
+  <div class="footer-block">
+    <strong>Index</strong>
+    <a href="index.html">Work</a>
+    <a href="lab.html">Lab</a>
+    <a href="about.html">About</a>
+  </div>
+  <div class="footer-block">
+    <strong>Location</strong>
+    <span>Seagrove · 30A</span>
+    <span>Florida, USA</span>
+  </div>
+  <div class="footer-base">
+    <span>© 2026 Tres Carter</span>
+    <a href="privacy.html">Privacy</a>
+  </div>
+</footer>
+
+<script is:inline src="/brand.js"></script>
+</body>
+</html>

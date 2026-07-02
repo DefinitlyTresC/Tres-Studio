@@ -1,18 +1,16 @@
-# Pins the existing pure-static, publish-from-root deploy so that adding a
-# package.json (needed only for the @netlify/blobs dependency) can NOT make
-# Netlify auto-detect a framework, run a build, or change the publish dir.
+# astro-migration branch: Astro static build. Netlify runs the build and
+# publishes dist/. (main still publishes static files from the repo root —
+# this file only takes effect where this branch is deployed.)
 [build]
-  command = ""      # no build step — static files publish as-is
-  publish = "."     # keep publishing straight from the repo root, like before
+  command = "npm run build"
+  publish = "dist"
 
 [functions]
   directory = "netlify/functions"
   node_bundler = "esbuild"
 
-# Don't serve the function source as a downloadable static file.
-# force = true is required so this overrides the actual file that exists under
-# the repo-root publish dir. (Does NOT affect the live endpoint at
-# /.netlify/functions/* — different path, leading dot.)
+# Function source never lands in dist/, but keep the guard until cutover
+# cleanup just in case anything copies it through.
 [[redirects]]
   from = "/netlify/*"
   to = "/index.html"
