@@ -22,8 +22,8 @@ production cutover all ship as part of the rebrand build, not before it.
   Needs a near-black (likely a warm espresso, not pure black) for body/display.
 - Decide whether there's a **fifth "signal" accent** (for interactive states,
   the ticker counter, links) or whether Umber carries all interaction.
-- This flips the site **light** (current identity is near-black `#080808`).
-  Confirm: light-first, or light with a dark mode later?
+- **CONFIRMED (2026-07-01):** the site flips **light-first** (was near-black
+  `#080808`). Dark mode is a maybe-later, not part of this build.
 - Honest note: warm-cream + terracotta is a *popular* palette family right now.
   It stays distinctive through execution — the blob motion, architectural
   content, and type choices must carry the personality, not the palette alone.
@@ -52,7 +52,17 @@ as you scroll; after the last one, the page "drops you into" the section menu
 (taxonomy per §4). Open: exact drop mechanic, and whether the wordmark gets a
 moment first.
 
-## 4. Navigation / IA — OPEN DECISION (Tres + Claude to settle)
+## 4. Navigation / IA — ✅ DECIDED 2026-07-01: Option A
+
+**Tres picked Option A** (curate by quality, not provenance). The roster:
+- **Work (5, also the landing heroes, in discussion order):** Alys Beach Z-07
+  (`z07`), Alys Beach EE-13 (`ee13`), Flatwood Residence (`flatwood`),
+  The Pointe at Tucker Landing (`tucker`), Thesis Project (`thesis`).
+- **Archive:** every other architecture project (creekbridge, drome,
+  urbanneighbors, variousdetails, woodcomp, schoolwork, fithyearmini …).
+- **Personal / Lab / Downloads** as described below.
+
+Original discussion kept for context:
 
 **Problem (Tres):** current categories mix school work, professional work,
 filler, and never-filled sections (photography). Wants it streamlined and
@@ -103,6 +113,18 @@ How to structure ~17 existing projects under the new model:
   Discuss before committing.
 - Duplicate `Order` values in the current sheet get cleaned in the rebuild.
 
+## 5b. 3D assets — idea parking lot (Tres offered, 2026-07-01)
+
+Tres can provide **clean STL files** (and other formats) of his building
+models. Not scoped yet — candidates, roughly in order of effort:
+- Wireframe/contour-line motifs drawn from real model geometry (cheap, on-brand
+  with the drawing-set DNA).
+- A model viewer island on Work project pages (React Three Fiber — the V4
+  integration path Astro was chosen for).
+- Lab experiments built on the models; possibly behind the Podium-zoom entry.
+- The V4 PHASE particle field morphing between *models* rather than photos.
+Decide after R1 ships; don't let 3D scope-creep the rebrand.
+
 ## 6. Counter, analytics, privacy
 
 - **Visitor counter stays** — rebuilt as an **old-fashioned black-and-white
@@ -113,6 +135,18 @@ How to structure ~17 existing projects under the new model:
 - **Privacy page: strip to bare-minimum plain language.** Tone: "I collect
   anonymous data. I use it to improve the site." One caveat that must survive
   legally: Clarity uses cookies — one honest sentence about it stays.
+
+## 6b. Lab rebuild (added 2026-07-01, Tres)
+
+The 6 experiments (drift, plan, birds, field, echo, pulse) get **rebuilt as
+fully better versions of themselves** — not ported, re-made: V2 identity,
+iOS/touch-first controls, performance pass, and each pushed further as an
+experience where the concept supports it. Candidate extras: the Podium-style
+zoom as the Lab section entry (§2), STL-derived experiments (§5b), and
+whether "Alternates" survives as a concept. Originals stay recoverable in git
+history; the live site carries only the new versions. **Depends on R1
+decisions (ink/type/motion) — labs are born in the new identity, not
+re-skinned later.**
 
 ## 7. Sequencing
 
