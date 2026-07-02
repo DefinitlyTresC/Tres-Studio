@@ -1,14 +1,63 @@
 ---
-// TEMPORARY Phase 1 scaffold. The real homepage is self-contained (inline CSS)
-// and gets ported in Phase 3 — it does NOT use Base.astro. This page exists
-// only so the deploy preview shows the shared masthead + footer working.
+// TEMPORARY Phase 2 demo. This page exists only to prove the Google Sheet
+// content collection is baked in at BUILD time — it is replaced by the real
+// homepage port in Phase 3. Keep the Base layout + inline styling minimal.
 import Base from '../layouts/Base.astro';
+import { getCollection } from 'astro:content';
+import { heroUrlThumb } from '../lib/cloudinary';
+
+// Baked at build time — getCollection reads the entries the content-layer
+// loader produced from the sheet (or snapshot fallback).
+const entries = await getCollection('projects');
+const projects = entries.map((e) => e.data);
+
+// Counts per category (order preserved by insertion of first-seen category).
+const categoryCounts = new Map<string, number>();
+for (const p of projects) {
+  const cat = p.category || '(uncategorized)';
+  categoryCounts.set(cat, (categoryCounts.get(cat) || 0) + 1);
+}
 ---
 
-<Base title="Tres. — astro-migration" description="Phase 1 scaffold — base layout parity check.">
-  <main id="content" style="max-width:var(--wrap);margin:0 auto;padding:clamp(140px,24vh,300px) var(--pad);text-align:center">
-    <div class="eyebrow">— astro-migration · Phase 1</div>
-    <h1 style="font-family:var(--disp);font-weight:700;text-transform:uppercase;font-size:clamp(40px,9vw,90px);line-height:.9;margin-top:16px">Scaffold</h1>
-    <p class="note" style="margin-top:20px">Base layout + global stylesheet — temporary placeholder. Real pages land in later phases.</p>
+<Base title="Tres. — Phase 2 data check" description="Phase 2 demo — build-time content collection parity check.">
+  <main id="content" style="max-width:900px;margin:0 auto;padding:120px var(--pad) 80px;font-family:var(--mono, monospace)">
+    <div class="eyebrow">— astro-migration · Phase 2 · build-time data</div>
+    <h1 style="font-family:var(--disp);font-weight:700;text-transform:uppercase;font-size:clamp(32px,7vw,64px);line-height:.9;margin:12px 0 24px">Data baked</h1>
+
+    <p style="margin:0 0 8px"><strong>Total projects:</strong> {projects.length}</p>
+
+    <h2 style="font-size:18px;margin:24px 0 8px">Per category</h2>
+    <ul style="margin:0 0 24px;padding-left:20px">
+      {[...categoryCounts.entries()].map(([cat, n]) => (
+        <li>{cat}: {n}</li>
+      ))}
+    </ul>
+
+    <h2 style="font-size:18px;margin:24px 0 8px">Projects</h2>
+    <ol style="margin:0 0 32px;padding-left:24px;line-height:1.6">
+      {projects.map((p) => (
+        <li>
+          <strong>{p.name}</strong> — {p.year || '—'} · {p.category || '—'}
+          {p.slug && <span style="opacity:.5"> ({p.slug})</span>}
+        </li>
+      ))}
+    </ol>
+
+    <h2 style="font-size:18px;margin:24px 0 12px">Hero thumbnails (Cloudinary URL check)</h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px">
+      {projects.map((p) => {
+        const url = heroUrlThumb(p);
+        return (
+          <figure style="margin:0">
+            {url ? (
+              <img src={url} alt={p.name} loading="lazy" style="width:100%;height:120px;object-fit:cover;display:block;background:#111" />
+            ) : (
+              <div style="width:100%;height:120px;display:flex;align-items:center;justify-content:center;background:#1a1a1a;color:#888;font-size:11px">no hero</div>
+            )}
+            <figcaption style="font-size:11px;opacity:.7;margin-top:4px">{p.name}</figcaption>
+          </figure>
+        );
+      })}
+    </div>
   </main>
 </Base>
