@@ -21,11 +21,19 @@ production cutover all ship as part of the rebrand build, not before it.
 - **Ink:** candidate A — warm espresso `#2B1F1A` (≥7:1 on cream).
 - **Type:** Direction 1 "Draughtsman's Grotesque" — **Archivo** (display) +
   **Newsreader** (body) + **Space Mono** (spec labels/data). Google Fonts.
-- **Motion verdicts:** tracking button KEEP but simplified (no click ring/
-  outline, minimal moving parts, lighter-toned pill + arrow — Tres: "too much
-  moving… simple, lighter toned back w arrow"); ticker KEEP but flat
-  split-flap card flip, not 3D wheels ("too 3d… flat card that flips over
-  naturally"); blob had a rendering bug at review time — re-review pending.
+- **Motion language (R1 round 2, locked in the prototypes):**
+  - **Back/nav control site-wide:** text-only mono link (no pill), tracks the
+    cursor's Y with a lagged lerp on desktop, sits still on touch.
+  - **Blob** = the site's signature: jello mask (multi-keyframe radius morph,
+    ~6–7.5s per project, unsynced), moments **magnetized to alternating
+    screen edges** (lean past the edge; sliding to the edge on entry), ink/
+    umber **particle dots orbit the cursor near a mask's edge** (desktop),
+    and **click = zoom through the opening** to the project page.
+  - **Ticker** = flat split-flap flip cards on the real count + the V1
+    slot-machine cadence on click (never pays 1st pull, always 3rd) with
+    palette-paper confetti on jackpot. No neon, no 3D.
+  - Hub verdict from Tres: "not thrilled, not disappointed" — revisit hub
+    personality later; don't decorate it for its own sake.
 - **Standing rule (Tres, verbatim intent): NO AI SLOP.** Generic AI-design
   tells (numbered-marker decoration, rings/glows, gratuitous 3D, template
   looks) get called out. All UI work runs through the design-engineering

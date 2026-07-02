@@ -28,15 +28,17 @@
       <p class="lede">
         Bottom right. It fetches the real total and flips up to it, one digit
         card at a time — the ones place leads, the rest follow only when they
-        turn over. <a href="/r1">Back to index</a>.
+        turn over. Click the counter itself and see what happens. Sometimes it
+        pays out. <a href="/r1">Back to index</a>.
       </p>
       <button class="crank" id="crank" type="button">advance one — demo</button>
     </main>
 
-    <div class="tick" id="tick" aria-live="polite" aria-label="Total site visits">
-      <span class="cells" id="cells"></span>
+    <div class="tick" id="tick">
+      <button class="cells" id="cells" type="button" aria-label="Total site visits — spin"></button>
       <span class="lbl">visits</span>
     </div>
+    <canvas id="confetti" aria-hidden="true"></canvas>
 
     <style is:inline>
       * { margin: 0; box-sizing: border-box; }
@@ -79,7 +81,16 @@
         transition: opacity 300ms var(--v2-out, ease-out), translate 300ms var(--v2-out, ease-out);
       }
       .tick.in { opacity: 1; translate: 0 0; }
-      .cells { display: inline-flex; gap: 3px; }
+      .cells {
+        display: inline-flex; gap: 3px;
+        background: none; border: none; padding: 0; cursor: pointer;
+        position: relative;
+        transition: transform var(--v2-press, 140ms) var(--v2-out, ease-out);
+      }
+      .cells::after { content: ''; position: absolute; inset: -14px; } /* 44px hit area */
+      .cells:active { transform: scale(0.96); }
+      .cells:focus-visible { outline: 2px solid var(--v2-ink, #2B1F1A); outline-offset: 4px; }
+      #confetti { position: fixed; inset: 0; z-index: 10; pointer-events: none; }
       .cell {
         position: relative;
         width: 1.35ch; padding: 5px 3px;
@@ -192,6 +203,9 @@
         }
 
         var real = 0;
+        function setLabel() {
+          cellsWrap.setAttribute('aria-label', 'Total site visits: ' + real + ' — spin');
+        }
         fetch(ENDPOINT + '?sid=' + encodeURIComponent(sid), { cache: 'no-store' })
           .then(function (r) { return r.ok ? r.json() : null; })
           .then(function (data) {
@@ -199,15 +213,100 @@
             real = data.total;
             tick.classList.add('in');
             rollTo(real);
+            setLabel();
           })
           .catch(function () { /* silent, like the real counter */ });
 
         /* demo crank — local only, so the flip can be felt repeatedly */
         document.getElementById('crank').addEventListener('click', function () {
+          if (spinning) return;
           real += 1;
           tick.classList.add('in');
           show(real);
+          setLabel();
         });
+
+        /* ── the slot machine ─────────────────────────────────────────────
+           Never pays on the first pull, maybe on the second, always on the
+           third, then random-but-often — the cadence from the V1 counter,
+           because it was right. Payout = a silly number and paper confetti in
+           the palette, then the truth flips back. */
+        var SILLY = ['00777', '13337', '00420', '12345', '99999', '00007', '55555', '01010'];
+        var pulls = 0, spinning = false;
+        function wantsJackpot() {
+          pulls++;
+          if (pulls === 1) return false;
+          if (pulls === 2) return Math.random() < 0.5;
+          if (pulls === 3) return true;
+          return Math.random() < 0.38;
+        }
+
+        cellsWrap.addEventListener('click', function () {
+          if (spinning || reduce) return;
+          spinning = true;
+          tick.classList.add('in');
+          var jackpot = wantsJackpot();
+          var cells = cellsWrap.children;
+          var spins = 0, maxSpins = jackpot ? 22 : 14;
+          var iv = setInterval(function () {
+            for (var i = 0; i < cells.length; i++) {
+              cells[i].textContent = Math.floor(Math.random() * 10);
+            }
+            if (++spins < maxSpins) return;
+            clearInterval(iv);
+            if (jackpot) {
+              show(parseInt(SILLY[Math.floor(Math.random() * SILLY.length)], 10));
+              burst();
+              setTimeout(function () { show(real); spinning = false; }, 1800);
+            } else {
+              show(real);
+              spinning = false;
+            }
+          }, 62);
+        });
+
+        /* ── confetti: flat paper chits in the palette, nothing neon ─────── */
+        var cv = document.getElementById('confetti');
+        var ctx = cv.getContext('2d');
+        var dpr = Math.min(2, devicePixelRatio || 1);
+        var PAPER = ['#EDCDBB', '#E3B7A0', '#BF9270', '#2B1F1A', '#ffffff'];
+        var bits = [], craf = null;
+
+        function burst() {
+          cv.width = innerWidth * dpr; cv.height = innerHeight * dpr;
+          var r = tick.getBoundingClientRect();
+          var ox = r.left + r.width / 2, oy = r.top;
+          for (var i = 0; i < 64; i++) {
+            bits.push({
+              x: ox + (Math.random() - 0.5) * 24, y: oy,
+              vx: (Math.random() - 0.5) * 6.5, vy: -(3.5 + Math.random() * 5),
+              w: 3 + Math.random() * 4, h: 5 + Math.random() * 4,
+              rot: Math.random() * 6.2832, vr: (Math.random() - 0.5) * 0.3,
+              age: 0, life: 1100 + Math.random() * 500,
+              c: PAPER[Math.floor(Math.random() * PAPER.length)],
+            });
+          }
+          if (!craf) craf = requestAnimationFrame(fall);
+        }
+        function fall() {
+          ctx.clearRect(0, 0, cv.width, cv.height);
+          for (var i = bits.length - 1; i >= 0; i--) {
+            var b = bits[i];
+            b.age += 16;
+            if (b.age > b.life) { bits.splice(i, 1); continue; }
+            b.vy += 0.22; b.x += b.vx; b.y += b.vy; b.rot += b.vr;
+            var a = b.age > b.life * 0.7 ? 1 - (b.age - b.life * 0.7) / (b.life * 0.3) : 1;
+            ctx.save();
+            ctx.translate(b.x * dpr, b.y * dpr);
+            ctx.rotate(b.rot);
+            ctx.globalAlpha = a;
+            ctx.fillStyle = b.c;
+            ctx.fillRect(-b.w / 2 * dpr, -b.h / 2 * dpr, b.w * dpr, b.h * dpr);
+            ctx.restore();
+          }
+          craf = bits.length ? requestAnimationFrame(fall) : null;
+          if (!bits.length) ctx.clearRect(0, 0, cv.width, cv.height);
+        }
       })();
     </script>
   </body>
