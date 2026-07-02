@@ -1,0 +1,228 @@
+---
+// LAB — port of root lab.html onto the shared Base layout.
+//
+// Head: lab-specific title/description via props. Base owns the canonical
+// <head> (fonts/analytics/counter); lab.html's og:/twitter:/canonical meta are
+// dropped for now, matching the migration plan (same as category/about).
+//
+// PARITY NOTES:
+//   - Experiment links stay "labs/<name>.html" ON PURPOSE. The /labs folder
+//     ports via public/ passthrough in Phase 4, so these relative URLs keep
+//     resolving after cutover. Do NOT rewrite them to clean paths.
+//   - All markup/classes are byte-for-byte from lab.html so global.css styles
+//     and brand.js tilt (which targets .lab-index-card) keep working. The
+//     decorative inline <svg> previews are copied verbatim.
+//   - The subtitle typewriter is the original inline <script>, kept as
+//     is:inline so Astro doesn't process/relocate it. It reads #labSub and
+//     respects prefers-reduced-motion, exactly as before.
+//
+// VIEWPORT NOTE (flagged, not fixed): lab.html's viewport meta is
+// "width=device-width, initial-scale=1.0, viewport-fit=cover". Base emits the
+// standard viewport WITHOUT viewport-fit=cover and takes no per-page override.
+// Rather than complicate Base for one page, this port uses Base's standard
+// viewport. viewport-fit=cover only affects safe-area insets on notched devices
+// and the lab layout doesn't rely on env(safe-area-*), so this is cosmetic.
+import Base from '../layouts/Base.astro';
+---
+
+<Base
+  title="Lab — Tres."
+  description="Interactive lab — living sketches and side projects. Flow fields, flocking, fluid studies, and alternate site universes."
+>
+  <main class="lab-index" id="content">
+    <header class="lab-index-head">
+      <div class="lab-index-tag">— Lab · 03</div>
+      <h1 class="lab-index-title">Experiments</h1>
+      <p class="lab-index-sub" id="labSub" aria-live="polite"></p>
+    </header>
+
+    <ol class="lab-index-list" id="labList">
+
+      <li><a class="lab-index-card reveal" href="labs/drift.html">
+        <span class="num">01</span>
+        <div class="body">
+          <h2 class="name">Drift</h2>
+          <p class="tag">Fluid study, six lenses · ink on still water</p>
+          <p class="meta">WebGL · 2026</p>
+        </div>
+        <div class="preview">
+          <svg viewBox="0 0 140 90" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <g fill="none" stroke="rgba(244,244,243,0.55)" stroke-width="1" stroke-linecap="round">
+              <path d="M0 22 Q35 8 70 22 T140 22"><animate attributeName="d" values="M0 22 Q35 8 70 22 T140 22;M0 22 Q35 36 70 22 T140 22;M0 22 Q35 8 70 22 T140 22" dur="7s" repeatCount="indefinite" /></path>
+              <path d="M0 45 Q35 30 70 45 T140 45"><animate attributeName="d" values="M0 45 Q35 60 70 45 T140 45;M0 45 Q35 28 70 45 T140 45;M0 45 Q35 60 70 45 T140 45" dur="6s" repeatCount="indefinite" /></path>
+              <path d="M0 68 Q35 53 70 68 T140 68" stroke="rgba(255,90,31,0.9)"><animate attributeName="d" values="M0 68 Q35 82 70 68 T140 68;M0 68 Q35 52 70 68 T140 68;M0 68 Q35 82 70 68 T140 68" dur="8s" repeatCount="indefinite" /></path>
+            </g>
+          </svg>
+        </div>
+        <span class="arrow">→</span>
+      </a></li>
+
+      <li><a class="lab-index-card reveal" href="labs/plan.html">
+        <span class="num">02</span>
+        <div class="body">
+          <h2 class="name">Plan</h2>
+          <p class="tag">Langton's ant · constraint variations</p>
+          <p class="meta">Canvas · 2025</p>
+        </div>
+        <div class="preview">
+          <svg viewBox="0 0 140 90" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <g stroke="rgba(244,244,243,0.16)" stroke-width="0.6">
+              <path d="M0 15 H140 M0 30 H140 M0 45 H140 M0 60 H140 M0 75 H140" />
+              <path d="M15 0 V90 M30 0 V90 M45 0 V90 M60 0 V90 M75 0 V90 M90 0 V90 M105 0 V90 M120 0 V90" />
+            </g>
+            <g fill="rgba(244,244,243,0.16)">
+              <rect x="46" y="46" width="14" height="14" /><rect x="61" y="46" width="14" height="14" />
+              <rect x="61" y="31" width="14" height="14" /><rect x="76" y="31" width="14" height="14" />
+            </g>
+            <rect x="46" y="61" width="14" height="14" fill="rgba(255,90,31,0.95)">
+              <animate attributeName="x" values="46;46;61;61;76;76;61;61;46;46" dur="5s" repeatCount="indefinite" />
+              <animate attributeName="y" values="61;46;46;31;31;46;46;61;61;61" dur="5s" repeatCount="indefinite" />
+            </rect>
+          </svg>
+        </div>
+        <span class="arrow">→</span>
+      </a></li>
+
+      <li><a class="lab-index-card reveal" href="labs/birds.html">
+        <span class="num">03</span>
+        <div class="body">
+          <h2 class="name">Birds</h2>
+          <p class="tag">Flocking with rogues · boids in formation</p>
+          <p class="meta">Canvas · 2025</p>
+        </div>
+        <div class="preview">
+          <svg viewBox="0 0 140 90" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <g fill="rgba(244,244,243,0.6)">
+              <g><animateTransform attributeName="transform" type="translate" values="-40 0; 180 0" dur="14s" repeatCount="indefinite" />
+                <polygon points="20,40 14,43 16,40 14,37" /><polygon points="34,30 28,33 30,30 28,27" />
+                <polygon points="48,42 42,45 44,42 42,39" /><polygon points="62,32 56,35 58,32 56,29" />
+                <polygon points="76,44 70,47 72,44 70,41" fill="rgba(255,90,31,0.95)" /><polygon points="90,34 84,37 86,34 84,31" />
+              </g>
+              <g><animateTransform attributeName="transform" type="translate" values="-30 30; 190 30" dur="11s" repeatCount="indefinite" />
+                <polygon points="20,40 14,43 16,40 14,37" /><polygon points="36,32 30,35 32,32 30,29" fill="rgba(255,90,31,0.95)" /><polygon points="50,44 44,47 46,44 44,41" />
+              </g>
+            </g>
+          </svg>
+        </div>
+        <span class="arrow">→</span>
+      </a></li>
+
+      <li><a class="lab-index-card reveal" href="labs/field.html">
+        <span class="num">04</span>
+        <div class="body">
+          <h2 class="name">Field</h2>
+          <p class="tag">Vector flow + released disturbances</p>
+          <p class="meta">Canvas · 2025</p>
+        </div>
+        <div class="preview">
+          <svg viewBox="0 0 140 90" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <g stroke="rgba(244,244,243,0.6)" stroke-width="1" stroke-linecap="round" fill="none">
+              <g><animateTransform attributeName="transform" type="rotate" from="0 70 45" to="360 70 45" dur="18s" repeatCount="indefinite" />
+                <line x1="20" y1="18" x2="28" y2="22" /><line x1="50" y1="14" x2="58" y2="20" /><line x1="82" y1="14" x2="90" y2="20" /><line x1="112" y1="18" x2="120" y2="22" />
+                <line x1="20" y1="42" x2="28" y2="42" /><line x1="50" y1="36" x2="58" y2="42" /><line x1="82" y1="36" x2="90" y2="42" /><line x1="112" y1="42" x2="120" y2="42" />
+                <line x1="20" y1="66" x2="28" y2="64" /><line x1="50" y1="68" x2="58" y2="62" /><line x1="82" y1="68" x2="90" y2="62" /><line x1="112" y1="66" x2="120" y2="64" />
+              </g>
+              <circle cx="70" cy="45" r="4" fill="rgba(255,90,31,0.9)" stroke="none">
+                <animate attributeName="r" values="3;9;3" dur="3.5s" repeatCount="indefinite" />
+                <animate attributeName="opacity" values="0.9;0;0.9" dur="3.5s" repeatCount="indefinite" />
+              </circle>
+            </g>
+          </svg>
+        </div>
+        <span class="arrow">→</span>
+      </a></li>
+
+      <li><a class="lab-index-card reveal" href="labs/echo.html">
+        <span class="num">05</span>
+        <div class="body">
+          <h2 class="name">Echo</h2>
+          <p class="tag">Ring resonance · stars from intersections</p>
+          <p class="meta">Canvas · 2026</p>
+        </div>
+        <div class="preview">
+          <svg viewBox="0 0 140 90" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <g fill="none" stroke="rgba(255,90,31,0.85)" stroke-width="0.7">
+              <circle cx="38" cy="34" r="6"><animate attributeName="r" values="2;42;2" dur="3.6s" repeatCount="indefinite" /><animate attributeName="opacity" values="0.9;0;0.9" dur="3.6s" repeatCount="indefinite" /></circle>
+              <circle cx="96" cy="30" r="6"><animate attributeName="r" values="2;40;2" dur="3.6s" begin="0.6s" repeatCount="indefinite" /><animate attributeName="opacity" values="0.9;0;0.9" dur="3.6s" begin="0.6s" repeatCount="indefinite" /></circle>
+              <circle cx="70" cy="62" r="6"><animate attributeName="r" values="2;38;2" dur="3.6s" begin="1.2s" repeatCount="indefinite" /><animate attributeName="opacity" values="0.9;0;0.9" dur="3.6s" begin="1.2s" repeatCount="indefinite" /></circle>
+            </g>
+            <g fill="rgba(255,90,31,0.95)">
+              <circle cx="67" cy="32" r="1.4"><animate attributeName="r" values="1.4;2.2;1.4" dur="1.6s" repeatCount="indefinite" /></circle>
+              <circle cx="54" cy="48" r="1.4"><animate attributeName="r" values="1.4;2.2;1.4" dur="1.6s" begin="0.4s" repeatCount="indefinite" /></circle>
+              <circle cx="83" cy="46" r="1.4"><animate attributeName="r" values="1.4;2.2;1.4" dur="1.6s" begin="0.8s" repeatCount="indefinite" /></circle>
+            </g>
+          </svg>
+        </div>
+        <span class="arrow">→</span>
+      </a></li>
+
+      <li><a class="lab-index-card reveal" href="labs/pulse.html">
+        <span class="num">06</span>
+        <div class="body">
+          <h2 class="name">Pulse</h2>
+          <p class="tag">Hypnotic rings · thread the gap before it closes</p>
+          <p class="meta">Canvas · 2026</p>
+        </div>
+        <div class="preview">
+          <svg viewBox="0 0 140 90" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <defs><clipPath id="pulseFrame"><rect x="0" y="0" width="140" height="90" /></clipPath></defs>
+            <g clip-path="url(#pulseFrame)" transform="translate(70 45)">
+              <g fill="none" stroke-linecap="butt">
+                <circle r="44" stroke="#ff5a1f" stroke-width="8" stroke-dasharray="220 56" stroke-dashoffset="28"><animate attributeName="r" values="44;58;44" dur="3.6s" repeatCount="indefinite" /><animate attributeName="opacity" values="0.95;0;0.95" dur="3.6s" repeatCount="indefinite" /></circle>
+                <circle r="32" stroke="#f4f4f3" stroke-width="6" stroke-dasharray="170 44" stroke-dashoffset="22"><animate attributeName="r" values="32;46;32" dur="3.6s" begin="0.45s" repeatCount="indefinite" /><animate attributeName="opacity" values="0.8;0;0.8" dur="3.6s" begin="0.45s" repeatCount="indefinite" /></circle>
+                <circle r="22" stroke="#ff5a1f" stroke-width="6" stroke-dasharray="118 32" stroke-dashoffset="16"><animate attributeName="r" values="22;34;22" dur="3.6s" begin="0.9s" repeatCount="indefinite" /><animate attributeName="opacity" values="0.95;0;0.95" dur="3.6s" begin="0.9s" repeatCount="indefinite" /></circle>
+              </g>
+              <circle r="5" fill="#ff5a1f"><animate attributeName="r" values="4;6;4" dur="1.4s" repeatCount="indefinite" /></circle>
+              <circle r="2" fill="#080808" />
+            </g>
+          </svg>
+        </div>
+        <span class="arrow">→</span>
+      </a></li>
+
+      <li><a class="lab-index-card lab-index-card--alt reveal" href="labs/alternates.html">
+        <span class="num">∞</span>
+        <div class="body">
+          <h2 class="name">Alternates</h2>
+          <p class="tag">Parallel universes of this site — same content, different physics</p>
+          <p class="meta">Ongoing · 1 universe live</p>
+        </div>
+        <div class="preview">
+          <svg viewBox="0 0 140 90" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <g fill="none" stroke-width="1">
+              <rect x="22" y="14" width="60" height="60" stroke="rgba(244,244,243,0.4)"><animate attributeName="x" values="22;14;22" dur="7s" repeatCount="indefinite" /></rect>
+              <rect x="42" y="22" width="60" height="60" stroke="rgba(255,90,31,0.6)" fill="rgba(255,90,31,0.05)"><animate attributeName="x" values="42;52;42" dur="7s" repeatCount="indefinite" /></rect>
+              <rect x="60" y="14" width="60" height="60" stroke="rgba(244,244,243,0.4)"><animate attributeName="x" values="60;68;60" dur="7s" repeatCount="indefinite" /></rect>
+            </g>
+          </svg>
+        </div>
+        <span class="arrow">→</span>
+      </a></li>
+
+    </ol>
+
+    <footer class="lab-index-foot">
+      <span>— End of index</span>
+      <a href="mailto:tres@tres.studio">tres@tres.studio</a>
+    </footer>
+  </main>
+</Base>
+
+<script is:inline>
+// Subtitle typewriter — mono notation under the title.
+(() => {
+  const SUB = 'Living sketches and side projects — each one a small investigation. Open one, or step through to another universe.';
+  const el = document.getElementById('labSub');
+  if (!el) return;
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { el.textContent = SUB; return; }
+  let i = 0;
+  (function type() {
+    if (i > SUB.length) return;
+    el.textContent = SUB.slice(0, i);
+    const ch = SUB[i - 1] || '';
+    i++;
+    setTimeout(type, /[.,—]/.test(ch) ? 120 : 24);
+  })();
+  setTimeout(type, 520);
+})();
+</script>

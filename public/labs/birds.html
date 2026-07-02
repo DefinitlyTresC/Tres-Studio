@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>Birds — Tres Carter</title>
+  <link rel="icon" href="../favicon/favicon.ico" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    /* ─────────── BIRDS — matches tres.studio Lab aesthetic ─────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --white:     #FFFFFF;
+      --black:     #0A0A0A;
+      --yellow:    #F5CB5C;
+      --ink-faint: rgba(255, 255, 255, 0.35);
+      --ink-soft:  rgba(255, 255, 255, 0.55);
+      --line:     rgba(255, 255, 255, 0.12);
+
+      --display: 'Bebas Neue', sans-serif;
+      --body:    'DM Sans', system-ui, sans-serif;
+
+      --pad: clamp(1.5rem, 4vw, 3rem);
+      --ease: cubic-bezier(.2, .8, .2, 1);
+    }
+
+    html, body {
+      background: var(--black);
+      color: var(--white);
+      font-family: var(--body);
+      font-weight: 300;
+      font-size: 15px;
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+      touch-action: none;
+      overscroll-behavior: none;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    a { color: inherit; text-decoration: none; }
+    button { font: inherit; color: inherit; background: none; border: none; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+
+    /* ─── Dot grid background ─── */
+    .dot-grid {
+      position: fixed;
+      inset: -40px;
+      z-index: 0;
+      pointer-events: none;
+      background-image: radial-gradient(circle, rgba(255, 255, 255, 0.06) 1px, transparent 1.4px);
+      background-size: 32px 32px;
+    }
+
+    /* ─── Canvas ─── */
+    canvas#sky {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      touch-action: none;
+      display: block;
+    }
+
+    /* ─── Nav (same as lab.html) ─── */
+    .nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.5rem var(--pad);
+      pointer-events: none;
+      color: var(--white);
+    }
+    .nav > * { pointer-events: auto; }
+    .nav .mark {
+      font-family: var(--display);
+      font-size: 0.95rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      transition: opacity 0.25s;
+    }
+    .nav .mark .y { color: var(--yellow); }
+    .nav .mark:hover { opacity: 0.7; }
+    .nav-links { display: flex; gap: 1.8rem; }
+    .nav-links a {
+      font-size: 0.6rem;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      font-weight: 400;
+      transition: opacity 0.25s;
+    }
+    .nav-links a:hover { opacity: 0.55; }
+
+    /* ─── Corner mark (same position/style as Lab — Drift) ─── */
+    .mark-bottom {
+      position: fixed;
+      bottom: 2rem;
+      left: var(--pad);
+      font-family: var(--display);
+      font-size: 1rem;
+      letter-spacing: 0.24em;
+      color: var(--yellow);
+      z-index: 5;
+      pointer-events: none;
+    }
+
+    .hint {
+      position: fixed;
+      bottom: 2rem;
+      right: var(--pad);
+      font-size: 0.55rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--ink-faint);
+      z-index: 5;
+      pointer-events: none;
+      transition: opacity 0.6s var(--ease);
+    }
+    .hint.fade { opacity: 0; }
+
+    /* ─── Mode switcher ─── */
+    .modes {
+      position: fixed;
+      top: 5rem;
+      right: var(--pad);
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      z-index: 10;
+    }
+    .mode-btn {
+      font-family: var(--body);
+      font-size: 0.55rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--ink-soft);
+      padding: 0.7rem 1.3rem;
+      border: 1px solid var(--line);
+      background: rgba(10, 10, 10, 0.55);
+      -webkit-backdrop-filter: blur(8px);
+      backdrop-filter: blur(8px);
+      transition: color 0.3s, border-color 0.3s, background 0.3s, transform 0.4s var(--ease);
+      min-width: 130px;
+      text-align: left;
+    }
+    .mode-btn:hover {
+      color: var(--white);
+      border-color: rgba(255, 255, 255, 0.28);
+    }
+    .mode-btn.active {
+      background: var(--yellow);
+      color: var(--black);
+      border-color: var(--yellow);
+    }
+
+    /* ─── Mobile layout ─── */
+    @media (max-width: 700px) {
+      .nav { padding: 1rem var(--pad); }
+      .modes {
+        flex-direction: row;
+        top: auto;
+        bottom: 4rem;
+        left: 0;
+        right: 0;
+        padding: 0 0.6rem;
+        justify-content: center;
+        gap: 0.35rem;
+      }
+      .mode-btn {
+        min-width: 0;
+        flex: 1;
+        max-width: 90px;
+        padding: 0.6rem 0.4rem;
+        text-align: center;
+        font-size: 0.5rem;
+        letter-spacing: 0.2em;
+      }
+      .mark-bottom {
+        bottom: 1rem;
+        font-size: 0.85rem;
+        letter-spacing: 0.2em;
+      }
+      .hint {
+        bottom: 1rem;
+        font-size: 0.45rem;
+        letter-spacing: 0.25em;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="dot-grid"></div>
+
+<nav class="nav">
+  <a class="mark" href="../index.html">Tres Carter<span class="y">.</span></a>
+  <div class="nav-links">
+    <a href="../lab.html">← Lab</a>
+  </div>
+</nav>
+
+<canvas id="sky"></canvas>
+
+<div class="modes" id="modes">
+  <button class="mode-btn active" data-mode="drift">Drift</button>
+  <button class="mode-btn" data-mode="storm">Storm</button>
+  <button class="mode-btn" data-mode="murmur">Murmur</button>
+  <button class="mode-btn" data-mode="scatter">Scatter</button>
+</div>
+
+<div class="mark-bottom">Lab — Birds</div>
+<div class="hint" id="hint">touch &amp; hold to gather</div>
+
+<script>
+(function () {
+  'use strict';
+
+  // ════════════════════════════════════════════════════════
+  // STATE
+  // ════════════════════════════════════════════════════════
+  const canvas = document.getElementById('sky');
+  const ctx = canvas.getContext('2d', { alpha: false });
+  if (!ctx) return;
+
+  const isCoarse = window.matchMedia('(pointer: coarse)').matches;
+  const isSmall  = window.innerWidth < 700;
+  const isMobile = isCoarse || isSmall;
+
+  let W = window.innerWidth;
+  let H = window.innerHeight;
+  let DPR = Math.min(2, window.devicePixelRatio || 1);
+
+  // Tuned param set — gets swapped when modes change
+  const P = {
+    count:           isMobile ? 160 : 380,
+    maxSpeed:         95,
+    maxForce:        140,
+    alignW:          1.0,
+    cohesionW:       0.8,
+    separationW:     1.4,
+    viewRadius:       70,
+    sepRadius:        22,
+    trails:          0.18,    // 0 = no trails, 1 = infinite trails (the alpha of the per-frame clear is 1-trails)
+    attractStrength: 1.8,
+    repulse:        false,
+    tint:           [225, 232, 240],
+  };
+
+  // Each mode is a complete vibe — params + color tint
+  const MODES = {
+    drift: {
+      maxSpeed: 95,  alignW: 1.0, cohesionW: 0.8, separationW: 1.4,
+      viewRadius: 70, sepRadius: 22, trails: 0.18, attractStrength: 1.6,
+      repulse: false, tint: [225, 232, 240],
+    },
+    storm: {
+      maxSpeed: 230, alignW: 0.5, cohesionW: 0.3, separationW: 3.0,
+      viewRadius: 55, sepRadius: 28, trails: 0.06, attractStrength: 2.4,
+      repulse: false, tint: [245, 203, 92],
+    },
+    murmur: {
+      maxSpeed: 140, alignW: 2.2, cohesionW: 2.8, separationW: 0.7,
+      viewRadius: 110, sepRadius: 18, trails: 0.16, attractStrength: 2.0,
+      repulse: false, tint: [205, 220, 235],
+    },
+    scatter: {
+      maxSpeed: 200, alignW: 0.6, cohesionW: 0.3, separationW: 2.2,
+      viewRadius: 75, sepRadius: 24, trails: 0.10, attractStrength: 2.6,
+      repulse: true,  tint: [250, 230, 170],
+    },
+  };
+
+  function setMode(name) {
+    const m = MODES[name];
+    if (!m) return;
+    for (const k in m) P[k] = m[k];
+    document.querySelectorAll('.mode-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.mode === name);
+    });
+  }
+
+  // ════════════════════════════════════════════════════════
+  // CANVAS SIZING
+  // ════════════════════════════════════════════════════════
+  function resize() {
+    DPR = Math.min(2, window.devicePixelRatio || 1);
+    W = window.innerWidth;
+    H = window.innerHeight;
+    canvas.width  = Math.floor(W * DPR);
+    canvas.height = Math.floor(H * DPR);
+    canvas.style.width  = W + 'px';
+    canvas.style.height = H + 'px';
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    ctx.fillStyle = '#0A0A0A';
+    ctx.fillRect(0, 0, W, H);
+  }
+  window.addEventListener('resize', resize, { passive: true });
+  window.addEventListener('orientationchange', () => setTimeout(resize, 200));
+  resize();
+
+  // ════════════════════════════════════════════════════════
+  // MATH
+  // ════════════════════════════════════════════════════════
+  function rand(a, b) { return Math.random() * (b - a) + a; }
+
+  class Vec2 {
+    constructor(x = 0, y = 0) { this.x = x; this.y = y; }
+    set(x, y) { this.x = x; this.y = y; return this; }
+    copy() { return new Vec2(this.x, this.y); }
+    add(v) { this.x += v.x; this.y += v.y; return this; }
+    sub(v) { this.x -= v.x; this.y -= v.y; return this; }
+    mul(s) { this.x *= s; this.y *= s; return this; }
+    div(s) { this.x /= s; this.y /= s; return this; }
+    len() { return Math.hypot(this.x, this.y); }
+    setLen(l) { const cl = this.len() || 1e-6; this.x = this.x / cl * l; this.y = this.y / cl * l; return this; }
+    limit(max) {
+      const l2 = this.x * this.x + this.y * this.y;
+      const m2 = max * max;
+      if (l2 > m2) { const l = Math.sqrt(l2); this.x = this.x / l * max; this.y = this.y / l * max; }
+      return this;
+    }
+  }
+
+  // ════════════════════════════════════════════════════════
+  // SPATIAL HASH — keeps neighbor-finding O(1) per query
+  // ════════════════════════════════════════════════════════
+  class Hash {
+    constructor(cell = 80) { this.cell = cell; this.map = new Map(); }
+    clear() { this.map.clear(); }
+    insert(b) {
+      const k = ((b.pos.x / this.cell) | 0) + ',' + ((b.pos.y / this.cell) | 0);
+      let a = this.map.get(k);
+      if (!a) this.map.set(k, a = []);
+      a.push(b);
+    }
+    query(x, y, r) {
+      const cs = this.cell;
+      const minX = ((x - r) / cs) | 0, maxX = ((x + r) / cs) | 0;
+      const minY = ((y - r) / cs) | 0, maxY = ((y + r) / cs) | 0;
+      const out = [];
+      for (let gx = minX; gx <= maxX; gx++) {
+        for (let gy = minY; gy <= maxY; gy++) {
+          const a = this.map.get(gx + ',' + gy);
+          if (a) for (let i = 0; i < a.length; i++) out.push(a[i]);
+        }
+      }
+      return out;
+    }
+  }
+  const hash = new Hash(90);
+
+  // ════════════════════════════════════════════════════════
+  // TOUCH / MOUSE — unified
+  // ════════════════════════════════════════════════════════
+  const touch = { x: W / 2, y: H / 2, down: false, hadInput: false };
+  const hintEl = document.getElementById('hint');
+
+  function noteInput() {
+    if (!touch.hadInput) {
+      touch.hadInput = true;
+      if (hintEl) hintEl.classList.add('fade');
+    }
+  }
+  function readPoint(e) {
+    if (e.touches && e.touches[0]) return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    if (e.changedTouches && e.changedTouches[0]) return { x: e.changedTouches[0].clientX, y: e.changedTouches[0].clientY };
+    return { x: e.clientX, y: e.clientY };
+  }
+
+  function isUI(target) {
+    return target && target.closest && target.closest('button, a, .nav, .modes');
+  }
+
+  // Mouse
+  window.addEventListener('mousedown', (e) => {
+    if (isUI(e.target)) return;
+    const p = readPoint(e);
+    touch.x = p.x; touch.y = p.y; touch.down = true;
+    noteInput();
+  });
+  window.addEventListener('mousemove', (e) => {
+    const p = readPoint(e);
+    touch.x = p.x; touch.y = p.y;
+  });
+  window.addEventListener('mouseup', () => { touch.down = false; });
+
+  // Touch — must preventDefault to stop iOS scroll/zoom
+  window.addEventListener('touchstart', (e) => {
+    if (isUI(e.target)) return;
+    const p = readPoint(e);
+    touch.x = p.x; touch.y = p.y; touch.down = true;
+    noteInput();
+    e.preventDefault();
+  }, { passive: false });
+  window.addEventListener('touchmove', (e) => {
+    if (!touch.down) return;
+    const p = readPoint(e);
+    touch.x = p.x; touch.y = p.y;
+    e.preventDefault();
+  }, { passive: false });
+  window.addEventListener('touchend',    () => { touch.down = false; }, { passive: true });
+  window.addEventListener('touchcancel', () => { touch.down = false; }, { passive: true });
+
+  // ════════════════════════════════════════════════════════
+  // BIRD
+  // ════════════════════════════════════════════════════════
+  class Bird {
+    constructor(x, y) {
+      this.pos = new Vec2(x, y);
+      const a = rand(0, Math.PI * 2);
+      this.vel = new Vec2(Math.cos(a), Math.sin(a)).mul(rand(40, 100));
+      this.acc = new Vec2(0, 0);
+      this.flapPhase = rand(0, Math.PI * 2);
+      this.size = rand(0.85, 1.15);
+      // ~3% rogue birds — yellow, wander independently, ignore most of the flock
+      this.rogue = Math.random() < 0.03;
+    }
+
+    think(neighbors) {
+      const align = new Vec2(), cohesion = new Vec2(), separation = new Vec2();
+      let cA = 0, cC = 0, cS = 0;
+      const vr2 = P.viewRadius * P.viewRadius;
+      const sr2 = P.sepRadius * P.sepRadius;
+
+      for (let i = 0; i < neighbors.length; i++) {
+        const o = neighbors[i];
+        if (o === this) continue;
+        const dx = o.pos.x - this.pos.x;
+        const dy = o.pos.y - this.pos.y;
+        const d2 = dx * dx + dy * dy;
+        if (d2 < vr2) {
+          align.x += o.vel.x; align.y += o.vel.y; cA++;
+          cohesion.x += o.pos.x; cohesion.y += o.pos.y; cC++;
+        }
+        if (d2 < sr2) {
+          const d = Math.sqrt(d2) || 1e-6;
+          separation.x += -dx / d / d;
+          separation.y += -dy / d / d;
+          cS++;
+        }
+      }
+
+      // Rogues only loosely care about the flock
+      const flockScale = this.rogue ? 0.35 : 1.0;
+
+      if (cA) {
+        align.div(cA).setLen(P.maxSpeed);
+        align.x -= this.vel.x; align.y -= this.vel.y;
+        align.limit(P.maxForce).mul(P.alignW * flockScale);
+        this.acc.add(align);
+      }
+      if (cC) {
+        cohesion.div(cC).sub(this.pos).setLen(P.maxSpeed);
+        cohesion.x -= this.vel.x; cohesion.y -= this.vel.y;
+        cohesion.limit(P.maxForce).mul(P.cohesionW * flockScale);
+        this.acc.add(cohesion);
+      }
+      if (cS) {
+        separation.div(cS).setLen(P.maxSpeed);
+        separation.x -= this.vel.x; separation.y -= this.vel.y;
+        separation.limit(P.maxForce).mul(P.separationW);
+        this.acc.add(separation);
+      }
+
+      // Touch / mouse force — attract or repulse depending on mode
+      if (touch.down) {
+        const tdx = touch.x - this.pos.x;
+        const tdy = touch.y - this.pos.y;
+        const td = Math.hypot(tdx, tdy);
+        const radius = 320;
+        if (td < radius && td > 0.5) {
+          const sign = P.repulse ? -1 : 1;
+          // Stronger near center, falls off to radius
+          const falloff = 1 - td / radius;
+          const force = falloff * P.maxForce * P.attractStrength * sign;
+          this.acc.x += (tdx / td) * force;
+          this.acc.y += (tdy / td) * force;
+        }
+      }
+
+      // Soft edge avoidance — feels nicer than hard wrap for a focused canvas
+      const margin = 80;
+      const eForce = P.maxForce * 1.8;
+      if (this.pos.x < margin)         this.acc.x += eForce * (1 - this.pos.x / margin);
+      else if (this.pos.x > W - margin) this.acc.x -= eForce * (1 - (W - this.pos.x) / margin);
+      if (this.pos.y < margin)         this.acc.y += eForce * (1 - this.pos.y / margin);
+      else if (this.pos.y > H - margin) this.acc.y -= eForce * (1 - (H - this.pos.y) / margin);
+    }
+
+    step(dt) {
+      this.vel.add(this.acc.copy().mul(dt)).limit(P.maxSpeed);
+      // Minimum speed — birds shouldn't ever just stop dead
+      const sp = this.vel.len();
+      if (sp < 25) this.vel.setLen(25);
+      this.pos.x += this.vel.x * dt;
+      this.pos.y += this.vel.y * dt;
+      this.acc.set(0, 0);
+      // Safety clamp
+      if (this.pos.x < -50) this.pos.x = -50;
+      if (this.pos.x > W + 50) this.pos.x = W + 50;
+      if (this.pos.y < -50) this.pos.y = -50;
+      if (this.pos.y > H + 50) this.pos.y = H + 50;
+    }
+
+    draw(t) {
+      const angle = Math.atan2(this.vel.y, this.vel.x);
+      // Wing flap — gentle scale pulse offset per-bird
+      const flap = Math.sin(t * 0.012 + this.flapPhase) * 0.22 + 0.88;
+      const s = this.size * flap;
+
+      ctx.save();
+      ctx.translate(this.pos.x, this.pos.y);
+      ctx.rotate(angle);
+
+      if (this.rogue) {
+        ctx.fillStyle = 'rgba(245, 203, 92, 0.96)';
+      } else {
+        // Tint comes from current mode — slight alpha for atmosphere
+        ctx.fillStyle = 'rgba(' + P.tint[0] + ',' + P.tint[1] + ',' + P.tint[2] + ',0.92)';
+      }
+
+      // Tiny chevron — like a gull silhouette
+      ctx.beginPath();
+      ctx.moveTo( 5.5 * s,  0);
+      ctx.lineTo(-4   * s,  3.2 * s);
+      ctx.lineTo(-2   * s,  0);
+      ctx.lineTo(-4   * s, -3.2 * s);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.restore();
+    }
+  }
+
+  // ════════════════════════════════════════════════════════
+  // SPAWN
+  // ════════════════════════════════════════════════════════
+  let birds = [];
+  function spawn(n) {
+    birds = [];
+    for (let i = 0; i < n; i++) {
+      birds.push(new Bird(rand(W * 0.2, W * 0.8), rand(H * 0.2, H * 0.8)));
+    }
+  }
+  spawn(P.count);
+
+  // ════════════════════════════════════════════════════════
+  // MODE BUTTONS
+  // ════════════════════════════════════════════════════════
+  document.querySelectorAll('.mode-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      setMode(btn.dataset.mode);
+      e.stopPropagation();
+    });
+    // Prevent the button's tap from bubbling into the canvas touch handler
+    btn.addEventListener('touchstart', (e) => { e.stopPropagation(); }, { passive: true });
+  });
+  setMode('drift');
+
+  // ════════════════════════════════════════════════════════
+  // MAIN LOOP
+  // ════════════════════════════════════════════════════════
+  let last = performance.now();
+
+  function loop(t) {
+    requestAnimationFrame(loop);
+
+    let dt = (t - last) / 1000;
+    last = t;
+    if (dt > 0.04) dt = 0.04;    // clamp big spikes (tab switches, etc.)
+
+    // Trail-fade clear — alpha = (1 - trails). Trails near 1 leave long ghosts.
+    ctx.fillStyle = 'rgba(10, 10, 10, ' + (1 - P.trails) + ')';
+    ctx.fillRect(0, 0, W, H);
+
+    // Rebuild spatial hash
+    hash.clear();
+    for (let i = 0; i < birds.length; i++) hash.insert(birds[i]);
+
+    // Think (each bird inspects only its bucket neighbors)
+    for (let i = 0; i < birds.length; i++) {
+      const b = birds[i];
+      const n = hash.query(b.pos.x, b.pos.y, P.viewRadius);
+      b.think(n);
+    }
+    // Step + draw
+    for (let i = 0; i < birds.length; i++) birds[i].step(dt);
+    for (let i = 0; i < birds.length; i++) birds[i].draw(t);
+
+    // Touch indicator — a thin breathing ring at the active point
+    if (touch.down) {
+      const r = 80 + Math.sin(t * 0.004) * 10;
+      ctx.beginPath();
+      ctx.arc(touch.x, touch.y, r, 0, Math.PI * 2);
+      ctx.strokeStyle = P.repulse
+        ? 'rgba(245, 130, 130, 0.22)'
+        : 'rgba(245, 203, 92, 0.28)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+  }
+  requestAnimationFrame(loop);
+
+  // ════════════════════════════════════════════════════════
+  // KEYBOARD SHORTCUTS (desktop nicety)
+  // ════════════════════════════════════════════════════════
+  window.addEventListener('keydown', (e) => {
+    const key = e.key.toLowerCase();
+    if (key === '1') setMode('drift');
+    else if (key === '2') setMode('storm');
+    else if (key === '3') setMode('murmur');
+    else if (key === '4') setMode('scatter');
+  });
+})();
+</script>
+
+</body>
+</html>

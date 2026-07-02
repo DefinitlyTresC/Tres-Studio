@@ -1,0 +1,1143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>Echo — Tres Carter</title>
+  <link rel="icon" href="../favicon/favicon.ico" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    /* ─────────── ECHO — Lab aesthetic ─────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --white:     #FFFFFF;
+      --black:     #0A0A0A;
+      --yellow:    #F5CB5C;
+      --ink-faint: rgba(255, 255, 255, 0.35);
+      --ink-soft:  rgba(255, 255, 255, 0.55);
+      --line:      rgba(255, 255, 255, 0.12);
+
+      --display: 'Bebas Neue', sans-serif;
+      --body:    'DM Sans', system-ui, sans-serif;
+
+      --pad: clamp(1.5rem, 4vw, 3rem);
+      --ease: cubic-bezier(.2, .8, .2, 1);
+    }
+
+    html, body {
+      background: var(--black);
+      color: var(--white);
+      font-family: var(--body);
+      font-weight: 300;
+      font-size: 15px;
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+      touch-action: none;
+      overscroll-behavior: none;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    a { color: inherit; text-decoration: none; }
+    button { font: inherit; color: inherit; background: none; border: none; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+
+    /* ─── Dot grid background ─── */
+    .dot-grid {
+      position: fixed;
+      inset: -40px;
+      z-index: 0;
+      pointer-events: none;
+      background-image: radial-gradient(circle, rgba(255, 255, 255, 0.05) 1px, transparent 1.4px);
+      background-size: 36px 36px;
+    }
+
+    /* ─── Soft radial vignette overlay ─── */
+    .vignette {
+      position: fixed;
+      inset: 0;
+      z-index: 3;
+      pointer-events: none;
+      background: radial-gradient(
+        ellipse at center,
+        transparent 30%,
+        rgba(10, 10, 10, 0.55) 100%
+      );
+    }
+
+    /* ─── Canvas ─── */
+    canvas#play {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      z-index: 1;
+      cursor: none;
+    }
+
+    /* ─── Nav ─── */
+    .nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.5rem var(--pad);
+      padding-top: max(1.5rem, env(safe-area-inset-top));
+      pointer-events: none;
+    }
+    .nav > * { pointer-events: auto; }
+    .nav .mark {
+      font-family: var(--display);
+      font-size: 0.95rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--white);
+    }
+    .nav .mark .y { color: var(--yellow); }
+    .nav .back {
+      font-size: 0.6rem;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      font-weight: 400;
+      color: var(--white);
+      transition: opacity 0.25s;
+    }
+    .nav .back:hover { opacity: 0.55; }
+
+    /* ─── HUD: score top-left, time top-right ─── */
+    .hud {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 50;
+      pointer-events: none;
+      padding: 4.6rem var(--pad) 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 2rem;
+    }
+    .hud .stat {
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+    }
+    .hud .stat.right { align-items: flex-end; }
+    .hud .label {
+      font-family: var(--display);
+      font-size: 0.62rem;
+      letter-spacing: 0.32em;
+      color: var(--ink-faint);
+      text-transform: uppercase;
+    }
+    .hud .value {
+      font-family: var(--display);
+      font-size: 2.4rem;
+      letter-spacing: 0.08em;
+      color: var(--white);
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+      transition: color 0.2s var(--ease);
+    }
+    .hud .value.pulse { color: var(--yellow); }
+    .hud .value.warn  { color: var(--yellow); }
+    .hud .sub {
+      font-family: var(--display);
+      font-size: 0.6rem;
+      letter-spacing: 0.32em;
+      color: var(--ink-faint);
+      margin-top: 0.2rem;
+      text-transform: uppercase;
+    }
+
+    /* ─── Mode switcher ─── */
+    .modes {
+      position: fixed;
+      bottom: 2rem;
+      right: var(--pad);
+      z-index: 60;
+      display: flex;
+      gap: 0.4rem;
+      padding: 0.4rem;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(10, 10, 10, 0.55);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+    .mode-btn {
+      font-family: var(--display);
+      font-size: 0.72rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--ink-soft);
+      background: none;
+      border: none;
+      padding: 0.55rem 1.1rem;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: color 0.35s var(--ease), background 0.35s var(--ease);
+    }
+    .mode-btn:hover { color: var(--white); }
+    .mode-btn.active {
+      color: var(--black);
+      background: var(--yellow);
+    }
+
+    /* ─── Bottom-left mark ─── */
+    .mark-bottom {
+      position: fixed;
+      bottom: 2rem;
+      left: var(--pad);
+      z-index: 60;
+      font-family: var(--display);
+      font-size: 1rem;
+      letter-spacing: 0.24em;
+      color: var(--yellow);
+      pointer-events: none;
+      white-space: nowrap;
+    }
+
+    /* ─── Floating hint ─── */
+    .hint {
+      position: fixed;
+      bottom: 5.3rem;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 50;
+      font-size: 0.55rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--ink-faint);
+      pointer-events: none;
+      transition: opacity 0.6s var(--ease);
+      text-align: center;
+      line-height: 1.7;
+      white-space: nowrap;
+    }
+    .hint .yellow { color: var(--yellow); }
+    .hint.gone { opacity: 0; }
+
+    /* ─── Result card (game over) ─── */
+    .result {
+      position: fixed;
+      inset: 0;
+      z-index: 80;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: var(--pad);
+      background: rgba(10, 10, 10, 0.55);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      transition: opacity 0.6s var(--ease), visibility 0.6s var(--ease);
+      text-align: center;
+      cursor: pointer;
+      opacity: 0;
+      visibility: hidden;
+    }
+    .result.show { opacity: 1; visibility: visible; }
+    .result .r-tag {
+      font-family: var(--display);
+      font-size: 0.62rem;
+      letter-spacing: 0.32em;
+      color: var(--yellow);
+      text-transform: uppercase;
+      margin-bottom: 0.9rem;
+    }
+    .result .r-title {
+      font-family: var(--display);
+      font-size: clamp(3rem, 9vw, 5.6rem);
+      letter-spacing: 0.04em;
+      line-height: 0.9;
+      color: var(--white);
+      margin-bottom: 1.5rem;
+    }
+    .result .r-stats {
+      display: flex;
+      gap: 3rem;
+      margin-bottom: 2rem;
+      font-variant-numeric: tabular-nums;
+    }
+    .result .r-label {
+      font-family: var(--display);
+      font-size: 0.6rem;
+      letter-spacing: 0.32em;
+      color: var(--ink-faint);
+      margin-bottom: 0.2rem;
+    }
+    .result .r-value {
+      font-family: var(--display);
+      font-size: 2.6rem;
+      letter-spacing: 0.06em;
+      color: var(--white);
+    }
+    .result .r-value.best { color: var(--yellow); }
+    .result .r-cta {
+      font-family: var(--display);
+      font-size: 0.7rem;
+      letter-spacing: 0.32em;
+      color: var(--yellow);
+      text-transform: uppercase;
+      padding: 0.9rem 1.8rem;
+      border: 1px solid var(--yellow);
+      border-radius: 999px;
+      transition: color 0.3s var(--ease), background 0.3s var(--ease);
+    }
+    .result:hover .r-cta {
+      color: var(--black);
+      background: var(--yellow);
+    }
+    .result .r-hint {
+      margin-top: 1.2rem;
+      font-size: 0.55rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--ink-faint);
+    }
+    .result .r-hint .yellow { color: var(--yellow); }
+    .result .r-new {
+      display: none;
+      margin: -0.6rem 0 1.4rem;
+      font-family: var(--display);
+      font-size: 0.72rem;
+      letter-spacing: 0.32em;
+      color: var(--yellow);
+    }
+    .result.new-best .r-new {
+      display: block;
+      animation: blink 1.4s ease infinite;
+    }
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50%      { opacity: 0.3; }
+    }
+
+    /* ─── Mobile ─── */
+    @media (max-width: 700px) {
+      .modes {
+        bottom: 5.4rem;
+        right: 50%;
+        transform: translateX(50%);
+        gap: 0.2rem;
+        padding: 0.3rem;
+      }
+      .mode-btn { padding: 0.5rem 0.7rem; font-size: 0.6rem; letter-spacing: 0.18em; }
+      .mark-bottom {
+        bottom: 2rem;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 0.85rem;
+        letter-spacing: 0.22em;
+      }
+      .hud { padding-top: 4rem; gap: 1rem; }
+      .hud .value { font-size: 1.9rem; }
+      .hint { bottom: 9rem; font-size: 0.5rem; letter-spacing: 0.25em; }
+      .result .r-stats { gap: 2rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="dot-grid"></div>
+<canvas id="play"></canvas>
+<div class="vignette"></div>
+
+<nav class="nav">
+  <a class="mark" href="../index.html">Tres Carter<span class="y">.</span></a>
+  <a class="back" href="../lab.html">← Lab</a>
+</nav>
+
+<div class="hud">
+  <div class="stat">
+    <div class="label">Stars</div>
+    <div class="value" id="scoreVal">000</div>
+    <div class="sub">Best <span id="bestVal">000</span></div>
+  </div>
+  <div class="stat right">
+    <div class="label">Time</div>
+    <div class="value" id="timeVal">90</div>
+    <div class="sub" id="ringsSub">— rings</div>
+  </div>
+</div>
+
+<div class="hint" id="hint">
+  <span class="yellow">click</span> &nbsp;to send a ring &nbsp;·&nbsp; rings <span class="yellow">cross</span> to make stars
+</div>
+
+<div class="modes" id="modes">
+  <button class="mode-btn" data-mode="calm">Calm</button>
+  <button class="mode-btn active" data-mode="standard">Standard</button>
+  <button class="mode-btn" data-mode="storm">Storm</button>
+</div>
+
+<div class="mark-bottom">Lab — Echo</div>
+
+<div class="result" id="result">
+  <div class="r-tag">Lab · 05 — Echo</div>
+  <div class="r-title" id="rTitle">Echo</div>
+  <div class="r-new">New best</div>
+  <div class="r-stats">
+    <div>
+      <div class="r-label">Stars</div>
+      <div class="r-value" id="rScore">000</div>
+    </div>
+    <div>
+      <div class="r-label">Best</div>
+      <div class="r-value best" id="rBest">000</div>
+    </div>
+  </div>
+  <div class="r-cta">Again</div>
+  <div class="r-hint">
+    <span class="yellow">click</span> &nbsp;to resonate &nbsp;·&nbsp; <span class="yellow">space</span> to restart
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  // ════════════════════════════════════════════════════════
+  // ECHO
+  //
+  // ONE RULE: a click sends a slow expanding ring of light.
+  // EMERGENT: where two rings cross, a star is born at the
+  // moment of crossing. Stars persist as a constellation.
+  // GAME: 90 seconds. Voids drift across the field and erase
+  // stars they touch. Score = stars surviving at end.
+  // ════════════════════════════════════════════════════════
+
+  const canvas = document.getElementById('play');
+  const ctx    = canvas.getContext('2d');
+  if (!ctx) return;
+
+  // ─── Resize + DPR ──────────────────────────────────────
+  let W = window.innerWidth;
+  let H = window.innerHeight;
+  let DPR = Math.min(2, window.devicePixelRatio || 1);
+  function resize() {
+    DPR = Math.min(2, window.devicePixelRatio || 1);
+    W = window.innerWidth;
+    H = window.innerHeight;
+    canvas.width  = Math.floor(W * DPR);
+    canvas.height = Math.floor(H * DPR);
+    canvas.style.width  = W + 'px';
+    canvas.style.height = H + 'px';
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  }
+  resize();
+  window.addEventListener('resize', resize);
+  window.addEventListener('orientationchange', () => setTimeout(resize, 200));
+
+  const isCoarse = window.matchMedia('(pointer: coarse)').matches;
+  const isSmall  = window.innerWidth < 700;
+  const isMobile = isCoarse || isSmall;
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // ─── Mode definitions ──────────────────────────────────
+  const MODES = {
+    calm: {
+      duration:     120,             // seconds
+      ringSpeed:    isMobile ? 0.16 : 0.18, // px/ms — constant, no decel
+      ringLife:     16000,           // ms before fully fades (long — rings bounce forever)
+      cooldownMs:   110,             // between clicks
+      driftRate:    0.012,           // probability per second to spawn drifter
+      driftSpeed:   0.018,
+      driftRadius:  isMobile ? 28 : 36,
+      starEatMs:    900,             // drifter must be over star this long to consume
+      label:        'calm',
+    },
+    standard: {
+      duration:     90,
+      ringSpeed:    isMobile ? 0.20 : 0.22,
+      ringLife:     13000,
+      cooldownMs:   85,
+      driftRate:    0.025,
+      driftSpeed:   0.030,
+      driftRadius:  isMobile ? 30 : 38,
+      starEatMs:    700,
+      label:        'standard',
+    },
+    storm: {
+      duration:     75,
+      ringSpeed:    isMobile ? 0.26 : 0.28,
+      ringLife:     11000,
+      cooldownMs:   65,
+      driftRate:    0.055,
+      driftSpeed:   0.048,
+      driftRadius:  isMobile ? 34 : 44,
+      starEatMs:    550,
+      label:        'storm',
+    },
+  };
+
+  let modeName = localStorage.getItem('echo:mode') || 'standard';
+  if (!MODES[modeName]) modeName = 'standard';
+  let M = MODES[modeName];
+
+  function bestKey() { return 'echo:best:' + modeName; }
+  function getBest() { return parseInt(localStorage.getItem(bestKey()) || '0', 10) || 0; }
+  function setBest(v) { localStorage.setItem(bestKey(), String(v)); }
+
+  // ─── State ─────────────────────────────────────────────
+  const STATE = { LIVE: 0, OVER: 1 };
+  let state = STATE.LIVE;
+
+  let score = 0;
+  let best = getBest();
+  let timeLeft = M.duration * 1000;     // ms
+  let ringSeq = 0;
+
+  // Rings: { id, x, y, r, born, speed }
+  const rings = [];
+
+  // Persistent stars: { x, y, born, intensity, eatT (ms accumulated under a void) }
+  const stars = [];
+
+  // Drifting voids: { x, y, vx, vy, born, life, r }
+  const voids = [];
+
+  // Pair-intersection memory: only spawn ONE star pair at moment of first crossing.
+  // Keyed by `${minId}-${maxId}`.
+  const pairsSeen = new Set();
+
+  // Cursor + animation
+  const cursor = { x: W * 0.5, y: H * 0.5, vx: 0, vy: 0, lastX: W*0.5, lastY: H*0.5 };
+  let lastClick = 0;
+
+  // ─── HUD refs ──────────────────────────────────────────
+  const scoreEl = document.getElementById('scoreVal');
+  const bestEl  = document.getElementById('bestVal');
+  const timeEl  = document.getElementById('timeVal');
+  const ringsSubEl = document.getElementById('ringsSub');
+  const hintEl  = document.getElementById('hint');
+  const result  = document.getElementById('result');
+  const rScore  = document.getElementById('rScore');
+  const rBest   = document.getElementById('rBest');
+  const rTitle  = document.getElementById('rTitle');
+
+  function fmt3(n) { return String(Math.max(0, n|0)).padStart(3, '0'); }
+  function syncHUD() {
+    scoreEl.textContent = fmt3(score);
+    bestEl.textContent  = fmt3(best);
+    const s = Math.max(0, Math.ceil(timeLeft / 1000));
+    timeEl.textContent = String(s);
+    timeEl.classList.toggle('warn', s <= 10);
+    ringsSubEl.textContent = `${rings.length} ring${rings.length === 1 ? '' : 's'}`;
+  }
+
+  function flashScore() {
+    scoreEl.classList.remove('pulse');
+    void scoreEl.offsetWidth;
+    scoreEl.classList.add('pulse');
+    setTimeout(() => scoreEl.classList.remove('pulse'), 280);
+  }
+
+  // ─── Setup ─────────────────────────────────────────────
+  function reset() {
+    state = STATE.LIVE;
+    score = 0;
+    timeLeft = M.duration * 1000;
+    rings.length = 0;
+    stars.length = 0;
+    voids.length = 0;
+    pairsSeen.clear();
+    ringSeq = 0;
+    lastClick = 0;
+    result.classList.remove('show', 'new-best');
+    syncHUD();
+  }
+
+  function setMode(name) {
+    if (!MODES[name] || name === modeName) return;
+    modeName = name;
+    M = MODES[name];
+    localStorage.setItem('echo:mode', name);
+    best = getBest();
+    document.querySelectorAll('.mode-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.mode === name);
+    });
+    reset();
+  }
+
+  // ─── Input ─────────────────────────────────────────────
+  function spawnRingAt(x, y) {
+    if (state !== STATE.LIVE) return;
+    const now = performance.now();
+    if (now - lastClick < M.cooldownMs) return;
+    lastClick = now;
+    rings.push({
+      id: ++ringSeq,
+      x, y,
+      r: 0,
+      born: now,
+      speed: M.ringSpeed,
+    });
+    // Cap active rings — older ones just fade out early. With method-of-images
+    // each ring is effectively 5 ghost-rings sharing one radius, so this is
+    // also the upper bound on the visible wavefront count.
+    if (rings.length > 36) rings.shift();
+    fadeHint();
+  }
+
+  let hintFaded = false;
+  function fadeHint() {
+    if (hintFaded) return;
+    hintFaded = true;
+    hintEl.classList.add('gone');
+  }
+
+  // Pointer (mouse)
+  window.addEventListener('mousemove', (e) => {
+    cursor.x = e.clientX;
+    cursor.y = e.clientY;
+  });
+  window.addEventListener('mousedown', (e) => {
+    if (e.target.closest('.mode-btn, .nav .mark, .nav .back, .result')) return;
+    if (state === STATE.OVER) { restart(); return; }
+    spawnRingAt(e.clientX, e.clientY);
+  });
+
+  // Touch
+  canvas.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    const t = e.touches[0]; if (!t) return;
+    cursor.x = t.clientX; cursor.y = t.clientY;
+    if (state === STATE.OVER) { restart(); return; }
+    spawnRingAt(t.clientX, t.clientY);
+  }, { passive: false });
+  canvas.addEventListener('touchmove', (e) => {
+    e.preventDefault();
+    const t = e.touches[0]; if (!t) return;
+    cursor.x = t.clientX; cursor.y = t.clientY;
+  }, { passive: false });
+
+  // Result card click = restart
+  result.addEventListener('click', () => { if (state === STATE.OVER) restart(); });
+
+  // Mode buttons
+  document.querySelectorAll('.mode-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      setMode(btn.dataset.mode);
+    });
+  });
+
+  // Keys
+  window.addEventListener('keydown', (e) => {
+    if (e.key === ' ' || e.key === 'Enter') {
+      if (state === STATE.OVER) { e.preventDefault(); restart(); }
+    } else if (e.key === '1') setMode('calm');
+    else if (e.key === '2') setMode('standard');
+    else if (e.key === '3') setMode('storm');
+  });
+
+  // Auto-fade hint after a while if no clicks
+  setTimeout(() => fadeHint(), 9000);
+
+  // ─── Helpers ───────────────────────────────────────────
+  function ringCurrentR(ring, now) {
+    // Constant-speed expansion — rings keep going. The bouncing is rendered by
+    // drawing each ring's 4 mirror-image "ghosts" (one per wall), which all
+    // share the same radius. The full set of ghost circles IS the wavefront.
+    const age = now - ring.born;
+    if (age <= 0) return 0;
+    return ring.speed * age;
+  }
+
+  function ringAlpha(ring, now) {
+    const age = now - ring.born;
+    const t = age / M.ringLife;
+    if (t >= 1) return 0;
+    const fadeIn  = Math.min(1, age / 150);
+    // Smooth, gradual fade — keeps rings visible long enough to bounce many times.
+    const fadeOut = Math.pow(1 - t, 1.4);
+    return fadeIn * fadeOut;
+  }
+
+  // ─── Method of images ──────────────────────────────────
+  // A ring at source (sx, sy) inside a WxH canvas bounces off the 4 walls.
+  // Each bounce can be represented as a mirror-image "ghost" source that
+  // expands at the same rate. With 5 total ghost positions (original + 4
+  // reflections) sharing the same radius, the union of their circles is the
+  // bouncing wavefront. When any two ghost-circles tangent, a star is born
+  // at the wall (or corner, or homecoming point at the source).
+  //   0 = original
+  //   1 = reflection over left wall  (x = 0)
+  //   2 = reflection over right wall (x = W)
+  //   3 = reflection over top wall   (y = 0)
+  //   4 = reflection over bottom wall (y = H)
+  const GHOST_COUNT = 5;
+  function ghostX(idx, sx) {
+    if (idx === 1) return -sx;
+    if (idx === 2) return 2 * W - sx;
+    return sx;
+  }
+  function ghostY(idx, sy) {
+    if (idx === 3) return -sy;
+    if (idx === 4) return 2 * H - sy;
+    return sy;
+  }
+
+  function pairKey(idA, gA, idB, gB) {
+    // Normalize so the lower (ring, ghost) comes first
+    if (idA < idB || (idA === idB && gA < gB)) {
+      return `${idA}.${gA}-${idB}.${gB}`;
+    }
+    return `${idB}.${gB}-${idA}.${gA}`;
+  }
+
+  // ─── Star spawn from ghost-ring intersection ──────────
+  // Two ghost-rings tangent the moment their separation equals the sum of
+  // their radii. The tangent point is the star's birthplace. We fire once
+  // per pair (first contact only) by remembering the pair key in pairsSeen.
+  function tryGhostIntersect(idA, gA, ax, ay, rA, idB, gB, bx, by, rB, now) {
+    if (rA <= 0 || rB <= 0) return;
+    const key = pairKey(idA, gA, idB, gB);
+    if (pairsSeen.has(key)) return;
+    const dx = bx - ax, dy = by - ay;
+    const d  = Math.hypot(dx, dy);
+    if (d < 6) return;
+    const sum = rA + rB;
+    if (sum < d) return;
+    pairsSeen.add(key);
+    // Tangent point — along the line A→B at distance rA from A
+    const tx = ax + (dx / d) * rA;
+    const ty = ay + (dy / d) * rA;
+    // Spawn only if the point lands inside the visible canvas
+    if (tx < -8 || tx > W + 8 || ty < -8 || ty > H + 8) return;
+    stars.push({
+      x: tx, y: ty,
+      born: now,
+      intensity: 0,
+      eatT: 0,
+    });
+    score += 1;
+    flashScore();
+    syncHUD();
+  }
+
+  // ─── Drifter spawn ─────────────────────────────────────
+  function maybeSpawnDrifter(dtMs) {
+    if (state !== STATE.LIVE) return;
+    // Lower spawn rate when many already on screen
+    const cap = isMobile ? 4 : 6;
+    if (voids.length >= cap) return;
+    const p = M.driftRate * (dtMs / 1000);
+    if (Math.random() < p) {
+      // Spawn from an edge, drift across
+      const side = Math.floor(Math.random() * 4);
+      let x, y, vx, vy;
+      const sp = M.driftSpeed * (0.7 + Math.random() * 0.7);
+      switch (side) {
+        case 0: x = -40; y = Math.random() * H; vx =  sp; vy = (Math.random() - 0.5) * sp * 0.5; break;
+        case 1: x = W + 40; y = Math.random() * H; vx = -sp; vy = (Math.random() - 0.5) * sp * 0.5; break;
+        case 2: x = Math.random() * W; y = -40; vx = (Math.random() - 0.5) * sp * 0.5; vy = sp; break;
+        default: x = Math.random() * W; y = H + 40; vx = (Math.random() - 0.5) * sp * 0.5; vy = -sp;
+      }
+      voids.push({
+        x, y, vx, vy,
+        born: performance.now(),
+        life: 30000 + Math.random() * 20000,
+        r: M.driftRadius * (0.85 + Math.random() * 0.4),
+        wobblePhase: Math.random() * Math.PI * 2,
+      });
+    }
+  }
+
+  // ─── Step ──────────────────────────────────────────────
+  let lastT = performance.now();
+  function step(now) {
+    const dtMs = Math.min(64, now - lastT);
+    lastT = now;
+    if (state === STATE.LIVE) {
+      timeLeft -= dtMs;
+      if (timeLeft <= 0) {
+        timeLeft = 0;
+        gameOver();
+      }
+    }
+
+    // Cursor velocity (for trail elasticity)
+    cursor.vx = cursor.x - cursor.lastX;
+    cursor.vy = cursor.y - cursor.lastY;
+    cursor.lastX = cursor.x;
+    cursor.lastY = cursor.y;
+
+    // Cull expired rings
+    for (let i = rings.length - 1; i >= 0; i--) {
+      if (now - rings[i].born > M.ringLife) rings.splice(i, 1);
+    }
+
+    // Check all ghost-pair intersections — both within a single ring (its own
+    // mirrors crossing at walls/corners) and across rings (one click's wave
+    // meeting another's). Each pair fires once at first tangency.
+    if (state === STATE.LIVE) {
+      for (let i = 0; i < rings.length; i++) {
+        const ringA = rings[i];
+        const rA = ringCurrentR(ringA, now);
+        if (rA <= 0) continue;
+
+        // Within-ring: ringA's ghosts crossing each other (the bounces).
+        for (let gA = 0; gA < GHOST_COUNT; gA++) {
+          const ax = ghostX(gA, ringA.x);
+          const ay = ghostY(gA, ringA.y);
+          for (let gB = gA + 1; gB < GHOST_COUNT; gB++) {
+            const bx = ghostX(gB, ringA.x);
+            const by = ghostY(gB, ringA.y);
+            tryGhostIntersect(ringA.id, gA, ax, ay, rA, ringA.id, gB, bx, by, rA, now);
+          }
+        }
+
+        // Cross-ring: every ghost of A vs every ghost of B.
+        for (let j = i + 1; j < rings.length; j++) {
+          const ringB = rings[j];
+          const rB = ringCurrentR(ringB, now);
+          if (rB <= 0) continue;
+          for (let gA = 0; gA < GHOST_COUNT; gA++) {
+            const ax = ghostX(gA, ringA.x);
+            const ay = ghostY(gA, ringA.y);
+            for (let gB = 0; gB < GHOST_COUNT; gB++) {
+              const bx = ghostX(gB, ringB.x);
+              const by = ghostY(gB, ringB.y);
+              tryGhostIntersect(ringA.id, gA, ax, ay, rA, ringB.id, gB, bx, by, rB, now);
+            }
+          }
+        }
+      }
+    }
+
+    // Star intensity ramp
+    for (let i = 0; i < stars.length; i++) {
+      const s = stars[i];
+      const age = now - s.born;
+      s.intensity = Math.min(1, age / 380);
+    }
+
+    // Drifters
+    maybeSpawnDrifter(dtMs);
+    for (let i = voids.length - 1; i >= 0; i--) {
+      const v = voids[i];
+      v.x += v.vx * dtMs;
+      v.y += v.vy * dtMs;
+      v.wobblePhase += dtMs * 0.002;
+      // Wobble — slight drift toward nearest star for menace
+      let nearestStar = null, nearD = 1e9;
+      for (let s = 0; s < stars.length; s++) {
+        const dx = stars[s].x - v.x;
+        const dy = stars[s].y - v.y;
+        const d2 = dx*dx + dy*dy;
+        if (d2 < nearD) { nearD = d2; nearestStar = stars[s]; }
+      }
+      if (nearestStar) {
+        const dx = nearestStar.x - v.x;
+        const dy = nearestStar.y - v.y;
+        const d = Math.sqrt(nearD) + 1;
+        // Gentle pull
+        const pull = 0.000012 * dtMs;
+        v.vx += (dx / d) * pull;
+        v.vy += (dy / d) * pull;
+      }
+      // Speed clamp
+      const sp = Math.hypot(v.vx, v.vy);
+      const maxSp = M.driftSpeed * 1.4;
+      if (sp > maxSp) {
+        v.vx *= maxSp / sp;
+        v.vy *= maxSp / sp;
+      }
+      // Off-screen + aged out
+      if (v.x < -120 || v.x > W + 120 || v.y < -120 || v.y > H + 120 || now - v.born > v.life) {
+        voids.splice(i, 1);
+      }
+    }
+
+    // Star eating — a drifter that overlaps a star accumulates eatT; star dies when eatT > threshold
+    for (let i = stars.length - 1; i >= 0; i--) {
+      const s = stars[i];
+      let inside = false;
+      for (let v = 0; v < voids.length; v++) {
+        const vd = voids[v];
+        const dx = vd.x - s.x, dy = vd.y - s.y;
+        const rr = vd.r + 2;
+        if (dx*dx + dy*dy < rr*rr) { inside = true; break; }
+      }
+      if (inside) {
+        s.eatT += dtMs;
+        if (s.eatT > M.starEatMs && state === STATE.LIVE) {
+          stars.splice(i, 1);
+          score = Math.max(0, score - 1);
+          flashScreenDim();
+          syncHUD();
+        }
+      } else {
+        s.eatT = Math.max(0, s.eatT - dtMs * 0.6); // slowly recovers
+      }
+    }
+
+    syncHUD();
+  }
+
+  // ─── Render ────────────────────────────────────────────
+  // Subtle red dim on star loss
+  let dim = 0;
+  function flashScreenDim() { dim = 0.42; }
+
+  function drawBackground() {
+    // Solid base
+    ctx.fillStyle = '#0A0A0A';
+    ctx.fillRect(0, 0, W, H);
+
+    // Soft horizontal datum — Tres-style architectural feel.
+    // Just a couple of very faint lines that orient the composition.
+    ctx.strokeStyle = 'rgba(255,255,255,0.025)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    const yMid = H * 0.5;
+    ctx.moveTo(0, yMid); ctx.lineTo(W, yMid);
+    ctx.stroke();
+  }
+
+  function drawRings(now) {
+    // 'lighter' blend mode — where ghost rings cross they brighten, exactly
+    // marking the spots where the wavefront overlaps itself after bouncing.
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    for (let i = 0; i < rings.length; i++) {
+      const ring = rings[i];
+      const r = ringCurrentR(ring, now);
+      if (r <= 0) continue;
+      const a = ringAlpha(ring, now);
+      if (a <= 0.01) continue;
+
+      // Draw the original + each of the 4 wall-mirror ghosts. Canvas clipping
+      // means each ghost only renders the visible reflected portion inside
+      // the screen — so it reads as the wave bouncing back.
+      for (let g = 0; g < GHOST_COUNT; g++) {
+        const gx = ghostX(g, ring.x);
+        const gy = ghostY(g, ring.y);
+        // Bounding-box cull — skip ghosts whose circles don't touch the canvas
+        if (gx + r < -6 || gx - r > W + 6 || gy + r < -6 || gy - r > H + 6) continue;
+
+        // Outer bright stroke — slightly dimmer than before so multiple
+        // overlapping ghost-rings sum into bright crescents at the walls.
+        ctx.lineWidth = 1.2;
+        ctx.strokeStyle = `rgba(245, 203, 92, ${0.48 * a})`;
+        ctx.beginPath();
+        ctx.arc(gx, gy, r, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // Inner soft glow ring
+        const innerR = r - 4;
+        if (innerR > 1) {
+          ctx.lineWidth = 6;
+          ctx.strokeStyle = `rgba(245, 203, 92, ${0.07 * a})`;
+          ctx.beginPath();
+          ctx.arc(gx, gy, innerR, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+      }
+
+      // Origin echo — tiny dot at the click point only (not at ghost centers)
+      ctx.fillStyle = `rgba(245, 203, 92, ${0.45 * a})`;
+      ctx.beginPath();
+      ctx.arc(ring.x, ring.y, 1.6, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  function drawStars(now) {
+    for (let i = 0; i < stars.length; i++) {
+      const s = stars[i];
+      const age = now - s.born;
+      const intensity = s.intensity;
+      // Pulse subtly
+      const pulse = 0.85 + 0.15 * Math.sin(age * 0.004 + i);
+      // Birth pop scale
+      const popScale = age < 380 ? 1 + (1 - (age / 380)) * 1.4 : 1;
+      // Eat tension: as eatT rises, star dims and trembles
+      const tension = Math.min(1, s.eatT / M.starEatMs);
+      const baseAlpha = (1 - tension * 0.6) * pulse * intensity;
+      const trembleX = tension * (Math.random() - 0.5) * 1.5;
+      const trembleY = tension * (Math.random() - 0.5) * 1.5;
+
+      // Outer glow — radial gradient
+      const glowR = 26 * popScale;
+      const g = ctx.createRadialGradient(s.x + trembleX, s.y + trembleY, 0, s.x + trembleX, s.y + trembleY, glowR);
+      g.addColorStop(0, `rgba(245, 203, 92, ${0.55 * baseAlpha})`);
+      g.addColorStop(0.5, `rgba(245, 203, 92, ${0.15 * baseAlpha})`);
+      g.addColorStop(1, 'rgba(245, 203, 92, 0)');
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.arc(s.x + trembleX, s.y + trembleY, glowR, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Core dot
+      ctx.fillStyle = `rgba(245, 203, 92, ${Math.min(1, baseAlpha + 0.35)})`;
+      ctx.beginPath();
+      ctx.arc(s.x + trembleX, s.y + trembleY, 2.4 * popScale, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Cross glints — 4-point sparkle, scales with popScale
+      const len = 9 * popScale;
+      ctx.strokeStyle = `rgba(245, 203, 92, ${baseAlpha * 0.9})`;
+      ctx.lineWidth = 0.9;
+      ctx.beginPath();
+      ctx.moveTo(s.x + trembleX - len, s.y + trembleY);
+      ctx.lineTo(s.x + trembleX + len, s.y + trembleY);
+      ctx.moveTo(s.x + trembleX, s.y + trembleY - len);
+      ctx.lineTo(s.x + trembleX, s.y + trembleY + len);
+      ctx.stroke();
+
+      // Subtle thin connector lines to nearest 1-2 stars — emergent constellation
+      // Only draw to stars within a radius and with id less (to avoid duplicate)
+      // Use index < i to avoid duplicates
+      for (let j = 0; j < i; j++) {
+        const t = stars[j];
+        const dx = t.x - s.x, dy = t.y - s.y;
+        const d2 = dx*dx + dy*dy;
+        const R = 130;
+        if (d2 < R*R) {
+          const d = Math.sqrt(d2);
+          const a = (1 - d / R) * 0.16 * intensity * stars[j].intensity;
+          if (a > 0.01) {
+            ctx.strokeStyle = `rgba(245, 203, 92, ${a})`;
+            ctx.lineWidth = 0.6;
+            ctx.beginPath();
+            ctx.moveTo(s.x, s.y);
+            ctx.lineTo(t.x, t.y);
+            ctx.stroke();
+          }
+        }
+      }
+    }
+  }
+
+  function drawVoids(now) {
+    for (let i = 0; i < voids.length; i++) {
+      const v = voids[i];
+      const wobble = 1 + Math.sin(v.wobblePhase) * 0.06;
+      const r = v.r * wobble;
+
+      // Dark filled disk — slightly transparent so background lines feather through
+      const dark = ctx.createRadialGradient(v.x, v.y, 0, v.x, v.y, r);
+      dark.addColorStop(0, 'rgba(8, 8, 8, 0.95)');
+      dark.addColorStop(0.7, 'rgba(8, 8, 8, 0.75)');
+      dark.addColorStop(1, 'rgba(8, 8, 8, 0)');
+      ctx.fillStyle = dark;
+      ctx.beginPath();
+      ctx.arc(v.x, v.y, r, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Rim — thin white edge so the void reads as object
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.22)';
+      ctx.lineWidth = 0.8;
+      ctx.beginPath();
+      ctx.arc(v.x, v.y, r * 0.95, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Inner darker pinprick
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
+      ctx.beginPath();
+      ctx.arc(v.x, v.y, r * 0.35, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  function drawCursor(now) {
+    // Custom cursor — a small yellow ring with a tiny core, calm and present.
+    // Pulses subtly with cooldown — when ready to fire, brightens.
+    const ready = now - lastClick > M.cooldownMs;
+    const cd = ready ? 1 : (now - lastClick) / M.cooldownMs;
+    const breath = 0.8 + 0.2 * Math.sin(now * 0.003);
+
+    // Outer ring
+    ctx.strokeStyle = `rgba(245, 203, 92, ${0.35 + 0.25 * cd * breath})`;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.arc(cursor.x, cursor.y, 14, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // Inner core
+    ctx.fillStyle = `rgba(245, 203, 92, ${0.85 * cd})`;
+    ctx.beginPath();
+    ctx.arc(cursor.x, cursor.y, 2.4, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Subtle crosshair ticks
+    ctx.strokeStyle = `rgba(245, 203, 92, ${0.25 * cd})`;
+    ctx.lineWidth = 0.7;
+    const TICK = 4;
+    ctx.beginPath();
+    ctx.moveTo(cursor.x - 20, cursor.y);
+    ctx.lineTo(cursor.x - 20 + TICK, cursor.y);
+    ctx.moveTo(cursor.x + 20, cursor.y);
+    ctx.lineTo(cursor.x + 20 - TICK, cursor.y);
+    ctx.moveTo(cursor.x, cursor.y - 20);
+    ctx.lineTo(cursor.x, cursor.y - 20 + TICK);
+    ctx.moveTo(cursor.x, cursor.y + 20);
+    ctx.lineTo(cursor.x, cursor.y + 20 - TICK);
+    ctx.stroke();
+  }
+
+  function drawDim() {
+    if (dim < 0.01) { dim = 0; return; }
+    ctx.fillStyle = `rgba(140, 50, 50, ${dim * 0.25})`;
+    ctx.fillRect(0, 0, W, H);
+    dim *= 0.88;
+  }
+
+  function render(now) {
+    drawBackground();
+    drawRings(now);
+    drawStars(now);
+    drawVoids(now);
+    drawCursor(now);
+    drawDim();
+  }
+
+  // ─── Loop ──────────────────────────────────────────────
+  function loop(now) {
+    requestAnimationFrame(loop);
+    step(now);
+    render(now);
+  }
+
+  // ─── Game over ─────────────────────────────────────────
+  function gameOver() {
+    if (state === STATE.OVER) return;
+    state = STATE.OVER;
+    if (score > best) {
+      best = score;
+      setBest(best);
+      result.classList.add('new-best');
+    } else {
+      result.classList.remove('new-best');
+    }
+    rScore.textContent = fmt3(score);
+    rBest.textContent  = fmt3(best);
+    rTitle.textContent = score === 0 ? 'Silence' : (score >= best && score > 0 ? 'Resonance' : 'Echo');
+    syncHUD();
+    result.classList.add('show');
+  }
+  function restart() { reset(); }
+
+  // ─── Initialize ────────────────────────────────────────
+  document.querySelectorAll('.mode-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.mode === modeName);
+  });
+  reset();
+  requestAnimationFrame(loop);
+
+})();
+</script>
+
+</body>
+</html>
