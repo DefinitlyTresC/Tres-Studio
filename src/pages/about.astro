@@ -1,0 +1,43 @@
+---
+// ABOUT — port of root about.html onto the shared Base layout.
+//
+// Head differences from Base defaults (carried via props):
+//   - title/description are the about-specific copy.
+//   - the SECOND masthead nav link is "Contact" (mailto) instead of "About",
+//     so the current page isn't a self-link — passed via Base's contactNav prop.
+// The page-specific .about-min / .about-lede / .am-actions styles ship inline
+// exactly as in about.html (they aren't in global.css). All copy + DOM classes
+// (.reveal for brand.js, .about-tag/.about-name/.y) are kept byte-for-byte.
+//
+// NOTE (parity gap, intentional): about.html carried og:/twitter: + canonical
+// meta that Base does not emit; matching the migration plan, Base owns the
+// canonical <head> and those tags are dropped for now (same as category/lab).
+import Base from '../layouts/Base.astro';
+---
+
+<Base
+  title="About — Tres."
+  description="Tres Carter — architectural designer on 30A, Florida."
+  contactNav={{ label: 'Contact', href: 'mailto:tres@tres.studio' }}
+>
+  <main class="about-min" id="content">
+    <div class="about-tag reveal">— About</div>
+    <h1 class="about-name reveal">Tres<br />Carter<span class="y">.</span></h1>
+    <p class="about-lede reveal">Architectural designer on 30A, Florida.</p>
+    <div class="am-actions reveal">
+      <a href="mailto:tres@tres.studio">tres@tres.studio</a>
+      <a href="https://instagram.com/trescarter" target="_blank" rel="noopener">@trescarter</a>
+    </div>
+  </main>
+</Base>
+
+<style is:inline>
+    .about-min{max-width:var(--wrap);margin:0 auto;padding:clamp(150px,28vh,340px) var(--pad) clamp(80px,14vh,160px);min-height:72vh}
+    .about-lede{font-family:var(--disp);font-weight:300;font-size:clamp(20px,2.8vw,30px);line-height:1.4;color:var(--sage);
+      max-width:34ch;margin:clamp(22px,4vh,38px) 0 clamp(32px,6vh,52px)}
+    .am-actions{display:flex;flex-wrap:wrap;gap:12px}
+    .am-actions a{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+      border:1.5px solid var(--line2);border-radius:30px;padding:11px 20px;color:var(--bone);
+      transition:background .35s,color .35s,border-color .35s}
+    .am-actions a:hover{background:var(--accent);border-color:var(--accent);color:var(--d0)}
+</style>

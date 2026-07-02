@@ -1,0 +1,30 @@
+# ─────────────────────────────────────────────────────────────
+# Legacy → clean URL redirects (301 permanent) for the Astro migration.
+#
+# ORDER MATTERS — Netlify processes the first matching rule and stops.
+# Query-param rules must come before the bare fallbacks, and the specific
+# cat=lab rule must come before the generic cat=:cat capture.
+#
+# Netlify query matching: `cat=:cat` matches ONLY when the query string is
+# exactly that one param (no others). Legacy URLs only ever carried a single
+# id= / cat= param, so exact matching is correct here; the bare rules below
+# catch paramless hits.
+# ─────────────────────────────────────────────────────────────
+
+# Project detail: /project.html?id=<slug>  →  /project/<slug>
+/project.html   id=:id     /project/:id    301!
+
+# Category listing: /category.html?cat=<cat>  →  /<cat>
+# 'lab' has no /:cat page (it's a hardcoded /lab page), so send it there
+# explicitly BEFORE the generic capture below.
+/category.html  cat=lab    /lab            301!
+/category.html  cat=:cat   /:cat           301!
+
+# Bare (paramless) fallbacks — must follow the param rules above.
+/project.html              /               301!
+/category.html             /architecture   301!
+
+# Static page renames.
+/about.html                /about          301!
+/lab.html                  /lab            301!
+/privacy.html              /privacy        301!

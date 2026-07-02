@@ -1,0 +1,228 @@
+---
+// project/[slug].astro — data-driven project detail page.
+//
+// Phase 3 port of project.html's inline <script>. v1 fetched the sheet and
+// built the detail DOM client-side; here every project is a static page,
+// pre-rendered from the 'projects' content collection.
+//
+// Parity notes (matched against project.html verbatim):
+//   - Spec line = "No. <#> · year · location · status" (uses p.id, the sheet's
+//     '#' column, padded to 2 digits). NOTE: the v1 script does NOT put
+//     subcategory in this line — only No./year/location/status — so neither do
+//     we. (See report: the migration audit listed subcategory here.)
+//   - Description: split on blank lines -> <p>, single newlines -> <br>
+//     (renderDescription port).
+//   - Hero renders with HERO_TRANSFORM (heroUrl) at w_2400; gallery cells use
+//     mediaUrl (images w_1800 THUMB, videos no width transform) — matching what
+//     data.js baked into p.heroUrl / p.media[].url.
+//   - Gallery cells: image vs video, exact attrs (video: autoplay muted loop
+//     playsinline preload="metadata"; the onload/onloadeddata add .loaded, the
+//     onerror hides the parent) so brand.js's lightbox on .gallery-item works
+//     unchanged.
+//   - gallery--long modifier when media.length > 50.
+//   - Prev/next within the SAME category, ordered by Order, wrapping around;
+//     links to /project/<slug>.
+//   - Back link + detail-back both target the clean category path /<category>.
+//   - Reading-progress bar: <div class="read-progress"> + the rAF-throttled
+//     inline script, shipped with is:inline (runs in the browser, verbatim).
+import Base from '../../layouts/Base.astro';
+import { getCollection } from 'astro:content';
+import { heroUrl, mediaUrl } from '../../lib/cloudinary';
+import type { Project } from '../../lib/sheet';
+
+export async function getStaticPaths() {
+  const all = await getCollection('projects');
+  const projects = all.map((e) => e.data);
+
+  return projects.map((p) => {
+    // Prev/next within the same category, ordered by the sheet's Order column.
+    // Wraps around. Verbatim logic from project.html.
+    const siblings = p.category
+      ? projects
+          .filter((x) => x.category === p.category)
+          .sort((a, b) => a.order - b.order)
+      : [];
+    const idx = siblings.findIndex((x) => x.slug === p.slug);
+    let prev: Project | null = null;
+    let next: Project | null = null;
+    if (idx >= 0 && siblings.length > 1) {
+      prev = siblings[(idx - 1 + siblings.length) % siblings.length];
+      next = siblings[(idx + 1) % siblings.length];
+    }
+
+    return { params: { slug: p.slug }, props: { p, prev, next } };
+  });
+}
+
+interface Props {
+  p: Project;
+  prev: Project | null;
+  next: Project | null;
+}
+
+const { p, prev, next } = Astro.props;
+
+// Description rendering — port of renderDescription: split on blank lines into
+// paragraphs, single newlines -> <br>. Returns an array of paragraph strings so
+// the template can emit <p> nodes (the <br> is injected via set:html).
+function descriptionParagraphs(text: string): string[] {
+  if (!text) return [];
+  return text
+    .split(/\n\s*\n/)
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .map((para) => para.replace(/\n/g, '<br>'));
+}
+
+const paragraphs = descriptionParagraphs(p.description);
+
+const backHref = p.category ? `/${p.category}` : '/';
+const backLabel = p.category
+  ? p.category.charAt(0).toUpperCase() + p.category.slice(1)
+  : 'Index';
+
+// Spec-sheet metadata line — No. <#> · year · location · status.
+const specBits: string[] = [];
+if (p.id) specBits.push(`No. ${String(p.id).padStart(2, '0')}`);
+if (p.year) specBits.push(p.year);
+if (p.location) specBits.push(p.location);
+if (p.status) specBits.push(p.status);
+
+const hero = heroUrl(p);
+
+// Head metadata — verbatim from project.html's derivation.
+const title = `${p.name} — Tres.`;
+const firstLine = (p.description || '').split(/\n+/)[0].trim();
+const descParts: string[] = [];
+if (p.location) descParts.push(p.location);
+if (p.year) descParts.push(p.year);
+const description = (firstLine || descParts.join(' · ') || 'Project by Tres Carter.').slice(0, 200);
+---
+
+<Base title={title} description={description}>
+  <div class="read-progress" id="readProgress" aria-hidden="true"></div>
+
+  <main id="content">
+    <section class="detail">
+      <div class="detail-head">
+        <div class="reveal">
+          <div class="detail-eyebrow">— {backLabel} · Project</div>
+          <h1 class="detail-title">{p.name}</h1>
+          <div class="detail-loc">{specBits.join(' · ')}</div>
+        </div>
+        <div class="detail-desc reveal">
+          {paragraphs.map((para) => (
+            <p set:html={para} />
+          ))}
+          {p.designedAt && (
+            <div class="detail-credit">
+              — Designed at {p.designedAtUrl ? (
+                <a href={p.designedAtUrl} target="_blank" rel="noopener">{p.designedAt}</a>
+              ) : (
+                <span>{p.designedAt}</span>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {hero && (
+        <section class="gallery" style="margin-top:clamp(40px,8vh,90px)">
+          <div class="gallery-item reveal">
+            <img
+              src={hero}
+              alt={p.name}
+              fetchpriority="high"
+              decoding="async"
+              onload="this.classList.add('loaded')"
+              onerror="this.parentElement.style.display='none'"
+            />
+          </div>
+        </section>
+      )}
+
+      <section class={`gallery${p.media.length > 50 ? ' gallery--long' : ''}`}>
+        {p.media.map((m) =>
+          m.type === 'video' ? (
+            <div class="gallery-item reveal">
+              <video
+                src={mediaUrl(m) || ''}
+                autoplay
+                muted
+                loop
+                playsinline
+                preload="metadata"
+                onloadeddata="this.classList.add('loaded')"
+                onerror="this.parentElement.style.display='none'"
+              ></video>
+            </div>
+          ) : (
+            <div class="gallery-item reveal">
+              <img
+                src={mediaUrl(m) || ''}
+                alt={p.name}
+                loading="lazy"
+                decoding="async"
+                onload="this.classList.add('loaded')"
+                onerror="this.parentElement.style.display='none'"
+              />
+            </div>
+          )
+        )}
+      </section>
+
+      {(prev || next) && (
+        <nav class="detail-nav" aria-label={`More projects in ${backLabel}`}>
+          {prev ? (
+            <a class="detail-nav-link detail-nav-link--prev" href={`/project/${prev.slug}`}>
+              <span class="detail-nav-meta"><span class="detail-nav-arrow">←</span> Previous</span>
+              <span class="detail-nav-name">{prev.name}</span>
+            </a>
+          ) : (
+            <span></span>
+          )}
+          {next ? (
+            <a class="detail-nav-link detail-nav-link--next" href={`/project/${next.slug}`}>
+              <span class="detail-nav-meta">Next <span class="detail-nav-arrow">→</span></span>
+              <span class="detail-nav-name">{next.name}</span>
+            </a>
+          ) : (
+            <span></span>
+          )}
+        </nav>
+      )}
+
+      <a class="detail-back" href={backHref}>← Back to {backLabel}</a>
+    </section>
+  </main>
+</Base>
+
+<script is:inline>
+  // Reading progress — orange line fills 0→100% through the body. rAF-throttled.
+  // Verbatim port of project.html's initReadProgress, run on DOMContentLoaded so
+  // #readProgress exists when it binds.
+  (function () {
+    function initReadProgress() {
+      const bar = document.getElementById('readProgress');
+      if (!bar) return;
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { bar.style.display = 'none'; return; }
+      let scheduled = false;
+      function update() {
+        scheduled = false;
+        const doc = document.documentElement;
+        const max = doc.scrollHeight - window.innerHeight;
+        const ratio = max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0;
+        bar.style.transform = `scaleX(${ratio})`;
+      }
+      function onScroll() { if (scheduled) return; scheduled = true; requestAnimationFrame(update); }
+      window.addEventListener('scroll', onScroll, { passive: true });
+      window.addEventListener('resize', onScroll);
+      update();
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initReadProgress);
+    } else {
+      initReadProgress();
+    }
+  })();
+</script>
