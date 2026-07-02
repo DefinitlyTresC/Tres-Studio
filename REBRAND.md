@@ -17,7 +17,21 @@ production cutover all ship as part of the rebrand build, not before it.
 | Clay | `#E3B7A0` | mid accents |
 | Umber | `#BF9270` | strong accents |
 
-**Gaps to resolve before building (flagged by Claude):**
+**✅ IDENTITY LOCKED (R1 review, 2026-07-01):**
+- **Ink:** candidate A — warm espresso `#2B1F1A` (≥7:1 on cream).
+- **Type:** Direction 1 "Draughtsman's Grotesque" — **Archivo** (display) +
+  **Newsreader** (body) + **Space Mono** (spec labels/data). Google Fonts.
+- **Motion verdicts:** tracking button KEEP but simplified (no click ring/
+  outline, minimal moving parts, lighter-toned pill + arrow — Tres: "too much
+  moving… simple, lighter toned back w arrow"); ticker KEEP but flat
+  split-flap card flip, not 3D wheels ("too 3d… flat card that flips over
+  naturally"); blob had a rendering bug at review time — re-review pending.
+- **Standing rule (Tres, verbatim intent): NO AI SLOP.** Generic AI-design
+  tells (numbered-marker decoration, rings/glows, gratuitous 3D, template
+  looks) get called out. All UI work runs through the design-engineering
+  skills; subagent prompts must carry the principles explicitly.
+
+**Gaps to resolve before building (original notes, superseded above):**
 - No **ink color** — Umber on Cream is ~2.4:1 contrast, unusable for text.
   Needs a near-black (likely a warm espresso, not pure black) for body/display.
 - Decide whether there's a **fifth "signal" accent** (for interactive states,
