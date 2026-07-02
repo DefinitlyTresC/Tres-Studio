@@ -1,0 +1,579 @@
+---
+// ============================================================
+// R1 PROTOTYPE — /r1/ticker
+// ------------------------------------------------------------
+// The visitor counter, reborn as an old-fashioned MECHANICAL TICKER /
+// ODOMETER: each digit rides its own vertical wheel that ROLLS to its
+// value with a staggered, drafting-machine easing. Monochrome (ink on
+// white / white on ink), hairline frame, mono digits.
+//
+// Fully self-contained: own <head>, own <style is:inline>, own <script
+// is:inline>. Links the shared token layer via <link href="/v2-tokens.css">
+// (public copy) so it renders without any bundler step. Does NOT use
+// Base.astro and does NOT touch any V1 page/layout/style.
+//
+// DATA CONTRACT — reused verbatim from public/counter.js so this can be
+// lifted into the real site with zero backend change:
+//   • endpoint : /.netlify/functions/pulse?sid=<sid>   (cache: 'no-store')
+//   • response : { total: number, live: number }
+//   • session  : sessionStorage 'ts_sid', base36 time + random
+//   • degrade  : r.ok ? json : null; .catch() silent → widget stays hidden
+//   • cadence  : first pulse on load + 20s heartbeat + on visibilitychange
+//
+// The widget script below is written as a LIFT-AND-SHIP block: everything
+// between the BEGIN/END WIDGET markers (CSS + JS) can be dropped into the
+// real site. It self-injects fixed bottom-right and needs no page markup.
+// ============================================================
+---
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>R1 · Mechanical Ticker — tres.studio</title>
+<meta name="robots" content="noindex" />
+<meta name="theme-color" content="#FFEDDB" />
+
+<!-- Mono digits: Space Mono is the drawing-set carryover from V1. -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+
+<link rel="stylesheet" href="/v2-tokens.css" />
+
+<style is:inline>
+  /* ── demo page chrome (NOT part of the widget) ─────────────────────── */
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: var(--v2-cream);
+    color: var(--v2-ink);
+    font-family: 'Space Mono', ui-monospace, monospace;
+    min-height: 100dvh;
+    -webkit-font-smoothing: antialiased;
+  }
+  .demo-wrap {
+    max-width: var(--v2-maxw-text);
+    margin: 0 auto;
+    padding: var(--v2-space-9) var(--v2-gutter) var(--v2-space-10);
+  }
+  .demo-eyebrow {
+    font-size: var(--v2-fs-spec);
+    letter-spacing: var(--v2-tracking-spec);
+    text-transform: uppercase;
+    color: var(--v2-ink-muted);
+    margin: 0 0 var(--v2-space-4);
+  }
+  .demo-wrap h1 {
+    font-family: 'Space Mono', ui-monospace, monospace;
+    font-weight: 700;
+    font-size: var(--v2-fs-h1);
+    line-height: var(--v2-lh-snug);
+    letter-spacing: var(--v2-tracking-display);
+    margin: 0 0 var(--v2-space-5);
+  }
+  .demo-wrap p {
+    font-size: var(--v2-fs-body);
+    line-height: var(--v2-lh-relaxed);
+    color: var(--v2-ink-muted);
+    max-width: 34rem;
+    margin: 0 0 var(--v2-space-5);
+  }
+  .demo-rule {
+    border: 0;
+    border-top: var(--v2-hairline-w) solid var(--v2-line);
+    margin: var(--v2-space-7) 0;
+  }
+  .demo-actions { display: flex; flex-wrap: wrap; gap: var(--v2-space-3); margin-top: var(--v2-space-6); }
+  .demo-btn {
+    font-family: 'Space Mono', ui-monospace, monospace;
+    font-size: var(--v2-fs-caption);
+    letter-spacing: var(--v2-tracking-spec);
+    text-transform: uppercase;
+    color: var(--v2-ink);
+    background: transparent;
+    border: var(--v2-hairline-w) solid var(--v2-line-strong);
+    border-radius: var(--v2-radius-sm);
+    padding: var(--v2-space-3) var(--v2-space-5);
+    cursor: pointer;
+    transition: background var(--v2-dur-fast) var(--v2-ease-mechanical),
+                color var(--v2-dur-fast) var(--v2-ease-mechanical);
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+  .demo-btn:hover { background: var(--v2-ink); color: var(--v2-cream); }
+  .demo-btn:active { transform: translateY(1px); }
+  .demo-btn:focus-visible { outline: none; box-shadow: var(--v2-focus-ring); }
+  .demo-note { font-size: var(--v2-fs-spec); color: var(--v2-ink-faint); margin-top: var(--v2-space-6); }
+
+  /* =========================================================================
+     ██ BEGIN WIDGET — MECHANICAL TICKER (lift-and-ship: CSS)
+     -------------------------------------------------------------------------
+     All selectors are namespaced .mtk-* so nothing collides with the host
+     page. Colors run off the --v2 token layer with monochrome fallbacks so
+     the block still reads correctly if dropped somewhere without tokens.
+     ========================================================================= */
+
+  .mtk {
+    /* Widget-local knobs — tune the machine here. */
+    --mtk-ink:   var(--v2-ink, #1a1a1a);
+    --mtk-paper: var(--v2-cream, #ffffff);
+    --mtk-line:  var(--v2-line-strong, rgba(26,26,26,0.28));
+    --mtk-hair:  var(--v2-line, rgba(26,26,26,0.14));
+
+    --mtk-digit-h: 34px;   /* height of one wheel cell = one digit    */
+    --mtk-digit-w: 22px;   /* width of a digit column                 */
+    --mtk-roll:    var(--v2-ease-mechanical, cubic-bezier(0.16,0.84,0.28,1));
+
+    position: fixed;
+    right: max(16px, env(safe-area-inset-right));
+    bottom: max(16px, env(safe-area-inset-bottom));
+    z-index: 2147483000;
+
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+
+    font-family: 'Space Mono', ui-monospace, 'SFMono-Regular', monospace;
+    color: var(--mtk-ink);
+
+    /* Hidden until the first real pulse lands (mirrors counter.js reveal). */
+    opacity: 0;
+    transform: translateY(6px);
+    transition: opacity var(--v2-dur-slow, 420ms) var(--mtk-roll),
+                transform var(--v2-dur-slow, 420ms) var(--mtk-roll);
+    pointer-events: none;
+  }
+  .mtk.mtk-in { opacity: 1; transform: none; pointer-events: auto; }
+
+  /* ── the odometer housing: hairline frame, ink-on-paper ─────────────── */
+  .mtk-counter {
+    display: inline-flex;
+    align-items: stretch;
+    gap: 0;
+    padding: 6px 7px;
+    background: var(--mtk-paper);
+    border: var(--v2-hairline-w, 1px) solid var(--mtk-line);
+    border-radius: var(--v2-radius-xs, 2px);
+    box-shadow: var(--v2-shadow-sm, 0 1px 2px rgba(0,0,0,0.06));
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .mtk-counter:focus-visible { outline: none; box-shadow: var(--v2-focus-ring, 0 0 0 2px #fff, 0 0 0 4px #000); }
+
+  /* One digit column — the window a single wheel rolls behind. */
+  .mtk-col {
+    position: relative;
+    width: var(--mtk-digit-w);
+    height: var(--mtk-digit-h);
+    overflow: hidden;
+    background: var(--mtk-paper);
+  }
+  /* Hairline flute between wheels, like an odometer's dividers. */
+  .mtk-col + .mtk-col { border-left: var(--v2-hairline-w, 1px) solid var(--mtk-hair); }
+
+  /* The wheel: a vertical strip 0..9 (+ a repeated 0 for clean wrap).
+     translateY(-value * cell) brings the target digit into the window. */
+  .mtk-wheel {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    display: flex;
+    flex-direction: column;
+    will-change: transform;
+  }
+  .mtk-cell {
+    height: var(--mtk-digit-h);
+    line-height: var(--mtk-digit-h);
+    text-align: center;
+    font-size: 19px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.02em;
+    /* Optical: pull the glyph up a hair so it sits centered in the cell. */
+    transform: translateY(-0.5px);
+  }
+
+  /* Machined light gradient across the glass — top/bottom shade so the
+     rolling reads as a physical cylinder, not a sliding list. Pure ink
+     alpha, stays monochrome. */
+  .mtk-counter::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    border-radius: inherit;
+    background: linear-gradient(
+      to bottom,
+      rgba(0,0,0,0.11) 0%,
+      rgba(0,0,0,0.02) 22%,
+      rgba(0,0,0,0)    44%,
+      rgba(0,0,0,0)    56%,
+      rgba(0,0,0,0.03) 80%,
+      rgba(0,0,0,0.12) 100%
+    );
+    mix-blend-mode: multiply;
+  }
+  .mtk-counter { position: relative; }
+
+  /* ── secondary line: live "now" presence, small + quiet ─────────────── */
+  .mtk-live {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 10px;
+    letter-spacing: var(--v2-tracking-spec, 0.18em);
+    text-transform: uppercase;
+    color: var(--v2-ink-muted, rgba(26,26,26,0.68));
+    padding-right: 2px;
+  }
+  .mtk-dot {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--mtk-ink);
+    /* Slow mechanical blink — a tell-tale that the line is live. */
+    animation: mtk-blink 2.4s steps(1, end) infinite;
+  }
+  @keyframes mtk-blink { 0%,60% { opacity: 1; } 61%,100% { opacity: 0.28; } }
+  .mtk-live-num { font-variant-numeric: tabular-nums; font-weight: 700; }
+
+  /* Tiny caption under the counter — labels it as a titleblock spec line. */
+  .mtk-cap {
+    font-size: 9px;
+    letter-spacing: var(--v2-tracking-spec, 0.18em);
+    text-transform: uppercase;
+    color: var(--v2-ink-faint, rgba(26,26,26,0.46));
+  }
+
+  /* Reduced motion: no roll (JS also snaps), no blink, no reveal slide. */
+  @media (prefers-reduced-motion: reduce) {
+    .mtk { transition: opacity 1ms linear; transform: none; }
+    .mtk.mtk-in { transform: none; }
+    .mtk-wheel { transition: none !important; }
+    .mtk-dot { animation: none; }
+  }
+
+  /* ██ END WIDGET CSS ═══════════════════════════════════════════════════ */
+</style>
+</head>
+
+<body>
+  <main class="demo-wrap">
+    <p class="demo-eyebrow">R1 · Prototype 04</p>
+    <h1>Mechanical Ticker</h1>
+    <p>
+      The visitor counter reborn as an analog odometer. Each digit rides its
+      own wheel and rolls to place with a staggered mechanical snap — ink on
+      paper, hairline frame, mono glyphs. It fetches the real total from the
+      live Netlify pulse function and rolls up from zero (or the last value it
+      cached this session).
+    </p>
+    <p>
+      It lives fixed at the bottom-right, exactly where the shipping widget
+      would sit. If the function is unreachable it stays hidden and the page is
+      untouched — same silent-degrade contract as the current counter.
+    </p>
+
+    <hr class="demo-rule" />
+
+    <p>
+      Tap the counter itself, or use the buttons below, to feel the roll. Turn
+      on Reduce Motion in your OS to confirm the digits snap instead of rolling.
+    </p>
+
+    <div class="demo-actions">
+      <button class="demo-btn" id="crank">Crank it +1</button>
+      <button class="demo-btn" id="crank-big">+37</button>
+      <button class="demo-btn" id="crank-reset">Reset → refetch</button>
+    </div>
+
+    <p class="demo-note">
+      Bottom-right, monochrome, hairline. Wheels stagger from the ones place up.
+    </p>
+  </main>
+
+  <script is:inline>
+  /* =========================================================================
+     ██ BEGIN WIDGET — MECHANICAL TICKER (lift-and-ship: JS)
+     -------------------------------------------------------------------------
+     Self-contained IIFE. Self-injects fixed bottom-right; no page markup
+     required. Reuses public/counter.js's exact fetch contract so the backend
+     needs no change. To ship: paste this block + the matching CSS block, and
+     load Space Mono (or swap the font-family). The demo hooks at the very
+     bottom (#crank etc.) are the ONLY part that stays on the prototype page.
+     ========================================================================= */
+  (function () {
+    'use strict';
+
+    /* ── contract constants (verbatim from counter.js) ─────────────────── */
+    var ENDPOINT     = '/.netlify/functions/pulse';
+    var HEARTBEAT_MS = 20000;   // keep this tab counted as "live"
+    var PAD          = 5;       // 00001-style, five wheels
+    var CACHE_KEY    = 'ts_mtk_last';  // remember last total to roll FROM
+
+    var REDUCE = false;
+    try { REDUCE = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+
+    /* Stable per-tab session id — identical scheme to counter.js so the
+       function counts this visit once and tracks tab presence. */
+    var sid;
+    try {
+      sid = sessionStorage.getItem('ts_sid');
+      if (!sid) {
+        sid = Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
+        sessionStorage.setItem('ts_sid', sid);
+      }
+    } catch (e) {
+      sid = String(Math.random()).slice(2);
+    }
+
+    /* ── state ─────────────────────────────────────────────────────────── */
+    var els        = null;   // built DOM refs
+    var wheels     = [];     // per-column { el, value } (value = current digit)
+    var realTotal  = 0;      // last known true total from the function
+    var shownTotal = -1;     // what the wheels currently display
+    var built      = false;
+
+    /* Cache the last total we ever saw so a returning tab rolls up from it
+       instead of from a cold 0 — feels less like a reset each pulse. */
+    function cachedTotal() {
+      try {
+        var v = parseInt(sessionStorage.getItem(CACHE_KEY), 10);
+        return isNaN(v) ? 0 : v;
+      } catch (e) { return 0; }
+    }
+    function rememberTotal(n) {
+      try { sessionStorage.setItem(CACHE_KEY, String(n)); } catch (e) {}
+    }
+
+    /* Split a number into PAD digits, most-significant first. */
+    function digitsOf(n) {
+      n = Math.max(0, Math.floor(n));
+      var s = String(n);
+      while (s.length < PAD) s = '0' + s;
+      // If it overflows PAD (site got popular), show the last PAD digits.
+      if (s.length > PAD) s = s.slice(-PAD);
+      var out = [];
+      for (var i = 0; i < s.length; i++) out.push(parseInt(s[i], 10));
+      return out;
+    }
+
+    /* ── build the odometer DOM ────────────────────────────────────────── */
+    function build() {
+      var root = document.createElement('div');
+      root.className = 'mtk';
+      root.setAttribute('role', 'status');
+      root.setAttribute('aria-live', 'polite');
+      root.setAttribute('aria-label', 'Total site visits');
+
+      // Live presence line (secondary, quiet). Kept — the design wants the
+      // "now" signal as a small element above the wheels.
+      var live = document.createElement('span');
+      live.className = 'mtk-live';
+      var dot = document.createElement('span'); dot.className = 'mtk-dot';
+      var liveNum = document.createElement('span'); liveNum.className = 'mtk-live-num'; liveNum.textContent = '1';
+      live.appendChild(dot);
+      live.appendChild(liveNum);
+      live.appendChild(document.createTextNode(' online'));
+
+      // The counter housing is a button so it's tap/keyboard reachable and
+      // re-rolls on demand (the "feel it again" affordance).
+      var counter = document.createElement('button');
+      counter.type = 'button';
+      counter.className = 'mtk-counter';
+      counter.setAttribute('aria-label', 'Total site visits — tap to re-roll');
+
+      wheels = [];
+      for (var c = 0; c < PAD; c++) {
+        var col = document.createElement('span');
+        col.className = 'mtk-col';
+        var wheel = document.createElement('span');
+        wheel.className = 'mtk-wheel';
+        // Strip of 0..9, then an extra 0 so a wrap 9→0 can roll DOWN cleanly.
+        for (var d = 0; d <= 10; d++) {
+          var cell = document.createElement('span');
+          cell.className = 'mtk-cell';
+          cell.textContent = String(d % 10);
+          wheel.appendChild(cell);
+        }
+        col.appendChild(wheel);
+        counter.appendChild(col);
+        wheels.push({ el: wheel, value: 0 });
+      }
+
+      var cap = document.createElement('span');
+      cap.className = 'mtk-cap';
+      cap.textContent = 'visits';
+
+      root.appendChild(live);
+      root.appendChild(counter);
+      root.appendChild(cap);
+      document.body.appendChild(root);
+
+      return { root: root, counter: counter, liveNum: liveNum };
+    }
+
+    /* ── the roll ──────────────────────────────────────────────────────── */
+    // Duration/stagger tuned to feel like gears catching: ones place leads,
+    // higher places follow. Mechanical easing gives the "snap into detent".
+    var CELL_H = 34;   // must match --mtk-digit-h in CSS
+
+    function readCellHeight() {
+      if (!wheels.length) return CELL_H;
+      var probe = wheels[0].el.querySelector('.mtk-cell');
+      var h = probe ? probe.getBoundingClientRect().height : 0;
+      return h > 0 ? h : CELL_H;
+    }
+
+    function setWheel(idx, digit, animate) {
+      var w = wheels[idx];
+      if (!w) return;
+      var h = readCellHeight();
+      var y = -digit * h;
+
+      if (!animate || REDUCE) {
+        w.el.style.transition = 'none';
+        w.el.style.transform = 'translateY(' + y + 'px)';
+        w.value = digit;
+        // Force the "no transition" to stick before any later animated call.
+        // (reading offset flushes styles)
+        void w.el.offsetHeight;
+        return;
+      }
+
+      // Stagger + variable duration by column: rightmost (ones) is fastest
+      // and starts first; leftmost lags — reads as the carry rippling up.
+      var placeFromRight = (PAD - 1) - idx;
+      var delay = placeFromRight * 60;                 // ms — the ripple
+      var dur   = 520 + placeFromRight * 130;          // ms — bigger wheels roll longer
+      w.el.style.transition =
+        'transform ' + dur + 'ms var(--mtk-roll, cubic-bezier(0.16,0.84,0.28,1)) ' + delay + 'ms';
+      // next frame so the transition applies
+      requestAnimationFrame(function () {
+        w.el.style.transform = 'translateY(' + y + 'px)';
+      });
+      w.value = digit;
+    }
+
+    // Render `to`, rolling each changed wheel from its current digit.
+    function rollTo(to, animate) {
+      if (!built) return;
+      var digs = digitsOf(to);
+      for (var i = 0; i < PAD; i++) {
+        if (digs[i] !== wheels[i].value || !animate) {
+          setWheel(i, digs[i], animate && digs[i] !== wheels[i].value);
+        }
+      }
+      shownTotal = to;
+    }
+
+    function reveal() { if (els && els.root) els.root.classList.add('mtk-in'); }
+
+    /* ── apply server data (mirrors counter.js apply()) ────────────────── */
+    function apply(data) {
+      if (!data) return;
+      if (!built) {
+        els = build();
+        built = true;
+        bindClick();
+        // Seed the wheels at the cached last value (snapped, no animation)
+        // so the first real roll goes cached→truth, not 0→truth.
+        rollTo(cachedTotal(), false);
+      }
+      reveal();
+
+      if (typeof data.total === 'number') {
+        realTotal = data.total;
+        rememberTotal(realTotal);
+        if (realTotal !== shownTotal) rollTo(realTotal, true);
+      }
+      if (typeof data.live === 'number' && els) {
+        els.liveNum.textContent = String(Math.max(1, data.live));
+      }
+    }
+
+    /* ── network (verbatim contract: sid query, no-store, ok?json:null) ── */
+    function pulse() {
+      fetch(ENDPOINT + '?sid=' + encodeURIComponent(sid), { cache: 'no-store' })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(apply)
+        .catch(function () { /* silent — widget just never appears / updates */ });
+    }
+
+    /* ── tap-to-re-roll: scramble down then settle back to the truth ───── */
+    var rolling = false;
+    function bindClick() {
+      if (!els || !els.counter) return;
+      els.counter.addEventListener('click', function () {
+        if (rolling || REDUCE) {
+          // Reduced motion: just re-affirm the value, no theatre.
+          rollTo(realTotal, false);
+          return;
+        }
+        rolling = true;
+        // Kick every wheel to a random digit (a "spin"), then land on truth.
+        var scrambled = Math.floor(Math.random() * Math.pow(10, PAD));
+        rollTo(scrambled, true);
+        setTimeout(function () {
+          rollTo(realTotal, true);
+          setTimeout(function () { rolling = false; }, 900);
+        }, 260);
+      });
+    }
+
+    /* ── boot (verbatim cadence: load + heartbeat + on-visible) ────────── */
+    function start() {
+      pulse();
+      setInterval(pulse, HEARTBEAT_MS);
+      document.addEventListener('visibilitychange', function () {
+        if (document.visibilityState === 'visible') pulse();
+      });
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', start);
+    } else {
+      start();
+    }
+
+    /* ██ END WIDGET JS ═════════════════════════════════════════════════════
+       Below: DEMO-ONLY hooks. They reach into the widget so the roll can be
+       felt on a page that may have no live function. Do NOT ship these. */
+
+    // Expose a tiny demo bridge only on the prototype page.
+    window.__mtkDemo = {
+      bump: function (by) {
+        // Ensure the widget exists even with no backend, by faking a payload.
+        if (!built) apply({ total: cachedTotal(), live: 1 });
+        realTotal = Math.max(0, realTotal + by);
+        rememberTotal(realTotal);
+        reveal();
+        rollTo(realTotal, true);
+      },
+      reset: function () {
+        // Clear the cache and re-pull the real number.
+        try { sessionStorage.removeItem(CACHE_KEY); } catch (e) {}
+        realTotal = 0;
+        rollTo(0, true);
+        pulse();
+      }
+    };
+  })();
+
+  /* ── prototype page buttons (NOT part of the widget) ─────────────────── */
+  (function () {
+    function on(id, fn) {
+      var b = document.getElementById(id);
+      if (b) b.addEventListener('click', fn);
+    }
+    on('crank',      function () { window.__mtkDemo && window.__mtkDemo.bump(1); });
+    on('crank-big',  function () { window.__mtkDemo && window.__mtkDemo.bump(37); });
+    on('crank-reset',function () { window.__mtkDemo && window.__mtkDemo.reset(); });
+  })();
+  </script>
+</body>
+</html>

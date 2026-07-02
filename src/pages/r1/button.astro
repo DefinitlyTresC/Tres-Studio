@@ -1,0 +1,604 @@
+---
+// ============================================================
+// R1 PROTOTYPE — /r1/button  ·  THE TRACKING BACK CONTROL
+// ------------------------------------------------------------
+// A back/nav affordance that lives in a left rail and lerps to follow the
+// cursor's Y position on desktop (eased, slightly laggy = mechanical feel,
+// with a subtle lean toward travel direction). On touch / no-hover pointers
+// it degrades to a calm fixed position. prefers-reduced-motion => fixed, no
+// tracking. Capability is detected via pointer/hover media queries, NOT UA
+// sniffing.
+//
+// Fully self-contained: own <head>, own <style is:inline>, own <script
+// is:inline>. Links the shared V2 token layer (public copy) so it renders
+// without the bundler. Does NOT use Base.astro and touches no V1 asset.
+//
+// The <script is:inline> block is written as ONE clearly-commented, portable
+// snippet: if Tres likes this, the block + the .track-rail / .track-btn CSS
+// lift straight out into the site-wide layout. See "EXTRACTION NOTES" at the
+// top of the script.
+// ============================================================
+import { getCollection } from 'astro:content';
+
+// The five Work projects (brief §4), in discussion order, with fallback titles
+// so the page never depends on the sheet snapshot being present at build time.
+const WORK = [
+  { slug: 'z07',      title: 'Alys Beach Z-07',            tag: 'Professional · Alys Beach' },
+  { slug: 'ee13',     title: 'Alys Beach EE-13',           tag: 'Professional · Alys Beach' },
+  { slug: 'flatwood', title: 'Flatwood Residence',         tag: 'Professional · Residential' },
+  { slug: 'tucker',   title: 'The Pointe at Tucker Landing', tag: 'Professional · Mixed-use' },
+  { slug: 'thesis',   title: 'Thesis Project',             tag: 'Academic · Thesis' },
+];
+
+// Enrich the placeholder rows with real location/year/status when the sheet
+// snapshot has them; otherwise the hard-coded titles above carry the page.
+let rows = WORK.map((w) => ({ ...w, location: '', year: '', status: '' }));
+try {
+  const all = await getCollection('projects');
+  const bySlug = new Map(all.map((e) => [e.data.slug, e.data]));
+  rows = WORK.map((w) => {
+    const p = bySlug.get(w.slug);
+    return {
+      ...w,
+      title: p?.name || w.title,
+      location: p?.location || '',
+      year: p?.year || '',
+      status: p?.status || '',
+    };
+  });
+} catch {
+  /* keep fallbacks — build never breaks offline */
+}
+---
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>R1 · Tracking Back Button — tres.studio</title>
+<meta name="robots" content="noindex" />
+<meta name="theme-color" content="#FFEDDB" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<!-- Draughtsman's Grotesque direction (Archivo + Newsreader + Space Mono) so the
+     prototype reads in-family with the token specimen; not a type decision. -->
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Newsreader:ital,opsz,wght@0,16..72,400;0,16..72,500;1,16..72,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+
+<link rel="stylesheet" href="/v2-tokens.css" />
+
+<style is:inline>
+  *, *::before, *::after { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--v2-cream);
+    color: var(--v2-ink);
+    font-family: 'Newsreader', Georgia, serif;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* ============================================================
+     PAGE LAYOUT — a left rail + a tall scrolling content column.
+     The rail is where the tracking button lives; the column is the
+     placeholder project list that gives us something to scroll past.
+     ============================================================ */
+  .layout {
+    display: grid;
+    grid-template-columns: var(--rail-w, 128px) 1fr;
+    min-height: 100vh;
+  }
+
+  /* -------- LEFT RAIL --------
+     On desktop this is the track the button rides. It's a positioning
+     context (position: relative) so the button's absolute top is measured
+     against the rail, not the page. Sticky so the rail (and its button)
+     stay on screen while the long column scrolls. */
+  .track-rail {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    /* a hairline drawing-set edge separating rail from content */
+    border-right: var(--v2-hairline-w) solid var(--v2-line);
+    /* faint tick marks up the rail = drafting ruler; pure decoration */
+    background-image: repeating-linear-gradient(
+      to bottom,
+      var(--v2-hairline) 0,
+      var(--v2-hairline) 1px,
+      transparent 1px,
+      transparent 48px
+    );
+  }
+
+  /* -------- THE TRACKING BUTTON --------
+     Absolutely positioned within the rail. JS drives --btn-y (a px value)
+     each frame; we translate by it. The default (no-JS / fixed) resting spot
+     is a little below the top so it never collides with the rail's top edge.
+     Only transform + opacity animate => compositor-friendly, 60fps. */
+  .track-btn {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    /* --btn-y is the eased Y in px; --lean is a few degrees of rotation toward
+       travel direction. Both are written by JS. translateZ(0) promotes it to
+       its own layer so the browser doesn't repaint the rail each frame. */
+    transform:
+      translate3d(-50%, var(--btn-y, 96px), 0)
+      rotate(var(--lean, 0deg));
+    /* No CSS transition on transform: the *lerp itself* is the smoothing, done
+       in JS per-frame. A CSS transition on top would double-smooth and feel
+       mushy. We DO transition the hover/press visuals (color, scale, shadow). */
+    display: inline-flex;
+    align-items: center;
+    gap: var(--v2-space-2);
+    padding: var(--v2-space-3) var(--v2-space-4);
+    border: var(--v2-hairline-w) solid var(--v2-line-strong);
+    border-radius: var(--v2-radius-pill);
+    background: var(--v2-cream);
+    color: var(--v2-ink);
+    font-family: 'Space Mono', ui-monospace, monospace;
+    font-size: var(--v2-fs-spec);
+    letter-spacing: var(--v2-tracking-spec);
+    text-transform: uppercase;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+    box-shadow: var(--v2-shadow-sm);
+    /* visuals only — the position is JS, these are the hover/press feel */
+    transition:
+      background var(--v2-dur-fast) var(--v2-ease-mechanical),
+      color var(--v2-dur-fast) var(--v2-ease-mechanical),
+      border-color var(--v2-dur-fast) var(--v2-ease-mechanical),
+      box-shadow var(--v2-dur-base) var(--v2-ease-mechanical);
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    will-change: transform;
+  }
+
+  /* the arrow glyph — nudges left on hover for a little "go back" intent */
+  .track-btn .arrow {
+    display: inline-block;
+    transition: transform var(--v2-dur-fast) var(--v2-ease-mechanical);
+    font-size: 1.05em;
+    line-height: 1;
+  }
+
+  /* PRECISE HOVER STATE — fills to umber, arrow slides back, lifts slightly.
+     :hover only applies where a hover pointer actually exists, so touch never
+     gets a stuck hover. */
+  @media (hover: hover) and (pointer: fine) {
+    .track-btn:hover {
+      background: var(--v2-umber);
+      color: var(--v2-cream);
+      border-color: var(--v2-umber);
+      box-shadow: var(--v2-shadow-md);
+    }
+    .track-btn:hover .arrow { transform: translateX(-3px); }
+  }
+
+  /* SATISFYING CLICK ACK — a quick mechanical press-in. Driven by a .is-press
+     class toggled in JS (pointerdown/up) so it fires identically for mouse,
+     pen, and finger. scale is on an inner wrapper so it composes cleanly with
+     the rail's translate on the outer element. */
+  .track-btn .face {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--v2-space-2);
+    transition: transform var(--v2-dur-instant) var(--v2-ease-mechanical);
+  }
+  .track-btn.is-press .face { transform: scale(0.92); }
+  /* a ring that snaps outward on click, then fades — the "ka-chunk" */
+  .track-btn::after {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: inherit;
+    border: 1.5px solid var(--v2-umber);
+    opacity: 0;
+    transform: scale(1);
+    pointer-events: none;
+  }
+  .track-btn.is-click::after {
+    animation: track-ack var(--v2-dur-slow) var(--v2-ease-mechanical) 1;
+  }
+  @keyframes track-ack {
+    0%   { opacity: 0.55; transform: scale(1); }
+    100% { opacity: 0;    transform: scale(1.35); }
+  }
+
+  /* focus-visible = same precise ring as the rest of the system */
+  .track-btn:focus-visible {
+    outline: none;
+    box-shadow: var(--v2-focus-ring);
+  }
+
+  /* ============================================================
+     FALLBACK POSITIONING — touch / coarse pointers / no hover, AND
+     reduced-motion. In these cases JS never runs its rAF loop, so the button
+     just rests at a calm fixed spot near the top of the rail. We express that
+     resting spot as the CSS default --btn-y (96px) above; nothing else needed.
+     But if there's NO fine pointer at all we also want the rail thinner so the
+     content column gets more room on a phone.
+     ============================================================ */
+  @media (hover: none), (pointer: coarse) {
+    .layout { --rail-w: 76px; }
+    .track-btn {
+      /* calm, static: no lean, sits just under the rail top */
+      transform: translate3d(-50%, 88px, 0);
+      /* smaller footprint on a phone rail */
+      padding: var(--v2-space-2) var(--v2-space-3);
+    }
+    .track-btn .label-full { display: none; }  /* just the arrow + BACK on phones */
+  }
+
+  /* very small screens: collapse the rail to an icon lane */
+  @media (max-width: 34rem) {
+    .layout { --rail-w: 60px; }
+    .track-btn { padding: var(--v2-space-2); }
+    .track-btn .label { display: none; }
+  }
+
+  /* reduced motion: kill any lean/lag entirely — belt & suspenders with the JS
+     gate. The button is fixed at its resting Y and never rotates. */
+  @media (prefers-reduced-motion: reduce) {
+    .track-btn {
+      transform: translate3d(-50%, 88px, 0) !important;
+      transition: background var(--v2-dur-fast) linear,
+                  color var(--v2-dur-fast) linear;
+      will-change: auto;
+    }
+    .track-btn.is-click::after { animation: none; }
+  }
+
+  /* ============================================================
+     CONTENT COLUMN — a tall placeholder project list to scroll past.
+     ============================================================ */
+  .content { padding: var(--v2-space-8) var(--v2-gutter) var(--v2-space-10); }
+  .content-inner { max-width: var(--v2-maxw); margin: 0 auto; }
+
+  .page-head { margin-bottom: var(--v2-space-8); }
+  .page-head .kicker {
+    font-family: 'Space Mono', monospace;
+    font-size: var(--v2-fs-spec);
+    letter-spacing: var(--v2-tracking-wide);
+    text-transform: uppercase;
+    color: var(--v2-umber);
+    display: block;
+    margin-bottom: var(--v2-space-4);
+  }
+  .page-head h1 {
+    font-family: 'Archivo', sans-serif;
+    font-weight: 700;
+    font-size: var(--v2-fs-display);
+    line-height: var(--v2-lh-tight);
+    letter-spacing: var(--v2-tracking-display);
+    margin: 0;
+  }
+  .page-head h1 .dot { color: var(--v2-umber); }
+  .page-head .sub {
+    margin-top: var(--v2-space-4);
+    max-width: var(--v2-maxw-text);
+    font-size: var(--v2-fs-body-lg);
+    line-height: var(--v2-lh-relaxed);
+    color: var(--v2-ink-muted);
+  }
+
+  /* project rows — big index-list entries so the column is genuinely tall */
+  .project-list { border-top: var(--v2-hairline-w) solid var(--v2-line); }
+  .project-row {
+    display: grid;
+    grid-template-columns: 3.5rem 1fr auto;
+    align-items: baseline;
+    gap: var(--v2-space-4);
+    padding: var(--v2-space-7) 0;
+    border-bottom: var(--v2-hairline-w) solid var(--v2-line);
+  }
+  .project-row .idx {
+    font-family: 'Space Mono', monospace;
+    font-size: var(--v2-fs-spec);
+    letter-spacing: var(--v2-tracking-spec);
+    color: var(--v2-ink-faint);
+  }
+  .project-row .body { min-width: 0; }
+  .project-row .title {
+    font-family: 'Archivo', sans-serif;
+    font-weight: 600;
+    font-size: var(--v2-fs-h1);
+    line-height: var(--v2-lh-snug);
+    letter-spacing: var(--v2-tracking-display);
+    margin: 0;
+  }
+  .project-row .tag {
+    display: block;
+    margin-top: var(--v2-space-2);
+    font-family: 'Space Mono', monospace;
+    font-size: var(--v2-fs-spec);
+    letter-spacing: var(--v2-tracking-spec);
+    text-transform: uppercase;
+    color: var(--v2-umber);
+  }
+  .project-row .desc {
+    margin: var(--v2-space-4) 0 0;
+    max-width: var(--v2-maxw-text);
+    font-size: var(--v2-fs-body);
+    line-height: var(--v2-lh-relaxed);
+    color: var(--v2-ink-muted);
+  }
+  .project-row .meta {
+    font-family: 'Space Mono', monospace;
+    font-size: var(--v2-fs-spec);
+    letter-spacing: 0.04em;
+    color: var(--v2-ink-faint);
+    text-align: right;
+    white-space: nowrap;
+  }
+  .project-row .meta span { display: block; }
+
+  /* a little end-of-list marker so the scroll has a clear bottom */
+  .list-end {
+    margin-top: var(--v2-space-8);
+    font-family: 'Space Mono', monospace;
+    font-size: var(--v2-fs-spec);
+    letter-spacing: var(--v2-tracking-spec);
+    text-transform: uppercase;
+    color: var(--v2-ink-faint);
+  }
+
+  /* tiny status readout so Tres can *see* which mode the button chose,
+     without opening devtools on his phone. Bottom-left, unobtrusive. */
+  .mode-readout {
+    position: fixed;
+    left: var(--v2-space-4);
+    bottom: var(--v2-space-4);
+    z-index: 10;
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--v2-ink-faint);
+    background: color-mix(in srgb, var(--v2-cream) 82%, transparent);
+    padding: 4px 8px;
+    border: var(--v2-hairline-w) solid var(--v2-line);
+    border-radius: var(--v2-radius-sm);
+    pointer-events: none;
+  }
+</style>
+</head>
+<body>
+  <div class="layout">
+
+    <!-- ===== LEFT RAIL + TRACKING BUTTON ===== -->
+    <!-- The rail is the track; the button rides it. data-track-rail / -btn are
+         the JS hooks so the extracted snippet doesn't depend on these class
+         names staying exactly the same. -->
+    <div class="track-rail" data-track-rail>
+      <a
+        class="track-btn"
+        data-track-btn
+        href="#"
+        aria-label="Back"
+        onclick="return false"
+      >
+        <span class="face">
+          <span class="arrow" aria-hidden="true">&larr;</span>
+          <span class="label">Back</span>
+        </span>
+      </a>
+    </div>
+
+    <!-- ===== CONTENT COLUMN ===== -->
+    <main class="content">
+      <div class="content-inner">
+        <header class="page-head">
+          <span class="kicker">tres.studio · R1 prototype · tracking back</span>
+          <h1>Work<span class="dot">.</span></h1>
+          <p class="sub">Scroll this list. On a laptop, the <strong>Back</strong> control in the
+          left rail eases up and down to follow your cursor — a beat behind, with a slight lean
+          toward where it's headed. On a phone it just sits still, calm and reachable. Move your
+          cursor to the very top or bottom to feel it catch up.</p>
+        </header>
+
+        <div class="project-list">
+          {rows.map((p, i) => (
+            <article class="project-row">
+              <span class="idx">{String(i + 1).padStart(2, '0')}</span>
+              <div class="body">
+                <h2 class="title">{p.title}</h2>
+                <span class="tag">{p.tag}</span>
+                <p class="desc">
+                  A placeholder entry standing in for a real Work project. The point of this page is
+                  the rail control to the left, not this copy — but a genuinely tall column is what
+                  lets you feel the button track the cursor across the full height of the viewport.
+                </p>
+              </div>
+              <div class="meta">
+                <span>{p.location || 'Location'}</span>
+                <span>{p.year || 'Year'}</span>
+                <span>{p.status || 'Status'}</span>
+              </div>
+            </article>
+          ))}
+          <!-- duplicate the rows once more so the column is tall enough to
+               scroll meaningfully even on a big desktop display -->
+          {rows.map((p, i) => (
+            <article class="project-row">
+              <span class="idx">{String(i + 1 + rows.length).padStart(2, '0')}</span>
+              <div class="body">
+                <h2 class="title">{p.title}</h2>
+                <span class="tag">{p.tag}</span>
+                <p class="desc">
+                  Second pass of the same five so the list is long. Real Work will replace all of
+                  this; the rail affordance is the thing under test. Notice the button never leaves
+                  the viewport — the rail is sticky, so it's always where your thumb or cursor is.
+                </p>
+              </div>
+              <div class="meta">
+                <span>{p.location || 'Location'}</span>
+                <span>{p.year || 'Year'}</span>
+                <span>{p.status || 'Status'}</span>
+              </div>
+            </article>
+          ))}
+        </div>
+
+        <p class="list-end">— end of list · scroll back up —</p>
+      </div>
+    </main>
+  </div>
+
+  <div class="mode-readout" data-mode-readout aria-hidden="true">mode: —</div>
+
+  <script is:inline>
+    /* ============================================================
+       TRACKING BACK CONTROL  ·  portable snippet
+       ------------------------------------------------------------
+       EXTRACTION NOTES (for lifting this into the site-wide nav):
+         1. Copy the .track-rail / .track-btn CSS block AND this script.
+         2. Markup contract: a rail element [data-track-rail] containing a
+            button/link [data-track-btn]. The button's face (the part that
+            press-scales) is optional; press/click classes still fire.
+         3. Zero dependencies, zero build step. Vanilla JS.
+         4. Capability is decided by media queries (pointer/hover), never UA
+            strings — so an iPad with a trackpad gets tracking, a touch laptop
+            without one does not, and it's future-proof.
+
+       BEHAVIOUR:
+         - Fine pointer + hover + motion allowed  => TRACK: the button lerps
+           toward the cursor's Y within the rail, eased (laggy = mechanical),
+           leaning a few degrees toward travel direction.
+         - Otherwise (touch / coarse / no-hover / reduced-motion) => FIXED: the
+           rAF loop never starts; CSS resting position is used as-is.
+       ============================================================ */
+    (function () {
+      var rail = document.querySelector('[data-track-rail]');
+      var btn  = document.querySelector('[data-track-btn]');
+      var readout = document.querySelector('[data-mode-readout]');
+      if (!rail || !btn) return;
+
+      // ---- capability detection (media queries, NOT user-agent) ----
+      var mqFine    = window.matchMedia('(hover: hover) and (pointer: fine)');
+      var mqReduce  = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+      // ---- press / click acknowledgment (all pointer types) ----
+      // pointerdown/up covers mouse, pen, and touch with one code path. We add
+      // .is-press for the scale-in and .is-click for the ring pulse.
+      function press()   { btn.classList.add('is-press'); }
+      function release() { btn.classList.remove('is-press'); }
+      btn.addEventListener('pointerdown', press);
+      btn.addEventListener('pointerup', release);
+      btn.addEventListener('pointercancel', release);
+      btn.addEventListener('pointerleave', release);
+      btn.addEventListener('click', function () {
+        // re-trigger the ring pulse by removing + reflowing + re-adding
+        btn.classList.remove('is-click');
+        void btn.offsetWidth;              // force reflow so the anim restarts
+        btn.classList.add('is-click');
+      });
+      // keyboard activation: Enter/Space should feel like a click too
+      btn.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') { press(); }
+      });
+      btn.addEventListener('keyup', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') { release(); }
+      });
+
+      // ---- the tracking loop (only runs when TRACK mode is active) ----
+      var rafId = null;
+      var tracking = false;
+
+      // targetY = where the cursor is (clamped into the rail); curY = the eased
+      // position we actually render. Each frame we ease curY toward targetY.
+      var targetY = null;   // null until the first mousemove
+      var curY = 96;        // start at the CSS resting spot
+      var lastCurY = 96;    // to derive travel direction for the lean
+      var LERP = 0.14;      // 0..1 — lower = laggier/heavier. 0.14 ~ machined.
+      var MAX_LEAN = 4;     // degrees of rotation at full-speed travel
+
+      function railMetrics() {
+        var r = rail.getBoundingClientRect();
+        var b = btn.getBoundingClientRect();
+        // keep the whole button inside the rail: pad by half its height + a gap
+        var pad = b.height / 2 + 12;
+        return { top: r.top, height: r.height, pad: pad, btnH: b.height };
+      }
+
+      function onMove(e) {
+        var m = railMetrics();
+        // cursor Y relative to the rail's top, minus half the button so the
+        // button *centers* on the cursor rather than hanging below it
+        var y = e.clientY - m.top - m.btnH / 2;
+        // clamp so the button never pokes out of the rail ends
+        var min = m.pad - m.btnH / 2;
+        var max = m.height - m.pad - m.btnH / 2;
+        targetY = Math.max(min, Math.min(max, y));
+        if (!rafId) rafId = requestAnimationFrame(tick);
+      }
+
+      function tick() {
+        rafId = null;
+        if (targetY === null) { return; }
+        // ease: move a fraction of the remaining distance each frame
+        var dy = targetY - curY;
+        curY += dy * LERP;
+
+        // lean: rotate toward travel direction, scaled by instantaneous speed,
+        // capped. Sign follows movement (down = lean one way, up = the other).
+        var speed = curY - lastCurY;
+        lastCurY = curY;
+        var lean = Math.max(-MAX_LEAN, Math.min(MAX_LEAN, speed * 0.9));
+
+        btn.style.setProperty('--btn-y', curY.toFixed(2) + 'px');
+        btn.style.setProperty('--lean', lean.toFixed(2) + 'deg');
+
+        // keep animating until we've effectively settled (avoids a dead loop)
+        if (Math.abs(dy) > 0.3 || Math.abs(speed) > 0.3) {
+          rafId = requestAnimationFrame(tick);
+        } else {
+          btn.style.setProperty('--lean', '0deg');   // settle flat
+        }
+      }
+
+      function startTracking() {
+        if (tracking) return;
+        tracking = true;
+        // seed curY from wherever CSS currently has it so there's no jump
+        curY = 96; lastCurY = 96; targetY = null;
+        window.addEventListener('mousemove', onMove, { passive: true });
+      }
+      function stopTracking() {
+        if (!tracking) return;
+        tracking = false;
+        window.removeEventListener('mousemove', onMove);
+        if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+        // hand the button back to CSS: clear the inline props so the fixed
+        // resting transform (from the stylesheet / media queries) takes over
+        btn.style.removeProperty('--btn-y');
+        btn.style.removeProperty('--lean');
+      }
+
+      // ---- decide the mode, and re-decide if the environment changes ----
+      // (e.g. user plugs in a mouse, or toggles Reduce Motion mid-session)
+      function applyMode() {
+        var canTrack = mqFine.matches && !mqReduce.matches;
+        if (canTrack) startTracking(); else stopTracking();
+        if (readout) {
+          readout.textContent = 'mode: ' + (canTrack ? 'tracking (desktop)' : 'fixed (touch / reduced-motion)');
+        }
+      }
+
+      // matchMedia change events = the future-proof way to react to capability
+      // shifts. addEventListener('change') is supported everywhere modern;
+      // fall back to addListener for old Safari.
+      function onMQChange() { applyMode(); }
+      [mqFine, mqReduce].forEach(function (mq) {
+        if (mq.addEventListener) mq.addEventListener('change', onMQChange);
+        else if (mq.addListener) mq.addListener(onMQChange);
+      });
+
+      applyMode();
+    })();
+  </script>
+</body>
+</html>

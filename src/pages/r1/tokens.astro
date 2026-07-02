@@ -1,0 +1,444 @@
+---
+// ============================================================
+// R1 SPECIMEN — /r1/tokens
+// ------------------------------------------------------------
+// Light "drawing-set" token + type specimen for the tres.studio rebrand.
+// Fully self-contained: own <head>, own <style is:inline>, own <script
+// is:inline>. Reads the shared token layer via <link href="/v2-tokens.css">
+// (public copy) so it renders without any bundler step.
+//
+// Does NOT use Base.astro and does NOT touch any V1 page/layout/style.
+//
+// Real project imagery pulled from the 'projects' collection so Tres sees the
+// two ink candidates and type directions against actual work, not lorem.
+// ============================================================
+import { getCollection } from 'astro:content';
+import { heroUrlThumb } from '../../lib/cloudinary';
+
+// Grab the five Work heroes if present; fall back gracefully if the slug set
+// differs in the current sheet snapshot.
+const WORK_SLUGS = ['z07', 'ee13', 'flatwood', 'tucker', 'thesis'];
+let heroSrc: string | null = null;
+try {
+  const all = await getCollection('projects');
+  const bySlug = new Map(all.map((e) => [e.data.slug, e.data]));
+  for (const s of WORK_SLUGS) {
+    const p = bySlug.get(s);
+    if (p) {
+      const u = heroUrlThumb(p);
+      if (u) { heroSrc = u; break; }
+    }
+  }
+  // Last resort: first project with a hero.
+  if (!heroSrc) {
+    for (const e of all) {
+      const u = heroUrlThumb(e.data);
+      if (u) { heroSrc = u; break; }
+    }
+  }
+} catch {
+  heroSrc = null;
+}
+---
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>R1 · Tokens & Type Specimen — tres.studio</title>
+<meta name="robots" content="noindex" />
+<meta name="theme-color" content="#FFEDDB" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<!-- Direction 1: Archivo (display) + Newsreader (body). Direction 2: Roboto Slab (display) + Inter (body).
+     Utility mono: Space Mono (D1) + IBM Plex Mono (D2). All free Google Fonts. -->
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Newsreader:ital,opsz,wght@0,16..72,400;0,16..72,500;1,16..72,400&family=Roboto+Slab:wght@400;600;800&family=Inter:wght@400;500;600&family=Space+Mono:wght@400;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+<link rel="stylesheet" href="/v2-tokens.css" />
+
+<style is:inline>
+  *, *::before, *::after { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--v2-cream);
+    color: var(--v2-ink);
+    font-family: 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    padding-bottom: var(--v2-space-10);
+  }
+
+  .wrap {
+    max-width: var(--v2-maxw);
+    margin: 0 auto;
+    padding: var(--v2-space-7) var(--v2-gutter) 0;
+  }
+
+  /* ---- shared utility bits ---- */
+  .spec {
+    font-family: 'Space Mono', ui-monospace, monospace;
+    font-size: var(--v2-fs-spec);
+    letter-spacing: var(--v2-tracking-spec);
+    text-transform: uppercase;
+    color: var(--v2-ink-muted);
+  }
+  .kicker {
+    font-family: 'Space Mono', ui-monospace, monospace;
+    font-size: var(--v2-fs-spec);
+    letter-spacing: var(--v2-tracking-wide);
+    text-transform: uppercase;
+    color: var(--v2-umber);
+  }
+  .rule { height: var(--v2-hairline-w); background: var(--v2-line); border: 0; margin: 0; }
+  .rule-strong { background: var(--v2-line-strong); }
+
+  section { padding-block: var(--v2-space-8); border-top: var(--v2-hairline-w) solid var(--v2-line); }
+  section:first-of-type { border-top: 0; }
+  .sec-head { display: flex; align-items: baseline; gap: var(--v2-space-4); margin-bottom: var(--v2-space-6); flex-wrap: wrap; }
+  .sec-head h2 {
+    font-family: 'Archivo', sans-serif; font-weight: 700;
+    font-size: var(--v2-fs-h2); letter-spacing: var(--v2-tracking-display);
+    margin: 0; line-height: var(--v2-lh-snug);
+  }
+  .note { max-width: var(--v2-maxw-text); color: var(--v2-ink-muted); font-size: var(--v2-fs-body); line-height: var(--v2-lh-relaxed); }
+
+  /* ================= MASTHEAD ================= */
+  .masthead { padding-top: var(--v2-space-4); }
+  .masthead .titleblock {
+    display: flex; justify-content: space-between; gap: var(--v2-space-4);
+    flex-wrap: wrap; margin-bottom: var(--v2-space-5);
+  }
+  .masthead h1 {
+    font-family: 'Archivo', sans-serif; font-weight: 700;
+    font-size: var(--v2-fs-display); line-height: var(--v2-lh-tight);
+    letter-spacing: var(--v2-tracking-display); margin: 0;
+  }
+  .masthead h1 .dot { color: var(--v2-umber); }
+  .masthead .sub { margin-top: var(--v2-space-4); max-width: var(--v2-maxw-text);
+    font-family: 'Newsreader', Georgia, serif; font-size: var(--v2-fs-body-lg);
+    line-height: var(--v2-lh-relaxed); color: var(--v2-ink); }
+
+  /* ================= PALETTE ================= */
+  .swatches { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--v2-space-4); }
+  .swatch { border: var(--v2-hairline-w) solid var(--v2-line); border-radius: var(--v2-radius-sm); overflow: hidden; background: #fff; }
+  .swatch .chip { height: 96px; }
+  .swatch .meta { padding: var(--v2-space-3) var(--v2-space-4); display: flex; flex-direction: column; gap: 2px; }
+  .swatch .name { font-family: 'Archivo', sans-serif; font-weight: 600; font-size: var(--v2-fs-caption); text-transform: uppercase; letter-spacing: 0.06em; }
+  .swatch .hex { font-family: 'Space Mono', monospace; font-size: var(--v2-fs-spec); color: var(--v2-ink-muted); letter-spacing: 0.04em; }
+  .swatch .role { font-family: 'Space Mono', monospace; font-size: var(--v2-fs-spec); color: var(--v2-ink-faint); }
+
+  /* line tokens preview */
+  .lines { margin-top: var(--v2-space-6); display: grid; gap: var(--v2-space-4); }
+  .linerow { display: grid; grid-template-columns: 180px 1fr; align-items: center; gap: var(--v2-space-4); }
+  .linerow .swatch-line { height: 40px; display: flex; align-items: center; }
+  .linerow .swatch-line > span { flex: 1; }
+
+  /* ================= INK A / B ================= */
+  .inks { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: var(--v2-space-6); }
+  .ink-card { border: var(--v2-hairline-w) solid var(--v2-line); border-radius: var(--v2-radius-sm); padding: var(--v2-space-5); background: var(--v2-cream); }
+  .ink-card.on-sand { background: var(--v2-sand); }
+  .ink-card .label { display: flex; align-items: baseline; justify-content: space-between; gap: var(--v2-space-3); margin-bottom: var(--v2-space-4); }
+  .ink-card .tag { font-family: 'Archivo', sans-serif; font-weight: 700; font-size: var(--v2-fs-h3); }
+  .ink-card p { line-height: var(--v2-lh-relaxed); font-size: var(--v2-fs-body); margin: 0 0 var(--v2-space-3); font-family: 'Newsreader', Georgia, serif; }
+  .ink-card .disp { font-family: 'Archivo', sans-serif; font-weight: 700; font-size: var(--v2-fs-h2); letter-spacing: var(--v2-tracking-display); margin: 0 0 var(--v2-space-3); line-height: var(--v2-lh-snug); }
+  .ink-a { color: var(--v2-ink-a); }
+  .ink-b { color: var(--v2-ink-b); }
+  .ratio { font-family: 'Space Mono', monospace; font-size: var(--v2-fs-spec); letter-spacing: 0.04em; }
+
+  /* ================= TYPE DIRECTIONS ================= */
+  .dir { border: var(--v2-hairline-w) solid var(--v2-line); border-radius: var(--v2-radius-md); overflow: hidden; margin-bottom: var(--v2-space-6); }
+  .dir-head { padding: var(--v2-space-4) var(--v2-space-5); background: var(--v2-sand); border-bottom: var(--v2-hairline-w) solid var(--v2-line); }
+  .dir-head .dname { font-family: 'Archivo', sans-serif; font-weight: 700; font-size: var(--v2-fs-h3); margin: 0; }
+  .dir-head .dpersona { margin: 6px 0 0; font-family: 'Space Mono', monospace; font-size: var(--v2-fs-caption); color: var(--v2-ink-muted); letter-spacing: 0.02em; }
+  .dir-body { padding: var(--v2-space-6) var(--v2-space-5); display: grid; gap: var(--v2-space-5); }
+  .dir-body .mini-mast { display: flex; align-items: baseline; justify-content: space-between; gap: var(--v2-space-3); flex-wrap: wrap; }
+  .dir-body .headline { margin: 0; line-height: var(--v2-lh-snug); }
+  .dir-body .para { max-width: var(--v2-maxw-text); margin: 0; }
+  .dir-body .specblock { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: var(--v2-space-3); padding-top: var(--v2-space-4); border-top: var(--v2-hairline-w) solid var(--v2-line); }
+  .dir-body .specblock .cell .k { display: block; margin-bottom: 3px; }
+  .dir-body .specblock .cell .v { display: block; }
+
+  /* Direction 1 — Draughtsman's Grotesque: Archivo + Newsreader + Space Mono */
+  .d1 .brand { font-family: 'Archivo', sans-serif; font-weight: 700; letter-spacing: var(--v2-tracking-display); font-size: var(--v2-fs-h2); }
+  .d1 .headline { font-family: 'Archivo', sans-serif; font-weight: 600; letter-spacing: var(--v2-tracking-display); font-size: var(--v2-fs-h1); }
+  .d1 .para { font-family: 'Newsreader', Georgia, serif; font-size: var(--v2-fs-body-lg); line-height: var(--v2-lh-relaxed); }
+  .d1 .specblock { font-family: 'Space Mono', monospace; }
+  .d1 .specblock .k { font-size: var(--v2-fs-spec); letter-spacing: var(--v2-tracking-spec); text-transform: uppercase; color: var(--v2-umber); }
+  .d1 .specblock .v { font-size: var(--v2-fs-caption); color: var(--v2-ink); }
+  .d1 .eyebrow { font-family: 'Space Mono', monospace; font-size: var(--v2-fs-spec); letter-spacing: var(--v2-tracking-wide); text-transform: uppercase; color: var(--v2-ink-muted); }
+
+  /* Direction 2 — Architectural Slab: Roboto Slab + Inter + IBM Plex Mono */
+  .d2 .brand { font-family: 'Roboto Slab', serif; font-weight: 800; font-size: var(--v2-fs-h2); }
+  .d2 .headline { font-family: 'Roboto Slab', serif; font-weight: 800; letter-spacing: -0.01em; font-size: var(--v2-fs-h1); }
+  .d2 .para { font-family: 'Inter', system-ui, sans-serif; font-size: var(--v2-fs-body-lg); line-height: var(--v2-lh-relaxed); }
+  .d2 .specblock { font-family: 'IBM Plex Mono', monospace; }
+  .d2 .specblock .k { font-size: var(--v2-fs-spec); letter-spacing: var(--v2-tracking-spec); text-transform: uppercase; color: var(--v2-umber); }
+  .d2 .specblock .v { font-size: var(--v2-fs-caption); color: var(--v2-ink); }
+  .d2 .eyebrow { font-family: 'IBM Plex Mono', monospace; font-size: var(--v2-fs-spec); letter-spacing: var(--v2-tracking-wide); text-transform: uppercase; color: var(--v2-ink-muted); }
+
+  /* hero image, ragged/blob mask, purely to show ink+type against real work */
+  .hero-strip { margin-top: var(--v2-space-5); border-radius: var(--v2-radius-sm); overflow: hidden; border: var(--v2-hairline-w) solid var(--v2-line); }
+  .hero-strip img { display: block; width: 100%; height: 180px; object-fit: cover; filter: saturate(0.95); }
+  .hero-fallback { display:flex; align-items:center; justify-content:center; height:180px; background: var(--v2-clay); color: var(--v2-ink-muted); font-family:'Space Mono',monospace; font-size: var(--v2-fs-spec); letter-spacing: var(--v2-tracking-spec); text-transform: uppercase; }
+
+  /* scale ladder */
+  .scale { display: grid; gap: var(--v2-space-3); }
+  .scale .row { display: flex; align-items: baseline; gap: var(--v2-space-4); border-bottom: var(--v2-hairline-w) dashed var(--v2-hairline); padding-bottom: var(--v2-space-2); }
+  .scale .row .tk { font-family:'Space Mono',monospace; font-size: var(--v2-fs-spec); color: var(--v2-ink-muted); min-width: 90px; }
+  .scale .row .sample { font-family:'Archivo',sans-serif; font-weight:600; line-height:1; }
+
+  /* motion demo */
+  .motion { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: var(--v2-space-4); }
+  .motion .demo { border: var(--v2-hairline-w) solid var(--v2-line); border-radius: var(--v2-radius-sm); padding: var(--v2-space-4); text-align:center; }
+  .motion .box { width: 44px; height: 44px; background: var(--v2-umber); border-radius: var(--v2-radius-sm); margin: var(--v2-space-4) auto; }
+  .motion .demo.mech:active .box, .motion .demo.mech.go .box { transform: translateX(60px); }
+  .motion .demo.mech .box { transition: transform var(--v2-dur-base) var(--v2-ease-mechanical); }
+  .motion .demo.blob .box { border-radius: var(--v2-radius-blob); transition: transform var(--v2-dur-blob) var(--v2-ease-blob); }
+  .motion .demo.blob:active .box, .motion .demo.blob.go .box { transform: translateX(60px) scale(1.15); }
+  .motion .demo .tk { font-family:'Space Mono',monospace; font-size: var(--v2-fs-spec); color: var(--v2-ink-muted); letter-spacing: 0.03em; }
+  .motion .hint { font-family:'Space Mono',monospace; font-size: 10px; color: var(--v2-ink-faint); margin-top: 6px; }
+
+  a { color: var(--v2-umber); }
+  :focus-visible { outline: none; box-shadow: var(--v2-focus-ring); border-radius: var(--v2-radius-xs); }
+</style>
+</head>
+<body>
+  <div class="wrap">
+
+    <!-- ===== MASTHEAD ===== -->
+    <header class="masthead">
+      <div class="titleblock">
+        <span class="kicker">tres.studio · R1 rebrand</span>
+        <span class="spec">Light drawing-set · v2 tokens</span>
+      </div>
+      <h1>Tokens &amp; Type<span class="dot">.</span></h1>
+      <p class="sub">A light rebrand that keeps the drawing-set precision without the dark.
+      Pick one ink (A or B) and one type direction below. Everything here is real: the
+      palette is locked, the ink ratios are measured, the hero is an actual project.</p>
+    </header>
+
+    <!-- ===== PALETTE ===== -->
+    <section>
+      <div class="sec-head">
+        <span class="kicker">01</span>
+        <h2>Palette</h2>
+        <span class="spec">Locked — Tres-supplied</span>
+      </div>
+      <div class="swatches">
+        <div class="swatch">
+          <div class="chip" style="background:var(--v2-cream)"></div>
+          <div class="meta"><span class="name">Cream</span><span class="hex">#FFEDDB</span><span class="role">background</span></div>
+        </div>
+        <div class="swatch">
+          <div class="chip" style="background:var(--v2-sand)"></div>
+          <div class="meta"><span class="name">Sand</span><span class="hex">#EDCDBB</span><span class="role">surface / cards</span></div>
+        </div>
+        <div class="swatch">
+          <div class="chip" style="background:var(--v2-clay)"></div>
+          <div class="meta"><span class="name">Clay</span><span class="hex">#E3B7A0</span><span class="role">mid accents</span></div>
+        </div>
+        <div class="swatch">
+          <div class="chip" style="background:var(--v2-umber)"></div>
+          <div class="meta"><span class="name">Umber</span><span class="hex">#BF9270</span><span class="role">strong accents</span></div>
+        </div>
+      </div>
+
+      <div class="lines">
+        <div class="linerow">
+          <span class="spec">hairline · .08</span>
+          <div class="swatch-line"><span><hr class="rule" style="background:var(--v2-hairline)"></span></div>
+        </div>
+        <div class="linerow">
+          <span class="spec">line · .14</span>
+          <div class="swatch-line"><span><hr class="rule"></span></div>
+        </div>
+        <div class="linerow">
+          <span class="spec">line-strong · .28</span>
+          <div class="swatch-line"><span><hr class="rule rule-strong"></span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== INK A / B ===== -->
+    <section>
+      <div class="sec-head">
+        <span class="kicker">02</span>
+        <h2>Ink — pick A or B</h2>
+        <span class="spec">Both AAA on cream · neither is black</span>
+      </div>
+      <p class="note">Read these as real paragraphs. A is a warm espresso brown that melts into
+      the palette; B is a cooler aubergine-cocoa that keeps text feeling crisp and drafted.
+      Same two shown on Sand so you can judge them on cards too.</p>
+
+      <div class="inks">
+        <!-- A on cream -->
+        <div class="ink-card">
+          <div class="label"><span class="tag ink-a">Ink A</span><span class="ratio ink-a">#2B1F1A · 14.00:1</span></div>
+          <p class="disp ink-a">Espresso brown, warm as kraft.</p>
+          <p class="ink-a">Alys Beach Z-07 threads a courtyard house through a tight coastal lot.
+          The plan keeps its lines quiet: a spine of masonry, a shaded loggia, and a stair
+          that reads like a section drawing you can walk. This ink is the reddish-brown one —
+          soft, close to the terracotta family, easy on a cream page.</p>
+          <span class="ratio ink-a">on cream 14.00:1 · on sand 10.70:1 · on clay 8.79:1</span>
+        </div>
+        <!-- B on cream -->
+        <div class="ink-card">
+          <div class="label"><span class="tag ink-b">Ink B</span><span class="ratio ink-b">#241C22 · 14.55:1</span></div>
+          <p class="disp ink-b">Aubergine cocoa, drafted &amp; crisp.</p>
+          <p class="ink-b">Alys Beach Z-07 threads a courtyard house through a tight coastal lot.
+          The plan keeps its lines quiet: a spine of masonry, a shaded loggia, and a stair
+          that reads like a section drawing you can walk. This ink runs slightly cooler — a
+          faint violet edge that adds tension against the warm palette and sharpens the text.</p>
+          <span class="ratio ink-b">on cream 14.55:1 · on sand 11.11:1 · on clay 9.13:1</span>
+        </div>
+        <!-- A on sand -->
+        <div class="ink-card on-sand">
+          <div class="label"><span class="tag ink-a">Ink A · on Sand</span><span class="ratio ink-a">10.70:1</span></div>
+          <p class="ink-a">Card copy sits on Sand surfaces. Espresso A stays warm and legible here
+          — this is how body text reads inside a project card or a spec panel.</p>
+        </div>
+        <!-- B on sand -->
+        <div class="ink-card on-sand">
+          <div class="label"><span class="tag ink-b">Ink B · on Sand</span><span class="ratio ink-b">11.11:1</span></div>
+          <p class="ink-b">Card copy sits on Sand surfaces. Aubergine B holds a touch more contrast
+          and a cooler note — cleaner, more "technical" against the terracotta.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== TYPE DIRECTION 1 ===== -->
+    <section>
+      <div class="sec-head">
+        <span class="kicker">03</span>
+        <h2>Type — two directions</h2>
+        <span class="spec">Free Google Fonts only</span>
+      </div>
+
+      <div class="dir d1">
+        <div class="dir-head">
+          <p class="dname">Direction 1 — Draughtsman's Grotesque</p>
+          <p class="dpersona">Archivo (display) + Newsreader (body) + Space Mono (spec). Engineered, technical-masthead energy; a squared grotesque with a warm reading serif — precise, not cold.</p>
+        </div>
+        <div class="dir-body">
+          <div class="mini-mast">
+            <span class="brand">Tres<span style="color:var(--v2-umber)">.</span>studio</span>
+            <span class="eyebrow">Work · 30A Florida</span>
+          </div>
+          <h3 class="headline">Buildings drawn like sentences, edited like code.</h3>
+          <p class="para">Architecture, art, and the tools that make them from 30A. Each project
+          keeps a drawing-set clarity: hairline rules, honest materials, and a plan you can read
+          at a glance. The body face here is a quiet workhorse serif so long descriptions stay
+          comfortable on a bright cream page.</p>
+          <div class="specblock">
+            <span class="cell"><span class="k">Location</span><span class="v">Alys Beach, FL</span></span>
+            <span class="cell"><span class="k">Year</span><span class="v">2024</span></span>
+            <span class="cell"><span class="k">Status</span><span class="v">Built</span></span>
+            <span class="cell"><span class="k">Role</span><span class="v">Design · Documentation</span></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="dir d2">
+        <div class="dir-head">
+          <p class="dname">Direction 2 — Architectural Slab</p>
+          <p class="dpersona">Roboto Slab (display) + Inter (body) + IBM Plex Mono (spec). Stamped-nameplate / titleblock monumentality; the slab carries all the character, Inter stays invisible underneath.</p>
+        </div>
+        <div class="dir-body">
+          <div class="mini-mast">
+            <span class="brand">Tres.studio</span>
+            <span class="eyebrow">Work · 30A Florida</span>
+          </div>
+          <h3 class="headline">Stamped like a titleblock, built to last.</h3>
+          <p class="para">Architecture, art, and the tools that make them from 30A. The slab display
+          reads like lettering pressed into a drawing sheet or a bronze nameplate — heavier,
+          more monumental. Inter underneath is deliberately neutral so the display does the
+          talking and the body just gets out of the way.</p>
+          <div class="specblock">
+            <span class="cell"><span class="k">Location</span><span class="v">Alys Beach, FL</span></span>
+            <span class="cell"><span class="k">Year</span><span class="v">2024</span></span>
+            <span class="cell"><span class="k">Status</span><span class="v">Built</span></span>
+            <span class="cell"><span class="k">Role</span><span class="v">Design · Documentation</span></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-strip">
+        {heroSrc
+          ? <img src={heroSrc} alt="Project hero — real imagery from the projects collection" loading="lazy" />
+          : <div class="hero-fallback">hero image unavailable in this build</div>}
+      </div>
+    </section>
+
+    <!-- ===== TYPE SCALE ===== -->
+    <section>
+      <div class="sec-head">
+        <span class="kicker">04</span>
+        <h2>Scale</h2>
+        <span class="spec">clamp() · fluid mobile → desktop</span>
+      </div>
+      <div class="scale">
+        <div class="row"><span class="tk">display</span><span class="sample" style="font-size:var(--v2-fs-display)">Ag</span></div>
+        <div class="row"><span class="tk">h1</span><span class="sample" style="font-size:var(--v2-fs-h1)">Section title</span></div>
+        <div class="row"><span class="tk">h2</span><span class="sample" style="font-size:var(--v2-fs-h2)">Subsection</span></div>
+        <div class="row"><span class="tk">h3</span><span class="sample" style="font-size:var(--v2-fs-h3)">Small heading</span></div>
+        <div class="row"><span class="tk">body-lg</span><span class="sample" style="font-size:var(--v2-fs-body-lg);font-family:'Newsreader',serif;font-weight:400">Lead paragraph text</span></div>
+        <div class="row"><span class="tk">body</span><span class="sample" style="font-size:var(--v2-fs-body);font-family:'Newsreader',serif;font-weight:400">Standard paragraph text</span></div>
+        <div class="row"><span class="tk">caption</span><span class="sample" style="font-size:var(--v2-fs-caption);font-family:'Inter',sans-serif;font-weight:400">Caption / secondary</span></div>
+        <div class="row"><span class="tk">spec</span><span class="sample spec" style="font-size:var(--v2-fs-spec)">SPEC LABEL · TITLEBLOCK</span></div>
+      </div>
+    </section>
+
+    <!-- ===== MOTION ===== -->
+    <section>
+      <div class="sec-head">
+        <span class="kicker">05</span>
+        <h2>Motion</h2>
+        <span class="spec">Tap a card · transforms only</span>
+      </div>
+      <p class="note">Two easing curves. Mechanical is the drafting-machine snap for UI; Blob is the
+      soft liquid overshoot reserved for the ragged-edge photo motion. Tap either card to fire it
+      (works with a finger). Reduced-motion collapses durations to 0 — it just sets, never breaks.</p>
+      <div class="motion">
+        <div class="demo mech" role="button" tabindex="0" aria-label="Play mechanical easing demo">
+          <div class="box"></div>
+          <div class="tk">--v2-ease-mechanical</div>
+          <div class="hint">precise · 260ms</div>
+        </div>
+        <div class="demo blob" role="button" tabindex="0" aria-label="Play blob easing demo">
+          <div class="box"></div>
+          <div class="tk">--v2-ease-blob</div>
+          <div class="hint">soft overshoot · 620ms</div>
+        </div>
+      </div>
+    </section>
+
+    <footer style="padding-top:var(--v2-space-7)">
+      <hr class="rule rule-strong" />
+      <p class="spec" style="margin-top:var(--v2-space-4)">tres.studio · R1 specimen · noindex · /r1/tokens</p>
+    </footer>
+  </div>
+
+  <script is:inline>
+    // Tap-to-fire motion demos (finger + keyboard). Toggle a .go class so a
+    // tap plays the transition on touch even without :active hover semantics.
+    (function () {
+      var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      var demos = document.querySelectorAll('.motion .demo');
+      demos.forEach(function (el) {
+        function fire() {
+          if (reduce) return;            // calm fallback: no toggle animation
+          el.classList.add('go');
+          window.setTimeout(function () { el.classList.remove('go'); }, 780);
+        }
+        el.addEventListener('click', fire);
+        el.addEventListener('keydown', function (e) {
+          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fire(); }
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

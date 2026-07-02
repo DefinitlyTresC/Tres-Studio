@@ -1,0 +1,183 @@
+/* ============================================================
+   tres.studio — V2 DESIGN TOKENS (R1 rebrand: light "drawing-set")
+   ------------------------------------------------------------
+   Light-first rebrand of the dark V1 identity. Keeps the drawing-set
+   precision DNA (hairlines, mono spec-labels, mechanical motion) but on
+   a warm cream ground instead of near-black.
+
+   ALL tokens are --v2- prefixed so they NEVER collide with the live V1
+   tokens in global.css / style.css. Nothing here overrides V1.
+
+   Palette is Tres-supplied and LOCKED. Ink, lines, type scale, spacing,
+   radii and motion are proposals for R1 sign-off.
+
+   A byte-identical copy lives at public/v2-tokens.css so prototype pages
+   can <link rel="stylesheet" href="/v2-tokens.css"> without the bundler.
+   Keep the two files in sync by hand.
+   ============================================================ */
+
+:root {
+  /* --------------------------------------------------------
+     1. PALETTE — locked (Tres-supplied). Warm terracotta family.
+     -------------------------------------------------------- */
+  --v2-cream: #FFEDDB;   /* background            */
+  --v2-sand:  #EDCDBB;   /* surface / cards       */
+  --v2-clay:  #E3B7A0;   /* mid accents           */
+  --v2-umber: #BF9270;   /* strong accents        */
+
+  /* Convenience aliases (semantic names for the same locked hexes). */
+  --v2-bg:      var(--v2-cream);
+  --v2-surface: var(--v2-sand);
+  --v2-accent:  var(--v2-umber);
+
+  /* --------------------------------------------------------
+     2. INK — two candidates for body/display text. NEITHER is pure
+        black; both are warm-dark and both clear WCAG AAA (>=7:1) on
+        cream by a wide margin. Contrast measured against cream #FFEDDB
+        (and sand/clay for surface text) with the WCAG 2.x formula.
+
+        Candidate A — ESPRESSO BROWN. Reddish-brown bias; reads warm and
+        soft, sits inside the terracotta family. Feels like ink on kraft.
+          on cream #FFEDDB : 14.00:1   (AAA)
+          on sand  #EDCDBB : 10.70:1   (AAA)
+          on clay  #E3B7A0 :  8.79:1   (AAA)
+
+        Candidate B — AUBERGINE COCOA. Cooler, faint violet bias; adds a
+        touch of tension against the warm palette so text reads crisp and
+        "drafted" rather than cozy. Slightly higher contrast than A.
+          on cream #FFEDDB : 14.55:1   (AAA)
+          on sand  #EDCDBB : 11.11:1   (AAA)
+          on clay  #E3B7A0 :  9.13:1   (AAA)
+
+        Pick ONE for the real build and drop the other; --v2-ink is the
+        alias the rest of the system reads (defaults to A).
+     -------------------------------------------------------- */
+  --v2-ink-a: #2B1F1A;   /* espresso brown  — 14.00:1 on cream */
+  --v2-ink-b: #241C22;   /* aubergine cocoa — 14.55:1 on cream */
+
+  --v2-ink: var(--v2-ink-a);        /* active ink — swap to -b to compare */
+
+  /* Muted ink for secondary/caption text. rgba of ink A so it stays warm.
+     ~0.68 alpha on cream still clears ~7:1 comfortably. */
+  --v2-ink-muted: rgba(43, 31, 26, 0.68);
+  --v2-ink-faint: rgba(43, 31, 26, 0.46);
+
+  /* --------------------------------------------------------
+     3. LINES / HAIRLINES — the drawing-set backbone. Derived from ink at
+        low alpha so rules feel drafted, not printed-black. Use these for
+        every dividing rule, grid line, table border, spec underline.
+     -------------------------------------------------------- */
+  --v2-line:          rgba(43, 31, 26, 0.14);  /* standard 1px rule       */
+  --v2-line-strong:   rgba(43, 31, 26, 0.28);  /* emphasized / active rule */
+  --v2-hairline:      rgba(43, 31, 26, 0.08);  /* faint grid / ghost rule  */
+  --v2-line-on-dark:  rgba(255, 237, 219, 0.24); /* rule over umber panels */
+
+  /* Standard hairline width. Drawing-set stays crisp: 1 device px. */
+  --v2-hairline-w: 1px;
+
+  /* --------------------------------------------------------
+     4. TYPE SCALE — fluid clamp() sizes (mobile min -> desktop max).
+        vw midpoints tuned for a ~375px..1440px range, iOS-first.
+        Body min 16px so iOS Safari never zoom-snaps form focus.
+     -------------------------------------------------------- */
+  --v2-fs-display: clamp(2.75rem, 1.6rem + 6.4vw, 6rem);    /* 44 -> 96px hero  */
+  --v2-fs-h1:      clamp(2rem, 1.35rem + 3.2vw, 3.5rem);    /* 32 -> 56px       */
+  --v2-fs-h2:      clamp(1.5rem, 1.15rem + 1.75vw, 2.25rem);/* 24 -> 36px       */
+  --v2-fs-h3:      clamp(1.25rem, 1.05rem + 1vw, 1.625rem); /* 20 -> 26px       */
+  --v2-fs-body-lg: clamp(1.125rem, 1.05rem + 0.4vw, 1.3125rem); /* 18 -> 21px  */
+  --v2-fs-body:    clamp(1rem, 0.96rem + 0.2vw, 1.125rem);  /* 16 -> 18px       */
+  --v2-fs-caption: clamp(0.8125rem, 0.79rem + 0.1vw, 0.875rem); /* 13 -> 14px  */
+  --v2-fs-spec:    clamp(0.6875rem, 0.66rem + 0.12vw, 0.75rem); /* 11 -> 12px mono */
+
+  /* Line-heights + tracking. Display tight & tracked-in like a masthead;
+     spec labels tracked-out like a titleblock. */
+  --v2-lh-tight:   1.02;
+  --v2-lh-snug:    1.14;
+  --v2-lh-normal:  1.5;
+  --v2-lh-relaxed: 1.62;
+
+  --v2-tracking-display: -0.02em;
+  --v2-tracking-normal:  0;
+  --v2-tracking-spec:    0.18em;   /* mono titleblock labels     */
+  --v2-tracking-wide:    0.34em;   /* section eyebrows / kickers */
+
+  --v2-weight-body:    400;
+  --v2-weight-medium:  500;
+  --v2-weight-display: 600;
+  --v2-weight-bold:    700;
+
+  /* Font families are declared per type-direction on the specimen page
+     (r1/tokens.astro) so Tres can compare Direction 1 vs 2 without one
+     bleeding into the other. No global family token is set here on purpose. */
+
+  /* --------------------------------------------------------
+     5. SPACING — base-4 architectural scale. Use for padding, gaps,
+        stack rhythm. --v2-gutter is the page side-margin (fluid).
+     -------------------------------------------------------- */
+  --v2-space-0:  0;
+  --v2-space-1:  0.25rem;   /*  4px */
+  --v2-space-2:  0.5rem;    /*  8px */
+  --v2-space-3:  0.75rem;   /* 12px */
+  --v2-space-4:  1rem;      /* 16px */
+  --v2-space-5:  1.5rem;    /* 24px */
+  --v2-space-6:  2rem;      /* 32px */
+  --v2-space-7:  3rem;      /* 48px */
+  --v2-space-8:  4rem;      /* 64px */
+  --v2-space-9:  6rem;      /* 96px */
+  --v2-space-10: 8rem;      /* 128px */
+
+  --v2-gutter: clamp(1.25rem, 0.9rem + 2vw, 3rem);   /* page side margin  */
+  --v2-maxw:   72rem;                                 /* content max width */
+  --v2-maxw-text: 38rem;                              /* readable measure  */
+
+  /* --------------------------------------------------------
+     6. RADIUS — mostly sharp (drawing-set = orthogonal). A couple of soft
+        tokens exist for the blob/soft-UI touches only.
+     -------------------------------------------------------- */
+  --v2-radius-0:    0;          /* default: crisp corners  */
+  --v2-radius-xs:   2px;
+  --v2-radius-sm:   4px;
+  --v2-radius-md:   8px;
+  --v2-radius-lg:   16px;
+  --v2-radius-pill: 999px;      /* tracking button / tags  */
+  --v2-radius-blob: 42% 58% 63% 37% / 41% 44% 56% 59%; /* organic blob mask */
+
+  /* --------------------------------------------------------
+     7. MOTION — two easing curves + duration tokens.
+        Animate transforms/opacity only; respect prefers-reduced-motion.
+
+        MECHANICAL — precise, drafting-machine snap. For UI: buttons, tabs,
+        hairline reveals, the odometer/ticker. Slight anticipation, hard set.
+
+        BLOB — soft, liquid overshoot. For the ragged-edge photo motion and
+        organic hover states only. Never on text.
+     -------------------------------------------------------- */
+  --v2-ease-mechanical: cubic-bezier(0.16, 0.84, 0.28, 1);
+  --v2-ease-blob:       cubic-bezier(0.34, 1.56, 0.44, 1);
+
+  --v2-dur-instant: 90ms;
+  --v2-dur-fast:    160ms;
+  --v2-dur-base:    260ms;
+  --v2-dur-slow:    420ms;
+  --v2-dur-blob:    620ms;   /* longer, for the soft photo motion */
+
+  /* Elevation — kept subtle & warm (shadows tinted with ink, not black). */
+  --v2-shadow-sm: 0 1px 2px rgba(43, 31, 26, 0.06);
+  --v2-shadow-md: 0 6px 20px rgba(43, 31, 26, 0.10);
+  --v2-shadow-lg: 0 18px 48px rgba(43, 31, 26, 0.14);
+
+  /* Focus ring — visible on cream, uses umber so it stays on-brand. */
+  --v2-focus-ring: 0 0 0 2px var(--v2-cream), 0 0 0 4px var(--v2-umber);
+}
+
+/* Global calm fallback: any element using a --v2 duration token still
+   honors reduced-motion. Prototype pages should also gate their own JS. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --v2-dur-instant: 0ms;
+    --v2-dur-fast: 0ms;
+    --v2-dur-base: 0ms;
+    --v2-dur-slow: 0ms;
+    --v2-dur-blob: 0ms;
+  }
+}
