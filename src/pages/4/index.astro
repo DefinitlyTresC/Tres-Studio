@@ -142,6 +142,11 @@ import { MV_CLIENT } from '../../lib/multiverse';
         will-change: transform;
         user-select: none;
       }
+      /* portrait/mobile: 46vw collapses the numeral to a stub and -10svh
+         buries it — go genuinely giant (right-cropped) and lift it */
+      @media (max-width: 700px) {
+        .num { font-size: min(52svh, 118vw); right: -6vw; bottom: -4svh; }
+      }
       /* press texture inside the glyph: a fine dot screen clipped to the 03 —
          reads as ink sitting on stock, not a flat fill */
       @supports ((-webkit-background-clip: text) or (background-clip: text)) {

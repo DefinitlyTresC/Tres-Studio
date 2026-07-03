@@ -55,6 +55,11 @@ nav panel better so like its stays on screen longer when scrolling"; (3)
    ticker confetti physics now time-based (was 2x speed on 120Hz);
    gallery videos stop autoplay-looping under reduced-motion (sites 2/3/4);
    stale header comment + dead --i props removed.
+6. **Mobile 03 (Tres: "the 3 is too low on mobile"):** on ≤700px the numeral
+   was a 46vw stub half-buried by bottom:-10svh — now min(52svh, 118vw),
+   right-cropped and lifted (bottom:-4svh): a genuine giant hero filling the
+   lower phone viewport. Verified in a portrait window: landing, dwell
+   (menu over the numeral), sheet handoff, and the single-column end sheet.
 
 **VERIFIED in real visible Chrome (PowerShell-driven walk):** clean top →
 staggered arrivals → long seated dwell → sheet chasing words off bottom-up
