@@ -42,13 +42,38 @@ const work = WORK.map((s) => all.find((p) => p.id === s)?.data).filter(Boolean);
 
     <footer id="mv-info" class="info">
       <div class="checker" aria-hidden="true"></div>
-      <a class="mail" href="mailto:tres@tres.studio">TRES@TRES.STUDIO</a>
+      <div class="i-top">
+        <p class="stmt">ARCHITECTURE, ART, AND CODE.</p>
+        <a class="i-mail" href="mailto:tres@tres.studio">GET IN TOUCH</a>
+      </div>
+      <div class="i-cols">
+        <div class="i-col">
+          <span class="lbl">LOCATION</span>
+          SEAGROVE · 30A<br />FLORIDA, USA
+        </div>
+        <div class="i-col">
+          <span class="lbl">CONTACT</span>
+          <a href="mailto:tres@tres.studio">TRES@TRES.STUDIO</a><br />
+          <a href="https://instagram.com/tres.studio" target="_blank" rel="noopener">IG</a>
+        </div>
+        <div class="i-col">
+          <span class="lbl">SECTIONS</span>
+          <a href="/2/">WORK</a><br />
+          <a href="/architecture">ARCHIVE</a><br />
+          <a href="/lab">LAB</a>
+        </div>
+      </div>
+      <div class="i-meta">
+        <span>© 2026 TRES CARTER</span>
+        <span id="mv-ticker-slot"></span>
+        <a href="/privacy">PRIVACY</a>
+      </div>
     </footer>
 
     <style is:inline>
       :root {
         --mvt-card: #0a0a0a; --mvt-ink: #ffffff; --mvt-line: rgba(255,255,255,0.4);
-        --mvt-label: rgba(0,0,0,0.6); --mvt-confetti: #0a0a0a,#ffffff,#3a3a3a;
+        --mvt-label: rgba(0,0,0,0.6); --mvt-accent: #0a0a0a; --mvt-confetti: #0a0a0a,#ffffff,#3a3a3a;
       }
       * { margin: 0; box-sizing: border-box; }
       html { background: #fff; }
@@ -78,13 +103,34 @@ const work = WORK.map((s) => all.find((p) => p.id === s)?.data).filter(Boolean);
       }
       .more { display: flex; gap: 34px; padding: 5svh 5vw 0; font-family: 'Space Mono', monospace; font-size: 14px; }
 
-      .info { min-height: 60svh; display: grid; align-content: center; gap: 0; position: relative; overflow: hidden; border-top: 4px solid #0a0a0a; }
+      html, body { overflow-x: hidden; } /* the dot-cluster bleeds off the right edge */
+      .info {
+        min-height: 74svh; display: grid; align-content: end; gap: 6svh;
+        position: relative; padding: 10svh 5vw 3svh; border-top: 4px solid #0a0a0a;
+      }
       .checker {
-        position: absolute; inset: 0; opacity: 0.08;
+        position: absolute; inset: 0; opacity: 0.07; pointer-events: none;
         background: conic-gradient(#0a0a0a 90deg, #fff 90deg 180deg, #0a0a0a 180deg 270deg, #fff 270deg);
         background-size: 48px 48px;
       }
-      .mail { position: relative; font-size: clamp(28px, 6.4vw, 84px); padding: 0 5vw; }
+      .i-top { position: relative; display: flex; justify-content: space-between; align-items: baseline; gap: 20px; flex-wrap: wrap; }
+      .stmt { font-size: clamp(34px, 6.4vw, 90px); line-height: 0.98; max-width: 13ch; }
+      .i-mail { font-family: 'Space Mono', monospace; font-size: 13px; background: #0a0a0a; color: #fff; padding: 8px 14px; }
+      .i-cols {
+        position: relative; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px;
+        padding-right: clamp(100px, 24vw, 240px);
+        font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: 0.05em; line-height: 1.9;
+      }
+      @media (max-width: 640px) { .i-cols { grid-template-columns: 1fr; } }
+      .lbl { display: block; opacity: 0.5; margin-bottom: 6px; }
+      .i-meta {
+        position: relative; display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap;
+        border-top: 4px solid #0a0a0a; padding-top: 14px;
+        font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.06em;
+      }
+      @media (hover: hover) and (pointer: fine) {
+        .info a:hover { text-decoration: underline; text-underline-offset: 4px; }
+      }
     </style>
 
     <script is:inline type="module">

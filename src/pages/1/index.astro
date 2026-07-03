@@ -43,8 +43,33 @@ const work = WORK.map((s) => all.find((p) => p.id === s)?.data).filter(Boolean);
     </main>
 
     <footer id="mv-info" class="info">
-      <p class="spec">Tres Carter — 30A, Florida</p>
-      <a class="mail" href="mailto:tres@tres.studio">tres@tres.studio</a>
+      <div class="i-top">
+        <p class="stmt">Designing across architecture, art, and code<span class="pd">.</span></p>
+        <a class="i-mail" href="mailto:tres@tres.studio">Get in touch</a>
+      </div>
+      <div class="i-cols">
+        <div class="i-col">
+          <span class="lbl">Location</span>
+          Seagrove · 30A<br />Florida, USA
+        </div>
+        <div class="i-col">
+          <span class="lbl">Contact</span>
+          <a href="mailto:tres@tres.studio">tres@tres.studio</a><br />
+          <a href="https://instagram.com/tres.studio" target="_blank" rel="noopener">IG</a>
+        </div>
+        <div class="i-col">
+          <span class="lbl">Sections</span>
+          <a href="/1/">Work</a><br />
+          <a href="/architecture">Archive</a><br />
+          <a href="/lab">Lab</a><br />
+          <span class="soon">Plugins — soon</span>
+        </div>
+      </div>
+      <div class="i-meta">
+        <span>© 2026 Tres Carter</span>
+        <span id="mv-ticker-slot"></span>
+        <a href="/privacy">Privacy</a>
+      </div>
     </footer>
 
     <style is:inline>
@@ -79,8 +104,32 @@ const work = WORK.map((s) => all.find((p) => p.id === s)?.data).filter(Boolean);
         .more a:hover { text-decoration: underline; text-underline-offset: 4px; }
       }
 
-      .info { min-height: 60svh; display: grid; align-content: center; gap: 12px; padding: var(--v2-pad, 24px); border-top: 1px solid var(--v2-hairline, rgba(43,31,26,.16)); }
-      .mail { font-weight: 600; font-size: clamp(26px, 5.4vw, 54px); text-transform: uppercase; }
+      html, body { overflow-x: hidden; } /* the dot-cluster bleeds off the right edge */
+      .info {
+        min-height: 74svh; display: grid; align-content: end; gap: 7svh;
+        padding: 10svh var(--v2-pad, 24px) 4svh;
+        border-top: 1px solid var(--v2-hairline, rgba(43,31,26,.16));
+      }
+      .i-top { display: flex; justify-content: space-between; align-items: baseline; gap: 20px; flex-wrap: wrap; }
+      .stmt { font-weight: 600; font-size: clamp(28px, 4.6vw, 52px); line-height: 1.04; text-transform: none; max-width: 15ch; text-wrap: balance; }
+      .i-mail { font-family: var(--v2-mono, monospace); font-size: 13px; }
+      .i-cols {
+        display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px;
+        padding-right: clamp(100px, 24vw, 240px); /* room for the map */
+        font-family: var(--v2-mono, monospace); font-size: 12px; letter-spacing: 0.05em;
+        text-transform: uppercase; line-height: 1.9;
+      }
+      @media (max-width: 640px) { .i-cols { grid-template-columns: 1fr; } }
+      .lbl { display: block; color: var(--v2-ink-soft, #6b5c54); margin-bottom: 6px; }
+      .soon { color: var(--v2-ink-soft, #6b5c54); }
+      .i-meta {
+        display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap;
+        border-top: 1px solid var(--v2-hairline, rgba(43,31,26,.16)); padding-top: 16px;
+        font-family: var(--v2-mono, monospace); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase;
+      }
+      @media (hover: hover) and (pointer: fine) {
+        .info a:hover { text-decoration: underline; text-underline-offset: 4px; }
+      }
     </style>
 
     <script is:inline type="module">

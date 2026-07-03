@@ -26,6 +26,7 @@
   var LINE = prop('--mvt-line', 'rgba(0,0,0,0.28)');
   var LABEL = prop('--mvt-label', 'rgba(0,0,0,0.55)');
   var CONF = prop('--mvt-confetti', '#EDCDBB,#E3B7A0,#BF9270,#2B1F1A,#ffffff').split(',');
+  var ACCENT = prop('--mvt-accent', '#BF9270');
 
   var sid;
   try {
@@ -36,11 +37,27 @@
     }
   } catch (e) { sid = String(Math.random()).slice(2); }
 
-  /* widget DOM */
+  /* widget DOM — mounts inline into #mv-ticker-slot in the info footer
+     (falls back to fixed bottom-right only if no slot exists) */
+  var slot = document.getElementById('mv-ticker-slot');
   var tick = document.createElement('div');
-  tick.style.cssText = 'position:fixed;right:max(16px,env(safe-area-inset-right,0px));bottom:max(16px,env(safe-area-inset-bottom,0px));' +
-    'display:flex;align-items:baseline;gap:8px;z-index:70;opacity:0;translate:0 6px;' +
+  tick.style.cssText = (slot
+    ? 'display:inline-flex;'
+    : 'position:fixed;right:max(16px,env(safe-area-inset-right,0px));bottom:max(16px,env(safe-area-inset-bottom,0px));display:flex;z-index:70;') +
+    'align-items:center;gap:12px;opacity:0;translate:0 6px;' +
     'transition:opacity 300ms cubic-bezier(.23,1,.32,1),translate 300ms cubic-bezier(.23,1,.32,1)';
+
+  /* live: "● n online" */
+  var live = document.createElement('span');
+  live.style.cssText = 'display:inline-flex;align-items:center;gap:7px;font:10px/1 "Space Mono",ui-monospace,monospace;' +
+    'letter-spacing:.1em;text-transform:uppercase;color:' + LABEL;
+  var liveDot = document.createElement('span');
+  liveDot.style.cssText = 'width:7px;height:7px;border-radius:50%;background:' + ACCENT;
+  var liveNum = document.createElement('span');
+  liveNum.textContent = '1';
+  live.appendChild(liveDot); live.appendChild(liveNum);
+  live.appendChild(document.createTextNode(' online'));
+  tick.appendChild(live);
   var btn = document.createElement('button');
   btn.type = 'button';
   btn.setAttribute('aria-label', 'Total site visits — spin');
@@ -61,7 +78,7 @@
   cvf.style.cssText = 'position:fixed;inset:0;z-index:75;pointer-events:none';
   cvf.setAttribute('aria-hidden', 'true');
 
-  function boot() { document.body.appendChild(tick); document.body.appendChild(cvf); }
+  function boot() { (slot || document.body).appendChild(tick); document.body.appendChild(cvf); }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();
 
@@ -131,6 +148,7 @@
     .then(function (data) {
       if (!data || typeof data.total !== 'number') return;
       real = data.total;
+      if (typeof data.live === 'number') liveNum.textContent = String(Math.max(1, data.live));
       reveal(); rollTo(real);
       btn.setAttribute('aria-label', 'Total site visits: ' + real + ' — spin');
     })
