@@ -20,7 +20,7 @@ import { MV_CLIENT } from '../../lib/multiverse';
     <title>TRES [ascii]</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=Space+Mono&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Anybody:wdth,wght@150,900&family=JetBrains+Mono:wght@400;600;700;800&family=Space+Mono&display=swap" rel="stylesheet" />
     <script is:inline set:html={MV_CLIENT(3)} />
   </head>
   <body>
@@ -78,7 +78,7 @@ import { MV_CLIENT } from '../../lib/multiverse';
       }
       * { margin: 0; box-sizing: border-box; }
       html { background: #fff; scroll-snap-type: y proximity; }
-      body { font-family: 'IBM Plex Mono', ui-monospace, monospace; color: #141414; -webkit-font-smoothing: antialiased; }
+      body { font-family: 'JetBrains Mono', ui-monospace, monospace; color: #141414; -webkit-font-smoothing: antialiased; }
       ::selection { background: #141414; color: #fff; }
       a { color: inherit; text-decoration: none; }
 
@@ -93,19 +93,25 @@ import { MV_CLIENT } from '../../lib/multiverse';
         position: absolute; bottom: 4svh; left: 50%; translate: -50% 0;
         font-size: 11px; letter-spacing: 0.14em; color: rgba(20,20,20,0.45);
         transition: opacity 400ms ease;
+        pointer-events: none; /* never a dead zone for canvas clicks */
       }
       .hint.off { opacity: 0; }
 
       .keys {
-        position: fixed; bottom: 14px; left: 18px; z-index: 10;
+        position: fixed; z-index: 10;
+        bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+        left: calc(18px + env(safe-area-inset-left, 0px));
         display: flex; gap: 14px;
         font-size: 12px; font-weight: 600;
       }
+      /* 44px hit areas without moving anything: pad out, pull back in */
+      .keys a { display: inline-block; padding: 12px 6px; margin: -12px -6px; }
       @media (hover: hover) and (pointer: fine) {
         .keys a:hover { background: #141414; color: #fff; }
       }
+      .keys a:focus-visible, .info a:focus-visible { outline: 2px solid #141414; outline-offset: 3px; }
 
-      .info { min-height: 70svh; display: grid; align-content: end; gap: 7svh; position: relative; padding: 10svh 6vw 4svh; }
+      .info { min-height: 70svh; display: grid; align-content: end; gap: 7svh; position: relative; padding: 10svh 6vw 4svh; scroll-snap-align: end; }
       .i-cols {
         display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px;
         padding-right: clamp(100px, 24vw, 240px);
@@ -124,7 +130,7 @@ import { MV_CLIENT } from '../../lib/multiverse';
 
       .acur {
         position: fixed; top: 0; left: 0; z-index: 200; pointer-events: none; display: none;
-        font-family: 'IBM Plex Mono', monospace; font-weight: 700;
+        font-family: 'JetBrains Mono', monospace; font-weight: 700;
         font-size: 9px; line-height: 8px; letter-spacing: 0;
         color: #141414; white-space: pre;
       }
@@ -135,6 +141,7 @@ import { MV_CLIENT } from '../../lib/multiverse';
       @media (prefers-reduced-motion: reduce) {
         html { scroll-snap-type: none; }
         .wrap { height: 100svh; }
+        .hint { display: none; } /* its copy instructs scrolling, which does nothing here */
         .acur { display: none !important; }
         html.js-cursor, html.js-cursor body, html.js-cursor a, html.js-cursor canvas { cursor: auto; }
       }
@@ -163,9 +170,17 @@ import { MV_CLIENT } from '../../lib/multiverse';
           { w: 'LAB', href: '/lab' },
           { w: 'ABOUT', href: '/3/about' },
         ];
+        /* choreography — retuned 2026-07-03 (Tres: shatter too speedy, scroll strange) */
+        var DWELL = 0.28;      /* seated plateau at each end of a word segment */
+        var PQ_STEPS = 48;     /* scramble ticks per segment — chunky textmode cadence, not per-pixel */
+        var SHAT_WIN = 1700;   /* click shatter: full window ms (was 900) */
+        var SHAT_TRAVEL = 800; /* wavefront travel ms edge-to-edge (was 450) */
+        var SHAT_BURST = 650;  /* per-cell burst ms (was 450) */
+
         var RAMP = ' .:-=+*#%@';                       /* Bourke short, light->dark */
         var EDGE = ['|', '\\', '-', '/'];              /* gradient-angle bins */
         var SCRAM = '#%@*+=&$?!0123456789TRESWOKACHIVLBU<>[]{}';
+        var QUIET = '.:-=+*';                          /* low-ink debris for the morph fringe */
         var DUST = ',.`\'';
         var ALL = (RAMP + EDGE.join('') + SCRAM + DUST).split('')
           .filter(function (c, i, a) { return c !== ' ' && a.indexOf(c) === i; });
@@ -175,12 +190,13 @@ import { MV_CLIENT } from '../../lib/multiverse';
         var ctx = cv.getContext('2d');
         var hint = document.getElementById('hint');
         var dpr = Math.min(2, devicePixelRatio || 1);
-        var CW = 0, CH = 0, cols = 0, rows = 0, FS = 0;
+        var CW = 0, CH = 0, cols = 0, rows = 0, FS = 0, CVW = 0, CVH = 0;
         var fields = [], active = [], dust = [];
         var atlas = null, AW = 0, AH = 0, idx = {};
         var heat = null;                               /* cursor wake buffer */
         var click = { x: 0, y: 0, t: -1e9 };
         var boot = null;
+        var dirty = true, lastP = -1, heatAlive = false;
 
         function hash(a, b) {
           var h = (a * 374761393 + b * 668265263) | 0;
@@ -195,7 +211,7 @@ import { MV_CLIENT } from '../../lib/multiverse';
           atlas.height = AH * dpr;
           var a = atlas.getContext('2d');
           a.setTransform(dpr, 0, 0, dpr, 0, 0);
-          a.font = '600 ' + FS + 'px "IBM Plex Mono", monospace';
+          a.font = '700 ' + FS + 'px "JetBrains Mono", monospace';
           a.textBaseline = 'top';
           a.fillStyle = '#141414';
           idx = {};
@@ -212,12 +228,16 @@ import { MV_CLIENT } from '../../lib/multiverse';
         }
 
         function build() {
-          var small = innerWidth < 700;
+          /* size from the canvas's layout box, not the window — the pin is
+             100svh, so innerHeight drifts from it when the URL bar collapses */
+          CVW = cv.clientWidth || innerWidth; CVH = cv.clientHeight || innerHeight;
+          dpr = Math.min(2, devicePixelRatio || 1);
+          var small = CVW < 700;
           FS = small ? 11 : 13;
           CW = FS * 0.62; CH = FS * 1.18;
-          cols = Math.floor(innerWidth / CW);
-          rows = Math.floor(innerHeight / CH);
-          cv.width = innerWidth * dpr; cv.height = innerHeight * dpr;
+          cols = Math.floor(CVW / CW);
+          rows = Math.floor(CVH / CH);
+          cv.width = CVW * dpr; cv.height = CVH * dpr;
           ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
           buildAtlas();
 
@@ -226,13 +246,17 @@ import { MV_CLIENT } from '../../lib/multiverse';
             var off = document.createElement('canvas');
             off.width = cols; off.height = rows;
             var o = off.getContext('2d');
-            var size = rows * (small ? 0.4 : 0.52);
-            o.font = '900 ' + size + 'px Arial, sans-serif';
+            var size = rows * (small ? 0.42 : 0.52);
+            /* Anybody pinned at wdth 150 brings the width itself — no fake squash */
+            o.font = '900 ' + size + 'px "Anybody", "Arial Black", sans-serif';
             o.textAlign = 'center'; o.textBaseline = 'middle';
             o.save();
             o.translate(cols / 2, rows / 2);
-            var tw = o.measureText(W.w).width;
-            o.scale(Math.min(2.8, (cols * 0.9) / tw), 0.62);
+            /* cells are ~1.9x taller than wide; pre-stretch x by CH/CW so the
+               letterforms land undistorted on the glyph grid */
+            var asp = CH / CW;
+            var tw = o.measureText(W.w).width * asp;
+            o.scale(asp * Math.min(1, (cols * 0.92) / tw), 1);
             o.fillText(W.w, 0, 0);
             o.restore();
             var data = o.getImageData(0, 0, cols, rows).data;
@@ -283,11 +307,16 @@ import { MV_CLIENT } from '../../lib/multiverse';
           }
 
           heat = new Float32Array(cols * rows);
+          dirty = true;
         }
 
         function progress() {
           var r = wrap.getBoundingClientRect();
-          var total = r.height - innerHeight;
+          /* denominator = travel between snap stops (wrap minus one pin height);
+             innerHeight drifts from the 100svh pin when the URL bar collapses,
+             which would leave seated words fractionally off f = k */
+          var total = r.height - (CVH || innerHeight);
+          if (total <= 0) return 0; /* reduce collapses wrap to 100svh -> 0/0 */
           return Math.min(1, Math.max(0, -r.top / total));
         }
 
@@ -299,7 +328,9 @@ import { MV_CLIENT } from '../../lib/multiverse';
             var v = px < 0 ? 0 : Math.hypot(e.clientX - px, e.clientY - py);
             px = e.clientX; py = e.clientY;
             var power = Math.min(1, 0.25 + v / 40);
-            var cc = Math.floor(e.clientX / CW), cr = Math.floor(e.clientY / CH);
+            /* canvas-space y — the pin unsticks once the footer is in view */
+            var top = cv.getBoundingClientRect().top;
+            var cc = Math.floor(e.clientX / CW), cr = Math.floor((e.clientY - top) / CH);
             var R = 6;
             for (var dr = -R; dr <= R; dr++) {
               for (var dc = -R; dc <= R; dc++) {
@@ -312,6 +343,7 @@ import { MV_CLIENT } from '../../lib/multiverse';
                 if (f > heat[i]) heat[i] = f;
               }
             }
+            heatAlive = true;
           }, { passive: true });
         }
 
@@ -324,11 +356,22 @@ import { MV_CLIENT } from '../../lib/multiverse';
           var f = p * (WORDS.length - 1);
           var A = Math.floor(f), B = Math.min(WORDS.length - 1, A + 1);
           var frac = f - A;
-          var pq = Math.floor(p * 1200);           /* scramble evolves WITH scroll */
+          /* dwell -> morph -> dwell: the word holds readable at both ends of a
+             segment, then eases through the boil — no dissolve on pixel one */
+          var seg = Math.min(1, Math.max(0, (frac - DWELL) / (1 - 2 * DWELL)));
+          seg = seg * seg * (3 - 2 * seg);         /* smoothstep */
+          var pq = Math.floor((A + seg) * PQ_STEPS); /* re-rolls only mid-morph */
           var clickAge = now - click.t;
-          var maxD = Math.hypot(innerWidth, innerHeight);
+          var maxD = Math.hypot(CVW, CVH);
 
-          ctx.clearRect(0, 0, innerWidth, innerHeight);
+          /* idle skip: nothing can have changed -> no repaint (battery). Mid-morph
+             stays live so the boil's 90ms tick keeps breathing when scroll pauses. */
+          var live = dirty || heatAlive || clickAge < SHAT_WIN || p !== lastP ||
+                     (seg > 0 && seg < 1) || (!reduce && bootT < 1);
+          if (!live) return;
+          dirty = false; lastP = p;
+
+          ctx.clearRect(0, 0, CVW, CVH);
 
           /* dust — quiet, but it shatters and feels the wake too */
           for (var di = 0; di < dust.length; di++) {
@@ -337,9 +380,9 @@ import { MV_CLIENT } from '../../lib/multiverse';
             var x = c * CW, y = r * CH;
             var h = heat[i];
             var scr0 = h * 0.9;
-            if (clickAge < 900) {
-              var delay = Math.hypot(x - click.x, y - click.y) / maxD * 450;
-              var la = (clickAge - delay) / 450;
+            if (clickAge < SHAT_WIN) {
+              var delay = Math.hypot(x - click.x, y - click.y) / maxD * SHAT_TRAVEL;
+              var la = (clickAge - delay) / SHAT_BURST;
               if (la > 0 && la < 1) scr0 = Math.max(scr0, Math.sin(Math.PI * la));
             }
             var chr = scr0 > 0.25
@@ -357,16 +400,16 @@ import { MV_CLIENT } from '../../lib/multiverse';
 
             /* per-cell staggered crossfade — the whole band boils, no flick */
             var stag = hash(i2, 77) * 0.45;
-            var lf = frac <= 0 ? 0 : Math.min(1, Math.max(0, (frac - stag) / 0.55));
+            var lf = seg <= 0 ? 0 : Math.min(1, Math.max(0, (seg - stag) / 0.55));
             var d = FA.d[i2] + (FB.d[i2] - FA.d[i2]) * lf;
 
             /* churn: peaks mid-transition; cursor wake; radial click shatter */
             var churn = 4 * lf * (1 - lf) * 0.9;
             var h2 = heat[i2];
             churn = Math.max(churn, h2 * 0.85);
-            if (clickAge < 900) {
-              var delay2 = Math.hypot(x2 - click.x, y2 - click.y) / maxD * 450;
-              var la2 = (clickAge - delay2) / 450;
+            if (clickAge < SHAT_WIN) {
+              var delay2 = Math.hypot(x2 - click.x, y2 - click.y) / maxD * SHAT_TRAVEL;
+              var la2 = (clickAge - delay2) / SHAT_BURST;
               if (la2 > 0 && la2 < 1) churn = Math.max(churn, Math.sin(Math.PI * la2));
             }
             if (d < 0.05 && churn < 0.08) continue;
@@ -374,7 +417,8 @@ import { MV_CLIENT } from '../../lib/multiverse';
             var alpha = Math.min(1, d * 1.7 + churn * 0.5);
             var chr2;
             if (churn > 0 && hash(i2, 3) < churn) {
-              chr2 = SCRAM[Math.floor(hash(i2, pq + (churn > 0.2 ? ((now / 90) | 0) : 0)) * SCRAM.length)];
+              var SET = churn < 0.35 ? QUIET : SCRAM; /* debris at the fringe, alphabet at full boil */
+              chr2 = SET[Math.floor(hash(i2, pq + (churn > 0.2 ? ((now / 90) | 0) : 0)) * SET.length)];
             } else {
               var E = lf < 0.5 ? FA.edge[i2] : FB.edge[i2];
               if (E >= 0 && d > 0.06) { chr2 = EDGE[E]; alpha = Math.max(alpha, 0.92); }
@@ -383,12 +427,12 @@ import { MV_CLIENT } from '../../lib/multiverse';
             }
 
             /* whirl-in, first load only */
-            if (bootT < 1 && p === 0) {
-              var dd2 = Math.hypot(x2 - innerWidth / 2, y2 - innerHeight / 2);
+            if (!reduce && bootT < 1 && p === 0) {
+              var dd2 = Math.hypot(x2 - CVW / 2, y2 - CVH / 2);
               var e2 = Math.min(1, Math.max(0, (bootT - dd2 / maxD * 0.9) / 0.55));
               e2 = 1 - Math.pow(1 - e2, 3);
               if (e2 < 1) {
-                var ang2 = Math.atan2(y2 - innerHeight / 2, x2 - innerWidth / 2) + (1 - e2) * 4.2;
+                var ang2 = Math.atan2(y2 - CVH / 2, x2 - CVW / 2) + (1 - e2) * 4.2;
                 x2 += Math.cos(ang2) * (1 - e2) * maxD * 0.25;
                 y2 += Math.sin(ang2) * (1 - e2) * maxD * 0.25;
                 alpha *= e2;
@@ -399,22 +443,34 @@ import { MV_CLIENT } from '../../lib/multiverse';
           ctx.globalAlpha = 1;
 
           /* wake cools */
-          if (heat) for (var hi = 0; hi < heat.length; hi++) if (heat[hi] > 0.003) heat[hi] *= 0.93; else heat[hi] = 0;
+          if (heat) {
+            heatAlive = false;
+            for (var hi = 0; hi < heat.length; hi++) {
+              if (heat[hi] > 0.003) { heat[hi] *= 0.93; heatAlive = true; }
+              else heat[hi] = 0;
+            }
+          }
         }
 
         function seatedWord() {
           var f = (reduce ? 0 : progress()) * (WORDS.length - 1);
           var k = Math.round(f);
-          return Math.abs(f - k) < 0.18 ? k : -1;
+          /* seated = anywhere inside the plateau, where the word is intact */
+          return Math.abs(f - k) <= DWELL ? k : -1;
         }
 
         var leaving = false;
+        addEventListener('pageshow', function (e) {
+          if (e.persisted) leaving = false; /* bfcache Back restores the latched heap */
+        });
         cv.addEventListener('click', async function (e) {
           if (leaving) return;
+          var top = cv.getBoundingClientRect().top;
+          var cy = e.clientY - top; /* canvas-space — the pin unsticks past the wrap */
           var k = seatedWord();
           if (k >= 0) {
             var B2 = fields[k].box;
-            if (e.clientX > B2[0] - 20 && e.clientX < B2[2] + 20 && e.clientY > B2[1] - 20 && e.clientY < B2[3] + 20) {
+            if (e.clientX > B2[0] - 20 && e.clientX < B2[2] + 20 && cy > B2[1] - 20 && cy < B2[3] + 20) {
               if (WORDS[k].href) {
                 leaving = true;
                 if (!reduce) await cover({ x: e.clientX, y: e.clientY, color: '#141414' });
@@ -423,16 +479,54 @@ import { MV_CLIENT } from '../../lib/multiverse';
               }
             }
           }
-          click = { x: e.clientX, y: e.clientY, t: performance.now() }; /* radial shatter */
+          if (!reduce) click = { x: e.clientX, y: cy, t: performance.now() }; /* radial shatter */
         });
 
         addEventListener('scroll', function () {
           if (hint && !hint.classList.contains('off') && progress() > 0.04) hint.classList.add('off');
         }, { passive: true });
-        addEventListener('resize', build, { passive: true });
 
-        build();
-        requestAnimationFrame(frame);
+        /* stranded-boil rescue: proximity snap only tugs NEAR a stop — parked
+           dead between words the field would boil forever with no readable
+           state. After a beat of idle mid-morph, glide to the nearest word. */
+        if (!reduce) {
+          var idleT = null;
+          addEventListener('scroll', function () {
+            clearTimeout(idleT);
+            idleT = setTimeout(function () {
+              var f2 = progress() * (WORDS.length - 1);
+              var k2 = Math.round(f2);
+              if (Math.abs(f2 - k2) <= DWELL) return; /* seated — leave it be */
+              var r2 = wrap.getBoundingClientRect();
+              var total2 = r2.height - (CVH || innerHeight);
+              if (total2 <= 0) return;
+              scrollTo({ top: scrollY + r2.top + total2 * (k2 / (WORDS.length - 1)), behavior: 'smooth' });
+            }, 850);
+          }, { passive: true });
+        }
+        var rzT = null;
+        addEventListener('resize', function () {
+          /* debounced — mobile URL-bar churn must not thrash full rebuilds */
+          clearTimeout(rzT);
+          rzT = setTimeout(function () {
+            if (cv.clientWidth === CVW && cv.clientHeight === CVH && Math.min(2, devicePixelRatio || 1) === dpr) return;
+            build();
+          }, 150);
+        }, { passive: true });
+
+        /* canvas-only faces never reach the DOM, so force the download first —
+           building against fallback metrics bakes a wrong atlas (hard-learned) */
+        var kicked = false;
+        function kick() { if (kicked) return; kicked = true; build(); requestAnimationFrame(frame); }
+        setTimeout(kick, 1500); /* failsafe: never blank-screen on a slow font */
+        if (document.fonts && document.fonts.load) {
+          var want = Promise.all([
+            document.fonts.load('700 13px "JetBrains Mono"'),
+            document.fonts.load('900 100px "Anybody"')
+          ]);
+          /* if the failsafe painted with fallbacks first, re-bake once real faces land */
+          want.then(function () { if (kicked) build(); else kick(); }, kick);
+        } else kick();
 
         /* the character-arrow cursor */
         if (fine && !reduce) {
@@ -449,9 +543,12 @@ import { MV_CLIENT } from '../../lib/multiverse';
             }
             acur.textContent = out;
           }
+          acur.style.visibility = 'hidden'; /* no top-left flicker before the first move */
+          var seen = false;
           weave();
-          setInterval(weave, 110);
+          setInterval(function () { if (seen && !document.hidden) weave(); }, 110);
           addEventListener('pointermove', function (e) {
+            if (!seen) { seen = true; acur.style.visibility = 'visible'; }
             acur.style.transform = 'translate(' + e.clientX + 'px,' + e.clientY + 'px)';
           }, { passive: true });
         }

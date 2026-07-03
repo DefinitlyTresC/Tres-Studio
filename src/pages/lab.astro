@@ -543,6 +543,9 @@ import { MV_CLIENT } from '../lib/multiverse';
       let reduce = false;
       try { reduce = matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
       let leaving = false;
+      addEventListener('pageshow', (e) => {
+        if (e.persisted) leaving = false; /* bfcache Back restores the latched heap */
+      });
       document.querySelectorAll('a.door').forEach((a) => {
         a.addEventListener('click', async (e) => {
           if (reduce || leaving) return;

@@ -148,18 +148,30 @@ function draw(t, origin, ink, time) {
 }
 
 /* clip-path fallback (no grain, still organic-ish timing) */
+let lastFb = null;
 function fallbackRun(from, to, dur, origin, color) {
   return new Promise((res) => {
     const el = document.createElement('div');
     el.style.cssText = `position:fixed;inset:0;z-index:2147483000;pointer-events:none;background:${color};` +
       `clip-path:circle(${from * 160}% at ${origin.x}px ${origin.y}px);transition:clip-path ${dur}ms cubic-bezier(.23,1,.32,1)`;
     document.body.appendChild(el);
+    lastFb = el;
     requestAnimationFrame(() => requestAnimationFrame(() => {
       el.style.clipPath = `circle(${to * 160}% at ${origin.x}px ${origin.y}px)`;
     }));
-    setTimeout(() => { if (to === 0) el.remove(); res(); }, dur + 40);
+    setTimeout(() => { if (to === 0) { el.remove(); if (lastFb === el) lastFb = null; } res(); }, dur + 40);
   });
 }
+
+/* bfcache: Back can restore a page that navigated away mid-cover — without
+   this, the snapshot comes back still wearing the ink (or, worse, looking
+   fine but with the caller's leaving-latches stuck; those reset themselves
+   on the same event) */
+addEventListener('pageshow', (e) => {
+  if (!e.persisted) return;
+  if (cv) cv.style.display = 'none';
+  if (lastFb) { lastFb.remove(); lastFb = null; }
+});
 
 function run(from, to, dur, origin, color) {
   ensure();

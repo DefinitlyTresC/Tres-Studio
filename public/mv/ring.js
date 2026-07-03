@@ -28,6 +28,9 @@ import { cover } from '/mv/curtain.js';
 
   /* one cover at a time — dots and lab links share the guard */
   let leaving = false;
+  addEventListener('pageshow', (e) => {
+    if (e.persisted) leaving = false; /* bfcache Back restores the latched heap */
+  });
 
   /* ── the dot row ───────────────────────────────────────────────────────── */
   const info = document.getElementById('mv-info');
