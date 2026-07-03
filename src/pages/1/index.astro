@@ -45,7 +45,6 @@ const work = WORK.map((s) => all.find((p) => p.id === s)?.data).filter(Boolean);
     <footer id="mv-info" class="info">
       <div class="i-top">
         <p class="stmt">Designing across architecture, art, and code<span class="pd">.</span></p>
-        <a class="i-mail" href="mailto:tres@tres.studio">Get in touch</a>
       </div>
       <div class="i-cols">
         <div class="i-col">
@@ -62,6 +61,7 @@ const work = WORK.map((s) => all.find((p) => p.id === s)?.data).filter(Boolean);
           <a href="/1/">Work</a><br />
           <a href="/architecture">Archive</a><br />
           <a href="/lab">Lab</a><br />
+          <a href="/1/about">About</a><br />
           <span class="soon">Plugins — soon</span>
         </div>
       </div>
@@ -112,7 +112,6 @@ const work = WORK.map((s) => all.find((p) => p.id === s)?.data).filter(Boolean);
       }
       .i-top { display: flex; justify-content: space-between; align-items: baseline; gap: 20px; flex-wrap: wrap; }
       .stmt { font-weight: 600; font-size: clamp(28px, 4.6vw, 52px); line-height: 1.04; text-transform: none; max-width: 15ch; text-wrap: balance; }
-      .i-mail { font-family: var(--v2-mono, monospace); font-size: 13px; }
       .i-cols {
         display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px;
         padding-right: clamp(100px, 24vw, 240px); /* room for the map */
