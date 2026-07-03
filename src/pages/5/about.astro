@@ -1,6 +1,12 @@
 ---
-// Site 5 — about. Carries the slashed name from the landing (static shear).
+// Site 5 — about. Carries the Bungee Shade name from the landing,
+// worming on per-letter on load (pure CSS; the font brings the depth
+// the old slash treatment used to fake).
 import { MV_CLIENT } from '../../lib/multiverse';
+/* per-letter split for the worm; spaces become NBSP so inline-block
+   letter spans keep their width */
+const worm = (word, offset = 0) =>
+  [...word].map((ch, i) => ({ ch: ch === ' ' ? ' ' : ch, i: i + offset }));
 ---
 
 <html lang="en">
@@ -12,16 +18,19 @@ import { MV_CLIENT } from '../../lib/multiverse';
     <title>ABOUT — TRES ⁵</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Space+Mono&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Bungee+Shade&family=Space+Mono&display=swap" rel="stylesheet" />
     <script is:inline set:html={MV_CLIENT(5)} />
   </head>
   <body>
     <a class="back" id="back" href="/5/">← index</a>
+    <svg class="reg" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+      <circle cx="12" cy="12" r="7.5" fill="none" stroke="#2431FF" stroke-width="1.5" />
+      <path d="M12 1v22M1 12h22" fill="none" stroke="#2431FF" stroke-width="1.5" />
+    </svg>
     <main class="about">
-      <h1 class="name slash" aria-label="Tres Carter">
-        <span class="sz" aria-hidden="true">TRES<br />CARTER<span class="ac">.</span></span>
-        <span class="cut cut-a" aria-hidden="true">TRES<br />CARTER<span class="ac">.</span></span>
-        <span class="cut cut-b" aria-hidden="true">TRES<br />CARTER<span class="ac">.</span></span>
+      <h1 class="name" aria-label="Tres Carter">
+        <span class="ln" aria-hidden="true">{worm('TRES').map((l) => <span class="l" style={`--i:${l.i}`}>{l.ch}</span>)}</span>
+        <span class="ln ln-b" aria-hidden="true">{worm('CARTER', 4).map((l) => <span class="l" style={`--i:${l.i}`}>{l.ch}</span>)}<span class="l ac" style="--i:10">.</span></span>
       </h1>
       <p class="lede">architectural designer — 30a, florida</p>
       <div class="acts">
@@ -35,23 +44,33 @@ import { MV_CLIENT } from '../../lib/multiverse';
       :root { --ac: #2431FF; }
       * { margin: 0; box-sizing: border-box; }
       html { background: #fff; }
-      body { font-family: 'Anton', system-ui, sans-serif; color: #0A0A0A; -webkit-font-smoothing: antialiased; }
+      body { font-family: 'Space Mono', ui-monospace, monospace; color: #0A0A0A; -webkit-font-smoothing: antialiased; }
       ::selection { background: var(--ac); color: #fff; }
       a { color: inherit; text-decoration: none; }
       .back { position: fixed; z-index: 10; top: var(--y, 14px); left: 6vw; font-family: 'Space Mono', monospace; font-size: 12px; padding: 12px 0; transition: transform 140ms cubic-bezier(0.23,1,0.32,1); }
       .back:active { transform: scale(0.96); }
       @media (hover: hover) and (pointer: fine) { .back:hover { text-decoration: underline; text-underline-offset: 4px; } }
+      .reg { position: fixed; top: 15px; right: 6vw; z-index: 10; pointer-events: none; }
       .about { padding: clamp(130px, 24vh, 300px) 6vw 16svh; }
-      .name { font-size: clamp(58px, 13vw, 170px); line-height: 0.94; }
+      .name { font-family: 'Bungee Shade', 'Bungee', system-ui, sans-serif; font-weight: 400; font-size: clamp(40px, 12vw, 170px); line-height: 0.95; }
+      .name .ln { display: block; }
+      .name .ln-b { margin-left: 0.4em; } /* baseline-shift energy, as on the landing */
       .ac { color: var(--ac); }
-      /* slashed two-layer name — same cut as the landing, at rest */
-      .slash { position: relative; display: inline-block; }
-      .slash .sz { visibility: hidden; }
-      .cut { position: absolute; inset: 0; }
-      .cut-a { clip-path: polygon(0 0, 100% 0, 100% 42%, 0 55%); transform: translate(-0.016em, -0.008em); }
-      .cut-b { clip-path: polygon(0 55%, 100% 42%, 100% 100%, 0 100%); transform: translate(0.016em, 0.008em); }
+      /* — worm-on: the name inches into place on load — */
+      .l { display: inline-block; transform-origin: 50% 80%; }
+      @keyframes worm {
+        0%   { opacity: 0; transform: translate(-0.38em, 0.16em) rotate(-8deg) scale(0.92, 1.06); }
+        28%  { opacity: 1; transform: translate(0.15em, -0.08em) rotate(5deg) scale(1.06, 0.94); }
+        52%  { transform: translate(-0.07em, 0.04em) rotate(-3deg) scale(0.97, 1.03); }
+        76%  { transform: translate(0.03em, -0.015em) rotate(1.5deg) scale(1.01, 0.99); }
+        100% { opacity: 1; transform: none; }
+      }
+      @media (prefers-reduced-motion: no-preference) {
+        .name .l { animation: worm 900ms cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: calc(var(--i) * 70ms); }
+      }
       .lede { font-family: 'Space Mono', monospace; font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(10,10,10,0.5); margin-top: 26px; }
-      .acts { display: flex; gap: 28px; margin-top: 44px; font-family: 'Space Mono', monospace; font-size: 13px; }
+      .acts { display: flex; flex-wrap: wrap; column-gap: 28px; margin-top: 32px; font-family: 'Space Mono', monospace; font-size: 13px; }
+      .acts a { display: inline-block; padding: 12px 0; } /* ~44px targets */
       @media (hover: hover) and (pointer: fine) { a:hover { text-decoration: underline; text-underline-offset: 4px; } }
     </style>
 

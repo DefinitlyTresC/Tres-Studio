@@ -28,9 +28,9 @@ const rows = WORK.map((s) => all.find((p) => p.slug === s)).filter(Boolean);
         <p class="spec">work · 05</p>
         <h1 class="name">W o r k</h1>
       </header>
-      <div class="list">
+      <div class="list" data-zg-room>
         {rows.map((p, i) => (
-          <a class="row" href={`/2/project/${p.slug}`} style={`--off:${(i % 3) * 4}vw`}>
+          <a class="row" data-zg data-zg-slim href={`/2/project/${p.slug}`} style={`--off:${(i % 3) * 4}vw`}>
             <span class="r-no">{String(i + 1).padStart(2, '0')}</span>
             <span class="r-name">{p.name}</span>
             <span class="r-meta">{p.year}</span>
@@ -60,13 +60,17 @@ const rows = WORK.map((s) => all.find((p) => p.slug === s)).filter(Boolean);
       .name { font-weight: 800; font-size: clamp(44px, 9vw, 110px); line-height: 1; margin-top: 10px; }
 
       .list { display: grid; gap: 6svh; padding-top: 2svh; }
-      .row { display: flex; align-items: baseline; gap: 18px; margin-left: var(--off, 0); }
+      /* fit-content: rows hug their text so the zero-g engine gets horizontal
+         room to throw them in — visually identical at rest (left-packed flex) */
+      .row { display: flex; align-items: baseline; gap: 18px; margin-left: var(--off, 0); width: fit-content; }
       .r-no, .r-meta { font-family: 'Space Mono', monospace; font-size: 12px; color: rgba(16,16,16,0.45); }
       .r-name { font-weight: 700; font-size: clamp(28px, 5.4vw, 60px); line-height: 1; letter-spacing: -0.01em; }
       @media (max-width: 640px) { .row { margin-left: calc(var(--off, 0) * 0.4); } }
       @media (hover: hover) and (pointer: fine) {
         .r-name { transition: letter-spacing 300ms cubic-bezier(0.23,1,0.32,1); }
         .row:hover .r-name { letter-spacing: 0.03em; }
+        .sim .row { cursor: grab; }
+        .sim .row:active { cursor: grabbing; }
       }
 
       .foot { display: flex; justify-content: space-between; padding: 3svh 6vw 4svh; border-top: 1px solid rgba(0,0,0,0.14); font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; }
@@ -96,5 +100,6 @@ const rows = WORK.map((s) => all.find((p) => p.slug === s)).filter(Boolean);
         }, { passive: true });
       })();
     </script>
+    <script is:inline defer src="/mv/zerog.js"></script>
   </body>
 </html>

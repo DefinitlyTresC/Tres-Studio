@@ -22,13 +22,13 @@ import { MV_CLIENT } from '../../lib/multiverse';
   <body>
     <header class="strip">
       <span class="tri" aria-hidden="true">⚠</span>
-      <span>03 — TRES CARTER · TRES MEANS THREE · ARCHITECTURE / ART / CODE · 30A</span>
+      <span>03 — TRES CARTER · ARCHITECTURE / ART / CODE · 30A</span>
     </header>
 
     <div class="plate" aria-hidden="true">
       <i class="cm tl"></i><i class="cm tr"></i><i class="cm bl"></i><i class="cm br"></i>
       <span class="an an-fig">FIG. 03</span>
-      <span class="an an-scale">DO NOT SCALE DRAWING</span>
+      <span class="an an-scale">PROPRIETARY</span>
       <span class="an an-sheet">SHEET 04 / 05</span>
     </div>
 
@@ -130,7 +130,7 @@ import { MV_CLIENT } from '../../lib/multiverse';
       }
       .tri { font-size: 12px; letter-spacing: 0; }
 
-      .pin-wrap { height: 300svh; }
+      .pin-wrap { height: 240svh; }
       .pin { position: sticky; top: 0; height: 100svh; overflow: hidden; }
       .scene { position: absolute; inset: 0; transform: translateX(var(--sx, 0px)); will-change: transform; }
       .num {
@@ -193,7 +193,7 @@ import { MV_CLIENT } from '../../lib/multiverse';
       }
       .cue.off { opacity: 0; }
 
-      .info { min-height: 88svh; display: grid; align-content: center; gap: 8svh; position: relative; padding: 12svh 5vw 6svh; border-top: 1.5px solid var(--ink); }
+      .info { min-height: 74svh; display: grid; align-content: start; gap: 6svh; position: relative; padding: 5svh 5vw 14svh; border-top: 1.5px solid var(--ink); }
       .i-cols {
         display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px;
         padding-right: clamp(100px, 24vw, 240px);
@@ -256,13 +256,13 @@ import { MV_CLIENT } from '../../lib/multiverse';
           num.style.setProperty('--nx', (-p * 5) + 'vw');
           document.querySelector('.cue').classList.toggle('off', p > 0.08);
 
-          /* phase 2 (.78 → 1): the words push up and out, staggered; the 03
-             lifts away behind them */
+          /* phase 2 (.72 → 1): the words push up and out, staggered; the 03
+             lifts away right behind them so the info arrives immediately */
           for (var j = 0; j < items.length; j++) {
-            var s = Math.min(1, Math.max(0, (p - 0.78 - j * 0.028) / 0.16));
+            var s = Math.min(1, Math.max(0, (p - 0.72 - j * 0.026) / 0.15));
             items[j].style.setProperty('--y', (-ease(s) * 130) + 'svh');
           }
-          var sn = Math.min(1, Math.max(0, (p - 0.82) / 0.18));
+          var sn = Math.min(1, Math.max(0, (p - 0.78) / 0.2));
           num.style.setProperty('--ny', (-ease(sn) * 120) + 'svh');
         }
         addEventListener('scroll', function () {

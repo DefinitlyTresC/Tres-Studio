@@ -1,12 +1,20 @@
 ---
-// Site 5 — "the sideways one," elevated: LONGSHOT editorial energy.
+// Site 5 — "the sideways one," now CHROMATIC PRINT editorial.
 // Rail mechanics UNTOUCHED (sticky + scroll-driven translateX at 2.4x,
 // touch = native swipe+snap, no overflow-x:hidden on html/body).
-// New this round: slashed two-layer TRESCARTER (shear widens with scroll
-// velocity), per-panel inner parallax driven from the same rAF pass,
-// filled/outlined type alternation with snap hovers, velocity-reactive
-// marquee (playbackRate), taped-cutout Archie frame.
+// This round: Anton -> Bungee Shade (layered dimensional display — the font
+// brings its own depth, so the old slash/shear treatment is retired), the
+// name + panel words WORM on per-letter (name on load via pure CSS, panel
+// words on first viewport entry via IntersectionObserver — works on both
+// the transformed desktop rail and the native touch scroller), archie frame
+// removed, final panel rebuilt as a true vertical composition: END. spine
+// in vertical-rl + one narrow stacked column, dot-map zone kept clear.
+// Blue registration mark top-right = the chromatic-print signature.
 import { MV_CLIENT } from '../../lib/multiverse';
+/* per-letter split for the worm; the ternary swaps plain spaces for a
+   literal NBSP (U+00A0) so inline-block letter spans keep their width */
+const worm = (word, offset = 0) =>
+  [...word].map((ch, i) => ({ ch: ch === ' ' ? ' ' : ch, i: i + offset }));
 ---
 
 <html lang="en">
@@ -18,76 +26,78 @@ import { MV_CLIENT } from '../../lib/multiverse';
     <title>TRESCARTER ⁵</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Bungee+Shade&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
     <script is:inline set:html={MV_CLIENT(5)} />
   </head>
   <body>
     <p class="hint"><span>↓</span> scroll down to move right</p>
+    <svg class="reg" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+      <circle cx="12" cy="12" r="7.5" fill="none" stroke="#2431FF" stroke-width="1.5" />
+      <path d="M12 1v22M1 12h22" fill="none" stroke="#2431FF" stroke-width="1.5" />
+    </svg>
 
     <section class="hwrap" id="hwrap">
       <div class="sticky">
         <div class="track" id="track">
           <div class="panel p-name">
-            <h1 class="slash" aria-label="Tres Carter">
-              <span class="sz" aria-hidden="true">TRES<br />CARTER<span class="ac">.</span></span>
-              <span class="cut cut-a" aria-hidden="true">TRES<br />CARTER<span class="ac">.</span></span>
-              <span class="cut cut-b" aria-hidden="true">TRES<br />CARTER<span class="ac">.</span></span>
+            <h1 class="giant" aria-label="Tres Carter">
+              <span class="ln" aria-hidden="true">{worm('TRES').map((l) => <span class="l" style={`--i:${l.i}`}>{l.ch}</span>)}</span>
+              <span class="ln ln-b" aria-hidden="true">{worm('CARTER', 4).map((l) => <span class="l" style={`--i:${l.i}`}>{l.ch}</span>)}<span class="l ac" style="--i:10">.</span></span>
             </h1>
-            <div class="archie-frame">
-              <span class="tape tp-a" aria-hidden="true"></span>
-              <span class="tape tp-b" aria-hidden="true"></span>
-              <img class="archie" src="/assets/archie.png" alt="" onerror="this.closest('.archie-frame').classList.add('empty');this.remove()" />
-              <span class="archie-ph" aria-hidden="true">[ archie ]</span>
-            </div>
             <span class="ptag" aria-hidden="true">panel 01 / 07</span>
           </div>
           <div class="panel p-line">
             <p class="mono">buildings · pictures · code<br />— from 30A, florida</p>
             <span class="ptag" aria-hidden="true">panel 02 / 07</span>
           </div>
-          <a class="panel p-link" href="/5/work">
-            <span class="pspan"><span class="word">WORK</span></span>
+          <a class="panel p-link" href="/5/work" aria-label="Work">
+            <span class="pspan" aria-hidden="true"><span class="word">{worm('WORK').map((l) => <span class="l" style={`--i:${l.i}`}>{l.ch}</span>)}</span></span>
             <span class="ptag" aria-hidden="true">panel 03 / 07</span>
           </a>
-          <a class="panel p-link alt t-out" href="/5/archive">
-            <span class="pspan"><span class="word">ARCHIVE</span></span>
+          <a class="panel p-link alt" href="/5/archive" aria-label="Archive">
+            <span class="pspan" aria-hidden="true"><span class="word">{worm('ARCHIVE').map((l) => <span class="l" style={`--i:${l.i}`}>{l.ch}</span>)}</span></span>
             <span class="ptag" aria-hidden="true">panel 04 / 07</span>
           </a>
-          <a class="panel p-link t-out" href="/lab">
-            <span class="pspan"><span class="word">LAB</span></span>
+          <a class="panel p-link" href="/lab" aria-label="Lab">
+            <span class="pspan" aria-hidden="true"><span class="word">{worm('LAB').map((l) => <span class="l" style={`--i:${l.i}`}>{l.ch}</span>)}</span></span>
             <span class="ptag" aria-hidden="true">panel 05 / 07</span>
           </a>
-          <a class="panel p-link alt" href="/5/about">
-            <span class="pspan"><span class="word">ABOUT</span></span>
+          <a class="panel p-link alt" href="/5/about" aria-label="About">
+            <span class="pspan" aria-hidden="true"><span class="word">{worm('ABOUT').map((l) => <span class="l" style={`--i:${l.i}`}>{l.ch}</span>)}</span></span>
             <span class="ptag" aria-hidden="true">panel 06 / 07</span>
           </a>
           <footer id="mv-info" class="panel p-info">
-            <div class="i-cols">
-              <div class="i-col">
+            <span class="spine" aria-hidden="true">{worm('END').map((l) => <span class="l" style={`--i:${l.i}`}>{l.ch}</span>)}<span class="l ac" style="--i:3">.</span></span>
+            <div class="v-col">
+              <div class="v-block">
                 <span class="lbl">location</span>
                 seagrove · 30a<br />florida, usa
               </div>
-              <div class="i-col">
+              <div class="v-block">
                 <span class="lbl">contact</span>
-                <a href="mailto:tres@tres.studio">tres@tres.studio</a><br />
-                <a href="https://instagram.com/tres.studio" target="_blank" rel="noopener">ig</a><br />
-                <a href="https://www.linkedin.com/in/tres-carter" target="_blank" rel="noopener">linkedin</a>
+                <div class="v-row">
+                  <a href="mailto:tres@tres.studio">tres@tres.studio</a>
+                  <a href="https://instagram.com/tres.studio" target="_blank" rel="noopener">ig</a>
+                  <a href="https://www.linkedin.com/in/tres-carter" target="_blank" rel="noopener">linkedin</a>
+                </div>
               </div>
-              <div class="i-col">
+              <div class="v-block">
                 <span class="lbl">sections</span>
-                <a href="/5/work">work</a><br />
-                <a href="/5/archive">archive</a><br />
-                <a href="/lab">lab</a><br />
-                <a href="/5/about">about</a><br />
-                <a href="/resume.pdf">resume</a><br />
-                <a href="/portfolio.pdf">portfolio</a><br />
-                <span class="soon">plugins — soon</span>
+                <div class="v-row">
+                  <a href="/5/work">work</a>
+                  <a href="/5/archive">archive</a>
+                  <a href="/lab">lab</a>
+                  <a href="/5/about">about</a>
+                  <a href="/resume.pdf">resume</a>
+                  <a href="/portfolio.pdf">portfolio</a>
+                  <span class="soon">plugins — soon</span>
+                </div>
               </div>
-            </div>
-            <div class="i-meta">
-              <span>© 2026 tres carter</span>
-              <span id="mv-ticker-slot"></span>
-              <a href="/privacy">privacy</a>
+              <div class="v-meta">
+                <span>© 2026 tres carter</span>
+                <span id="mv-ticker-slot"></span>
+                <a href="/privacy">privacy</a>
+              </div>
             </div>
             <span class="ptag" aria-hidden="true">panel 07 / 07</span>
           </footer>
@@ -109,7 +119,7 @@ import { MV_CLIENT } from '../../lib/multiverse';
       /* NOTE: no overflow-x:hidden on html/body — it breaks position:sticky.
          The rail clips itself inside .sticky. */
       html { background: #fff; }
-      body { font-family: 'Anton', system-ui, sans-serif; color: #0A0A0A; -webkit-font-smoothing: antialiased; }
+      body { font-family: 'Space Mono', ui-monospace, monospace; color: #0A0A0A; -webkit-font-smoothing: antialiased; }
       ::selection { background: var(--ac); color: #fff; }
       a { color: inherit; text-decoration: none; }
       .mono { font-family: 'Space Mono', monospace; }
@@ -122,6 +132,11 @@ import { MV_CLIENT } from '../../lib/multiverse';
       }
       .hint.off { opacity: 0; }
       .hint span { color: var(--ac); }
+
+      /* — registration mark: the chromatic-print signature, fixed like a
+           press sheet corner. Decorative; half-lost over dark panels on
+           purpose (a passing print artifact). — */
+      .reg { position: fixed; top: 15px; right: 6vw; z-index: 10; pointer-events: none; }
 
       .hwrap { height: 700svh; } /* corrected 1:1 by JS */
       .sticky { position: sticky; top: 0; height: 100svh; overflow: hidden; }
@@ -140,7 +155,7 @@ import { MV_CLIENT } from '../../lib/multiverse';
       .p-link { width: 68vw; }
       @media (max-width: 700px) { .p-line, .p-link { width: 100vw; } }
 
-      /* margin annotations — LONGSHOT spirit, one per panel */
+      /* margin annotations — one per panel, real sequence */
       .ptag {
         position: absolute; left: 18px; bottom: 76px;
         writing-mode: vertical-rl;
@@ -151,96 +166,106 @@ import { MV_CLIENT } from '../../lib/multiverse';
       }
       .panel.alt .ptag { color: rgba(255,255,255,0.45); }
 
-      /* — slashed TRESCARTER: two clipped copies sheared along the cut — */
-      .slash {
-        position: relative;
-        font-size: clamp(110px, 24vw, 330px); line-height: 0.86;
-        letter-spacing: 0.01em; text-align: left;
+      /* — the WORM: letters inch on with a decaying crawl. Per-letter spans
+           are server-rendered; --i staggers the delay. em units scale the
+           wriggle with the type size. — */
+      .l { display: inline-block; transform-origin: 50% 80%; }
+      @keyframes worm {
+        0%   { opacity: 0; transform: translate(-0.38em, 0.16em) rotate(-8deg) scale(0.92, 1.06); }
+        28%  { opacity: 1; transform: translate(0.15em, -0.08em) rotate(5deg) scale(1.06, 0.94); }
+        52%  { transform: translate(-0.07em, 0.04em) rotate(-3deg) scale(0.97, 1.03); }
+        76%  { transform: translate(0.03em, -0.015em) rotate(1.5deg) scale(1.01, 0.99); }
+        100% { opacity: 1; transform: none; }
+      }
+      @media (prefers-reduced-motion: no-preference) {
+        /* name worms on load — pure CSS, no JS required */
+        .giant .l {
+          animation: worm 900ms cubic-bezier(0.22, 1, 0.36, 1) both;
+          animation-delay: calc(var(--i) * 70ms);
+        }
+        /* panel words hide only once JS confirms it can un-hide them */
+        .wormable .word .l, .wormable .spine .l { opacity: 0; }
+        .panel.in .word .l, .panel.in .spine .l {
+          opacity: 1;
+          animation: worm 900ms cubic-bezier(0.22, 1, 0.36, 1) both;
+          animation-delay: calc(var(--i) * 70ms);
+        }
+      }
+
+      /* — TRESCARTER: Bungee Shade carries its own dimension now — */
+      .giant {
+        font-family: 'Bungee Shade', 'Bungee', system-ui, sans-serif;
+        font-weight: 400;
+        font-size: clamp(56px, 14.5vw, 250px); line-height: 0.95;
+        text-align: left;
         transform: translateX(calc(var(--d, 0px) * -0.07)); /* parallax: lags the rail */
       }
-      .slash .sz { visibility: hidden; }
-      .cut { position: absolute; inset: 0; will-change: transform; }
-      .cut-a {
-        clip-path: polygon(0 0, 100% 0, 100% 42%, 0 55%);
-        transform: translate(calc(-0.016em - var(--vx, 0px)), -0.008em);
-      }
-      .cut-b {
-        clip-path: polygon(0 55%, 100% 42%, 100% 100%, 0 100%);
-        transform: translate(calc(0.016em + var(--vx, 0px)), 0.008em);
-      }
+      .giant .ln { display: block; }
+      .giant .ln-b { margin-left: 0.4em; } /* baseline-shift energy */
       .ac { color: var(--ac); }
-
-      /* — Archie: taped-cutout frame; PNG drops into the same frame — */
-      .archie-frame {
-        position: absolute; right: 6vw; bottom: 9svh;
-        width: min(30vw, 320px);
-        padding: 10px; background: #fff; border: 2px solid #0A0A0A;
-        rotate: -2.5deg;
-        transform: translateX(calc(var(--d, 0px) * 0.06)); /* parallax: leads the rail */
-      }
-      .archie { display: block; width: 100%; height: auto; }
-      .archie-ph {
-        display: none;
-        font-family: 'Space Mono', monospace; font-size: 12px;
-        letter-spacing: 0.08em; color: rgba(10,10,10,0.4);
-      }
-      .archie-frame.empty { min-height: min(44svh, 400px); display: grid; place-items: center; }
-      .archie-frame.empty .archie-ph { display: block; }
-      .tape {
-        position: absolute; z-index: 1; width: 96px; height: 28px;
-        background: rgba(219,214,199,0.85); border: 1px solid rgba(10,10,10,0.14);
-      }
-      .tp-a { top: -14px; left: -38px; rotate: -45deg; }
-      .tp-b { bottom: -14px; right: -38px; rotate: -45deg; }
 
       .p-line p {
         font-size: 15px; line-height: 2; letter-spacing: 0.1em; text-transform: uppercase;
         transform: translateX(calc(var(--d, 0px) * -0.1));
       }
 
-      /* — section panels: filled / outlined alternation — */
+      /* — section panels: dimensional Shade collapses to flat solid on hover
+           (Bungee styles share metrics — the swap never reflows) — */
       .p-link .pspan { display: block; transform: translateX(calc(var(--d, 0px) * -0.07)); }
       .p-link .word {
         display: block;
-        font-size: clamp(70px, 15vw, 210px); line-height: 1; letter-spacing: 0.01em;
+        font-family: 'Bungee Shade', 'Bungee', system-ui, sans-serif;
+        font-weight: 400;
+        font-size: clamp(44px, 9.4vw, 170px); line-height: 1;
         transition: color 160ms cubic-bezier(0.16, 1, 0.3, 1), transform 140ms cubic-bezier(0.16, 1, 0.3, 1);
       }
       .p-link.alt { background: #0A0A0A; color: #fff; }
-      @supports (-webkit-text-stroke: 2px #000) {
-        .p-link.t-out .word { color: transparent; -webkit-text-stroke: 3px #0A0A0A; }
-        .p-link.alt.t-out .word { -webkit-text-stroke: 3px #fff; }
-      }
       @media (hover: hover) and (pointer: fine) {
         .p-link:hover .ptag { color: var(--ac); }
-        /* fallback hover (no text-stroke support): flip to blue */
-        .p-link:hover .word { color: var(--ac); }
-        @supports (-webkit-text-stroke: 2px #000) {
-          /* filled hollows out; outline fills in — a snap either way */
-          .p-link:hover .word { color: transparent; -webkit-text-stroke: 3px #0A0A0A; }
-          .p-link.alt:hover .word { -webkit-text-stroke: 3px #fff; }
-          .p-link.t-out:hover .word { color: #0A0A0A; }
-          .p-link.alt.t-out:hover .word { color: #fff; }
-        }
+        .p-link:hover .word { font-family: 'Bungee', system-ui, sans-serif; color: var(--ac); }
+        .p-link.alt:hover .word { color: #fff; }
       }
       .p-link:active .word { transform: scale(0.96); }
 
-      .p-info { border-right: none; place-content: end center; padding: 0 6vw 12svh; text-align: left; width: 100vw; }
-      .i-cols {
-        display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px;
-        padding-right: clamp(100px, 22vw, 230px);
+      /* — panel 07: the vertical one. END. spine down the left in Shade,
+           one narrow column stacked top-to-bottom, right side reserved
+           for the dot map (mounted by ring.js into #mv-info). — */
+      .p-info {
+        border-right: none; width: 100vw; padding: 0;
+        display: grid; grid-template-columns: auto minmax(0, 1fr);
+        place-content: stretch; place-items: stretch; text-align: left;
+      }
+      .spine {
+        writing-mode: vertical-rl; text-orientation: mixed;
+        font-family: 'Bungee Shade', 'Bungee', system-ui, sans-serif;
+        font-weight: 400;
+        font-size: clamp(56px, 16svh, 150px); line-height: 1;
+        padding: 4svh clamp(12px, 2.5vw, 36px) 9svh;
+        border-right: 4px solid #0A0A0A;
+      }
+      .v-col {
+        display: flex; flex-direction: column; justify-content: space-between;
+        max-width: 640px; min-width: 0;
+        padding: 9svh clamp(100px, 22vw, 230px) 10svh clamp(20px, 4vw, 56px);
         font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: 0.05em;
-        text-transform: uppercase; line-height: 1.9;
+        text-transform: uppercase; line-height: 1.7;
       }
-      @media (max-width: 640px) { .i-cols { grid-template-columns: 1fr; } }
-      .lbl { display: block; color: rgba(10,10,10,0.45); margin-bottom: 6px; }
+      .lbl { display: block; color: rgba(10,10,10,0.45); margin-bottom: 4px; }
       .soon { color: rgba(10,10,10,0.45); }
-      .i-meta {
-        display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap;
-        border-top: 1px solid rgba(0,0,0,0.16); padding-top: 16px; margin-top: 6svh;
-        font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase;
+      .v-row { display: flex; flex-wrap: wrap; column-gap: 20px; }
+      .v-row a, .v-row .soon, .v-meta a { display: inline-block; padding: 12px 0; } /* ~44px targets */
+      .v-meta {
+        display: flex; flex-direction: column;
+        border-top: 1px solid rgba(0,0,0,0.16); padding-top: 12px;
+        font-size: 10px; letter-spacing: 0.06em;
       }
+      .p-info .ptag { left: auto; right: 18px; } /* spine owns the left edge */
       @media (hover: hover) and (pointer: fine) {
         .p-info a:hover { text-decoration: underline; text-underline-offset: 4px; }
+      }
+      @media (max-width: 640px) {
+        .spine { font-size: clamp(40px, 13vw, 72px); }
+        .v-col { font-size: 11px; }
       }
 
       .marquee {
@@ -249,12 +274,13 @@ import { MV_CLIENT } from '../../lib/multiverse';
       }
       .m-in {
         white-space: nowrap; width: max-content;
-        font-size: 17px; letter-spacing: 0.06em;
+        font-family: 'Bungee', system-ui, sans-serif; font-weight: 400;
+        font-size: 15px; letter-spacing: 0.04em;
         animation: slide 26s linear infinite;
       }
       @keyframes slide { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 
-      /* touch: native sideways swipe with snap; parallax/shear stay at rest */
+      /* touch: native sideways swipe with snap; parallax stays at rest */
       @media (hover: none), (pointer: coarse) {
         .hwrap { height: auto !important; }
         .sticky { position: static; height: 100svh; overflow: visible; }
@@ -312,12 +338,11 @@ import { MV_CLIENT } from '../../lib/multiverse';
           centers = panels.map(function (p) { return p.offsetLeft + p.offsetWidth / 2; });
         }
 
-        /* velocity settle loop: shears the name apart while travelling and
-           speeds the marquee up, both easing back to rest when idle */
+        /* velocity settle loop: speeds the marquee up while travelling,
+           easing back to rest when idle */
         function settle() {
           disp += (vel - disp) * 0.12;
           vel *= 0.88;
-          track.style.setProperty('--vx', (disp * 0.25).toFixed(2) + 'px');
           if (!anim && mq.getAnimations) {
             try { anim = mq.getAnimations()[0] || null; } catch (e) {}
           }
@@ -326,7 +351,6 @@ import { MV_CLIENT } from '../../lib/multiverse';
             requestAnimationFrame(settle);
           } else {
             loopOn = false; disp = 0;
-            track.style.setProperty('--vx', '0px');
             if (anim) anim.playbackRate = 1;
           }
         }
@@ -352,6 +376,26 @@ import { MV_CLIENT } from '../../lib/multiverse';
         }, { passive: true });
         addEventListener('resize', function () { size(); place(); }, { passive: true });
         size(); place();
+      })();
+    </script>
+    <script is:inline>
+      /* worm trigger: first viewport entry per panel. IntersectionObserver
+         respects the rail's transform on desktop AND the native scroller on
+         touch — one path for both. Letters are only hidden once this runs. */
+      (function () {
+        'use strict';
+        var reduce = false;
+        try { reduce = matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+        if (reduce || !('IntersectionObserver' in window)) return;
+        var track = document.getElementById('track');
+        if (!track) return;
+        track.classList.add('wormable');
+        var io = new IntersectionObserver(function (entries) {
+          entries.forEach(function (en) {
+            if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target); }
+          });
+        }, { threshold: 0.2 });
+        Array.prototype.forEach.call(document.querySelectorAll('.p-link, .p-info'), function (p) { io.observe(p); });
       })();
     </script>
     <script is:inline defer src="/mv/ticker.js"></script>

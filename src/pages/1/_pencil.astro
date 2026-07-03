@@ -22,6 +22,9 @@
     .sk-cv {
       display: block;
       position: fixed; inset: 0; z-index: 3;
+      /* explicit CSS size: a replaced element with auto width renders at its
+         INTRINSIC (dpr-scaled) size and drifts right on scaled displays */
+      width: 100vw; height: 100svh;
       pointer-events: none;
     }
     .sk-clear {

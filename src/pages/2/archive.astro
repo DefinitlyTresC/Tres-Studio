@@ -28,9 +28,9 @@ const rows = all.filter((p) => !WORK.includes(p.slug));
         <p class="spec">archive · {String(rows.length).padStart(2, '0')}</p>
         <h1 class="name">E v e r y t h i n g&ensp;e l s e</h1>
       </header>
-      <div class="list">
+      <div class="list" data-zg-room>
         {rows.map((p) => (
-          <a class="row" href={`/2/project/${p.slug}`}>
+          <a class="row" data-zg data-zg-slim href={`/2/project/${p.slug}`}>
             <span class="r-no">{String(p.id ?? '').padStart(2, '0')}</span>
             <span class="r-name">{p.name}</span>
             <span class="r-meta">{p.category}</span>
@@ -72,6 +72,8 @@ const rows = all.filter((p) => !WORK.includes(p.slug));
       @media (hover: hover) and (pointer: fine) {
         .r-name { transition: letter-spacing 300ms cubic-bezier(0.23,1,0.32,1); }
         .row:hover .r-name { letter-spacing: 0.03em; }
+        .sim .row { cursor: grab; }
+        .sim .row:active { cursor: grabbing; }
       }
 
       .foot { display: flex; justify-content: space-between; max-width: 1100px; margin: 0 auto; padding: 3svh 6vw 4svh; border-top: 1px solid rgba(0,0,0,0.14); font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; }
@@ -101,5 +103,6 @@ const rows = all.filter((p) => !WORK.includes(p.slug));
         }, { passive: true });
       })();
     </script>
+    <script is:inline defer src="/mv/zerog.js"></script>
   </body>
 </html>

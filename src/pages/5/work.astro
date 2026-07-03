@@ -1,10 +1,15 @@
 ---
-// Site 5 — work. Filled heading; rows hollow out on hover (type play).
+// Site 5 — work. Bungee Shade header worms on load; solid Bungee rows
+// GAIN the Shade's dimension on hover (metrics match — no reflow).
 import { MV_CLIENT } from '../../lib/multiverse';
 import { getCollection } from 'astro:content';
 const WORK = ['z07', 'ee13', 'flatwood', 'tucker', 'thesis'];
 const all = (await getCollection('projects')).map((e) => e.data);
 const rows = WORK.map((s) => all.find((p) => p.slug === s)).filter(Boolean);
+/* per-letter split for the worm; spaces become NBSP so inline-block
+   letter spans keep their width */
+const worm = (word, offset = 0) =>
+  [...word].map((ch, i) => ({ ch: ch === ' ' ? ' ' : ch, i: i + offset }));
 ---
 
 <html lang="en">
@@ -16,15 +21,21 @@ const rows = WORK.map((s) => all.find((p) => p.slug === s)).filter(Boolean);
     <title>WORK — TRES ⁵</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Space+Mono&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Bungee+Shade&family=Space+Mono&display=swap" rel="stylesheet" />
     <script is:inline set:html={MV_CLIENT(5)} />
   </head>
   <body>
     <a class="back" id="back" href="/5/">← index</a>
+    <svg class="reg" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+      <circle cx="12" cy="12" r="7.5" fill="none" stroke="#2431FF" stroke-width="1.5" />
+      <path d="M12 1v22M1 12h22" fill="none" stroke="#2431FF" stroke-width="1.5" />
+    </svg>
     <main class="arch">
       <header class="head">
         <p class="spec">work — 05</p>
-        <h1 class="name">WORK<span class="ac">.</span></h1>
+        <h1 class="name" aria-label="Work">
+          <span aria-hidden="true">{worm('WORK').map((l) => <span class="l" style={`--i:${l.i}`}>{l.ch}</span>)}<span class="l ac" style="--i:4">.</span></span>
+        </h1>
       </header>
       <div class="list">
         {rows.map((p, i) => (
@@ -42,30 +53,40 @@ const rows = WORK.map((s) => all.find((p) => p.slug === s)).filter(Boolean);
       :root { --ac: #2431FF; }
       * { margin: 0; box-sizing: border-box; }
       html { background: #fff; }
-      body { font-family: 'Anton', system-ui, sans-serif; color: #0A0A0A; -webkit-font-smoothing: antialiased; }
+      body { font-family: 'Space Mono', ui-monospace, monospace; color: #0A0A0A; -webkit-font-smoothing: antialiased; }
       ::selection { background: var(--ac); color: #fff; }
       a { color: inherit; text-decoration: none; }
       .back { position: fixed; z-index: 10; top: var(--y, 14px); left: 6vw; font-family: 'Space Mono', monospace; font-size: 12px; padding: 12px 0; transition: transform 140ms cubic-bezier(0.23,1,0.32,1); }
       .back:active { transform: scale(0.96); }
       @media (hover: hover) and (pointer: fine) { .back:hover { text-decoration: underline; text-underline-offset: 4px; } }
+      .reg { position: fixed; top: 15px; right: 6vw; z-index: 10; pointer-events: none; }
       .arch { max-width: 1100px; margin: 0 auto; padding: 0 6vw 12svh; }
       .head { padding: clamp(110px, 22vh, 260px) 0 7svh; }
       .spec { font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(10,10,10,0.45); }
-      .name { font-size: clamp(44px, 10vw, 130px); line-height: 1; margin-top: 10px; }
+      .name { font-family: 'Bungee Shade', 'Bungee', system-ui, sans-serif; font-weight: 400; font-size: clamp(40px, 9vw, 118px); line-height: 1; margin-top: 10px; }
       .ac { color: var(--ac); }
+      /* — worm-on: header letters inch into place on load — */
+      .l { display: inline-block; transform-origin: 50% 80%; }
+      @keyframes worm {
+        0%   { opacity: 0; transform: translate(-0.38em, 0.16em) rotate(-8deg) scale(0.92, 1.06); }
+        28%  { opacity: 1; transform: translate(0.15em, -0.08em) rotate(5deg) scale(1.06, 0.94); }
+        52%  { transform: translate(-0.07em, 0.04em) rotate(-3deg) scale(0.97, 1.03); }
+        76%  { transform: translate(0.03em, -0.015em) rotate(1.5deg) scale(1.01, 0.99); }
+        100% { opacity: 1; transform: none; }
+      }
+      @media (prefers-reduced-motion: no-preference) {
+        .name .l { animation: worm 900ms cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: calc(var(--i) * 70ms); }
+      }
       .list { border-top: 3px solid #0A0A0A; }
       .row { display: flex; align-items: baseline; gap: 18px; padding: 26px 0; border-bottom: 3px solid #0A0A0A; }
       .r-no, .r-meta { font-family: 'Space Mono', monospace; font-size: 12px; color: rgba(10,10,10,0.45); }
       .r-meta { margin-left: auto; }
-      .r-name { font-size: clamp(20px, 3.8vw, 42px); line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .r-name { font-family: 'Bungee', system-ui, sans-serif; font-weight: 400; font-size: clamp(20px, 3.6vw, 38px); line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
       @media (hover: hover) and (pointer: fine) {
-        .r-name, .r-no { transition: color 150ms cubic-bezier(0.16, 1, 0.3, 1); }
-        .row:hover .r-name { color: var(--ac); }
+        .r-no { transition: color 150ms cubic-bezier(0.16, 1, 0.3, 1); }
+        /* flat solid gains the Shade's dimension — same metrics, no reflow */
+        .row:hover .r-name { font-family: 'Bungee Shade', 'Bungee', system-ui, sans-serif; }
         .row:hover .r-no { color: var(--ac); }
-        /* filled hollows out on hover — solid blue fallback above */
-        @supports (-webkit-text-stroke: 1.5px #000) {
-          .row:hover .r-name { color: transparent; -webkit-text-stroke: 1.5px #0A0A0A; }
-        }
       }
       .foot { display: flex; justify-content: space-between; max-width: 1100px; margin: 0 auto; padding: 3svh 6vw 4svh; border-top: 1px solid rgba(0,0,0,0.16); font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; }
     </style>

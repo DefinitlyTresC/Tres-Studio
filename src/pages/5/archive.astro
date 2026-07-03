@@ -1,10 +1,15 @@
 ---
-// Site 5 — archive. Outlined heading (mirrors its outlined landing panel).
+// Site 5 — archive. Bungee Shade header worms on load; dense solid-Bungee
+// rows snap to blue on hover (too small for the Shade's texture).
 import { MV_CLIENT } from '../../lib/multiverse';
 import { getCollection } from 'astro:content';
 const WORK = ['z07', 'ee13', 'flatwood', 'tucker', 'thesis'];
 const all = (await getCollection('projects')).map((e) => e.data);
 const rows = all.filter((p) => !WORK.includes(p.slug));
+/* per-letter split for the worm; spaces become NBSP so inline-block
+   letter spans keep their width */
+const worm = (word, offset = 0) =>
+  [...word].map((ch, i) => ({ ch: ch === ' ' ? ' ' : ch, i: i + offset }));
 ---
 
 <html lang="en">
@@ -16,15 +21,21 @@ const rows = all.filter((p) => !WORK.includes(p.slug));
     <title>ARCHIVE — TRES ⁵</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Space+Mono&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Bungee+Shade&family=Space+Mono&display=swap" rel="stylesheet" />
     <script is:inline set:html={MV_CLIENT(5)} />
   </head>
   <body>
     <a class="back" id="back" href="/5/">← index</a>
+    <svg class="reg" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+      <circle cx="12" cy="12" r="7.5" fill="none" stroke="#2431FF" stroke-width="1.5" />
+      <path d="M12 1v22M1 12h22" fill="none" stroke="#2431FF" stroke-width="1.5" />
+    </svg>
     <main class="arch">
       <header class="head">
         <p class="spec">archive — {String(rows.length).padStart(2, '0')}</p>
-        <h1 class="name">THE REST<span class="ac">.</span></h1>
+        <h1 class="name" aria-label="The rest">
+          <span aria-hidden="true">{worm('THE REST').map((l) => <span class="l" style={`--i:${l.i}`}>{l.ch}</span>)}<span class="l ac" style="--i:8">.</span></span>
+        </h1>
       </header>
       <div class="list">
         {rows.map((p) => (
@@ -43,26 +54,34 @@ const rows = all.filter((p) => !WORK.includes(p.slug));
       :root { --ac: #2431FF; }
       * { margin: 0; box-sizing: border-box; }
       html { background: #fff; }
-      body { font-family: 'Anton', system-ui, sans-serif; color: #0A0A0A; -webkit-font-smoothing: antialiased; }
+      body { font-family: 'Space Mono', ui-monospace, monospace; color: #0A0A0A; -webkit-font-smoothing: antialiased; }
       ::selection { background: var(--ac); color: #fff; }
       a { color: inherit; text-decoration: none; }
       .back { position: fixed; z-index: 10; top: var(--y, 14px); left: 6vw; font-family: 'Space Mono', monospace; font-size: 12px; padding: 12px 0; transition: transform 140ms cubic-bezier(0.23,1,0.32,1); }
       .back:active { transform: scale(0.96); }
       @media (hover: hover) and (pointer: fine) { .back:hover { text-decoration: underline; text-underline-offset: 4px; } }
+      .reg { position: fixed; top: 15px; right: 6vw; z-index: 10; pointer-events: none; }
       .arch { max-width: 1100px; margin: 0 auto; padding: 0 6vw 12svh; }
       .head { padding: clamp(110px, 22vh, 260px) 0 7svh; }
       .spec { font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(10,10,10,0.45); }
-      .name { font-size: clamp(38px, 8vw, 104px); line-height: 1; margin-top: 10px; }
+      .name { font-family: 'Bungee Shade', 'Bungee', system-ui, sans-serif; font-weight: 400; font-size: clamp(32px, 7vw, 92px); line-height: 1; margin-top: 10px; }
       .ac { color: var(--ac); }
-      /* outlined display type — solid fallback where text-stroke is missing */
-      @supports (-webkit-text-stroke: 2px #000) {
-        .name { color: transparent; -webkit-text-stroke: 2.5px #0A0A0A; }
-        .name .ac { color: var(--ac); -webkit-text-stroke-color: var(--ac); }
+      /* — worm-on: header letters inch into place on load — */
+      .l { display: inline-block; transform-origin: 50% 80%; }
+      @keyframes worm {
+        0%   { opacity: 0; transform: translate(-0.38em, 0.16em) rotate(-8deg) scale(0.92, 1.06); }
+        28%  { opacity: 1; transform: translate(0.15em, -0.08em) rotate(5deg) scale(1.06, 0.94); }
+        52%  { transform: translate(-0.07em, 0.04em) rotate(-3deg) scale(0.97, 1.03); }
+        76%  { transform: translate(0.03em, -0.015em) rotate(1.5deg) scale(1.01, 0.99); }
+        100% { opacity: 1; transform: none; }
+      }
+      @media (prefers-reduced-motion: no-preference) {
+        .name .l { animation: worm 900ms cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: calc(var(--i) * 70ms); }
       }
       .list { border-top: 3px solid #0A0A0A; }
       .row { display: grid; grid-template-columns: 3ch minmax(0, 1fr) auto auto; gap: 16px; align-items: baseline; padding: 15px 0; border-bottom: 1px solid rgba(0,0,0,0.2); }
       .r-no, .r-meta { font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 0.05em; text-transform: uppercase; color: rgba(10,10,10,0.45); }
-      .r-name { font-size: clamp(14px, 2vw, 20px); line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .r-name { font-family: 'Bungee', system-ui, sans-serif; font-weight: 400; font-size: clamp(13px, 1.8vw, 18px); line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
       .r-year { text-align: right; min-width: 4ch; }
       @media (max-width: 560px) { .r-meta:not(.r-year) { display: none; } .row { grid-template-columns: 3ch minmax(0, 1fr) auto; } }
       @media (hover: hover) and (pointer: fine) {
