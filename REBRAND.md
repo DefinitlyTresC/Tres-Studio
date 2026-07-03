@@ -37,6 +37,50 @@ really nice"). Each landing gets its own feel per the roster below.
 Full effort each; no palette-swap filler. Sites register on the map and
 enter the random roll only when complete.
 
+## 1b. R4 REVISION QUEUE (Tres review, 2026-07-02 — work through in order)
+
+**Cross-board (DONE this round):** map redesigned from cluster → simple
+row of monochrome dots, titles beneath, current highlighted, grow on hover;
+curtain slower both directions; ALL lab links curtain-take-over the screen
+(lab itself = ONE shared portals section, brand-randomized — build after
+site revisions); privacy page rewritten mad short, one page for all; LinkedIn
+(linkedin.com/in/tres-carter) in every contact list; Resume + Portfolio
+links beside every "Plugins — soon" (files: /resume.pdf, /portfolio.pdf —
+see ASSETS-NEEDED); plugins-soon present on all sites.
+
+**Site 1 (tan) — pending:** work list hover = hero image "plows out" from
+the side (per sketch); same preview-on-hover on landing menu; mouse = a
+PENCIL that draws on screen anywhere (persist via localStorage if easy);
+slight watercolor-paper texture on the background; nudge type toward
+handwritten accents (keep Archivo for display).
+
+**Site 2 (floating) — pending:** spread letters wider/composition per
+screen size (fix index overlap); EVERYTHING click-draggable and throwable —
+letters, menu, buttons — with collisions, jello glide, brief rest then
+return home; "the zero gravity of everything"; menu centered; clicking a
+TRES letter cycles its color (click ≠ drag), letters start black, and
+re-entering the viewport after scrolling away randomizes their colors.
+
+**Site 3 (ASCII) — pending:** EVERYTHING becomes ASCII (buttons included);
+click anywhere = scramble all letters; cursor = a cluster of ASCII chars
+forming an arrow, chars changing often; landing is scroll-pinned: scroll
+progress SCRAMBLES the big word TRES → WORK → ARCHIVE → LAB → ABOUT with
+snap-to-word (morph tied to scroll, not constant); the word you're on =
+where enter/click goes; lists inside pages all-ASCII, bolder small glyphs
+for legibility.
+
+**Site 4 — REPLACE (grid/plank rejected: "super glitchy"):** new concept
+from the orange reference ("You've been warned" / big 63): ORANGE theme,
+giant "03" as the landing background (no TRES on landing), scroll brings
+menu items in from the right like a menu popping up; scroll harder →
+everything swipes left and you land on the info screen. Fully unique — no
+repeats from other sites.
+
+**Site 5 (sideways) — pending:** kill the vertical feel — travel reads
+purely sideways; font goes LONGSHOT-bold ("bold as fuck TRESCARTER" —
+ultra condensed/heavy, slashed energy); add a big cutout PNG (likely
+Archie) — placeholder until Tres supplies (see ASSETS-NEEDED).
+
 ## 2. Fixed anchors — the contract every site implements
 
 1. **A "Tres" identity moment** at the top, in whatever form fits that site.

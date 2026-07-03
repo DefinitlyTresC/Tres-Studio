@@ -19,8 +19,8 @@
    No WebGL: falls back to a clip-path circle (clean edge, no grain).
    ──────────────────────────────────────────────────────────────────────── */
 
-const DUR_COVER = 700;
-const DUR_REVEAL = 850;
+const DUR_COVER = 1050;   /* slowed per Tres, 2026-07-02 */
+const DUR_REVEAL = 1250;
 const EASE = (t) => 1 - Math.pow(1 - t, 2.6); // strong ease-out
 
 let reduce = false;
