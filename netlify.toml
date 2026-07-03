@@ -9,6 +9,11 @@
   directory = "netlify/functions"
   node_bundler = "esbuild"
 
+# The multiverse front door: "/" serves a random site (rewrite, not redirect).
+[[edge_functions]]
+  function = "roll"
+  path = "/"
+
 # Function source never lands in dist/, but keep the guard until cutover
 # cleanup just in case anything copies it through.
 [[redirects]]

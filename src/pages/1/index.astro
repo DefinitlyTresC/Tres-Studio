@@ -1,0 +1,93 @@
+---
+// Site 1 — cream/espresso/Archivo. CHASSIS STUB: the anchors in skeleton
+// form. Grows into the full site next phase.
+import { MV_CLIENT } from '../../lib/multiverse';
+import { getCollection } from 'astro:content';
+
+const WORK = ['z07', 'ee13', 'flatwood', 'tucker', 'thesis'];
+const all = await getCollection('projects');
+const work = WORK.map((s) => all.find((p) => p.id === s)?.data).filter(Boolean);
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="robots" content="noindex" />
+    <meta name="theme-color" content="#FFEDDB" />
+    <title>Tres.</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600&family=Space+Mono&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/v2-tokens.css" />
+    <script is:inline set:html={MV_CLIENT(1)} />
+  </head>
+  <body>
+    <header class="hero">
+      <h1 class="mark">Tres<span class="pd">.</span></h1>
+      <p class="spec">architecture · art · code — 30A</p>
+    </header>
+
+    <main class="work">
+      {work.map((p, i) => (
+        <a class="row" href={`/project/${WORK[i]}`}>
+          <span class="row-name">{p.name}</span>
+          <span class="row-spec">{p.year}</span>
+        </a>
+      ))}
+      <div class="more">
+        <a href="/architecture">archive</a>
+        <a href="/lab">lab</a>
+        <a href="/" aria-disabled="true">plugins — soon</a>
+      </div>
+    </main>
+
+    <footer id="mv-info" class="info">
+      <p class="spec">Tres Carter — 30A, Florida</p>
+      <a class="mail" href="mailto:tres@tres.studio">tres@tres.studio</a>
+    </footer>
+
+    <style is:inline>
+      * { margin: 0; box-sizing: border-box; }
+      html { background: var(--v2-cream, #FFEDDB); }
+      body {
+        font-family: var(--v2-display, 'Archivo', sans-serif);
+        color: var(--v2-ink, #2B1F1A);
+        -webkit-font-smoothing: antialiased;
+      }
+      ::selection { background: var(--v2-sand, #EDCDBB); }
+      a { color: inherit; text-decoration: none; }
+
+      .hero { min-height: 88svh; display: grid; place-content: center; text-align: center; padding: var(--v2-pad, 24px); }
+      .mark { font-weight: 600; font-size: clamp(72px, 17vw, 210px); line-height: 0.9; text-transform: uppercase; letter-spacing: -0.02em; }
+      .pd { color: var(--v2-umber, #BF9270); }
+      .spec { font-family: var(--v2-mono, monospace); font-size: 12px; letter-spacing: 0.08em; color: var(--v2-ink-soft, #6b5c54); margin-top: 18px; }
+
+      .work { max-width: 860px; margin: 0 auto; padding: 6svh var(--v2-pad, 24px) 14svh; }
+      .row {
+        display: flex; justify-content: space-between; align-items: baseline; gap: 16px;
+        padding: 22px 0; border-top: 1px solid var(--v2-hairline, rgba(43,31,26,.16));
+      }
+      .row-name { font-weight: 600; font-size: clamp(24px, 4.6vw, 44px); text-transform: uppercase; line-height: 1; }
+      .row-spec { font-family: var(--v2-mono, monospace); font-size: 12px; color: var(--v2-ink-soft, #6b5c54); }
+      @media (hover: hover) and (pointer: fine) {
+        .row:hover .row-name { translate: 6px 0; }
+        .row-name { transition: translate 200ms cubic-bezier(.23,1,.32,1); }
+      }
+      .more { display: flex; gap: 28px; padding-top: 34px; font-family: var(--v2-mono, monospace); font-size: 13px; }
+      @media (hover: hover) and (pointer: fine) {
+        .more a:hover { text-decoration: underline; text-underline-offset: 4px; }
+      }
+
+      .info { min-height: 60svh; display: grid; align-content: center; gap: 12px; padding: var(--v2-pad, 24px); border-top: 1px solid var(--v2-hairline, rgba(43,31,26,.16)); }
+      .mail { font-weight: 600; font-size: clamp(26px, 5.4vw, 54px); text-transform: uppercase; }
+    </style>
+
+    <script is:inline type="module">
+      import { autoReveal } from '/mv/curtain.js';
+      autoReveal();
+      import('/mv/ring.js');
+    </script>
+    <script is:inline defer src="/mv/ticker.js"></script>
+  </body>
+</html>

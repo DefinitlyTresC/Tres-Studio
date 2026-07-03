@@ -1,0 +1,97 @@
+---
+// Site 2 — B/W, pattern-heavy, "super pop". CHASSIS STUB: proves a second,
+// deliberately opposite skin on the same anchors + shared components.
+import { MV_CLIENT } from '../../lib/multiverse';
+import { getCollection } from 'astro:content';
+
+const WORK = ['z07', 'ee13', 'flatwood', 'tucker', 'thesis'];
+const all = await getCollection('projects');
+const work = WORK.map((s) => all.find((p) => p.id === s)?.data).filter(Boolean);
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="robots" content="noindex" />
+    <meta name="theme-color" content="#ffffff" />
+    <title>TRES — 02</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Space+Mono&display=swap" rel="stylesheet" />
+    <script is:inline set:html={MV_CLIENT(2)} />
+  </head>
+  <body>
+    <header class="hero">
+      <div class="stripes" aria-hidden="true"></div>
+      <h1 class="mark">TRES</h1>
+      <p class="spec">02 — the loud one</p>
+    </header>
+
+    <main class="work">
+      {work.map((p, i) => (
+        <a class="row" href={`/project/${WORK[i]}`}>
+          <span class="big">{p.name}</span>
+        </a>
+      ))}
+      <div class="more">
+        <a href="/architecture">ARCHIVE</a>
+        <a href="/lab">LAB</a>
+      </div>
+    </main>
+
+    <footer id="mv-info" class="info">
+      <div class="checker" aria-hidden="true"></div>
+      <a class="mail" href="mailto:tres@tres.studio">TRES@TRES.STUDIO</a>
+    </footer>
+
+    <style is:inline>
+      :root {
+        --mvt-card: #0a0a0a; --mvt-ink: #ffffff; --mvt-line: rgba(255,255,255,0.4);
+        --mvt-label: rgba(0,0,0,0.6); --mvt-confetti: #0a0a0a,#ffffff,#3a3a3a;
+      }
+      * { margin: 0; box-sizing: border-box; }
+      html { background: #fff; }
+      body { font-family: 'Anton', system-ui, sans-serif; color: #0a0a0a; -webkit-font-smoothing: antialiased; }
+      ::selection { background: #0a0a0a; color: #fff; }
+      a { color: inherit; text-decoration: none; }
+
+      .hero { min-height: 88svh; display: grid; place-content: center; text-align: center; position: relative; overflow: hidden; }
+      .stripes {
+        position: absolute; inset: 0;
+        background: repeating-linear-gradient(45deg, #0a0a0a 0 14px, #fff 14px 42px);
+      }
+      .mark {
+        position: relative; background: #fff; padding: 2vw 5vw;
+        font-size: clamp(90px, 21vw, 260px); line-height: 0.95; letter-spacing: 0.02em;
+      }
+      .spec { position: relative; background: #0a0a0a; color: #fff; justify-self: center; padding: 8px 18px;
+        font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; }
+
+      .work { padding: 8svh 0 12svh; }
+      .row { display: block; border-top: 4px solid #0a0a0a; padding: 3.4svh 5vw; }
+      .big { font-size: clamp(34px, 8.6vw, 110px); line-height: 1; text-transform: uppercase; }
+      .row:nth-child(even) { background: #0a0a0a; color: #fff; }
+      @media (hover: hover) and (pointer: fine) {
+        .row { transition: letter-spacing 200ms cubic-bezier(.23,1,.32,1); }
+        .row:hover { letter-spacing: 0.04em; }
+      }
+      .more { display: flex; gap: 34px; padding: 5svh 5vw 0; font-family: 'Space Mono', monospace; font-size: 14px; }
+
+      .info { min-height: 60svh; display: grid; align-content: center; gap: 0; position: relative; overflow: hidden; border-top: 4px solid #0a0a0a; }
+      .checker {
+        position: absolute; inset: 0; opacity: 0.08;
+        background: conic-gradient(#0a0a0a 90deg, #fff 90deg 180deg, #0a0a0a 180deg 270deg, #fff 270deg);
+        background-size: 48px 48px;
+      }
+      .mail { position: relative; font-size: clamp(28px, 6.4vw, 84px); padding: 0 5vw; }
+    </style>
+
+    <script is:inline type="module">
+      import { autoReveal } from '/mv/curtain.js';
+      autoReveal();
+      import('/mv/ring.js');
+    </script>
+    <script is:inline defer src="/mv/ticker.js"></script>
+  </body>
+</html>
