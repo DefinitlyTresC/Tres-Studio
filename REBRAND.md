@@ -18,11 +18,24 @@ random**; every fresh load of `/` can land somewhere else. Navigation inside
 a site is deterministic — random happens only at the front door and at the
 switcher.
 
-Site #1 rides the current locked direction (cream `#FFEDDB` / espresso
-`#2B1F1A` / Archivo + Space Mono). The rest must be **drastically**
-different — full effort each, no palette-swap filler. Tres's sketches so
-far: one black-and-white with heavy patterns ("super pop"); one with a giant
-`03` filling the background; get genuinely creative beyond that.
+**Landing rule (Tres, 2026-07-02): landings are pure identity experiences —
+no project imagery on any landing.** All work lives in a **Work tab** using
+the dense-index row format (Tres: "Love the everything else format btw
+really nice"). Each landing gets its own feel per the roster below.
+
+**The roster** (refs saved 2026-07-02; general bar: say.social/en/projects):
+1. **Built** — cream `#FFEDDB` / espresso / Archivo drawing-set.
+2. **Floating letters** — T R E S . scattered in white space, drifting,
+   depth parallax (ref: the O+ scattered-letters shot). Replaces the dead
+   Anton/stripes stub ("its bad") — and must NOT mirror the live V1 site.
+3. **ASCII whirlwind** — heavily animated ASCII art; letters whirl and
+   settle (ref: Bon Iver ASCII poster). Cool and fun.
+4. **Black grid + rotating TRESCARTER** — dark grid field, a 3D-rotating
+   name ribbon (ref: the HELLO FROM grid shot).
+5. **Funky** — Fable's creative call (ref energy: LONGSHOT b/w editorial,
+   horizontal scroll, wild display type).
+Full effort each; no palette-swap filler. Sites register on the map and
+enter the random roll only when complete.
 
 ## 2. Fixed anchors — the contract every site implements
 

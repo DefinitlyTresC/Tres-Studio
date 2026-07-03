@@ -11,7 +11,7 @@ export type Site = {
 
 export const SITES: Site[] = [
   { id: 1, name: 'One', paper: '#FFEDDB', ink: '#2B1F1A', swatch: '#BF9270' },
-  { id: 2, name: 'Two', paper: '#FFFFFF', ink: '#0A0A0A', swatch: '#0A0A0A' },
+  { id: 2, name: 'Two', paper: '#FAFAF7', ink: '#101010', swatch: '#9A9A9A' },
 ];
 
 // Serialized for the client scripts (ring, curtain).

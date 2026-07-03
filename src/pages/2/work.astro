@@ -1,6 +1,11 @@
 ---
-// Site 2 — about. Weightless voice, same facts.
+// Site 2 — work. The dense index, weightless skin.
 import { MV_CLIENT } from '../../lib/multiverse';
+import { getCollection } from 'astro:content';
+
+const WORK = ['z07', 'ee13', 'flatwood', 'tucker', 'thesis'];
+const all = (await getCollection('projects')).map((e) => e.data);
+const rows = WORK.map((s) => all.find((p) => p.slug === s)).filter(Boolean);
 ---
 
 <html lang="en">
@@ -9,7 +14,7 @@ import { MV_CLIENT } from '../../lib/multiverse';
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="robots" content="noindex" />
     <meta name="theme-color" content="#FAFAF7" />
-    <title>About — T R E S .</title>
+    <title>Work — T R E S .</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;700;800&family=Space+Mono&display=swap" rel="stylesheet" />
@@ -18,14 +23,26 @@ import { MV_CLIENT } from '../../lib/multiverse';
   <body>
     <a class="back" id="back" href="/2/">← index</a>
 
-    <main class="about">
-      <h1 class="name"><span>T r e s</span><span class="shift">C a r t e r</span></h1>
-      <p class="lede">Architectural designer — 30A, Florida.</p>
-      <div class="acts">
-        <a href="mailto:tres@tres.studio">tres@tres.studio</a>
-        <a href="https://instagram.com/tres.studio" target="_blank" rel="noopener">IG</a>
+    <main class="arch">
+      <header class="head">
+        <p class="spec">work · 05</p>
+        <h1 class="name">W o r k</h1>
+      </header>
+      <div class="list">
+        {rows.map((p, i) => (
+          <a class="row" href={`/2/project/${p.slug}`} style={`--off:${(i % 3) * 4}vw`}>
+            <span class="r-no">{String(i + 1).padStart(2, '0')}</span>
+            <span class="r-name">{p.name}</span>
+            <span class="r-meta">{p.year}</span>
+          </a>
+        ))}
       </div>
     </main>
+
+    <footer class="foot">
+      <span>© 2026 Tres Carter</span>
+      <a href="/privacy">Privacy</a>
+    </footer>
 
     <style is:inline>
       * { margin: 0; box-sizing: border-box; }
@@ -37,13 +54,22 @@ import { MV_CLIENT } from '../../lib/multiverse';
       .back:active { transform: scale(0.96); }
       @media (hover: hover) and (pointer: fine) { .back:hover { text-decoration: underline; text-underline-offset: 4px; } }
 
-      .about { padding: clamp(140px, 28vh, 340px) 6vw 16svh; }
-      .name { font-weight: 800; font-size: clamp(52px, 10vw, 130px); line-height: 1.02; }
-      .name span { display: block; }
-      .name .shift { margin-left: clamp(30px, 12vw, 220px); }
-      .lede { font-family: 'Space Mono', monospace; font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(16,16,16,0.5); margin-top: 26px; }
-      .acts { display: flex; gap: 28px; margin-top: 44px; font-family: 'Space Mono', monospace; font-size: 13px; }
-      @media (hover: hover) and (pointer: fine) { a:hover { text-decoration: underline; text-underline-offset: 4px; } }
+      .arch { padding: 0 6vw 12svh; }
+      .head { padding: clamp(110px, 22vh, 260px) 0 8svh; }
+      .spec { font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(16,16,16,0.45); }
+      .name { font-weight: 800; font-size: clamp(44px, 9vw, 110px); line-height: 1; margin-top: 10px; }
+
+      .list { display: grid; gap: 6svh; padding-top: 2svh; }
+      .row { display: flex; align-items: baseline; gap: 18px; margin-left: var(--off, 0); }
+      .r-no, .r-meta { font-family: 'Space Mono', monospace; font-size: 12px; color: rgba(16,16,16,0.45); }
+      .r-name { font-weight: 700; font-size: clamp(28px, 5.4vw, 60px); line-height: 1; letter-spacing: -0.01em; }
+      @media (max-width: 640px) { .row { margin-left: calc(var(--off, 0) * 0.4); } }
+      @media (hover: hover) and (pointer: fine) {
+        .r-name { transition: letter-spacing 300ms cubic-bezier(0.23,1,0.32,1); }
+        .row:hover .r-name { letter-spacing: 0.03em; }
+      }
+
+      .foot { display: flex; justify-content: space-between; padding: 3svh 6vw 4svh; border-top: 1px solid rgba(0,0,0,0.14); font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; }
     </style>
 
     <script is:inline type="module">
