@@ -13,7 +13,7 @@ export const SITES: Site[] = [
   { id: 1, name: 'One', paper: '#FFEDDB', ink: '#2B1F1A', swatch: '#BF9270' },
   { id: 2, name: 'Two', paper: '#FAFAF7', ink: '#101010', swatch: '#9A9A9A' },
   { id: 3, name: 'Three', paper: '#FFFFFF', ink: '#141414', swatch: '#4A4A4A' },
-  { id: 4, name: 'Four', paper: '#0B0B0C', ink: '#F2F2F2', swatch: '#111111' },
+  { id: 4, name: 'Four', paper: '#EC5B13', ink: '#141210', swatch: '#EC5B13' },
   { id: 5, name: 'Five', paper: '#FFFFFF', ink: '#0A0A0A', swatch: '#2431FF' },
 ];
 
