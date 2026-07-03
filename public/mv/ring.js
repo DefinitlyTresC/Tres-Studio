@@ -75,7 +75,10 @@ import { cover } from '/mv/curtain.js';
           if (leaving) { e.preventDefault(); return; }
           leaving = true;
           e.preventDefault();
-          await cover({ x: e.clientX, y: e.clientY, color: s.ink });
+          /* keyboard activation clicks at (0,0) — flood from the dot instead */
+          const kb = !e.clientX && !e.clientY;
+          const rb = kb ? b.getBoundingClientRect() : null;
+          await cover({ x: kb ? rb.left + rb.width / 2 : e.clientX, y: kb ? rb.top + rb.height / 2 : e.clientY, color: s.ink });
           location.href = b.href;
         });
       }
@@ -90,7 +93,10 @@ import { cover } from '/mv/curtain.js';
       if (reduce || leaving) return;
       leaving = true;
       e.preventDefault();
-      await cover({ x: e.clientX, y: e.clientY, color: '#0A0806' });
+      /* keyboard activation clicks at (0,0) — flood from the link instead */
+      const kb = !e.clientX && !e.clientY;
+      const ra = kb ? a.getBoundingClientRect() : null;
+      await cover({ x: kb ? ra.left + ra.width / 2 : e.clientX, y: kb ? ra.top + ra.height / 2 : e.clientY, color: '#0A0806' });
       location.href = a.getAttribute('href');
     });
   });

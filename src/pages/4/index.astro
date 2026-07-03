@@ -1,9 +1,10 @@
 ---
-// Site 4 — "the warning one." Hot orange field, a giant beige 04 cropped by
+// Site 4 — "the warning one." Hot orange field, a giant beige 03 cropped by
 // the viewport (no TRES on this landing), a warning-strip header. Scrolling
-// slides the menu in from the right, item by item; keep scrolling and the
-// whole scene sweeps off to the left, leaving you at the info screen.
-// Replaces the rejected grid/plank concept entirely.
+// flies the menu in from the LEFT, item by item; it dwells seated, then the
+// info panel rises as a solid sheet and flicks the words off bottom-up as it
+// covers the scene — filing a new sheet over the drawing stack. All scrubbed
+// motion rides one damped follower (smoothness contract, 2026-07-03).
 import { MV_CLIENT } from '../../lib/multiverse';
 ---
 
@@ -37,11 +38,11 @@ import { MV_CLIENT } from '../../lib/multiverse';
         <div class="scene" id="scene">
           <div class="num" id="num" aria-hidden="true">03</div>
           <nav class="stack" aria-label="Sections">
-            <a class="it" href="/4/work" style="--i:0">WORK</a>
-            <a class="it" href="/4/archive" style="--i:1">ARCHIVE</a>
-            <a class="it" href="/lab" style="--i:2">LAB</a>
-            <a class="it" href="/4/about" style="--i:3">ABOUT</a>
-            <div class="it small" style="--i:4">
+            <a class="it" href="/4/work">WORK</a>
+            <a class="it" href="/4/archive">ARCHIVE</a>
+            <a class="it" href="/lab">LAB</a>
+            <a class="it" href="/4/about">ABOUT</a>
+            <div class="it small">
               <a href="/resume.pdf">RESUME</a>
               <a href="/portfolio.pdf">PORTFOLIO</a>
               <span class="soon">PLUGINS — SOON</span>
@@ -86,7 +87,7 @@ import { MV_CLIENT } from '../../lib/multiverse';
       :root {
         --org: #EC5B13; --ink: #141210; --num: #E8DCC6;
         --mvt-card: #ffffff; --mvt-ink: #141210; --mvt-line: rgba(0,0,0,0.35);
-        --mvt-label: rgba(20,18,16,0.6); --mvt-accent: #141210; --mvt-confetti: #E8DCC6,#141210,#ffffff;
+        --mvt-label: #3A2113; --mvt-accent: #141210; --mvt-confetti: #E8DCC6,#141210,#ffffff;
       }
       * { margin: 0; box-sizing: border-box; }
       /* NOTE: no overflow-x:hidden on html/body — it breaks position:sticky.
@@ -111,33 +112,34 @@ import { MV_CLIENT } from '../../lib/multiverse';
       .cm::before, .cm::after { content: ""; position: absolute; background: var(--ink); opacity: 0.5; }
       .cm::before { width: 13px; height: 1px; }
       .cm::after { width: 1px; height: 13px; }
-      .cm.tl { top: 15px; left: 15px; } .cm.tl::before { top: 0; left: 11px; } .cm.tl::after { left: 0; top: 11px; }
-      .cm.tr { top: 15px; right: 15px; } .cm.tr::before { top: 0; right: 11px; } .cm.tr::after { right: 0; top: 11px; }
-      .cm.bl { bottom: 15px; left: 15px; } .cm.bl::before { bottom: 0; left: 11px; } .cm.bl::after { left: 0; bottom: 11px; }
-      .cm.br { bottom: 15px; right: 15px; } .cm.br::before { bottom: 0; right: 11px; } .cm.br::after { right: 0; bottom: 11px; }
+      .cm.tl { top: max(15px, env(safe-area-inset-top, 0px)); left: max(15px, env(safe-area-inset-left, 0px)); } .cm.tl::before { top: 0; left: 11px; } .cm.tl::after { left: 0; top: 11px; }
+      .cm.tr { top: max(15px, env(safe-area-inset-top, 0px)); right: max(15px, env(safe-area-inset-right, 0px)); } .cm.tr::before { top: 0; right: 11px; } .cm.tr::after { right: 0; top: 11px; }
+      .cm.bl { bottom: max(15px, env(safe-area-inset-bottom, 0px)); left: max(15px, env(safe-area-inset-left, 0px)); } .cm.bl::before { bottom: 0; left: 11px; } .cm.bl::after { left: 0; bottom: 11px; }
+      .cm.br { bottom: max(15px, env(safe-area-inset-bottom, 0px)); right: max(15px, env(safe-area-inset-right, 0px)); } .cm.br::before { bottom: 0; right: 11px; } .cm.br::after { right: 0; bottom: 11px; }
       .an { position: absolute; font-size: 9px; letter-spacing: 0.14em; color: rgba(20,18,16,0.5); white-space: nowrap; }
-      .an-fig { right: 17px; top: clamp(90px, 16svh, 160px); writing-mode: vertical-rl; }
-      .an-scale { left: 17px; top: 56px; }
-      .an-sheet { left: 56px; bottom: 16px; }
+      .an-fig { right: calc(17px + env(safe-area-inset-right, 0px)); top: clamp(90px, 16svh, 160px); writing-mode: vertical-rl; }
+      .an-scale { left: calc(17px + env(safe-area-inset-left, 0px)); top: 56px; }
+      .an-sheet { left: calc(56px + env(safe-area-inset-left, 0px)); bottom: calc(16px + env(safe-area-inset-bottom, 0px)); }
 
       .strip {
         position: fixed; inset: 0 0 auto 0; z-index: 10;
         display: flex; align-items: center; gap: 10px; justify-content: center;
-        padding: 12px 16px;
+        padding: calc(12px + env(safe-area-inset-top, 0px)) 16px 12px;
         font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.18em;
         border-bottom: 1.5px solid var(--ink);
         background: var(--org);
       }
       .tri { font-size: 12px; letter-spacing: 0; }
 
-      .pin-wrap { height: 240svh; }
+      .pin-wrap { height: 320svh; } /* 220svh scrub: room for a real dwell + the sheet handoff */
       .pin { position: sticky; top: 0; height: 100svh; overflow: hidden; }
-      .scene { position: absolute; inset: 0; transform: translateX(var(--sx, 0px)); will-change: transform; }
+      .scene { position: absolute; inset: 0; }
       .num {
         position: absolute; right: -2vw; bottom: -10svh;
         font-weight: 900; font-size: min(88svh, 46vw); line-height: 0.8;
         letter-spacing: -0.04em; color: var(--num);
         transform: translate(var(--nx, 0px), var(--ny, 0px));
+        will-change: transform;
         user-select: none;
       }
       /* press texture inside the glyph: a fine dot screen clipped to the 03 —
@@ -172,35 +174,40 @@ import { MV_CLIENT } from '../../lib/multiverse';
         transition: transform 220ms cubic-bezier(0.19, 1, 0.22, 1);
       }
       a.it:active { --pr: 0.96; }
+      a.it:focus-visible, .it.small a:focus-visible { outline: 2px solid var(--ink); outline-offset: 4px; }
       .it.small { display: flex; gap: 20px; font-family: 'Space Mono', monospace; font-weight: 400; font-size: 12px; letter-spacing: 0.1em; }
-      .it.small a { position: relative; z-index: 0; padding: 14px 5px; margin: -14px -5px; }
+      /* 45px hit areas; the inversion plate keeps hugging the text via inset */
+      .it.small a { position: relative; z-index: 0; padding: 17px 8px; margin: -17px -8px; }
       .it.small a::before {
-        content: ""; position: absolute; inset: 9px 0; z-index: -1;
+        content: ""; position: absolute; inset: 12px 3px; z-index: -1;
         background: var(--num);
         transform: scaleY(0); transform-origin: bottom;
         transition: transform 180ms cubic-bezier(0.19, 1, 0.22, 1);
       }
       .it.small a:active { transform: scale(0.96); }
-      .soon { color: rgba(20,18,16,0.55); }
+      .soon { color: #3A2113; } /* 0.55-alpha ink on orange was 2.7:1 — AA needs solid */
       @media (hover: hover) and (pointer: fine) {
         a.it:hover::before, .it.small a:hover::before { transform: scaleY(1); }
       }
       .cue {
-        position: absolute; bottom: 3.4svh; left: 50%; translate: -50% 0;
+        position: absolute; bottom: calc(3.4svh + env(safe-area-inset-bottom, 0px)); left: 50%; translate: -50% 0;
         font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 0.22em;
         color: rgba(20,18,16,0.55);
         transition: opacity 400ms ease;
       }
       .cue.off { opacity: 0; }
 
-      .info { min-height: 74svh; display: grid; align-content: start; gap: 6svh; position: relative; padding: 5svh 5vw 14svh; border-top: 1.5px solid var(--ink); }
+      /* the info panel is a SHEET: it overlaps the last viewport of the scrub
+         and slides up over the emptied scene — no dead orange gap between the
+         03 flying off and the info arriving. Filing a new sheet on the stack. */
+      .info { min-height: 100svh; margin-top: -100svh; z-index: 5; background: var(--org); display: grid; align-content: space-between; gap: 6svh; position: relative; padding: 6svh 5vw calc(4svh + env(safe-area-inset-bottom, 0px)); border-top: 1.5px solid var(--ink); will-change: transform; }
       .i-cols {
         display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px;
         padding-right: clamp(100px, 24vw, 240px);
         font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: 0.05em; line-height: 1.9;
       }
       @media (max-width: 640px) { .i-cols { grid-template-columns: 1fr; } }
-      .lbl { display: block; color: rgba(20,18,16,0.55); margin-bottom: 6px; }
+      .lbl { display: block; color: #3A2113; margin-bottom: 6px; }
       .i-meta {
         display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap;
         border-top: 1.5px solid var(--ink); padding-top: 16px;
@@ -213,8 +220,13 @@ import { MV_CLIENT } from '../../lib/multiverse';
       /* no-JS / reduced motion: everything simply rests in place */
       @media (prefers-reduced-motion: reduce) {
         .pin-wrap { height: auto; }
-        .pin { position: static; height: 100svh; }
-        a.it::before, .it.small a::before { transition: none; }
+        /* relative, NOT static: .scene/.num need the containing block and the
+           overflow clip or the -2vw 03 bleeds into real horizontal scroll */
+        .pin { position: relative; height: 100svh; }
+        .info { margin-top: 0; min-height: 74svh; } /* no scrub -> no overlap */
+        a.it::before, .it.small a::before, .cue { transition: none; }
+        a.it:active { --pr: 1; }
+        .it.small a:active { transform: none; }
       }
     </style>
 
@@ -231,45 +243,81 @@ import { MV_CLIENT } from '../../lib/multiverse';
         if (reduce) return;
 
         var wrap = document.getElementById('pinWrap');
-        var scene = document.getElementById('scene');
+        var pin = wrap.firstElementChild;
         var num = document.getElementById('num');
+        var cue = document.querySelector('.cue');
+        var info = document.getElementById('mv-info');
         var items = Array.prototype.slice.call(document.querySelectorAll('.it'));
-        var ticking = false;
+        var N = items.length;
 
+        /* follower state — declared before apply() reads it */
+        var cur = 0, target = 0, raf = null, last = 0;
+        var wrapTop = 0, S = 1, lastW = innerWidth;
+
+        /* choreography (fractions of the 220svh scrub):
+           arrivals 0.02→0.34 · seated dwell 0.34→0.60 (the menu HOLDS ~560px
+           of scroll — a wheel flick can't blow through it) · exits 0.60→0.92
+           staggered BOTTOM-UP, coupled to the sheet's rise (enters ~0.545,
+           covers at 1.0) so it flicks each word off just as its edge arrives.
+           The 03 only drifts — the sheet files over it. */
         function ease(t) { return 1 - Math.pow(1 - t, 3); }
         /* arrivals get a whisper of settle: easeOutBack with a small back
            constant (~1.8% overshoot) — pure progress mapping, no tweens */
         function backOut(t) { var c = 0.7, u = t - 1; return 1 + (c + 1) * u * u * u + c * u * u; }
-        function place() {
-          ticking = false;
-          var r = wrap.getBoundingClientRect();
-          var total = r.height - innerHeight;
-          var p = Math.min(1, Math.max(0, -r.top / total));
-
-          /* phase 1 (0 → .62): the words arrive from the LEFT, one by one */
-          for (var i = 0; i < items.length; i++) {
-            var start = 0.04 + i * 0.1;
-            var t = Math.min(1, Math.max(0, (p - start) / 0.14));
-            items[i].style.setProperty('--x', (-(1 - backOut(t)) * 120) + 'vw');
+        var lastApplied = -1;
+        function apply(p) {
+          if (p !== lastApplied) {
+            lastApplied = p;
+            for (var i = 0; i < N; i++) {
+              var t = Math.min(1, Math.max(0, (p - (0.02 + i * 0.05)) / 0.12));
+              items[i].style.setProperty('--x', (-(1 - backOut(t)) * 120) + 'vw');
+              var s = Math.min(1, Math.max(0, (p - (0.60 + (N - 1 - i) * 0.05)) / 0.12));
+              items[i].style.setProperty('--y', (-ease(s) * 130) + 'svh');
+            }
+            num.style.setProperty('--nx', (-p * 5) + 'vw');
+            num.style.setProperty('--ny', (-p * p * 20) + 'svh');
+            cue.classList.toggle('off', p > 0.05);
           }
-          /* the 03 drifts as you dig; the cue bows out once you're moving */
-          num.style.setProperty('--nx', (-p * 5) + 'vw');
-          document.querySelector('.cue').classList.toggle('off', p > 0.08);
-
-          /* phase 2 (.72 → 1): the words push up and out, staggered; the 03
-             lifts away right behind them so the info arrives immediately */
-          for (var j = 0; j < items.length; j++) {
-            var s = Math.min(1, Math.max(0, (p - 0.72 - j * 0.026) / 0.15));
-            items[j].style.setProperty('--y', (-ease(s) * 130) + 'svh');
-          }
-          var sn = Math.min(1, Math.max(0, (p - 0.78) / 0.2));
-          num.style.setProperty('--ny', (-ease(sn) * 120) + 'svh');
+          /* the sheet rides the SAME clock: cancel its native-scroll lead so
+             words and sheet can never desync on a fast flick */
+          info.style.transform = 'translateY(' + ((target - cur) * S).toFixed(2) + 'px)';
         }
-        addEventListener('scroll', function () {
-          if (!ticking) { ticking = true; requestAnimationFrame(place); }
+
+        /* smoothness: raw scroll only sets a TARGET; a frame-rate-independent
+           damped follower (k=0.14 @60fps) chases it, turning stepped wheel
+           input into glide. Loop self-stops on an exact final frame. */
+        function remeasure() {
+          /* offsets cached here only — zero layout reads during scroll */
+          var r = wrap.getBoundingClientRect();
+          wrapTop = r.top + (scrollY || 0);
+          S = Math.max(1, r.height - pin.clientHeight); /* svh-true; innerHeight drifts with the URL bar */
+          measure();
+        }
+        function measure() { target = Math.min(1, Math.max(0, ((scrollY || 0) - wrapTop) / S)); }
+        function tick(now) {
+          var dt = last ? Math.min(50, now - last) : 16.7;
+          last = now;
+          cur += (target - cur) * (1 - Math.pow(0.86, dt / 16.7));
+          if (Math.abs(target - cur) < 0.0006) { cur = target; apply(cur); raf = null; last = 0; return; }
+          apply(cur);
+          raf = requestAnimationFrame(tick);
+        }
+        function kick() { measure(); if (!raf) raf = requestAnimationFrame(tick); }
+        addEventListener('scroll', kick, { passive: true });
+        addEventListener('resize', function () {
+          remeasure();
+          /* real resizes snap; URL-bar height churn glides through kick() */
+          if (innerWidth !== lastW) { lastW = innerWidth; cur = target; last = 0; }
+          kick();
         }, { passive: true });
-        addEventListener('resize', place, { passive: true });
-        place();
+
+        /* keyboard: tabbing into the menu seats it — from either side */
+        document.querySelector('.stack').addEventListener('focusin', function () {
+          measure();
+          if (target < 0.4 || target > 0.55) scrollTo({ top: wrapTop + S * 0.45, behavior: 'smooth' });
+        });
+
+        remeasure(); cur = target; apply(cur);
       })();
     </script>
     <script is:inline defer src="/mv/ticker.js"></script>

@@ -215,13 +215,18 @@
     }
     if (!craf) craf = requestAnimationFrame(fall);
   }
-  function fall() {
+  var fallT = 0;
+  function fall(now) {
+    /* time-based, not frame-based — 120Hz screens must not double the physics */
+    var dt = fallT ? Math.min(50, now - fallT) : 16.7;
+    fallT = now;
+    var k = dt / 16.7;
     ctx.clearRect(0, 0, cvf.width, cvf.height);
     for (var i = bits.length - 1; i >= 0; i--) {
       var b = bits[i];
-      b.age += 16;
+      b.age += dt;
       if (b.age > b.life) { bits.splice(i, 1); continue; }
-      b.vy += .22; b.x += b.vx; b.y += b.vy; b.rot += b.vr;
+      b.vy += .22 * k; b.x += b.vx * k; b.y += b.vy * k; b.rot += b.vr * k;
       var a = b.age > b.life * .7 ? 1 - (b.age - b.life * .7) / (b.life * .3) : 1;
       ctx.save();
       ctx.translate(b.x * dprC, b.y * dprC);
@@ -232,6 +237,6 @@
       ctx.restore();
     }
     craf = bits.length ? requestAnimationFrame(fall) : null;
-    if (!bits.length) ctx.clearRect(0, 0, cvf.width, cvf.height);
+    if (!bits.length) { fallT = 0; ctx.clearRect(0, 0, cvf.width, cvf.height); }
   }
 })();

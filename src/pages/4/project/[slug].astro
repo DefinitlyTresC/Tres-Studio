@@ -18,6 +18,8 @@ const backHref = WORK.includes(p.slug) ? '/4/work' : '/4/archive';
 const backLabel = WORK.includes(p.slug) ? 'WORK' : 'ARCHIVE';
 const spec = [`NO.${String(p.id ?? '').padStart(2, '0')}`, p.year, p.location, p.status].filter(Boolean).join(' / ').toUpperCase();
 const paragraphs = (p.description || '').split(/\n\s*\n/).map((s) => s.trim()).filter(Boolean);
+// image ordinal must match the lightbox counter, which counts images only
+let imgOrdinal = 0;
 ---
 
 <html lang="en">
@@ -51,7 +53,7 @@ const paragraphs = (p.description || '').split(/\n\s*\n/).map((s) => s.trim()).f
           {p.media.map((m, i) =>
             m.type === 'video'
               ? <video src={mediaUrl(m)} autoplay muted loop playsinline preload="metadata"></video>
-              : <button class="cell" type="button" data-full={mediaUrl(m)} aria-label={`View image ${i + 1}`}><img src={gridUrl(m)} alt="" loading="lazy" decoding="async" /></button>
+              : <button class="cell" type="button" data-full={mediaUrl(m)} aria-label={`View image ${++imgOrdinal}`}><img src={gridUrl(m)} alt="" loading="lazy" decoding="async" /></button>
           )}
         </div>
       )}
@@ -62,7 +64,7 @@ const paragraphs = (p.description || '').split(/\n\s*\n/).map((s) => s.trim()).f
     </main>
     <footer class="foot"><span>© 2026 TRES CARTER</span><a href="/privacy">PRIVACY</a></footer>
 
-    <div class="lb" id="lb" hidden>
+    <div class="lb" id="lb" hidden role="dialog" aria-modal="true" aria-label="Gallery image">
       <img id="lb-img" alt="" />
       <p class="lb-n" id="lb-n"></p>
       <button class="lb-x" id="lb-x" type="button" aria-label="Close">CLOSE</button>
@@ -84,10 +86,11 @@ const paragraphs = (p.description || '').split(/\n\s*\n/).map((s) => s.trim()).f
         background-size: 220px 220px;
         opacity: 0.11; mix-blend-mode: soft-light;
       }
-      .an { position: fixed; top: 18px; right: 18px; z-index: 90; pointer-events: none; font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: 0.14em; color: rgba(20,18,16,0.5); }
-      .back { position: fixed; z-index: 10; top: var(--y, 14px); left: 18px; font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 0.16em; padding: 12px 0; transition: transform 140ms cubic-bezier(0.23,1,0.32,1); }
+      .an { position: fixed; top: calc(18px + env(safe-area-inset-top, 0px)); right: calc(18px + env(safe-area-inset-right, 0px)); z-index: 90; pointer-events: none; font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: 0.14em; color: rgba(20,18,16,0.5); }
+      .back { position: fixed; z-index: 10; top: var(--y, 14px); left: calc(18px + env(safe-area-inset-left, 0px)); font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 0.16em; padding: 12px 0; transition: transform 140ms cubic-bezier(0.23,1,0.32,1); }
       .back:active { transform: scale(0.96); }
       @media (hover: hover) and (pointer: fine) { .back:hover { text-decoration: underline; text-underline-offset: 4px; } }
+      .back:focus-visible { outline: 2px solid #141210; outline-offset: 3px; }
       .proj { max-width: 1100px; margin: 0 auto; padding: 0 6vw 6svh; }
       .head { padding: clamp(110px, 20vh, 220px) 0 5svh; }
       .spec { font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 0.16em; color: rgba(20,18,16,0.55); }
@@ -109,12 +112,17 @@ const paragraphs = (p.description || '').split(/\n\s*\n/).map((s) => s.trim()).f
       .foot { display: flex; justify-content: space-between; max-width: 1100px; margin: 0 auto; padding: 3svh 6vw 4svh; border-top: 1px solid rgba(20,18,16,0.4); font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.06em; }
       .lb { position: fixed; inset: 0; z-index: 100; background: rgba(236,91,19,0.97); display: grid; place-items: center; }
       .lb[hidden] { display: none; }
-      .lb img { max-width: 92vw; max-height: 86vh; outline: 1px solid rgba(20,18,16,0.4); outline-offset: -1px; }
-      .lb-n { position: fixed; bottom: 18px; left: 50%; translate: -50% 0; font-family: 'Space Mono', monospace; font-size: 11px; color: rgba(20,18,16,0.6); }
-      .lb-x { position: fixed; top: 14px; right: 18px; font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 0.16em; padding: 10px 0; }
-      .lb-prev, .lb-next { position: fixed; top: 50%; translate: 0 -50%; font-family: 'Space Mono', monospace; font-size: 18px; padding: 14px; }
-      .lb-prev { left: 2vw; } .lb-next { right: 2vw; }
+      .lb img { max-width: 92vw; max-height: 86svh; outline: 1px solid rgba(20,18,16,0.4); outline-offset: -1px; }
+      .lb-n { position: fixed; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); left: 50%; translate: -50% 0; font-family: 'Space Mono', monospace; font-size: 11px; color: rgba(20,18,16,0.6); }
+      .lb-x { position: fixed; top: calc(10px + env(safe-area-inset-top, 0px)); right: calc(18px + env(safe-area-inset-right, 0px)); font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 0.16em; padding: 14px 0 14px 14px; min-height: 44px; }
+      .lb-prev, .lb-next { position: fixed; top: 50%; translate: 0 -50%; font-family: 'Space Mono', monospace; font-size: 18px; padding: 14px; min-width: 44px; min-height: 44px; }
+      .lb-prev { left: calc(2vw + env(safe-area-inset-left, 0px)); } .lb-next { right: calc(2vw + env(safe-area-inset-right, 0px)); }
       @media (hover: hover) and (pointer: fine) { .lb button:hover { text-decoration: underline; text-underline-offset: 4px; } }
+      .lb button:focus-visible { outline: 2px solid #141210; outline-offset: 3px; }
+      @media (prefers-reduced-motion: reduce) {
+        .back { transition: none; }
+        .back:active { transform: none; }
+      }
     </style>
 
     <script is:inline type="module">
@@ -126,6 +134,14 @@ const paragraphs = (p.description || '').split(/\n\s*\n/).map((s) => s.trim()).f
         'use strict';
         var reduce = false, fine = false;
         try { reduce = matchMedia('(prefers-reduced-motion: reduce)').matches; fine = matchMedia('(hover: hover) and (pointer: fine)').matches; } catch (e) {}
+        if (reduce) {
+          /* reduced motion: gallery videos must not autoplay-loop */
+          Array.prototype.forEach.call(document.querySelectorAll('.gallery video'), function (v) {
+            v.removeAttribute('autoplay'); v.removeAttribute('loop');
+            try { v.pause(); } catch (err) {}
+            v.controls = true;
+          });
+        }
         if (fine && !reduce) {
           var back = document.getElementById('back');
           var target = null, cur = null, raf = null;
@@ -135,6 +151,7 @@ const paragraphs = (p.description || '').split(/\n\s*\n/).map((s) => s.trim()).f
             if (Math.abs(target - cur) > 0.4) raf = requestAnimationFrame(frame); else raf = null;
           }
           addEventListener('pointermove', function (e) {
+            if (e.pointerType === 'touch') return; /* hybrids: taps must not move it */
             var h = back.offsetHeight;
             target = Math.min(innerHeight - h - 12, Math.max(12, e.clientY - h / 2));
             if (cur === null) cur = target;
@@ -146,15 +163,37 @@ const paragraphs = (p.description || '').split(/\n\s*\n/).map((s) => s.trim()).f
         var lb = document.getElementById('lb');
         var img = document.getElementById('lb-img');
         var n = document.getElementById('lb-n');
-        var at = 0, lastFocus = null;
+        var at = 0, lastFocus = null, lockY = 0;
         function open(i) {
+          var wasClosed = lb.hidden;
           at = i; img.src = full[at];
           n.textContent = (at + 1) + ' / ' + full.length;
-          lb.hidden = false; document.body.style.overflow = 'hidden';
-          lastFocus = document.activeElement;
-          document.getElementById('lb-x').focus();
+          lb.hidden = false;
+          if (wasClosed) {
+            /* lock + focus capture on a TRUE open only — re-running on
+               prev/next steps zeroes lockY (body is already fixed, so
+               scrollY reads 0) and steals focus from the stepping button */
+            lockY = window.scrollY || 0;
+            /* body position:fixed — the lock iOS actually honors */
+            document.body.style.position = 'fixed';
+            document.body.style.top = -lockY + 'px';
+            document.body.style.left = '0';
+            document.body.style.right = '0';
+            document.body.style.overflow = 'hidden';
+            lastFocus = document.activeElement;
+            document.getElementById('lb-x').focus();
+          }
         }
-        function close() { lb.hidden = true; img.src = ''; document.body.style.overflow = ''; if (lastFocus) lastFocus.focus(); }
+        function close() {
+          lb.hidden = true; img.src = '';
+          document.body.style.position = '';
+          document.body.style.top = '';
+          document.body.style.left = '';
+          document.body.style.right = '';
+          document.body.style.overflow = '';
+          window.scrollTo(0, lockY);
+          if (lastFocus) lastFocus.focus();
+        }
         function step(d) { open((at + d + full.length) % full.length); }
         cellEls.forEach(function (c, i) { c.addEventListener('click', function () { open(i); }); });
         document.getElementById('lb-x').addEventListener('click', close);
@@ -166,6 +205,14 @@ const paragraphs = (p.description || '').split(/\n\s*\n/).map((s) => s.trim()).f
           if (e.key === 'Escape') close();
           else if (e.key === 'ArrowLeft') step(-1);
           else if (e.key === 'ArrowRight') step(1);
+          else if (e.key === 'Tab') {
+            /* keep focus inside the dialog */
+            var ring = [document.getElementById('lb-x'), document.getElementById('lb-prev'), document.getElementById('lb-next')];
+            var idx = ring.indexOf(document.activeElement);
+            e.preventDefault();
+            var nx = idx === -1 ? 0 : (idx + (e.shiftKey ? -1 : 1) + ring.length) % ring.length;
+            ring[nx].focus();
+          }
         });
       })();
     </script>

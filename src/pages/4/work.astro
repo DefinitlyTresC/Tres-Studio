@@ -24,7 +24,7 @@ const rows = WORK.map((s) => all.find((p) => p.slug === s)).filter(Boolean);
     <span class="an" aria-hidden="true">SHEET 04.1</span>
     <main class="arch">
       <header class="head">
-        <p class="spec">WORK / 05</p>
+        <p class="spec">WORK / {String(rows.length).padStart(2, '0')}</p>
         <h1 class="name">SELECTED WORK</h1>
       </header>
       <div class="list">
@@ -52,10 +52,11 @@ const rows = WORK.map((s) => all.find((p) => p.slug === s)).filter(Boolean);
         background-size: 220px 220px;
         opacity: 0.11; mix-blend-mode: soft-light;
       }
-      .an { position: fixed; top: 18px; right: 18px; z-index: 90; pointer-events: none; font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: 0.14em; color: rgba(20,18,16,0.5); }
-      .back { position: fixed; z-index: 10; top: var(--y, 14px); left: 18px; font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 0.16em; padding: 12px 0; transition: transform 140ms cubic-bezier(0.23,1,0.32,1); }
+      .an { position: fixed; top: calc(18px + env(safe-area-inset-top, 0px)); right: calc(18px + env(safe-area-inset-right, 0px)); z-index: 90; pointer-events: none; font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: 0.14em; color: rgba(20,18,16,0.5); }
+      .back { position: fixed; z-index: 10; top: var(--y, 14px); left: calc(18px + env(safe-area-inset-left, 0px)); font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 0.16em; padding: 12px 0; transition: transform 140ms cubic-bezier(0.23,1,0.32,1); }
       .back:active { transform: scale(0.96); }
       @media (hover: hover) and (pointer: fine) { .back:hover { text-decoration: underline; text-underline-offset: 4px; } }
+      .back:focus-visible { outline: 2px solid #141210; outline-offset: 3px; }
       .arch { max-width: 1000px; margin: 0 auto; padding: 0 6vw 12svh; }
       .head { padding: clamp(110px, 22vh, 260px) 0 7svh; }
       .spec { font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 0.2em; color: rgba(20,18,16,0.55); }
@@ -73,7 +74,8 @@ const rows = WORK.map((s) => all.find((p) => p.slug === s)).filter(Boolean);
         .row:hover::before { transform: scaleY(1); }
       }
       @media (prefers-reduced-motion: reduce) {
-        .row::before { transition: none; }
+        .back, .row, .row::before, .r-name { transition: none; }
+        .back:active, .row:active { transform: none; }
       }
       .foot { display: flex; justify-content: space-between; max-width: 1000px; margin: 0 auto; padding: 3svh 6vw 4svh; border-top: 1px solid rgba(20,18,16,0.4); font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.06em; }
     </style>
@@ -95,6 +97,7 @@ const rows = WORK.map((s) => all.find((p) => p.slug === s)).filter(Boolean);
           if (Math.abs(target - cur) > 0.4) raf = requestAnimationFrame(frame); else raf = null;
         }
         addEventListener('pointermove', function (e) {
+          if (e.pointerType === 'touch') return; /* hybrids: taps must not move it */
           var h = back.offsetHeight;
           target = Math.min(innerHeight - h - 12, Math.max(12, e.clientY - h / 2));
           if (cur === null) cur = target;

@@ -125,6 +125,14 @@ let imgOrdinal = 0;
         'use strict';
         var reduce = false, fine = false;
         try { reduce = matchMedia('(prefers-reduced-motion: reduce)').matches; fine = matchMedia('(hover: hover) and (pointer: fine)').matches; } catch (e) {}
+        if (reduce) {
+          /* reduced motion: gallery videos must not autoplay-loop */
+          Array.prototype.forEach.call(document.querySelectorAll('.gallery video'), function (v) {
+            v.removeAttribute('autoplay'); v.removeAttribute('loop');
+            try { v.pause(); } catch (err) {}
+            v.controls = true;
+          });
+        }
         if (fine && !reduce) {
           var back = document.getElementById('back');
           var target = null, cur = null, raf = null;
@@ -148,18 +156,24 @@ let imgOrdinal = 0;
         var n = document.getElementById('lb-n');
         var at = 0, lastFocus = null, lockY = 0;
         function open(i) {
+          var wasClosed = lb.hidden;
           at = i; img.src = full[at];
           n.textContent = (at + 1) + ' / ' + full.length;
           lb.hidden = false;
-          /* body position:fixed — the lock iOS actually honors */
-          lockY = window.scrollY || 0;
-          document.body.style.position = 'fixed';
-          document.body.style.top = -lockY + 'px';
-          document.body.style.left = '0';
-          document.body.style.right = '0';
-          document.body.style.overflow = 'hidden';
-          lastFocus = document.activeElement;
-          document.getElementById('lb-x').focus();
+          if (wasClosed) {
+            /* lock + focus capture on a TRUE open only — re-running on
+               prev/next steps zeroes lockY (body is already fixed, so
+               scrollY reads 0) and steals focus from the stepping button */
+            lockY = window.scrollY || 0;
+            /* body position:fixed — the lock iOS actually honors */
+            document.body.style.position = 'fixed';
+            document.body.style.top = -lockY + 'px';
+            document.body.style.left = '0';
+            document.body.style.right = '0';
+            document.body.style.overflow = 'hidden';
+            lastFocus = document.activeElement;
+            document.getElementById('lb-x').focus();
+          }
         }
         function close() {
           lb.hidden = true; img.src = '';

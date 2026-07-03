@@ -1,81 +1,78 @@
 # tres.studio — Brief V3: the Multiverse
 
-## ✅ SITE 3 PASS BUILT — 2026-07-03, awaiting Tres review
+## ✅ SITE 4 PASS BUILT — 2026-07-03, awaiting Tres review
 
 **The process (Tres's contract, unchanged):** one site at a time; finish →
 "done" → Tres comments → fix → he says go → next. Site 1 ✅ (3375858).
-Site 2 ✅ (bdd4f9e). **Site 3 pass is built + verified — Tres reviews now.**
-Then sites 4, 5, then the lab rebuild.
+Site 2 ✅ (bdd4f9e). Site 3 ✅ (a972033, approved "looks good" 2026-07-03).
+**Site 4 pass is built + verified — Tres reviews now.** Then site 5, then
+the lab rebuild.
 
-**What shipped against his four complaints:**
+**Tres's Site 4 feedback (his words):** (1) "a bunch of space between the 03
+and the bottom info panel. its kinda weird. clean it up"; (2) "make the info
+nav panel better so like its stays on screen longer when scrolling"; (3)
+"full pass, bug check, everything. smoothness is key on this site."
 
-1. **Font theme.** The squashed-Arial silhouette is dead. The big word now
-   rasterizes in **Anybody Black @ wdth 150** (Google Fonts, OFL — natively
-   ultra-wide, squarish machine-chassis skeleton; sampling is aspect-corrected
-   by CH/CW so letterforms land undistorted, no fake scale). Glyph atlas +
-   site body moved to **JetBrains Mono** (700 atlas, 400-700 UI); sub-page
-   display headings (selected_work / everything_else / project names) are
-   Anybody 900 @ font-stretch 150%. IBM Plex Mono is gone from site 3.
-   build() is now gated on document.fonts.load() with a 1.5s failsafe +
-   late re-bake — the audit CONFIRMED the atlas-in-fallback-font race was
-   live (Tres may literally have been judging Consolas, not the design).
-2. **Click shatter** slowed to a readable traveling wave: window 900→1700ms,
-   wavefront travel 450→800ms, per-cell burst 450→650ms (SHAT_* consts at
-   the top of the script — tune there).
-3. **Between-words scroll rebuilt:** DWELL=0.28 seated plateau at BOTH ends
-   of every morph (word holds fully intact across 28% of each segment),
-   smoothstep-eased morph, scramble identity quantized to 48 ticks/segment
-   (was 1200/scrub = re-roll every ~2px), QUIET debris set ('.:-=+*') at the
-   morph fringe with full SCRAM only at peak boil, and a **stranded-boil
-   rescue**: parked dead between stops for 850ms → smooth-glide to the
-   nearest word (proximity snap only covers rests NEAR a stop — verified the
-   dead-middle park used to boil forever). Footer got scroll-snap-align:end
-   so reading it no longer tugs back up to ABOUT.
-4. **Polish/bug pass** (workflow: 2 research + 2 audit agents, adversarial
-   verify — 9 confirmed, 20 false positives killed; full results in the
-   session transcript): canvas buffer sized from its layout box, not
-   innerWidth/Height (iOS URL-bar squeeze + Windows scrollbar drift);
-   progress() denominator = wrap − pin height so seated words sit exactly at
-   f=k, + 0/0 NaN guard under reduce; click/heat pointer coords translated
-   by canvas top (clicking seated ABOUT from the footer region now navigates
-   instead of shattering); whirl-in and shatter gated under reduced-motion
-   (both leaked); resize debounced 150ms with dims+dpr early-return (heat
-   wake survives); rAF idle-skip — a static field repaints nothing (mid-morph
-   stays live so the 90ms boil tick breathes when scroll pauses); ASCII
-   cursor hidden until first pointermove + weave interval paused when
-   document.hidden; .hint pointer-events:none + hidden under reduce;
-   **bfcache fix, all 5 sites:** pageshow(e.persisted) hides the curtain
-   canvas and resets every leaving-latch (curtain.js, ring.js, 3/index,
-   lab.astro) — Back after a curtain nav used to restore a dead ink-covered
-   page (the old scroll.js had this guard; the rewrite lost it).
-5. **Sub-page parity set** (same set sites 1+2 got): lightbox role=dialog +
-   aria-modal + Tab focus trap + 44px targets + 86svh + iOS body-fixed
-   scroll lock + image-only aria ordinals; back-link touch guard +
-   :focus-visible + reduced-motion blocks on all four pages; about 44px hit
-   areas + an sr-only h1 (the ASCII box was the page's ONLY content and it
-   is aria-hidden — screen readers got an empty page); work entry count now
-   dynamic; landing keys nav got safe-area insets + hit areas +
-   :focus-visible. Side fixes: 2/work.astro was missing .back:focus-visible
-   (gap in the reference itself); root project/[slug].astro frontmatter
-   comment no longer contains a literal script tag (it tripped esbuild's
-   dep-scanner with an ERROR on every dev boot).
+**What shipped:**
 
-**VERIFIED in real visible Chrome** (extension MCP was down on this machine —
-drove it with PowerShell Win32 input + desktop screenshots, occluded-window
-rAF trap dodged): settled TRES/WORK in Anybody; plateau holds at 28%;
-mid-morph boil; rescue glide (parked boil resolved itself to WORK in ~1.5s
-untouched); shatter wave (origin burst → far-side front ~850ms → recovered
-~1.7s); word click → curtain cover → /3/work; project page + lightbox
-open/Escape; about; archive; footer ring/keys. `astro build` green, 128
-pages. NOT hand-verified: a real bfcache Back restore (the fix is the
-standard pageshow pattern and the mechanism was adversarially confirmed;
-synthetic Back clicks were unreliable through blind window automation),
-real-iOS touch behavior, and the reduced-motion visual pass.
+1. **The gap is gone — the info panel is now a SHEET.** .info overlaps the
+   last viewport of the scrub (margin-top:-100svh, min-height:100svh, opaque
+   orange, z-index 5) and slides up OVER the emptied scene — filing a new
+   sheet onto the drawing stack. Wrap grew 240→320svh (220svh scrub). The
+   scroll ends exactly as the sheet seats — no residual band. Sheet content
+   recomposed: columns top, © meta pinned to the bottom edge (title block).
+2. **The menu HOLDS.** Arrivals 0.02→0.34, seated dwell 0.34→0.60 (~26% of
+   the scrub ≈ 560+px of scroll — was 18%/290px, one wheel flick). Exits
+   0.60→0.92 staggered BOTTOM-UP and coupled to the sheet's rise so it
+   flicks each word off as its edge arrives (research-derived coupling:
+   sheet enters p=0.545, covers at 1.0).
+3. **Smoothness: one damped clock for everything.** Raw scroll only sets a
+   target; a frame-rate-independent follower (k=0.14@60fps, dt-clamped,
+   snap-before-stop) drives the words AND the sheet — apply() cancels the
+   sheet's native-scroll lead via translateY((target−cur)·S) so nothing can
+   desync on a fast flick. Zero layout reads during scroll (offsets cached;
+   was getBoundingClientRect per event). Choreography numbers validated
+   against Lenis/GSAP/Codrops norms by the research agent.
+4. **Confirmed audit findings fixed (10/10, 0 false positives):** scrub
+   denominator now pin.clientHeight not innerHeight (URL-bar drift class,
+   same as site 3); resize glides instead of teleporting (hard-snap only on
+   width change); reduced-motion .pin{position:relative} not static (static
+   destroyed the containing block → the -2vw 03 caused real horizontal
+   scroll); focusin seat-scroll now covers BOTH directions (shift-tab from
+   footer no longer lands on invisible exited items); .soon/.lbl/--mvt-label
+   contrast → solid #3A2113 (0.55-alpha ink on orange was 2.7:1, AA needs
+   4.5); curtain.js GL buffer now sized from the canvas box not
+   innerWidth/Height (tap-origin drift on mobile URL-bar, site-3 bug class);
+   **lightbox step() scroll-jump (sites 2+3+4, shipped in the "fixed"
+   references!):** prev/next re-ran the iOS lock capture, zeroing lockY —
+   closing after stepping teleported the page to top and dumped keyboard
+   focus; now guarded by wasClosed on all three project pages.
+5. **Polish/lows:** dead --sx/will-change dropped from .scene; apply()
+   short-circuits unchanged p; small-row + about contact hit targets ≥44px
+   (inversion plates visually unchanged via inset compensation); safe-area
+   env() on .back/.an/.lb-x/plate/strip/cue everywhere; ring.js keyboard
+   activation floods from the control, not (0,0) (chassis, all sites);
+   ticker confetti physics now time-based (was 2x speed on 120Hz);
+   gallery videos stop autoplay-looping under reduced-motion (sites 2/3/4);
+   stale header comment + dead --i props removed.
 
-**Carry-notes for the sites 4/5 passes:** their project lightboxes still use
-86vh (grep confirmed only 4+5 remain); apply this same parity set there.
-Site 3 gallery cells intentionally have NO press-scale (flat terminal skin).
-Lab rebuild queued after site 5.
+**VERIFIED in real visible Chrome (PowerShell-driven walk):** clean top →
+staggered arrivals → long seated dwell → sheet chasing words off bottom-up
+(the money frame: ARCHIVE/WORK mid-flight, footer readable on the rising
+sheet, 03 arcs above the edge) → exact full-cover end. Lightbox: open
+mid-page → arrow-step → Escape → scroll position preserved (was: jump to
+top). `astro build` green, 128 pages. NOT hand-verified: real-iOS touch
+behavior, reduced-motion visual pass, 120Hz feel.
+
+**Open flags for Tres:** the dot-ring map labels this universe "04" while
+the whole site brands itself "03" (ids are 1-indexed, the brand is
+0-indexed) — pick a convention and I'll wire it (registry label field).
+Inter Tight still font-swaps the giant 03 on first uncached paint
+(one-time reshape; fix = preload woff2 or accept).
+
+**Carry-notes for the site 5 pass:** 5/project lightbox still 86vh + the
+step() fix and PRM-video guard are NOT yet on site 5 (only 2/3/4); apply
+the full parity set there. Lab rebuild queued after site 5.
 
 **VERIFICATION LESSONS (this session, save yourself the hour):** an
 OCCLUDED/minimized Chrome window throttles rAF to ~0 and clamps timers —
@@ -154,9 +151,14 @@ on Tres's explicit go.
   fonts.load-gated build; layout-box canvas sizing; reduce gates on
   whirl/shatter; rAF idle-skip; full sub-page parity set. Constants live at
   the top of the inline script. DON'T touch without cause.
-- **Site 4 (orange 03):** giant halftone 03, words in from LEFT then push
-  UP out, print grain + crop marks + PROPRIETARY marginalia, block-invert
-  hovers. Strip: "⚠ 03 — TRES CARTER · ARCHITECTURE / ART / CODE · 30A".
+- **Site 4 (orange 03) — full pass 2026-07-03 (see the ✅ section up top):**
+  giant halftone 03, words in from LEFT, long seated dwell, then the info
+  panel rises as a SHEET and flicks the words off bottom-up as it covers
+  the scene (no dead gap). All scrubbed motion on one damped follower
+  (k=0.14, dt-corrected, sheet lead cancelled via translateY). Print grain
+  + crop marks + PROPRIETARY marginalia, block-invert hovers. Strip:
+  "⚠ 03 — TRES CARTER · ARCHITECTURE / ART / CODE · 30A". Choreography
+  constants live in apply() in the inline script.
 - **Site 5 (sideways/Bungee Shade):** horizontal rail (SPEED 2.4, touch
   snap), per-letter worm-on entrances, vertical END.-spine info panel,
   blue registration marks. Archie image REMOVED by request.
@@ -165,9 +167,10 @@ on Tres's explicit go.
 - Cross-board: short privacy page, LinkedIn everywhere, Resume/Portfolio/
   plugins-soon links, legacy-URL redirects in public/_redirects.
 
-**AWAITING TRES:** review of the **Site 3 pass** (2026-07-03 — fonts,
-scroll choreography, shatter, parity; he comments, we fix, then he says go
-on site 4); files per ASSETS-NEEDED.md (resume.pdf, portfolio.pdf →
+**AWAITING TRES:** review of the **Site 4 pass** (2026-07-03 — sheet
+handoff, menu dwell, one-clock smoothness, audit fixes; he comments, we
+fix, then he says go on site 5); the 03-vs-04 dot-map label decision (see
+Open flags); files per ASSETS-NEEDED.md (resume.pdf, portfolio.pdf →
 public/); his next batch of site ideas ("i will work on more site ideas
 after this").
 
