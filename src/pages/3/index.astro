@@ -1,7 +1,10 @@
 ---
-// Site 3 — "the terminal one." TRES built from characters: a whirlwind of
-// glyphs spins in and settles into ASCII letterforms, shimmering alive.
-// Everything on this site speaks monospace.
+// Site 3 — "the terminal one," rebuilt per R4: EVERYTHING is ASCII.
+// One pinned screen. Scroll scrubs the big word through TRES → WORK →
+// ARCHIVE → LAB → ABOUT — the scramble is TIED to scroll (still page =
+// still glyphs), snap settles you on a word, and the seated word is the
+// door: click it to enter. Click anywhere else: everything shatters for a
+// beat. The cursor is a small storm of characters shaped like an arrow.
 import { MV_CLIENT } from '../../lib/multiverse';
 ---
 
@@ -14,20 +17,23 @@ import { MV_CLIENT } from '../../lib/multiverse';
     <title>TRES [ascii]</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Space+Mono&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=Space+Mono&display=swap" rel="stylesheet" />
     <script is:inline set:html={MV_CLIENT(3)} />
   </head>
   <body>
-    <header class="scene">
-      <canvas id="ascii" aria-label="TRES"></canvas>
-      <p class="cue">[ scroll ]</p>
-    </header>
+    <section class="wrap" id="wrap">
+      <div class="pin">
+        <canvas id="ascii" aria-label="TRES — scroll to change the word, click the word to enter"></canvas>
+        <p class="hint" id="hint">[ scroll · click the word to enter ]</p>
+      </div>
+      <div class="snap"></div><div class="snap"></div><div class="snap"></div><div class="snap"></div><div class="snap"></div>
+    </section>
 
-    <nav class="menu" aria-label="Sections">
-      <a href="/3/work"><span class="pre">01 ──</span> work</a>
-      <a href="/3/archive"><span class="pre">02 ──</span> archive</a>
-      <a href="/lab"><span class="pre">03 ──</span> lab</a>
-      <a href="/3/about"><span class="pre">04 ──</span> about</a>
+    <nav class="keys" aria-label="Sections">
+      <a href="/3/work">[ work ]</a>
+      <a href="/3/archive">[ archive ]</a>
+      <a href="/lab">[ lab ]</a>
+      <a href="/3/about">[ about ]</a>
     </nav>
 
     <footer id="mv-info" class="info">
@@ -60,33 +66,40 @@ import { MV_CLIENT } from '../../lib/multiverse';
       </div>
     </footer>
 
+    <pre class="acur" id="acur" aria-hidden="true"></pre>
+
     <style is:inline>
       :root {
         --mvt-card: #ffffff; --mvt-ink: #141414; --mvt-line: rgba(0,0,0,0.3);
         --mvt-label: rgba(0,0,0,0.5); --mvt-accent: #141414; --mvt-confetti: #141414,#6a6a6a,#ffffff;
       }
       * { margin: 0; box-sizing: border-box; }
-      html, body { overflow-x: hidden; }
-      html { background: #fff; }
+      html { background: #fff; scroll-snap-type: y proximity; }
       body { font-family: 'IBM Plex Mono', ui-monospace, monospace; color: #141414; -webkit-font-smoothing: antialiased; }
       ::selection { background: #141414; color: #fff; }
       a { color: inherit; text-decoration: none; }
 
-      .scene { position: relative; height: 100svh; }
+      .wrap { height: 500svh; position: relative; }
+      .pin { position: sticky; top: 0; height: 100svh; overflow: hidden; }
       #ascii { display: block; width: 100%; height: 100%; }
-      .cue { position: absolute; bottom: 4svh; left: 50%; translate: -50% 0; font-size: 11px; letter-spacing: 0.18em; color: rgba(20,20,20,0.4); }
-
-      .menu { min-height: 90svh; display: grid; align-content: center; gap: 0; max-width: 900px; margin: 0 auto; padding: 0 6vw; }
-      .menu a {
-        display: flex; align-items: baseline; gap: 14px;
-        padding: 4.4svh 0; border-bottom: 1px dashed rgba(0,0,0,0.25);
-        font-weight: 600; font-size: clamp(26px, 5.4vw, 58px); letter-spacing: 0.02em;
+      .snap { position: absolute; left: 0; width: 1px; height: 100svh; scroll-snap-align: start; }
+      .snap:nth-child(2) { top: 0; } .snap:nth-child(3) { top: 100svh; }
+      .snap:nth-child(4) { top: 200svh; } .snap:nth-child(5) { top: 300svh; }
+      .snap:nth-child(6) { top: 400svh; }
+      .hint {
+        position: absolute; bottom: 4svh; left: 50%; translate: -50% 0;
+        font-size: 11px; letter-spacing: 0.14em; color: rgba(20,20,20,0.45);
+        transition: opacity 400ms ease;
       }
-      .menu a:first-child { border-top: 1px dashed rgba(0,0,0,0.25); }
-      .menu .pre { font-weight: 400; font-size: 12px; color: rgba(20,20,20,0.45); letter-spacing: 0; }
+      .hint.off { opacity: 0; }
+
+      .keys {
+        position: fixed; bottom: 14px; left: 18px; z-index: 10;
+        display: flex; gap: 14px;
+        font-size: 12px; font-weight: 600;
+      }
       @media (hover: hover) and (pointer: fine) {
-        .menu a { transition: letter-spacing 260ms cubic-bezier(0.23,1,0.32,1); }
-        .menu a:hover { letter-spacing: 0.1em; }
+        .keys a:hover { background: #141414; color: #fff; }
       }
 
       .info { min-height: 70svh; display: grid; align-content: end; gap: 7svh; position: relative; padding: 10svh 6vw 4svh; }
@@ -105,6 +118,24 @@ import { MV_CLIENT } from '../../lib/multiverse';
       @media (hover: hover) and (pointer: fine) {
         .info a:hover { text-decoration: underline; text-underline-offset: 4px; }
       }
+
+      /* the character cursor — desktop only */
+      .acur {
+        position: fixed; z-index: 200; pointer-events: none; display: none;
+        font-family: 'IBM Plex Mono', monospace; font-weight: 700;
+        font-size: 9px; line-height: 8px; letter-spacing: 0;
+        color: #141414; white-space: pre;
+      }
+      @media (hover: hover) and (pointer: fine) {
+        html.js-cursor, html.js-cursor body, html.js-cursor a, html.js-cursor canvas { cursor: none; }
+        .acur { display: block; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        html { scroll-snap-type: none; }
+        .wrap { height: 100svh; }
+        .acur { display: none !important; }
+        html.js-cursor, html.js-cursor body, html.js-cursor a, html.js-cursor canvas { cursor: auto; }
+      }
     </style>
 
     <script is:inline type="module">
@@ -113,7 +144,8 @@ import { MV_CLIENT } from '../../lib/multiverse';
       import('/mv/ring.js');
     </script>
 
-    <script is:inline>
+    <script is:inline type="module">
+      import { cover } from '/mv/curtain.js';
       (function () {
         'use strict';
         var reduce = false, fine = false;
@@ -122,125 +154,208 @@ import { MV_CLIENT } from '../../lib/multiverse';
           fine = matchMedia('(hover: hover) and (pointer: fine)').matches;
         } catch (e) {}
 
+        var WORDS = [
+          { w: 'TRES', href: null },
+          { w: 'WORK', href: '/3/work' },
+          { w: 'ARCHIVE', href: '/3/archive' },
+          { w: 'LAB', href: '/lab' },
+          { w: 'ABOUT', href: '/3/about' },
+        ];
+        var RAMP = ' .,:;-=+*#%@';
+        var GLYPHS = '#%@*+=&$0123456789TRESWOKACHIVLBU';
+
+        var wrap = document.getElementById('wrap');
         var cv = document.getElementById('ascii');
         var ctx = cv.getContext('2d');
+        var hint = document.getElementById('hint');
         var dpr = Math.min(2, devicePixelRatio || 1);
-        var RAMP = ' .,:;-=+*#%@';
-        var cells = [], CW = 0, CH = 0, cols = 0, rows = 0;
-        var t0 = null, mx = -1e4, my = -1e4;
+        var CW = 0, CH = 0, cols = 0, rows = 0, FS = 0;
+        var rasters = [], bg = [];
+        var burst = 0;            /* click-shatter energy, decays */
+        var boot = null;          /* whirl-in start time */
+
+        function hash(a, b) {
+          var h = (a * 374761393 + b * 668265263) | 0;
+          h = ((h ^ (h >>> 13)) * 1274126177) | 0;
+          return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
+        }
+        function glyphFor(seedA, seedB) {
+          return GLYPHS[Math.floor(hash(seedA, seedB) * GLYPHS.length)];
+        }
 
         function build() {
           var small = innerWidth < 700;
-          var fs = small ? 11 : 13;          /* cell font */
-          CW = fs * 0.62; CH = fs * 1.18;
+          FS = small ? 11 : 13;
+          CW = FS * 0.62; CH = FS * 1.18;
           cols = Math.floor(innerWidth / CW);
           rows = Math.floor(innerHeight / CH);
           cv.width = innerWidth * dpr; cv.height = innerHeight * dpr;
           ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-          ctx.font = '600 ' + fs + 'px "IBM Plex Mono", monospace';
+          ctx.font = '600 ' + FS + 'px "IBM Plex Mono", monospace';
           ctx.textBaseline = 'top';
 
-          /* rasterize TRES to a density map */
-          var off = document.createElement('canvas');
-          off.width = cols; off.height = rows;
-          var o = off.getContext('2d');
-          o.fillStyle = '#000';
-          var word = 'TRES';
-          var size = rows * (small ? 0.34 : 0.42);
-          o.font = '900 ' + size + 'px Arial, sans-serif';
-          o.textAlign = 'center'; o.textBaseline = 'middle';
-          /* squeeze horizontally so the word fills the grid's aspect */
-          o.save();
-          o.translate(cols / 2, rows / 2);
-          var tw = o.measureText(word).width;
-          o.scale(Math.min(1, (cols * 0.86) / tw), 0.62);
-          o.fillText(word, 0, 0);
-          o.restore();
-          var data = o.getImageData(0, 0, cols, rows).data;
-
-          cells = [];
-          var cx = innerWidth / 2, cy = innerHeight / 2;
-          for (var r = 0; r < rows; r++) {
-            for (var c = 0; c < cols; c++) {
-              var a = data[(r * cols + c) * 4 + 3] / 255;
-              var isBg = a < 0.12;
-              /* sparse background texture, like the poster */
-              if (isBg && Math.random() > 0.055) continue;
-              var x = c * CW, y = r * CH;
-              cells.push({
-                x: x, y: y,
-                ch: isBg
-                  ? ',.\'`'[Math.floor(Math.random() * 4)]
-                  : RAMP[Math.max(2, Math.floor(a * (RAMP.length - 1)))],
-                bg: isBg,
-                d: Math.hypot(x - cx, y - cy),           /* delay seed */
-                ang: Math.atan2(y - cy, x - cx),
-                seed: Math.random() * 6.2832,
-              });
-            }
-          }
-        }
-
-        function draw(now) {
-          if (t0 === null) t0 = now;
-          var T = (now - t0) / 1000;
-          ctx.clearRect(0, 0, innerWidth, innerHeight);
-          var maxD = Math.hypot(innerWidth, innerHeight) / 2;
-
-          for (var i = 0; i < cells.length; i++) {
-            var s = cells[i];
-            /* whirl-in: each cell spirals to its seat, outer cells later */
-            var p = Math.min(1, Math.max(0, (T - s.d / maxD * 0.9) / 1.1));
-            var e = 1 - Math.pow(1 - p, 3);
-            var x = s.x, y = s.y, alpha = e;
-            if (e < 1) {
-              var rr = (1 - e) * maxD * 0.5;
-              var aa = s.ang + (1 - e) * 4.2;
-              x += Math.cos(aa) * rr;
-              y += Math.sin(aa) * rr;
-            } else {
-              /* idle: breathe + pointer vortex */
-              var wob = Math.sin(T * 0.7 + s.seed) * 1.2;
-              y += wob;
-              if (fine) {
-                var dx = x - mx, dy = y - my;
-                var dd = Math.hypot(dx, dy);
-                if (dd < 110 && dd > 0.1) {
-                  var f = (110 - dd) / 110;
-                  var va = Math.atan2(dy, dx) + 1.5708;
-                  x += Math.cos(va) * f * 14;
-                  y += Math.sin(va) * f * 14;
-                }
+          /* raster each word once */
+          rasters = WORDS.map(function (W) {
+            var off = document.createElement('canvas');
+            off.width = cols; off.height = rows;
+            var o = off.getContext('2d');
+            var size = rows * (small ? 0.4 : 0.52);
+            o.font = '900 ' + size + 'px Arial, sans-serif';
+            o.textAlign = 'center'; o.textBaseline = 'middle';
+            o.save();
+            o.translate(cols / 2, rows / 2);
+            var tw = o.measureText(W.w).width;
+            /* fill the width — scale UP for short words, down for long ones */
+            o.scale(Math.min(2.8, (cols * 0.9) / tw), 0.62);
+            o.fillText(W.w, 0, 0);
+            o.restore();
+            var data = o.getImageData(0, 0, cols, rows).data;
+            var cells = [];
+            var minX = 1e9, maxX = -1e9, minY = 1e9, maxY = -1e9;
+            for (var r = 0; r < rows; r++) {
+              for (var c = 0; c < cols; c++) {
+                var a = data[(r * cols + c) * 4 + 3] / 255;
+                if (a < 0.12) continue;
+                var x = c * CW, y = r * CH;
+                cells.push({
+                  x: x, y: y,
+                  ch: RAMP[Math.max(3, Math.floor(a * (RAMP.length - 1)))],
+                  seed: r * cols + c,
+                  d: Math.hypot(x - innerWidth / 2, y - innerHeight / 2),
+                  ang: Math.atan2(y - innerHeight / 2, x - innerWidth / 2),
+                });
+                if (x < minX) minX = x; if (x > maxX) maxX = x;
+                if (y < minY) minY = y; if (y > maxY) maxY = y;
               }
             }
-            ctx.fillStyle = s.bg
-              ? 'rgba(20,20,20,' + (0.2 * alpha).toFixed(2) + ')'
-              : 'rgba(20,20,20,' + alpha.toFixed(2) + ')';
-            ctx.fillText(s.ch, x, y);
-            /* shimmer: letter cells occasionally tick a neighbor glyph */
-            if (!s.bg && Math.random() < 0.0015) {
-              var idx = RAMP.indexOf(s.ch);
-              s.ch = RAMP[Math.min(RAMP.length - 1, Math.max(2, idx + (Math.random() < 0.5 ? -1 : 1)))];
+            return { cells: cells, box: [minX, minY, maxX + CW, maxY + CH] };
+          });
+
+          /* sparse background dust */
+          bg = [];
+          for (var r2 = 0; r2 < rows; r2++) {
+            for (var c2 = 0; c2 < cols; c2++) {
+              if (hash(c2, r2) > 0.045) continue;
+              bg.push({ x: c2 * CW, y: r2 * CH, seed: r2 * cols + c2 });
             }
           }
-          requestAnimationFrame(draw);
         }
 
-        function staticDraw() {
+        function progress() {
+          var r = wrap.getBoundingClientRect();
+          var total = r.height - innerHeight;
+          return Math.min(1, Math.max(0, -r.top / total));
+        }
+
+        function frame(now) {
+          requestAnimationFrame(frame);
+          if (boot === null) boot = now;
+          var bootT = (now - boot) / 1100; /* whirl-in */
+          var p = reduce ? 0 : progress();
+          if (burst > 0.005) burst *= 0.9; else burst = 0;
+
+          var f = p * (WORDS.length - 1);
+          var k = Math.round(f);
+          var intensity = Math.min(1, Math.abs(f - k) * 2.3) ;
+          intensity = Math.max(intensity, burst);
+          var pq = Math.floor(p * 900); /* scramble evolves WITH scroll */
+          var bq = burst > 0 ? Math.floor(now / 90) : 0;
+
           ctx.clearRect(0, 0, innerWidth, innerHeight);
-          for (var i = 0; i < cells.length; i++) {
-            var s = cells[i];
-            ctx.fillStyle = s.bg ? 'rgba(20,20,20,0.2)' : '#141414';
-            ctx.fillText(s.ch, s.x, s.y);
+
+          /* dust */
+          for (var i = 0; i < bg.length; i++) {
+            var b = bg[i];
+            var bs = (intensity > 0.05 && hash(b.seed, pq + bq) < intensity)
+              ? glyphFor(b.seed, pq + bq + 7) : ',';
+            ctx.fillStyle = 'rgba(20,20,20,0.18)';
+            ctx.fillText(bs, b.x, b.y);
+          }
+
+          /* the word */
+          var R = rasters[k];
+          var maxD = Math.hypot(innerWidth, innerHeight) / 2;
+          for (var j = 0; j < R.cells.length; j++) {
+            var s = R.cells[j];
+            var x = s.x, y = s.y, alpha = 1;
+            if (bootT < 1 && k === 0) { /* whirl-in, TRES only, load only */
+              var e = Math.min(1, Math.max(0, (bootT - s.d / maxD * 0.5) / 0.55));
+              e = 1 - Math.pow(1 - e, 3);
+              if (e < 1) {
+                var rr = (1 - e) * maxD * 0.5;
+                x += Math.cos(s.ang + (1 - e) * 4.2) * rr;
+                y += Math.sin(s.ang + (1 - e) * 4.2) * rr;
+                alpha = e;
+              }
+            }
+            var scr = hash(s.seed, 1) < intensity;
+            var chr = scr ? glyphFor(s.seed, pq + bq) : s.ch;
+            ctx.fillStyle = 'rgba(20,20,20,' + alpha.toFixed(2) + ')';
+            ctx.fillText(chr, x, y);
           }
         }
 
+        function seatedWord() {
+          var f = (reduce ? 0 : progress()) * (WORDS.length - 1);
+          var k = Math.round(f);
+          return Math.abs(f - k) < 0.18 ? k : -1;
+        }
+
+        var leaving = false;
+        cv.addEventListener('click', async function (e) {
+          if (leaving) return;
+          var k = seatedWord();
+          if (k >= 0) {
+            var B = rasters[k].box;
+            if (e.clientX > B[0] - 20 && e.clientX < B[2] + 20 && e.clientY > B[1] - 20 && e.clientY < B[3] + 20) {
+              if (WORDS[k].href) {
+                leaving = true;
+                if (!reduce) await cover({ x: e.clientX, y: e.clientY, color: '#141414' });
+                location.href = WORDS[k].href;
+                return;
+              }
+            }
+          }
+          burst = 1; /* shatter */
+        });
+
+        addEventListener('scroll', function () {
+          if (hint && !hint.classList.contains('off') && progress() > 0.04) hint.classList.add('off');
+        }, { passive: true });
+        addEventListener('resize', build, { passive: true });
+
         build();
-        addEventListener('resize', function () { build(); if (reduce) staticDraw(); }, { passive: true });
-        if (reduce) staticDraw();
-        else {
-          addEventListener('pointermove', function (e) { mx = e.clientX; my = e.clientY; }, { passive: true });
-          requestAnimationFrame(draw);
+        requestAnimationFrame(frame);
+
+        /* ── the character cursor ─────────────────────────────────────────── */
+        if (fine && !reduce) {
+          document.documentElement.classList.add('js-cursor');
+          var acur = document.getElementById('acur');
+          var MASK = [
+            '@',
+            '@@',
+            '@@@',
+            '@@@@',
+            '@@@@@',
+            '@@#',
+            '@ ##',
+            '   ##',
+          ];
+          function weave() {
+            var out = '';
+            for (var r = 0; r < MASK.length; r++) {
+              for (var c = 0; c < MASK[r].length; c++) {
+                out += MASK[r][c] === ' ' ? ' ' : GLYPHS[Math.floor(Math.random() * GLYPHS.length)];
+              }
+              out += '\n';
+            }
+            acur.textContent = out;
+          }
+          weave();
+          setInterval(weave, 110);
+          addEventListener('pointermove', function (e) {
+            acur.style.transform = 'translate(' + e.clientX + 'px,' + e.clientY + 'px)';
+          }, { passive: true });
         }
       })();
     </script>
