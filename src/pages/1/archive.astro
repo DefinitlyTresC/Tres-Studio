@@ -141,6 +141,7 @@ const rows = all.filter((p) => !WORK.includes(p.slug));
           else raf = null;
         }
         addEventListener('pointermove', function (e) {
+          if (e.pointerType === 'touch') return; /* hybrids: taps must not move it */
           var h = back.offsetHeight;
           target = Math.min(innerHeight - h - 12, Math.max(12, e.clientY - h / 2));
           if (cur === null) cur = target;

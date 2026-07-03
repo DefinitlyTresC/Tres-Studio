@@ -17,9 +17,27 @@ on Tres's explicit go.
   (public/mv/ticker.js); zero-g physics engine (public/mv/zerog.js —
   data-zg/data-zg-room API); random front door (netlify/edge-functions/
   roll.js, COUNT=5); registry in src/lib/multiverse.ts.
-- **Site 1 (cream/pencil):** pencil cursor draws persistent graphite
-  (localStorage), watercolor paper, Caveat annotations, hover plow-out
-  previews on menu + work rows.
+- **Site 1 (cream/pencil) — R5 sketch engine (2026-07-03):** strokes are
+  now DOCUMENT-anchored (scroll with the page; the old stuck-to-screen bug
+  is dead) and persist PER PAGE ("each page is its own sheet",
+  localStorage mv1-sheet:<path>). Engine lives in public/mv/sketch.js;
+  _pencil.astro is markup/CSS only and is included on ALL 5 page types
+  (about + project pages can draw now too). New: [ pencil options ]
+  pencil-box popover (4 leads: graphite/sanguine/blueprint/umber; F/M/B
+  points; pencil/ink/marker/eraser tools — cursor tip tints to the lead);
+  [ save sketch ] + [ b ] toggle exports viewport as JPG (cream + page
+  type re-rendered via fillText + strokes + paper grain; [ b ] = bg only);
+  landing auto-draw demo (traces TRES letterforms via TextMetrics-aligned
+  silhouettes, circles the period, handwrites "draw something"; rAF-clock
+  replay, gated on fonts.ready + curtain reveal, skipped on
+  reduced-motion/touch/marked sheets, fades on first user stroke); TRES
+  letters drag as ERASERS (vector-split erase, spring home); mobile
+  [ draw ] toggle top-right (touch-action lock, links inert in draw mode,
+  tap=dot, second finger cancels); Ctrl/Cmd+Z undo; seeded deterministic
+  grain (no shimmer); buffer-band blit on scroll (pattern pipeline never
+  runs per scroll frame); RDP+chunk stroke storage; "( the tan one )"
+  annotation removed. Watercolor paper, Caveat annotations, plow-out
+  previews unchanged.
 - **Site 2 (zero gravity):** grab/throw/collide/spring-home physics on
   EVERY page (index letters+menu, work/archive/about rows); click cycles
   letter colors, off-screen return reshuffles; menu centered.
@@ -38,10 +56,21 @@ on Tres's explicit go.
 - Cross-board: short privacy page, LinkedIn everywhere, Resume/Portfolio/
   plugins-soon links, legacy-URL redirects in public/_redirects.
 
-**AWAITING TRES:** review of this final pass (site 1 pencil accuracy fix,
-site 4 spacing, site 2 everywhere-physics, site 5 Bungee/vertical-info);
-files per ASSETS-NEEDED.md (resume.pdf, portfolio.pdf → public/); his next
-batch of site ideas ("i will work on more site ideas after this").
+**AWAITING TRES:** review of the Site 1 R5 sketch-engine pass (2026-07-03,
+one-site-at-a-time focus run — he comments, we fix, then he says go on
+site 2); files per ASSETS-NEEDED.md (resume.pdf, portfolio.pdf →
+public/); his next batch of site ideas ("i will work on more site ideas
+after this").
+
+**R5 side-fixes (same pass, cross-cutting):** ticker.js confetti canvas
+now lazy (no full-viewport z:75 layer at rest, never under reduce) +
+3.5s stalled-fetch fallback reveal; ring.js dot clicks share the
+double-cover guard; site-1 project lightbox: role=dialog, focus trap,
+44px targets, 86svh, iOS body-fixed scroll lock, aria image ordinals
+match counter; hybrid-touch sticky-hover neutralized via body.sk-touch;
+tracking back-links ignore touch pointermoves; safe-area insets on the
+sketch UI. Verification note: occluded/minimized Chrome windows throttle
+rAF+timers to ~0 — demo pacing must be judged in a VISIBLE tab.
 
 **KNOWN OPEN / NEXT:**
 - More universes (6+) as Tres supplies concepts; bump roll.js COUNT +

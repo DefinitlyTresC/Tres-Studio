@@ -26,6 +26,9 @@ import { cover } from '/mv/curtain.js';
   const cur = MV.sites.find((s) => s.id === MV.current) || MV.sites[0];
   const INK = cur.ink || '#111';
 
+  /* one cover at a time — dots and lab links share the guard */
+  let leaving = false;
+
   /* ── the dot row ───────────────────────────────────────────────────────── */
   const info = document.getElementById('mv-info');
   if (info) {
@@ -66,6 +69,8 @@ import { cover } from '/mv/curtain.js';
         } catch (e) {}
         b.addEventListener('click', async (e) => {
           if (reduce) return; /* plain navigation */
+          if (leaving) { e.preventDefault(); return; }
+          leaving = true;
           e.preventDefault();
           await cover({ x: e.clientX, y: e.clientY, color: s.ink });
           location.href = b.href;
@@ -77,7 +82,6 @@ import { cover } from '/mv/curtain.js';
   }
 
   /* ── lab takeover: every /lab link goes through the ink ─────────────────── */
-  let leaving = false;
   document.querySelectorAll('a[href="/lab"], a[href^="/lab#"]').forEach((a) => {
     a.addEventListener('click', async (e) => {
       if (reduce || leaving) return;

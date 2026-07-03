@@ -74,11 +74,8 @@
   lbl.textContent = 'visits';
   lbl.style.cssText = 'font:10px/1 "Space Mono",ui-monospace,monospace;letter-spacing:.14em;text-transform:uppercase;color:' + LABEL;
   tick.appendChild(btn); tick.appendChild(lbl);
-  var cvf = document.createElement('canvas');
-  cvf.style.cssText = 'position:fixed;inset:0;z-index:75;pointer-events:none';
-  cvf.setAttribute('aria-hidden', 'true');
 
-  function boot() { (slot || document.body).appendChild(tick); document.body.appendChild(cvf); }
+  function boot() { (slot || document.body).appendChild(tick); }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();
 
@@ -141,12 +138,21 @@
     })();
   }
 
-  var real = 0;
-  function reveal() { tick.style.opacity = '1'; tick.style.translate = '0 0'; }
+  var real = 0, revealed = false;
+  function reveal() { revealed = true; tick.style.opacity = '1'; tick.style.translate = '0 0'; }
+  /* a stalled (never-rejecting) function must not hide the ticker forever:
+     after 3.5s show the last count we saw, if we ever saw one */
+  var stallT = setTimeout(function () {
+    if (revealed) return;
+    var cached = 0;
+    try { cached = parseInt(localStorage.getItem('ts_v2_ticker') || '0', 10) || 0; } catch (e) {}
+    if (cached > 0) { real = cached; reveal(); show(cached); }
+  }, 3500);
   fetch(ENDPOINT + '?sid=' + encodeURIComponent(sid), { cache: 'no-store' })
     .then(function (r) { return r.ok ? r.json() : null; })
     .then(function (data) {
       if (!data || typeof data.total !== 'number') return;
+      clearTimeout(stallT);
       real = data.total;
       if (typeof data.live === 'number') liveNum.textContent = String(Math.max(1, data.live));
       reveal(); rollTo(real);
@@ -181,11 +187,19 @@
     }, 62);
   });
 
-  /* palette-paper confetti */
-  var ctx = cvf.getContext('2d');
+  /* palette-paper confetti — canvas is created lazily on the first jackpot
+     so no full-viewport layer exists at rest (and never under reduce) */
+  var cvf = null, ctx = null;
   var dprC = Math.min(2, devicePixelRatio || 1);
   var bits = [], craf = null;
   function burst() {
+    if (!cvf) {
+      cvf = document.createElement('canvas');
+      cvf.style.cssText = 'position:fixed;inset:0;z-index:75;pointer-events:none';
+      cvf.setAttribute('aria-hidden', 'true');
+      document.body.appendChild(cvf);
+      ctx = cvf.getContext('2d');
+    }
     cvf.width = innerWidth * dprC; cvf.height = innerHeight * dprC;
     var r = tick.getBoundingClientRect();
     var ox = r.left + r.width / 2, oy = r.top;

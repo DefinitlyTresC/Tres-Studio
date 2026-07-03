@@ -33,10 +33,9 @@ const archivePv = hero('schoolwork');
     <link rel="stylesheet" href="/v2-tokens.css" />
     <script is:inline set:html={MV_CLIENT(1)} />
   </head>
-  <body>
+  <body data-sk-demo>
     <header class="hero">
-      <h1 class="mark">Tres<span class="pd">.</span></h1>
-      <p class="annot" aria-hidden="true">( the tan one )</p>
+      <h1 class="mark" id="sk-mark"><span class="ml">T</span><span class="ml">r</span><span class="ml">e</span><span class="ml">s</span><span class="ml pd">.</span></h1>
       <p class="spec">architecture · art · code — 30A</p>
       <p class="cue" aria-hidden="true">scroll</p>
     </header>
@@ -116,11 +115,6 @@ const archivePv = hero('schoolwork');
       .hero { min-height: 96svh; display: grid; place-content: center; text-align: center; position: relative; padding: var(--v2-pad, 24px); }
       .mark { font-weight: 600; font-size: clamp(72px, 17vw, 210px); line-height: 0.9; text-transform: uppercase; letter-spacing: -0.02em; }
       .pd { color: var(--v2-umber, #BF9270); }
-      .annot {
-        font-family: 'Caveat', cursive; font-weight: 500;
-        font-size: 20px; line-height: 1.1; color: rgba(43, 31, 26, 0.62);
-        text-align: right; rotate: -2.5deg; margin-top: 4px;
-      }
       .spec { font-family: var(--v2-mono, monospace); font-size: 12px; letter-spacing: 0.08em; color: var(--v2-ink-soft, #6b5c54); margin-top: 18px; }
       .cue {
         position: absolute; bottom: calc(var(--v2-pad, 24px) * 0.8); left: 50%; translate: -50% 0;
@@ -205,7 +199,8 @@ const archivePv = hero('schoolwork');
 
     <script is:inline type="module">
       import { autoReveal } from '/mv/curtain.js';
-      autoReveal();
+      /* sketch.js waits on this before the auto-draw demo starts */
+      window.mvReveal = autoReveal();
       import('/mv/ring.js');
     </script>
     <script is:inline defer src="/mv/ticker.js"></script>
