@@ -1,5 +1,66 @@
 # tres.studio — Brief V3: the Multiverse
 
+## ⏩ HANDOFF — state as of 2026-07-03 (read this first in a new session)
+
+**Everything lives on branch `astro-migration`** (repo
+`DefinitlyTresC/Tres-Studio`, deploy preview
+`deploy-preview-1--tresstudio.netlify.app`, `?u=N` forces a universe at `/`).
+Production (main) is still the old V1 site — untouched. Cutover happens only
+on Tres's explicit go.
+
+**BUILT AND REVIEWED-BY-TRES (wow bar reached or close):**
+- **Chassis:** build-time sheet data layer w/ snapshot fallback + sheet
+  Publish button (proven end-to-end); ink-blot curtain
+  (public/mv/curtain.js — WebGL metaballs + grain edge, failsafe timer so
+  nav never hangs); dot-row map (public/mv/ring.js — also owns the lab-link
+  curtain takeover); flip-card ticker w/ slot-machine gag
+  (public/mv/ticker.js); zero-g physics engine (public/mv/zerog.js —
+  data-zg/data-zg-room API); random front door (netlify/edge-functions/
+  roll.js, COUNT=5); registry in src/lib/multiverse.ts.
+- **Site 1 (cream/pencil):** pencil cursor draws persistent graphite
+  (localStorage), watercolor paper, Caveat annotations, hover plow-out
+  previews on menu + work rows.
+- **Site 2 (zero gravity):** grab/throw/collide/spring-home physics on
+  EVERY page (index letters+menu, work/archive/about rows); click cycles
+  letter colors, off-screen return reshuffles; menu centered.
+- **Site 3 (ASCII — Tres: "really nice", the quality bar):** glyph field
+  engine: scroll-scrubbed word morph w/ full-band boil + snap, Sobel edge
+  contour glyphs, cursor heat wake, radial click shatter, char-arrow
+  cursor, atlas renderer. DON'T touch without cause.
+- **Site 4 (orange 03):** giant halftone 03, words in from LEFT then push
+  UP out, print grain + crop marks + PROPRIETARY marginalia, block-invert
+  hovers. Strip: "⚠ 03 — TRES CARTER · ARCHITECTURE / ART / CODE · 30A".
+- **Site 5 (sideways/Bungee Shade):** horizontal rail (SPEED 2.4, touch
+  snap), per-letter worm-on entrances, vertical END.-spine info panel,
+  blue registration marks. Archie image REMOVED by request.
+- **/lab (portals):** random universe skin per load, 7 living doorways →
+  labs/*.html through the curtain.
+- Cross-board: short privacy page, LinkedIn everywhere, Resume/Portfolio/
+  plugins-soon links, legacy-URL redirects in public/_redirects.
+
+**AWAITING TRES:** review of this final pass (site 1 pencil accuracy fix,
+site 4 spacing, site 2 everywhere-physics, site 5 Bungee/vertical-info);
+files per ASSETS-NEEDED.md (resume.pdf, portfolio.pdf → public/); his next
+batch of site ideas ("i will work on more site ideas after this").
+
+**KNOWN OPEN / NEXT:**
+- More universes (6+) as Tres supplies concepts; bump roll.js COUNT +
+  registry when each completes.
+- Sheet v2 content model (5 mains + gallery; waits on his Cloudinary reorg).
+- Project pages inside each universe are functional reskins — could be made
+  more per-universe-unique later. Site-2 project pages have no physics.
+- Lab experiments themselves still V1 (rebuild queued); STL/3D ideas parked.
+- Cutover checklist (§11) untouched: meta/OG, Lighthouse vs baseline,
+  counter reset, redirects verify.
+
+**WORKING RULES (from memory, binding):** Fable = design lead; Fable agents
+may build from detailed specs (Tres authorized 2026-07-03); no-slop laws
+(no italic serifs — Newsreader banned; no numbered decoration; named
+transitions; gated hovers; reduced-motion always works); VERIFY EVERY
+SCROLL/INTERACTION IN REAL CHROME (claude-in-chrome MCP → localhost:4321)
+before pushing — the headless preview starves rAF and lies; overflow-x
+hidden on html/body kills position:sticky (twice-learned).
+
 **Reset 2026-07-02 by Tres.** This supersedes the single-site rebrand plan.
 The migration plumbing (Astro, build-time sheet, Publish button, clean URLs,
 redirects — branch `astro-migration`) is done, tested, and carries over
