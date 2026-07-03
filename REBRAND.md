@@ -1,192 +1,141 @@
-# tres.studio — Rebrand Brief (V2 identity on the Astro foundation)
+# tres.studio — Brief V3: the Multiverse
 
-**Date:** 2026-07-01 · **Source:** Tres, rebrand kickoff conversation
-**Status of the migration:** Phases 0–4 of HANDOFF.md are DONE (parity port on
-branch `astro-migration`, edit-sheet→Publish pipeline proven end-to-end).
-**Phases 5 & 6 are folded into this rebrand** — image tiers, meta/OG, and the
-production cutover all ship as part of the rebrand build, not before it.
+**Reset 2026-07-02 by Tres.** This supersedes the single-site rebrand plan.
+The migration plumbing (Astro, build-time sheet, Publish button, clean URLs,
+redirects — branch `astro-migration`) is done, tested, and carries over
+unchanged. Everything visual builds on top of it.
+
+**Builder: Fable, main thread, by hand. No delegated design work.**
 
 ---
 
-## 1. Palette (Tres-supplied, locked as the starting point)
+## 1. The concept
 
-| Swatch | Hex | Role (working) |
-|---|---|---|
-| Cream | `#FFEDDB` | background |
-| Sand | `#EDCDBB` | surface / cards |
-| Clay | `#E3B7A0` | mid accents |
-| Umber | `#BF9270` | strong accents |
+**5–10 fully distinct sites** — each a complete, ground-up brand and design
+language presenting the same work — all reading from the same data layer and
+the same Cloudinary folder structure. Visiting **tres.studio serves one at
+random**; every fresh load of `/` can land somewhere else. Navigation inside
+a site is deterministic — random happens only at the front door and at the
+switcher.
 
-**✅ IDENTITY LOCKED (R1 review, 2026-07-01):**
-- **Ink:** candidate A — warm espresso `#2B1F1A` (≥7:1 on cream).
-- **Type:** Direction 1 "Draughtsman's Grotesque" — **Archivo** (display) +
-  **Newsreader** (body) + **Space Mono** (spec labels/data). Google Fonts.
-- **Motion language (R1 round 2, locked in the prototypes):**
-  - **Back/nav control site-wide:** text-only mono link (no pill), tracks the
-    cursor's Y with a lagged lerp on desktop, sits still on touch.
-  - **Blob** = the site's signature: jello mask (multi-keyframe radius morph,
-    ~6–7.5s per project, unsynced), moments **magnetized to alternating
-    screen edges** (lean past the edge; sliding to the edge on entry), ink/
-    umber **particle dots orbit the cursor near a mask's edge** (desktop),
-    and **click = zoom through the opening** to the project page.
-  - **Ticker** = flat split-flap flip cards on the real count + the V1
-    slot-machine cadence on click (never pays 1st pull, always 3rd) with
-    palette-paper confetti on jackpot. No neon, no 3D.
-  - Hub verdict from Tres: "not thrilled, not disappointed" — revisit hub
-    personality later; don't decorate it for its own sake.
-- **Standing rule (Tres, verbatim intent): NO AI SLOP.** Generic AI-design
-  tells (numbered-marker decoration, rings/glows, gratuitous 3D, template
-  looks) get called out. All UI work runs through the design-engineering
-  skills; subagent prompts must carry the principles explicitly.
+Site #1 rides the current locked direction (cream `#FFEDDB` / espresso
+`#2B1F1A` / Archivo + Space Mono). The rest must be **drastically**
+different — full effort each, no palette-swap filler. Tres's sketches so
+far: one black-and-white with heavy patterns ("super pop"); one with a giant
+`03` filling the background; get genuinely creative beyond that.
 
-**Gaps to resolve before building (original notes, superseded above):**
-- No **ink color** — Umber on Cream is ~2.4:1 contrast, unusable for text.
-  Needs a near-black (likely a warm espresso, not pure black) for body/display.
-- Decide whether there's a **fifth "signal" accent** (for interactive states,
-  the ticker counter, links) or whether Umber carries all interaction.
-- **CONFIRMED (2026-07-01):** the site flips **light-first** (was near-black
-  `#080808`). Dark mode is a maybe-later, not part of this build.
-- Honest note: warm-cream + terracotta is a *popular* palette family right now.
-  It stays distinctive through execution — the blob motion, architectural
-  content, and type choices must carry the personality, not the palette alone.
+## 2. Fixed anchors — the contract every site implements
 
-## 2. Motion & interaction budget (hard limits Tres set)
+1. **A "Tres" identity moment** at the top, in whatever form fits that site.
+2. **A scrolling journey through the work** — horizontal, vertical, inward;
+   the site's own idea of travel.
+3. **Landing is always followed by** work, archive, lab, plugins — reachable
+   in whatever way that site presents them.
+4. **An information tab (about/contact) wherever the scroll ends** — always
+   present somewhere.
+5. **The dot-ring map** (§3) lives at the info area of every site.
+6. **Working infrastructure everywhere:** visitor counter, Umami + Clarity,
+   sheet-driven content.
 
-- **2–3 mouse effects max**, plus click interactions. Clean over clever.
-- **Blob / ragged-edge effect** on project-photo scrolling — the layout device
-  from [ragged-edge](https://recent.design/i/jsz1o56-ragged-edge), but more
-  blob-like in motion. Critically: it's a *layout* treatment on imagery; it
-  never distorts or interferes with text.
-- **Tracking button** — the back-button that follows the cursor vertically,
-  inspired by nonfigurativ.com/projects. Adapted, not copied. "Clean af."
-- **Interior scroll feel** from [meech213](https://recent.design/i/i1mq7nk-meech213)
-  — brings the blob feel into page flow. **iOS-first**: horizontal scrolling
-  is acceptable *only if it works flawlessly on touch*.
-- **Podium-style zoom-through-logo landing**
-  ([podium](https://recent.design/i/gxi9ddp-podium)) — Tres likes it but NOT
-  for the main site. Candidate: **entry to the Lab section**. Interior must be
-  cleaner than Podium's.
+## 3. The dot-ring map (the switcher)
 
-## 3. Landing concept (working idea, not final)
+A **ring of dots, cut in half by the screen edge**, at the info area of every
+site — the map of the multiverse. Reference: the attached circle-of-dots
+image (dots of varying sizes forming a ring).
 
-Scroll-driven: a clean **hero shot per project, ~5 featured projects** stacked
-as you scroll; after the last one, the page "drops you into" the section menu
-(taxonomy per §4). Open: exact drop mechanic, and whether the wordmark gets a
-moment first.
+- One dot per site; each dot carries that site's color/pattern. Minimal.
+- **Slow constant spin; jello reaction** to mouse/touch.
+- **Desktop:** click a dot → switch to that site (via the curtain, §4).
+- **Mobile:** tap → the ring grows, background blurs; then pick.
+- Like the ticker, it is **identical in behavior across every site** — the
+  one constant in the multiverse (the ticker is the other).
 
-## 4. Navigation / IA — ✅ DECIDED 2026-07-01: Option A
+## 4. The ink-blot curtain (the signature transition)
 
-**Tres picked Option A** (curate by quality, not provenance). The roster:
-- **Work (5, also the landing heroes, in discussion order):** Alys Beach Z-07
-  (`z07`), Alys Beach EE-13 (`ee13`), Flatwood Residence (`flatwood`),
-  The Pointe at Tucker Landing (`tucker`), Thesis Project (`thesis`).
-- **Archive:** every other architecture project (creekbridge, drome,
-  urbanneighbors, variousdetails, woodcomp, schoolwork, fithyearmini …).
-- **Personal / Lab / Downloads** as described below.
+Reference video: `C:\Users\TresCarter\Videos\Screen Recordings\Screen
+Recording 2026-07-02 191552.mp4` (frames studied 2026-07-02) + the black
+ink-blot image. What the video shows: a solid organic blot on the page; the
+destination is visible **through it** like a window; on commit it floods
+outward — soft feathered lobes, **grainy spray-dissolve edges** — until it
+swallows the viewport; it peels open from the other side on arrival.
 
-Original discussion kept for context:
+- A **full-screen curtain, not a layout mask.** Transition device only.
+- Used for: entering a site, page-to-page moves where it earns its keep, and
+  **always** for universe switching from the dot-ring.
+- Implementation direction: WebGL fullscreen shader (SDF metaballs + noise
+  threshold for the grain edge, progress-driven), canvas 2D fallback,
+  instant cut under reduced-motion. No libraries.
+- The bar: the video's cleanliness. Ship-or-kill per piece.
 
-**Problem (Tres):** current categories mix school work, professional work,
-filler, and never-filled sections (photography). Wants it streamlined and
-honest.
+## 5. Typography + copy corrections (2026-07-02)
 
-**Tres's straw proposal:** Professional · School · Personal · Lab · Revit
-Extension Downloads.
+- **Newsreader is dead everywhere. No italic serifs anywhere, ever** — reads
+  as cursive/AI to Tres. This is a standing no-slop rule.
+- Keep: **Archivo** (display) + **Space Mono** (spec/labels) for Site #1.
+- Body role: proposal — **no third face**; Archivo regular weights carry the
+  little body text that remains. Other sites define their own systems.
+- **Copy minimization is policy:** titles speak for themselves; stop
+  explaining every element. Cut helper sentences ruthlessly.
 
-**Claude's counter-proposal (Option A, recommended):** curate by *quality,
-not provenance*:
-- **Work** — selected best projects across professional + academic, each
-  tagged with its context ("Professional · Alys Beach", "Thesis · academic").
-  Feeds the 5 landing heroes.
-- **Archive** — dense index-list page (very recent.design) holding schoolwork,
-  filler, minor projects. Everything has a home; nothing weak gets hero
-  treatment. Solves the "filler work" embarrassment structurally.
-- **Personal** — photography/art, only once there's content (no more "Soon").
-- **Lab** — experiments (possibly behind the Podium-style zoom entry).
-- **Downloads** — pyRevit extension packs (section to be built; download
-  counters via the existing pulse/Blobs pattern).
+## 6. Randomness, URLs, analytics — the mechanics (proposed, pending Tres OK)
 
-Rationale: "School" as a top-level nav item ages badly as professional work
-accumulates; visitors care about what the work *is*, not where it was made.
-Option B = Tres's original five, refined. **Decision pending.**
+- Every site lives at a deterministic path: `/1/…`, `/2/…` (all statically
+  built — one Astro build outputs the whole multiverse).
+- **`/` is the dice roll:** a Netlify Edge Function rewrites `/` to a random
+  site's landing. URL stays `tres.studio` — no flash, no redirect. Refreshing
+  `/` re-rolls; refreshing any inner page stays put. One small versioned
+  file, free tier, nothing to babysit. (Fallback if edge functions misbehave:
+  instant client-side pick at `/`.)
+- Deep links people share are the deterministic paths — stable forever.
+- **Analytics count as ONE site automatically** (same domain). Per-site
+  breakdown comes free from the path (`/3/…`). One pulse counter store
+  shared by all sites — the ticker shows the same number everywhere. Reset
+  at launch.
 
-## 5. Content model v2 — new Google Sheet + book restructure
+## 7. Content model (unchanged)
 
-- **Rebuild the sheet** clean, in-theme. Same edit-sheet→Publish workflow
-  (non-negotiable, already proven on the branch).
-- **Two project layouts:**
-  - **Book** — long-form one-offs: *The Pointe* and *Thesis* only.
-  - **Standard** — max **5 main images** on the page + a **"View gallery"**
-    button opening a 25–30 image Cloudinary gallery.
-- Hard cap 100 images/project (books are why the cap exists at all).
-- **Cloudinary folder structure stays as-is** (Home/architecture/<slug>/,
-  personal/<slug>/, about/, lab/) — Tres reorganizes it himself over the next
-  few weeks. Content work is on his clock; build work shouldn't block on it.
+Sheet v2 when Tres's Cloudinary reorg is ready: books = The Pointe + Thesis;
+every other project 5 main images + "view gallery" (25–30, possibly listed
+straight from the Cloudinary folder at build). Work five: z07, ee13,
+flatwood, tucker, thesis. Archive = the rest. One data layer feeds every
+site.
 
-### 📌 SIDE NOTE for a dedicated discussion (Tres asked for this)
-How to structure ~17 existing projects under the new model:
-- Which ~5 are the landing heroes? Which make "Work" vs "Archive"?
-- Proposed sheet v2 schema: `Slug · Title · Section · Context tag ·
-  Featured(order) · Layout(book/standard) · Hero · main_01..main_05 ·
-  Description · Year/Location/Status` — and the gallery does NOT live in the
-  sheet at all: at build time, list the project's Cloudinary `gallery/` folder
-  via the Admin API (free tier, key in Netlify env vars only) so Tres curates
-  galleries by *dragging images into folders*, never touching 100 columns.
-  Discuss before committing.
-- Duplicate `Order` values in the current sheet get cleaned in the rebuild.
+## 8. Assets-from-Tres workflow
 
-## 5b. 3D assets — idea parking lot (Tres offered, 2026-07-01)
+STLs, videos, model exports come later. Build with placeholders, and for
+each site maintain an entry in an **assets Word doc** (`ASSETS-NEEDED.docx`)
+telling Tres exactly what to produce, at what size/format, and where it
+lands. He fills folders; builds pick them up.
 
-Tres can provide **clean STL files** (and other formats) of his building
-models. Not scoped yet — candidates, roughly in order of effort:
-- Wireframe/contour-line motifs drawn from real model geometry (cheap, on-brand
-  with the drawing-set DNA).
-- A model viewer island on Work project pages (React Three Fiber — the V4
-  integration path Astro was chosen for).
-- Lab experiments built on the models; possibly behind the Podium-zoom entry.
-- The V4 PHASE particle field morphing between *models* rather than photos.
-Decide after R1 ships; don't let 3D scope-creep the rebrand.
+## 9. Dead ideas (do not resurrect)
 
-## 6. Counter, analytics, privacy
+- Blob-mask-in-a-scrolling-list layout (R1) — rejected as a whole.
+- Cursor particle-dot edge effect — rejected even if functional.
+- Newsreader / any italic serif. Pill-shaped buttons. 3D odometer wheels.
+- Numbered-marker decoration, rings/glows, explainer copy under every title.
 
-- **Visitor counter stays** — rebuilt as an **old-fashioned black-and-white
-  mechanical ticker/odometer**, fixed bottom-right. Reset the count at rebrand
-  launch (clear the `ts-stats` Netlify Blobs store). Open to additional
-  "friendly tracker" displays (ideas welcome round).
-- **Umami + Clarity carry over** (already preview-guarded in Base.astro).
-- **Privacy page: strip to bare-minimum plain language.** Tone: "I collect
-  anonymous data. I use it to improve the site." One caveat that must survive
-  legally: Clarity uses cookies — one honest sentence about it stays.
+## 10. Quality bar
 
-## 6b. Lab rebuild (added 2026-07-01, Tres)
+[recent.design/websites](https://recent.design/websites) is the standard;
+the reference video is the cleanliness bar. **If a piece doesn't hit it, it
+doesn't ship.** Sites ship one at a time, each complete.
 
-The 6 experiments (drift, plan, birds, field, echo, pulse) get **rebuilt as
-fully better versions of themselves** — not ported, re-made: V2 identity,
-iOS/touch-first controls, performance pass, and each pushed further as an
-experience where the concept supports it. Candidate extras: the Podium-style
-zoom as the Lab section entry (§2), STL-derived experiments (§5b), and
-whether "Alternates" survives as a concept. Originals stay recoverable in git
-history; the live site carries only the new versions. **Depends on R1
-decisions (ink/type/motion) — labs are born in the new identity, not
-re-skinned later.**
+## 11. Sequencing
 
-## 7. Sequencing
+1. **Chassis** — curtain shader, dot-ring component, random-entry edge
+   function, the anchors contract as shared scaffolding, ticker as shared
+   component. Prove on a two-stub multiverse.
+2. **Site #1 complete** (cream/espresso direction) — every anchor, every
+   page, judged as a whole against the bar.
+3. **Sites #2…N** — one at a time, each its own ground-up design.
+4. **Cutover** to production on Tres's explicit go once enough sites exist
+   (launch threshold = open decision), with legacy redirects, meta/OG, image
+   tiers, counter reset, privacy rewrite (bare, plain; one honest Clarity
+   cookie sentence), Lighthouse vs. baseline.
+5. Lab rebuild + STL experiences fold into the sites as they're built.
 
-1. **R0 — decisions:** IA (§4), ink/accent + light-flip (§1), landing mechanic
-   (§3). Conversation, cheap, do first.
-2. **R1 — design system + motion prototypes:** tokens, type, the blob scroll,
-   tracking button, ticker — built as isolated prototypes on the branch
-   preview for Tres to feel on his phone (iOS-first).
-3. **R2 — sheet v2 + data layer update** (schema per §5, gallery-from-folder
-   if approved). Can start once Tres's Cloudinary reorg is far enough along.
-4. **R3 — build the real pages** on the new IA; image tiers (old Phase 5),
-   meta/OG (old Phase 6), Downloads section skeleton.
-5. **R4 — cutover:** redirects verified, Lighthouse vs. baseline, counter
-   reset, Tres's explicit go → production.
+## 12. Carry-over guardrails
 
-## 8. Carry-over guardrails
-
-- Tres edits content in a sheet, never code. $24/yr domain, $0/month, no
-  servers to babysit. No DNS/domain/registrar changes. Branch + deploy
-  previews for everything; production moves only on Tres's explicit go.
-- Copy voice: plain and specific; no pretentious taglines. Tres approves copy.
+Tres edits content in the sheet, never code. $24/yr domain, $0/month. No
+DNS changes. Branch + previews; production only on explicit go. Plain,
+specific copy — and as little of it as possible.
