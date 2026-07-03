@@ -1,0 +1,190 @@
+---
+// Site 4 — "the grid one." Black graph-paper field, a white plank rotating
+// in 3D carrying the name, frame annotations in the corners.
+import { MV_CLIENT } from '../../lib/multiverse';
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="robots" content="noindex" />
+    <meta name="theme-color" content="#0B0B0C" />
+    <title>TRESCARTER</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Space+Mono&display=swap" rel="stylesheet" />
+    <script is:inline set:html={MV_CLIENT(4)} />
+  </head>
+  <body>
+    <span class="corner c-tl">TRES</span>
+    <a class="corner c-tr" href="#mv-info">INFO</a>
+    <a class="corner c-bl" href="/4/work">WORK</a>
+    <span class="corner c-br">MAP ↓</span>
+
+    <header class="scene">
+      <div class="stage" id="stage">
+        <div class="plank" id="plank">
+          <div class="face f1"><span>TRESCARTER — TRESCARTER — TRESCARTER</span></div>
+          <div class="face f2"><span>ARCHITECTURE — ART — CODE — 30A —</span></div>
+        </div>
+      </div>
+      <p class="cue">SCROLL</p>
+    </header>
+
+    <nav class="menu" aria-label="Sections">
+      <a href="/4/work">WORK</a>
+      <a href="/4/archive">ARCHIVE</a>
+      <a href="/lab">LAB</a>
+      <a href="/4/about">ABOUT</a>
+    </nav>
+
+    <footer id="mv-info" class="info">
+      <div class="i-cols">
+        <div class="i-col">
+          <span class="lbl">LOCATION</span>
+          SEAGROVE · 30A<br />FLORIDA, USA
+        </div>
+        <div class="i-col">
+          <span class="lbl">CONTACT</span>
+          <a href="mailto:tres@tres.studio">TRES@TRES.STUDIO</a><br />
+          <a href="https://instagram.com/tres.studio" target="_blank" rel="noopener">IG</a>
+        </div>
+        <div class="i-col">
+          <span class="lbl">SECTIONS</span>
+          <a href="/4/work">WORK</a><br />
+          <a href="/4/archive">ARCHIVE</a><br />
+          <a href="/lab">LAB</a><br />
+          <a href="/4/about">ABOUT</a>
+        </div>
+      </div>
+      <div class="i-meta">
+        <span>© 2026 TRES CARTER</span>
+        <span id="mv-ticker-slot"></span>
+        <a href="/privacy">PRIVACY</a>
+      </div>
+    </footer>
+
+    <style is:inline>
+      :root {
+        --mvt-card: #16161a; --mvt-ink: #F2F2F2; --mvt-line: rgba(255,255,255,0.35);
+        --mvt-label: rgba(242,242,242,0.5); --mvt-accent: #F2F2F2; --mvt-confetti: #F2F2F2,#8a8a8a,#3a3a3f;
+      }
+      * { margin: 0; box-sizing: border-box; }
+      html, body { overflow-x: hidden; }
+      html { background: #0B0B0C; }
+      body {
+        font-family: 'Space Grotesk', system-ui, sans-serif; color: #F2F2F2;
+        -webkit-font-smoothing: antialiased;
+        background:
+          linear-gradient(rgba(255,255,255,0.07) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255,255,255,0.07) 1px, transparent 1px);
+        background-size: 52px 52px;
+      }
+      ::selection { background: #F2F2F2; color: #0B0B0C; }
+      a { color: inherit; text-decoration: none; }
+
+      .corner {
+        position: fixed; z-index: 10;
+        font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 0.16em;
+        padding: 10px 0;
+      }
+      .c-tl { top: 14px; left: 18px; }
+      .c-tr { top: 14px; right: 18px; }
+      .c-bl { bottom: 14px; left: 18px; }
+      .c-br { bottom: 14px; right: 18px; color: rgba(242,242,242,0.5); }
+      @media (hover: hover) and (pointer: fine) {
+        a.corner:hover { text-decoration: underline; text-underline-offset: 4px; }
+      }
+
+      .scene { height: 100svh; display: grid; place-items: center; position: relative; perspective: 1100px; }
+      .stage { transform: rotate(-11deg); transform-style: preserve-3d; }
+      .plank {
+        position: relative; transform-style: preserve-3d;
+        animation: turn 13s linear infinite;
+        rotate: x var(--tilt, 0deg);
+      }
+      @keyframes turn { from { transform: rotateX(0deg); } to { transform: rotateX(360deg); } }
+      .face {
+        display: flex; align-items: center; white-space: nowrap; overflow: hidden;
+        width: min(86vw, 980px); height: clamp(64px, 11vw, 130px);
+        background: #F2F2F2; color: #0B0B0C;
+        backface-visibility: hidden;
+      }
+      .face span {
+        font-weight: 700; font-size: clamp(34px, 6vw, 72px); letter-spacing: 0.02em;
+        padding-left: 24px;
+      }
+      .f1 { transform: translateZ(clamp(32px, 5.5vw, 65px)); }
+      .f2 { position: absolute; inset: 0; transform: rotateX(180deg) translateZ(clamp(32px, 5.5vw, 65px)); }
+      .cue {
+        position: absolute; bottom: 4svh; left: 50%; translate: -50% 0;
+        font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 0.2em;
+        color: rgba(242,242,242,0.45);
+      }
+
+      .menu { min-height: 92svh; display: grid; align-content: center; max-width: 980px; margin: 0 auto; padding: 0 6vw; }
+      .menu a {
+        display: block; padding: 4svh 0;
+        font-weight: 700; font-size: clamp(38px, 8vw, 92px); line-height: 1; letter-spacing: 0.01em;
+        border-bottom: 1px solid rgba(255,255,255,0.18);
+      }
+      .menu a:first-child { border-top: 1px solid rgba(255,255,255,0.18); }
+      @media (hover: hover) and (pointer: fine) {
+        .menu a { transition: padding-left 240ms cubic-bezier(0.23,1,0.32,1); }
+        .menu a:hover { padding-left: 18px; }
+      }
+
+      .info { min-height: 70svh; display: grid; align-content: end; gap: 7svh; position: relative; padding: 10svh 6vw 8svh; }
+      .i-cols {
+        display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px;
+        padding-right: clamp(100px, 24vw, 240px);
+        font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: 0.05em; line-height: 1.9;
+      }
+      @media (max-width: 640px) { .i-cols { grid-template-columns: 1fr; } }
+      .lbl { display: block; color: rgba(242,242,242,0.45); margin-bottom: 6px; }
+      .i-meta {
+        display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap;
+        border-top: 1px solid rgba(255,255,255,0.18); padding-top: 16px;
+        font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.06em;
+      }
+      @media (hover: hover) and (pointer: fine) {
+        .info a:hover { text-decoration: underline; text-underline-offset: 4px; }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .plank { animation: none; transform: rotateX(14deg); }
+      }
+    </style>
+
+    <script is:inline type="module">
+      import { autoReveal } from '/mv/curtain.js';
+      autoReveal();
+      import('/mv/ring.js');
+    </script>
+    <script is:inline>
+      (function () {
+        var reduce = false, fine = false;
+        try {
+          reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+          fine = matchMedia('(hover: hover) and (pointer: fine)').matches;
+        } catch (e) {}
+        if (reduce || !fine) return;
+        /* the plank leans toward the cursor, a few degrees, lerped */
+        var stage = document.getElementById('stage');
+        var t = 0, c = 0, raf = null;
+        function frame() {
+          c += (t - c) * 0.06;
+          stage.style.transform = 'rotate(-11deg) rotateY(' + c.toFixed(2) + 'deg)';
+          if (Math.abs(t - c) > 0.05) raf = requestAnimationFrame(frame);
+          else raf = null;
+        }
+        addEventListener('pointermove', function (e) {
+          t = (e.clientX / innerWidth - 0.5) * 14;
+          if (!raf) raf = requestAnimationFrame(frame);
+        }, { passive: true });
+      })();
+    </script>
+    <script is:inline defer src="/mv/ticker.js"></script>
+  </body>
+</html>

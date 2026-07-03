@@ -1,0 +1,205 @@
+---
+// Site 5 — "the sideways one." Scroll down, travel right: giant editorial
+// panels in Unbounded with one electric accent. On touch the track swipes
+// natively with snap; on desktop the wheel drives it. Funky, on purpose.
+import { MV_CLIENT } from '../../lib/multiverse';
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="robots" content="noindex" />
+    <meta name="theme-color" content="#FFFFFF" />
+    <title>TRES ⁵</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;900&family=Space+Mono&display=swap" rel="stylesheet" />
+    <script is:inline set:html={MV_CLIENT(5)} />
+  </head>
+  <body>
+    <p class="hint"><span>↓</span> scroll down to move right</p>
+
+    <section class="hwrap" id="hwrap">
+      <div class="sticky">
+        <div class="track" id="track">
+          <div class="panel p-name">
+            <h1>TRES<span class="ac">.</span></h1>
+          </div>
+          <div class="panel p-line">
+            <p class="mono">buildings · pictures · code<br />— from 30A, florida</p>
+          </div>
+          <a class="panel p-link" href="/5/work"><span>WORK</span></a>
+          <a class="panel p-link alt" href="/5/archive"><span>ARCHIVE</span></a>
+          <a class="panel p-link" href="/lab"><span>LAB</span></a>
+          <a class="panel p-link alt" href="/5/about"><span>ABOUT</span></a>
+          <div class="panel p-end">
+            <p class="mono">↓ info below</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="marquee" aria-hidden="true">
+      <div class="m-in">TRES CARTER — TRES CARTER — TRES CARTER — TRES CARTER — TRES CARTER — TRES CARTER — </div>
+    </div>
+
+    <footer id="mv-info" class="info">
+      <div class="i-cols">
+        <div class="i-col">
+          <span class="lbl">location</span>
+          seagrove · 30a<br />florida, usa
+        </div>
+        <div class="i-col">
+          <span class="lbl">contact</span>
+          <a href="mailto:tres@tres.studio">tres@tres.studio</a><br />
+          <a href="https://instagram.com/tres.studio" target="_blank" rel="noopener">ig</a>
+        </div>
+        <div class="i-col">
+          <span class="lbl">sections</span>
+          <a href="/5/work">work</a><br />
+          <a href="/5/archive">archive</a><br />
+          <a href="/lab">lab</a><br />
+          <a href="/5/about">about</a>
+        </div>
+      </div>
+      <div class="i-meta">
+        <span>© 2026 tres carter</span>
+        <span id="mv-ticker-slot"></span>
+        <a href="/privacy">privacy</a>
+      </div>
+    </footer>
+
+    <style is:inline>
+      :root {
+        --ac: #2431FF;
+        --mvt-card: #ffffff; --mvt-ink: #0A0A0A; --mvt-line: rgba(0,0,0,0.3);
+        --mvt-label: rgba(0,0,0,0.5); --mvt-accent: #2431FF; --mvt-confetti: #2431FF,#0A0A0A,#ffffff;
+      }
+      * { margin: 0; box-sizing: border-box; }
+      html, body { overflow-x: hidden; }
+      html { background: #fff; }
+      body { font-family: 'Unbounded', system-ui, sans-serif; color: #0A0A0A; -webkit-font-smoothing: antialiased; }
+      ::selection { background: var(--ac); color: #fff; }
+      a { color: inherit; text-decoration: none; }
+      .mono { font-family: 'Space Mono', monospace; }
+
+      .hint {
+        position: fixed; top: 16px; left: 50%; translate: -50% 0; z-index: 10;
+        font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 0.14em;
+        color: rgba(10,10,10,0.5);
+      }
+      .hint span { color: var(--ac); }
+
+      /* desktop: vertical scroll drives horizontal travel */
+      .hwrap { height: 440svh; }
+      .sticky { position: sticky; top: 0; height: 100svh; overflow: hidden; }
+      .track {
+        display: flex; height: 100%; width: max-content;
+        transform: translateX(var(--tx, 0px));
+        will-change: transform;
+      }
+      .panel {
+        flex: 0 0 auto; width: 100vw; height: 100%;
+        display: grid; place-content: center; text-align: center;
+        border-right: 3px solid #0A0A0A;
+      }
+      .p-name h1 { font-weight: 900; font-size: clamp(70px, 16vw, 220px); line-height: 1; }
+      .ac { color: var(--ac); }
+      .p-line p { font-size: 15px; line-height: 2; letter-spacing: 0.1em; text-transform: uppercase; }
+      .p-link span { font-weight: 900; font-size: clamp(44px, 10vw, 140px); line-height: 1; }
+      .p-link.alt { background: #0A0A0A; color: #fff; }
+      .p-link.alt span { -webkit-text-stroke: 0; }
+      @media (hover: hover) and (pointer: fine) {
+        .p-link span { transition: color 200ms ease; }
+        .p-link:hover span { color: var(--ac); }
+      }
+      .p-end { border-right: none; }
+      .p-end p { font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(10,10,10,0.5); }
+
+      /* touch: the track is a native swipe rail with snap */
+      @media (hover: none), (pointer: coarse) {
+        .hwrap { height: auto; }
+        .sticky { position: static; height: 100svh; overflow: visible; }
+        .track {
+          transform: none !important;
+          overflow-x: auto; overscroll-behavior-x: contain;
+          scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch;
+        }
+        .panel { scroll-snap-align: center; }
+      }
+
+      .marquee { overflow: hidden; border-top: 3px solid #0A0A0A; border-bottom: 3px solid #0A0A0A; padding: 14px 0; }
+      .m-in {
+        white-space: nowrap; width: max-content;
+        font-weight: 500; font-size: 18px; letter-spacing: 0.08em;
+        animation: slide 26s linear infinite;
+      }
+      @keyframes slide { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+      .info { min-height: 70svh; display: grid; align-content: end; gap: 7svh; position: relative; padding: 10svh 6vw 4svh; }
+      .i-cols {
+        display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px;
+        padding-right: clamp(100px, 24vw, 240px);
+        font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: 0.05em;
+        text-transform: uppercase; line-height: 1.9;
+      }
+      @media (max-width: 640px) { .i-cols { grid-template-columns: 1fr; } }
+      .lbl { display: block; color: rgba(10,10,10,0.45); margin-bottom: 6px; }
+      .i-meta {
+        display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap;
+        border-top: 1px solid rgba(0,0,0,0.16); padding-top: 16px;
+        font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase;
+      }
+      @media (hover: hover) and (pointer: fine) {
+        .info a:hover { text-decoration: underline; text-underline-offset: 4px; }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .m-in { animation: none; }
+      }
+    </style>
+
+    <script is:inline type="module">
+      import { autoReveal } from '/mv/curtain.js';
+      autoReveal();
+      import('/mv/ring.js');
+    </script>
+    <script is:inline>
+      (function () {
+        'use strict';
+        var reduce = false, coarse = false;
+        try {
+          reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+          coarse = matchMedia('(hover: none), (pointer: coarse)').matches;
+        } catch (e) {}
+        if (coarse) return; /* touch uses native swipe */
+        var wrap = document.getElementById('hwrap');
+        var track = document.getElementById('track');
+        var ticking = false;
+        function place() {
+          ticking = false;
+          var r = wrap.getBoundingClientRect();
+          var total = r.height - innerHeight;
+          var p = Math.min(1, Math.max(0, -r.top / total));
+          var max = track.scrollWidth - innerWidth;
+          track.style.setProperty('--tx', (-p * max).toFixed(1) + 'px');
+        }
+        if (reduce) {
+          /* reduced motion: plain vertical page — unwrap the rail */
+          wrap.style.height = 'auto';
+          track.style.flexWrap = 'wrap';
+          track.style.width = '100%';
+          document.querySelector('.sticky').style.position = 'static';
+          return;
+        }
+        addEventListener('scroll', function () {
+          if (!ticking) { ticking = true; requestAnimationFrame(place); }
+        }, { passive: true });
+        addEventListener('resize', place, { passive: true });
+        place();
+      })();
+    </script>
+    <script is:inline defer src="/mv/ticker.js"></script>
+  </body>
+</html>

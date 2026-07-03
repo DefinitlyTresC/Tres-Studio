@@ -1,0 +1,164 @@
+---
+// Site 3 — project page. Same bones, terminal skin.
+import { MV_CLIENT } from '../../../lib/multiverse';
+import { getCollection } from 'astro:content';
+import { heroUrl, gridUrl, mediaUrl } from '../../../lib/cloudinary';
+
+export async function getStaticPaths() {
+  const all = (await getCollection('projects')).map((e) => e.data);
+  return all.map((p) => {
+    const cat = all.filter((q) => q.category === p.category);
+    const i = cat.findIndex((q) => q.slug === p.slug);
+    return { params: { slug: p.slug }, props: { p, prev: cat[(i - 1 + cat.length) % cat.length], next: cat[(i + 1) % cat.length] } };
+  });
+}
+const WORK = ['z07', 'ee13', 'flatwood', 'tucker', 'thesis'];
+const { p, prev, next } = Astro.props;
+const backHref = WORK.includes(p.slug) ? '/3/work' : '/3/archive';
+const backLabel = WORK.includes(p.slug) ? 'work' : 'archive';
+const spec = [`no.${String(p.id ?? '').padStart(2, '0')}`, p.year, p.location, p.status].filter(Boolean).join(' · ').toLowerCase();
+const paragraphs = (p.description || '').split(/\n\s*\n/).map((s) => s.trim()).filter(Boolean);
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="robots" content="noindex" />
+    <meta name="theme-color" content="#FFFFFF" />
+    <title>{p.name.toLowerCase()} — TRES [ascii]</title>
+    <link rel="preconnect" href="https://res.cloudinary.com" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Space+Mono&display=swap" rel="stylesheet" />
+    <script is:inline set:html={MV_CLIENT(3)} />
+  </head>
+  <body>
+    <a class="back" id="back" href={backHref}>&lt;- {backLabel}</a>
+    <main class="proj">
+      <header class="head">
+        <p class="spec">{spec}</p>
+        <h1 class="name">{p.name.toLowerCase()}</h1>
+        {p.designedAt && (
+          <p class="spec at">designed at {p.designedAtUrl ? <a href={p.designedAtUrl} target="_blank" rel="noopener">{p.designedAt.toLowerCase()}</a> : p.designedAt.toLowerCase()}</p>
+        )}
+      </header>
+      {heroUrl(p) && <img class="hero" src={heroUrl(p)} alt={p.name} fetchpriority="high" decoding="async" />}
+      {paragraphs.length > 0 && <div class="desc">{paragraphs.map((t) => <p>{t}</p>)}</div>}
+      {p.media.length > 0 && (
+        <div class="gallery">
+          {p.media.map((m, i) =>
+            m.type === 'video'
+              ? <video src={mediaUrl(m)} autoplay muted loop playsinline preload="metadata"></video>
+              : <button class="cell" type="button" data-full={mediaUrl(m)} aria-label={`View image ${i + 1}`}><img src={gridUrl(m)} alt="" loading="lazy" decoding="async" /></button>
+          )}
+        </div>
+      )}
+      <nav class="pn">
+        <a href={`/3/project/${prev.slug}`}>&lt;- {prev.name.toLowerCase()}</a>
+        <a class="pn-next" href={`/3/project/${next.slug}`}>{next.name.toLowerCase()} -&gt;</a>
+      </nav>
+    </main>
+    <footer class="foot"><span>© 2026 tres carter</span><a href="/privacy">privacy</a></footer>
+
+    <div class="lb" id="lb" hidden>
+      <img id="lb-img" alt="" />
+      <p class="lb-n" id="lb-n"></p>
+      <button class="lb-x" id="lb-x" type="button" aria-label="Close">[x]</button>
+      <button class="lb-prev" id="lb-prev" type="button" aria-label="Previous">&lt;-</button>
+      <button class="lb-next" id="lb-next" type="button" aria-label="Next">-&gt;</button>
+    </div>
+
+    <style is:inline>
+      * { margin: 0; box-sizing: border-box; }
+      html { background: #fff; }
+      body { font-family: 'IBM Plex Mono', ui-monospace, monospace; color: #141414; -webkit-font-smoothing: antialiased; }
+      ::selection { background: #141414; color: #fff; }
+      a { color: inherit; text-decoration: none; }
+      button { font: inherit; color: inherit; background: none; border: none; padding: 0; cursor: pointer; }
+      .back { position: fixed; z-index: 10; top: var(--y, 14px); left: 6vw; font-size: 12px; padding: 12px 0; transition: transform 140ms cubic-bezier(0.23,1,0.32,1); }
+      .back:active { transform: scale(0.96); }
+      @media (hover: hover) and (pointer: fine) { .back:hover { text-decoration: underline; text-underline-offset: 4px; } }
+      .proj { max-width: 1000px; margin: 0 auto; padding: 0 6vw 6svh; }
+      .head { padding: clamp(110px, 20vh, 220px) 0 5svh; }
+      .spec { font-size: 12px; letter-spacing: 0.08em; color: rgba(20,20,20,0.45); }
+      .name { font-weight: 600; font-size: clamp(28px, 5.6vw, 62px); line-height: 1.05; text-wrap: balance; margin-top: 12px; }
+      .at { margin-top: 14px; }
+      .at a { text-decoration: underline; text-underline-offset: 3px; }
+      .hero { display: block; width: 100%; height: auto; outline: 1px solid rgba(0,0,0,0.1); outline-offset: -1px; }
+      .desc { max-width: 68ch; padding: 6svh 0 2svh; }
+      .desc p { font-size: 14px; line-height: 1.8; text-wrap: pretty; }
+      .desc p + p { margin-top: 1em; }
+      .gallery { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; padding-top: 5svh; }
+      @media (max-width: 640px) { .gallery { grid-template-columns: 1fr; } }
+      .gallery img, .gallery video { display: block; width: 100%; height: auto; outline: 1px solid rgba(0,0,0,0.1); outline-offset: -1px; }
+      .cell { display: block; }
+      .cell:focus-visible { outline: 2px solid #141414; outline-offset: 3px; }
+      .pn { display: flex; justify-content: space-between; gap: 18px; padding: 8svh 0 0; font-size: 12px; }
+      .pn-next { text-align: right; }
+      @media (hover: hover) and (pointer: fine) { .pn a:hover { text-decoration: underline; text-underline-offset: 4px; } }
+      .foot { display: flex; justify-content: space-between; max-width: 1000px; margin: 0 auto; padding: 3svh 6vw 4svh; border-top: 1px dashed rgba(0,0,0,0.25); font-size: 10px; letter-spacing: 0.06em; }
+      .lb { position: fixed; inset: 0; z-index: 100; background: rgba(255,255,255,0.97); display: grid; place-items: center; }
+      .lb[hidden] { display: none; }
+      .lb img { max-width: 92vw; max-height: 86vh; outline: 1px solid rgba(0,0,0,0.1); outline-offset: -1px; }
+      .lb-n { position: fixed; bottom: 18px; left: 50%; translate: -50% 0; font-size: 11px; color: rgba(20,20,20,0.5); }
+      .lb-x { position: fixed; top: 14px; right: 6vw; font-size: 12px; padding: 10px 0; }
+      .lb-prev, .lb-next { position: fixed; top: 50%; translate: 0 -50%; font-size: 14px; padding: 14px; }
+      .lb-prev { left: 2vw; } .lb-next { right: 2vw; }
+      @media (hover: hover) and (pointer: fine) { .lb button:hover { text-decoration: underline; text-underline-offset: 4px; } }
+    </style>
+
+    <script is:inline type="module">
+      import { autoReveal } from '/mv/curtain.js';
+      autoReveal();
+    </script>
+    <script is:inline>
+      (function () {
+        'use strict';
+        var reduce = false, fine = false;
+        try { reduce = matchMedia('(prefers-reduced-motion: reduce)').matches; fine = matchMedia('(hover: hover) and (pointer: fine)').matches; } catch (e) {}
+        if (fine && !reduce) {
+          var back = document.getElementById('back');
+          var target = null, cur = null, raf = null;
+          function frame() {
+            cur += (target - cur) * 0.09;
+            back.style.setProperty('--y', cur.toFixed(1) + 'px');
+            if (Math.abs(target - cur) > 0.4) raf = requestAnimationFrame(frame); else raf = null;
+          }
+          addEventListener('pointermove', function (e) {
+            var h = back.offsetHeight;
+            target = Math.min(innerHeight - h - 12, Math.max(12, e.clientY - h / 2));
+            if (cur === null) cur = target;
+            if (!raf) raf = requestAnimationFrame(frame);
+          }, { passive: true });
+        }
+        var cellEls = Array.prototype.slice.call(document.querySelectorAll('.cell'));
+        var full = cellEls.map(function (c) { return c.getAttribute('data-full'); });
+        var lb = document.getElementById('lb');
+        var img = document.getElementById('lb-img');
+        var n = document.getElementById('lb-n');
+        var at = 0, lastFocus = null;
+        function open(i) {
+          at = i; img.src = full[at];
+          n.textContent = (at + 1) + ' / ' + full.length;
+          lb.hidden = false; document.body.style.overflow = 'hidden';
+          lastFocus = document.activeElement;
+          document.getElementById('lb-x').focus();
+        }
+        function close() { lb.hidden = true; img.src = ''; document.body.style.overflow = ''; if (lastFocus) lastFocus.focus(); }
+        function step(d) { open((at + d + full.length) % full.length); }
+        cellEls.forEach(function (c, i) { c.addEventListener('click', function () { open(i); }); });
+        document.getElementById('lb-x').addEventListener('click', close);
+        document.getElementById('lb-prev').addEventListener('click', function (e) { e.stopPropagation(); step(-1); });
+        document.getElementById('lb-next').addEventListener('click', function (e) { e.stopPropagation(); step(1); });
+        lb.addEventListener('click', function (e) { if (e.target === lb) close(); });
+        addEventListener('keydown', function (e) {
+          if (lb.hidden) return;
+          if (e.key === 'Escape') close();
+          else if (e.key === 'ArrowLeft') step(-1);
+          else if (e.key === 'ArrowRight') step(1);
+        });
+      })();
+    </script>
+  </body>
+</html>

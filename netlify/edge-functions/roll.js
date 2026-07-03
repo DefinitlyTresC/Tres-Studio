@@ -3,7 +3,7 @@
 // inner paths (/1/, /2/…) are deterministic and untouched.
 // ?u=N forces a universe (testing / "start here" links).
 // COUNT must match src/lib/multiverse.ts.
-const COUNT = 2;
+const COUNT = 5;
 
 export default async (request, context) => {
   const url = new URL(request.url);
