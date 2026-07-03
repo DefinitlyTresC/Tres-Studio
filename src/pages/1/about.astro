@@ -63,6 +63,10 @@ import Pencil from './_pencil.astro';
       @media (hover: hover) and (pointer: fine) {
         a:hover { text-decoration: underline; text-underline-offset: 4px; }
       }
+      @media (prefers-reduced-motion: reduce) {
+        .back, .acts a { transition: none; }
+        .back:active, .acts a:active { transform: none; }
+      }
     </style>
   </body>
 </html>

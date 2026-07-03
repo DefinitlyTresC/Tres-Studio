@@ -286,6 +286,7 @@
     function grab(b, e) {
       if (b.state === HELD) return;
       b.pid = e.pointerId;
+      b.suppress = false; /* a stale flag must never eat this gesture's click */
       try { b.el.setPointerCapture(e.pointerId); } catch (err) {}
       var g = b.g;
       g.rect = g.el.getBoundingClientRect();
@@ -307,7 +308,9 @@
       if (b.samples.length > 24) b.samples.shift();
       if (!b.moved) {
         var dx = e.clientX - b.scx, dy = e.clientY - b.scy;
-        if (dx * dx + dy * dy > 64) { b.moved = true; b.suppress = true; }
+        /* fingers jitter ~10px through an honest tap; mice do not */
+        var slop = e.pointerType === 'mouse' ? 64 : 196;
+        if (dx * dx + dy * dy > slop) { b.moved = true; b.suppress = true; }
       }
     }
 
@@ -315,8 +318,9 @@
       if (b.state !== HELD || e.pointerId !== b.pid) return;
       b.pid = -1;
       var now = performance.now();
-      if (!b.moved && now - b.st < 400) {
-        /* true click: color bodies cycle; links navigate natively */
+      if (!b.moved) {
+        /* never crossed the slop: a click no matter how long the press —
+           color bodies cycle; links navigate natively */
         b.state = FLOAT;
         if (b.cyc) {
           b.ci = (b.ci + 1) % (PALETTE.length + 1);
@@ -371,11 +375,33 @@
         b.el.addEventListener('click', function (e) {
           if (b.suppress) { e.preventDefault(); b.suppress = false; }
         });
-        b.el.addEventListener('dragstart', function (e) { e.preventDefault(); });
       }
+      b.el.addEventListener('dragstart', function (e) { e.preventDefault(); });
     }
 
     /* ---- loop: fixed timestep + interpolated render ---- */
+
+    /* window inertia (the Ball Pool move): dragging or shaking the OS
+       window sloshes every body the other way. Invisible at rest, dead on
+       mobile (screenX never moves), clamped so window-snap teleports are
+       ignored rather than detonated. */
+    var wsx = null, wsy = null;
+    function windowKick() {
+      var sx = window.screenX, sy = window.screenY;
+      if (wsx === null) { wsx = sx; wsy = sy; return; }
+      var dx = sx - wsx, dy = sy - wsy;
+      wsx = sx; wsy = sy;
+      if (dx === 0 && dy === 0) return;
+      if (dx > 200 || dx < -200 || dy > 200 || dy < -200) return; /* snap/maximize */
+      dx = clamp(dx, -80, 80); dy = clamp(dy, -80, 80);
+      for (var i = 0; i < bodies.length; i++) {
+        var b = bodies[i];
+        if (b.state === HELD) continue;
+        b.vx -= dx * 5.5;
+        b.vy -= dy * 5.5;
+        if (b.state === FLOAT && (dx * dx + dy * dy > 36)) { b.state = FREE; b.restT = 0; }
+      }
+    }
 
     var lastT = 0, acc = 0, simT = 0;
     function loop(now) {
@@ -385,6 +411,7 @@
       lastT = now;
       acc += dt;
       for (var gi = 0; gi < groups.length; gi++) groups[gi].rect = null;
+      windowKick();
       var n = 0;
       while (acc >= H && n < 4) {
         for (var i = 0; i < bodies.length; i++) { bodies[i].px = bodies[i].x; bodies[i].py = bodies[i].y; }
@@ -478,6 +505,17 @@
         clearTimeout(rT);
         rT = setTimeout(onResize, 150);
       });
+      /* failsafe: if pointer capture was refused/lost, the element never
+         hears pointerup and a body would stay glued to a ghost cursor —
+         the window always hears it */
+      function releaseAny(e) {
+        for (var i = 0; i < bodies.length; i++) {
+          var b = bodies[i];
+          if (b.state === HELD && b.pid === e.pointerId) release(b, e);
+        }
+      }
+      addEventListener('pointerup', releaseAny, true);
+      addEventListener('pointercancel', releaseAny, true);
       requestAnimationFrame(loop);
     }
     if (document.fonts && document.fonts.ready) {

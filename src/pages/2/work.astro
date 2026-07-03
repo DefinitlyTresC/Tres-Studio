@@ -76,6 +76,13 @@ const rows = WORK.map((s) => all.find((p) => p.slug === s)).filter(Boolean);
       .foot { display: flex; justify-content: space-between; padding: 3svh 6vw 4svh; border-top: 1px solid rgba(0,0,0,0.14); font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; }
     </style>
 
+    <style is:inline>
+      @media (prefers-reduced-motion: reduce) {
+        .back, .r-name { transition: none; }
+        .back:active { transform: none; }
+      }
+    </style>
+
     <script is:inline type="module">
       import { autoReveal } from '/mv/curtain.js';
       autoReveal();
@@ -93,6 +100,7 @@ const rows = WORK.map((s) => all.find((p) => p.slug === s)).filter(Boolean);
           if (Math.abs(target - cur) > 0.4) raf = requestAnimationFrame(frame); else raf = null;
         }
         addEventListener('pointermove', function (e) {
+          if (e.pointerType === 'touch') return; /* hybrids: taps must not move it */
           var h = back.offsetHeight;
           target = Math.min(innerHeight - h - 12, Math.max(12, e.clientY - h / 2));
           if (cur === null) cur = target;

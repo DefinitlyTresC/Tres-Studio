@@ -195,6 +195,12 @@ let imgOrdinal = 0;
       @media (hover: hover) and (pointer: fine) {
         .lb button:hover { text-decoration: underline; text-underline-offset: 4px; }
       }
+      .lb button:focus-visible { outline: 2px solid var(--v2-ink, #2B1F1A); outline-offset: 3px; }
+
+      @media (prefers-reduced-motion: reduce) {
+        .back, .cell { transition: none; }
+        .back:active, .cell:active { transform: none; }
+      }
     </style>
 
     <script is:inline type="module">

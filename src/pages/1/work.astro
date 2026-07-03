@@ -138,6 +138,8 @@ const pv = (p) => joinUrl(p.heroImage, 'w_900', 'image');
         .r-pv img { transition: opacity 180ms ease-out; transform: rotate(-2deg); opacity: 0; }
         .row:hover .r-pv img { transform: rotate(-2deg); opacity: 1; }
         .row, .list:hover .row { transition: opacity 180ms ease-out; }
+        .back, .r-name { transition: none; }
+        .back:active, .row:active { transform: none; }
       }
 
       .foot {

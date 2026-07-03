@@ -36,6 +36,7 @@ import { MV_CLIENT } from '../../lib/multiverse';
       .back { position: fixed; z-index: 10; top: var(--y, 14px); left: 6vw; font-family: 'Space Mono', monospace; font-size: 12px; padding: 12px 0; transition: transform 140ms cubic-bezier(0.23,1,0.32,1); }
       .back:active { transform: scale(0.96); }
       @media (hover: hover) and (pointer: fine) { .back:hover { text-decoration: underline; text-underline-offset: 4px; } }
+      .back:focus-visible { outline: 2px solid #101010; outline-offset: 3px; }
 
       .about { padding: clamp(140px, 28vh, 340px) 6vw 16svh; }
       .name { font-weight: 800; font-size: clamp(52px, 10vw, 130px); line-height: 1.02; }
@@ -45,10 +46,16 @@ import { MV_CLIENT } from '../../lib/multiverse';
       .name .shift { margin-left: clamp(30px, 12vw, 220px); }
       .lede { font-family: 'Space Mono', monospace; font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(16,16,16,0.5); margin-top: 26px; width: fit-content; }
       .acts { display: flex; gap: 28px; margin-top: 44px; font-family: 'Space Mono', monospace; font-size: 13px; }
+      /* 44px hit areas without moving anything: pad out, pull back in */
+      .acts a { display: inline-block; padding: 14px; margin: -14px; }
       @media (hover: hover) and (pointer: fine) {
         a:hover { text-decoration: underline; text-underline-offset: 4px; }
         .sim [data-zg] { cursor: grab; }
         .sim [data-zg]:active { cursor: grabbing; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .back { transition: none; }
+        .back:active { transform: none; }
       }
     </style>
 
@@ -69,6 +76,7 @@ import { MV_CLIENT } from '../../lib/multiverse';
           if (Math.abs(target - cur) > 0.4) raf = requestAnimationFrame(frame); else raf = null;
         }
         addEventListener('pointermove', function (e) {
+          if (e.pointerType === 'touch') return; /* hybrids: taps must not move it */
           var h = back.offsetHeight;
           target = Math.min(innerHeight - h - 12, Math.max(12, e.clientY - h / 2));
           if (cur === null) cur = target;

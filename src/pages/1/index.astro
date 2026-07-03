@@ -173,6 +173,8 @@ const archivePv = hero('schoolwork');
         .pv > * { transition: opacity 180ms ease-out; transform: rotate(-2deg); opacity: 0; }
         .menu a:hover .pv > * { transform: rotate(-2deg); opacity: 1; }
         .menu a, .menu:hover a { transition: opacity 180ms ease-out; }
+        .menu a:hover { translate: 0 0; }
+        .menu a:active { transform: none; }
       }
 
       .info { min-height: 74svh; display: grid; align-content: end; gap: 7svh; position: relative; padding: 10svh var(--v2-pad, 24px) 4svh; border-top: 1px solid var(--v2-hairline, rgba(43,31,26,.16)); }

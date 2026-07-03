@@ -110,6 +110,8 @@ const rows = all.filter((p) => !WORK.includes(p.slug));
       }
       @media (prefers-reduced-motion: reduce) {
         .row, .list:hover .row { transition: opacity 180ms ease-out; }
+        .back, .r-name { transition: none; }
+        .back:active, .row:active { transform: none; }
       }
 
       .foot {

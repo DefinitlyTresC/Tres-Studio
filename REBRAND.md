@@ -38,9 +38,24 @@ on Tres's explicit go.
   runs per scroll frame); RDP+chunk stroke storage; "( the tan one )"
   annotation removed. Watercolor paper, Caveat annotations, plow-out
   previews unchanged.
-- **Site 2 (zero gravity):** grab/throw/collide/spring-home physics on
-  EVERY page (index letters+menu, work/archive/about rows); click cycles
-  letter colors, off-screen return reshuffles; menu centered.
+- **Site 2 (zero gravity) — R5 bug pass (2026-07-03, Tres: "my favorite",
+  landing untouched by request):** grab/throw/collide/spring-home physics
+  on EVERY page (index letters+menu, work/archive/about rows); click
+  cycles letter colors, off-screen return reshuffles; menu centered.
+  Fixed: touch taps on link bodies no longer eaten (pointer-aware slop —
+  8px mouse / 14px touch; no-movement release = click regardless of hold
+  time; grab() clears stale suppress); window-level pointerup/cancel
+  failsafe (lost capture can't strand a HELD body); dragstart guarded on
+  color letters; lightbox parity fixes from site 1 (dialog role, focus
+  trap + visible focus ring, 44px targets, svh, iOS body-fixed lock, aria
+  ordinals); about-page 44px hit areas (pad/negative-margin); back-link
+  ignores touch pointermoves; reduced-motion micro-transitions closed on
+  all site-1+2 sub-pages. NEW easter egg (research find, Ball Pool
+  lineage): drag/shake the OS window and the letters slosh from inertia
+  (windowKick in zerog.js — invisible at rest, desktop-only, clamped
+  against window-snap). Deliberately NOT changed: letters/menu words keep
+  touch-action:none on the landing (finger-on-letter can't scroll — that
+  IS the toy; Tres tested mobile and approved the feel).
 - **Site 3 (ASCII — Tres: "really nice", the quality bar):** glyph field
   engine: scroll-scrubbed word morph w/ full-band boil + snap, Sobel edge
   contour glyphs, cursor heat wake, radial click shatter, char-arrow
