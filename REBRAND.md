@@ -1,5 +1,120 @@
 # tres.studio — Brief V3: the Multiverse
 
+## ⏸ SITE 3 PASS IN PROGRESS — handoff 2026-07-03 (device switch mid-pass)
+
+**The process (Tres's contract, this improvement run):** one site at a
+time, full agent focus; finish → say "done" → Tres comments → fix →
+he says go → next site. Site 1 ✅ done+approved (commit 3375858). Site 2 ✅
+done+approved (bdd4f9e). **Site 3 is mid-pass — pick it up here.** Then
+sites 4, 5, then the lab rebuild.
+
+**Tres's Site 3 feedback (his words, this pass):** (1) "needs a better
+overall font theme — I like the text made of letters, but the font isn't
+fully my favorite"; (2) "the click animation is a bit too speedy"; (3)
+"the between location on scrolling is a strange experience — really dig
+into it, look for bugs and weirdness"; (4) "good but not polished yet" —
+do ASCII research, improve animation. Plus one cross-board item, ALREADY
+FIXED: the ink-blot curtain faded down to a hard dot then popped away.
+
+**DONE this session (committed with this handoff):** curtain end-of-
+transition rebuilt in public/mv/curtain.js — (a) metaball radius floor
+removed (`.06 + g*1.05` → `g*1.13`) so the blot truly reaches zero; (b)
+end-of-travel grain dissolve: `diss = 1 - smoothstep(0,.22,uT)` scales
+edge noise 3.2x NEAR THE BLOT ONLY (nearBlot mask keeps stray specks off
+the rest of the screen) so the last ink breaks into scattering flecks;
+(c) interior-solidity term gated by `step(.55, diss)` so the core itself
+disintegrates at the very end; (d) reveal tail compressed in run():
+below t=0.2, `t = 0.2*pow(t/0.2, 2.2)` — the eased crawl through tiny
+sizes now collapses in ~200ms instead of lingering. Verified by
+temporarily stretching DUR_REVEAL (restored to 1250 — check it says 1250
+if anything looks slow). Affects every universe switch — sanity-check on
+2-3 sites when next verifying.
+
+**SITE 3 ENGINE INTEL (src/pages/3/index.astro, all inline, ~460 lines —
+read it, but these are the load-bearing facts):**
+- **Fonts — the real lever for complaint (1):** TWO faces are in play.
+  The glyph atlas (the small chars) is `'600 ' + FS + 'px "IBM Plex
+  Mono"'` (buildAtlas). But the BIG WORD SILHOUETTE the glyphs form is
+  rasterized with **`'900 ' + size + 'px Arial, sans-serif'`** (build(),
+  the density-field offscreen render) — the letterforms Tres sees are
+  ARIAL BLACK, x-scaled up to 2.8x and y-squashed 0.62. That squashed
+  Arial is almost certainly what "isn't my favorite". Fix = pick a
+  characterful heavy face for the silhouette (load via Google Fonts,
+  wait document.fonts.ready before build() — hard-learned lesson: canvas
+  measures fallback metrics if the font races) + possibly swap the atlas
+  mono. A research agent was hunting candidates when the session died
+  (VT323, Departure Mono self-host, JetBrains/Martian/Fragment Mono,
+  pixel families like Workbench/Silkscreen/Doto vs current IBM Plex
+  Mono + Space Mono). Body font on site 3 pages is IBM Plex Mono.
+- **Click shatter — complaint (2):** cv click handler sets
+  `click={x,y,t}`; in frame(): window `clickAge < 900`ms, per-cell
+  `delay = dist/maxD * 450`, local burst `la = (clickAge-delay)/450`,
+  amplitude `sin(π·la)`. The wave crosses the whole screen in ~450ms.
+  Slow it: try window 1600-1800, delay factor ~800, burst ~650 — tune in
+  a VISIBLE browser tab.
+- **Between-words scroll — complaint (3):** `.wrap` is 500svh, `.pin`
+  sticky; `progress()` → `f = p*4`, word pair A/B with `frac`; per-cell
+  stagger `hash(i,77)*0.45`, `lf = clamp((frac-stag)/0.55)`; churn peaks
+  mid-fade `4*lf*(1-lf)*0.9`; scramble chars re-roll with
+  `pq = floor(p*1200)` — EVERY scroll pixel re-rolls characters, so
+  mid-scroll is a frantic full-band boil with no readable state; snap is
+  `scroll-snap-type: y proximity` on html with five 1px absolute .snap
+  targets each 100svh. The "strange experience" = (a) proximity snap
+  tugging while the user is mid-band, (b) no settled plateau — the word
+  starts dissolving on the first scrolled pixel, (c) pq re-rolling makes
+  the boil feel like static noise rather than a transition. Candidate
+  fixes to explore: remap each inter-word segment with a settled plateau
+  (~25-30% dwell at each end before morph starts), slow pq (e.g.
+  p*300), ease frac, and reconsider proximity→mandatory snap or a wider
+  seatedWord threshold (currently ±0.18, used for click-to-enter).
+- Whirl-in boot animation exists (bootT/1100, first load only). Cursor
+  is a scrambling ASCII arrow (#acur, weave() on 110ms setInterval —
+  runs forever, gated fine+!reduce). Reduced-motion: wrap collapses to
+  100svh, snap off, cursor restored — intact, keep it that way.
+
+**STOPPED WORKFLOW (relaunch fresh on the new machine — the run journal
+is machine-local, resume won't cache):** 4 agents + verify pass:
+(a) research: best ASCII/textmode sites + animation moves — ertdfgcvb.xyz
+/ play.core (Gysin) is the canon, plus godly/awwwards textmode picks,
+note what fonts they use; (b) research: font candidates for glyph atlas
++ word silhouette + site theme (Google Fonts or free self-host);
+(c) audit: site 3 engine (scroll mapping, shatter constants, rAF/atlas/
+resize/DPR bugs, iOS sticky behavior — remember overflow-x:hidden on
+html/body KILLS position:sticky, twice-learned); (d) audit: site 3
+sub-pages vs the standard checklist. Adversarially verify high/medium
+findings before acting (this session's verify pass killed several false
+positives on sites 1-2 — worth the tokens).
+
+**PARITY CHECKLIST for site 3 sub-pages (sites 1+2 already got these —
+apply the same set to src/pages/3/work|archive|about|project/[slug]):**
+lightbox: role=dialog + aria-modal, Tab focus trap, visible
+:focus-visible on lb buttons, 44px targets, 86svh not 86vh, iOS
+body-position-fixed scroll lock, aria image ordinals = counter (count
+images only, videos excluded); back-link pointermove ignores
+e.pointerType==='touch'; back-link :focus-visible everywhere;
+reduced-motion blocks for press/hover micro-transitions; safe-area
+insets on fixed edge UI.
+
+**VERIFICATION LESSONS (this session, save yourself the hour):** an
+OCCLUDED/minimized Chrome window throttles rAF to ~0 and clamps timers —
+judge animation pacing only in a visible tab; the preview-tool browser
+runs rAF honestly and is fine for logic checks; dev server =
+.claude/launch.json "astro-dev" on :4321; canvas font measurement must
+await document.fonts.ready; PowerShell 5.1 mangles quotes in `git commit
+-m` — write the message to a file and `git commit -F <file>`; git's
+"could not write multi-pack-index / geometric-repack" warnings on push
+are harmless maintenance noise on this repo.
+
+**KICKOFF for the next session:** read this file top to bottom, then
+run the Site 3 pass: relaunch the research+audit workflow, read
+src/pages/3/index.astro in full, decide the font system (Fable is design
+lead — decide, don't ask), retune shatter + scroll choreography, apply
+the parity checklist, verify every scroll/click interaction in real
+visible Chrome at localhost:4321/3/, build, commit to astro-migration,
+push, update this handoff, and say "done" to Tres.
+
+---
+
 ## ⏩ HANDOFF — state as of 2026-07-03 (read this first in a new session)
 
 **Everything lives on branch `astro-migration`** (repo
