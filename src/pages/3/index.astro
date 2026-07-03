@@ -1,10 +1,13 @@
 ---
-// Site 3 — "the terminal one," rebuilt per R4: EVERYTHING is ASCII.
-// One pinned screen. Scroll scrubs the big word through TRES → WORK →
-// ARCHIVE → LAB → ABOUT — the scramble is TIED to scroll (still page =
-// still glyphs), snap settles you on a word, and the seated word is the
-// door: click it to enter. Click anywhere else: everything shatters for a
-// beat. The cursor is a small storm of characters shaped like an arrow.
+// Site 3 — "the terminal one," engine v2.
+// A glyph FIELD, not a pixel grid (per the research: Gysin/play.core school).
+// Words live as density fields; scrolling crossfades one field into the
+// next with per-cell noise stagger, so the whole band boils and resolves —
+// no flick. A Sobel edge pass draws letterform contours with directional
+// glyphs (| \ - /). The cursor writes velocity-aware heat into the field
+// and leaves a decaying wake. Clicks shatter radially from the point.
+// Glyphs blit from a pre-rendered atlas (~10x fillText).
+// Refs cited to client: aino.agency, play.core, Evervault.
 import { MV_CLIENT } from '../../lib/multiverse';
 ---
 
@@ -119,9 +122,8 @@ import { MV_CLIENT } from '../../lib/multiverse';
         .info a:hover { text-decoration: underline; text-underline-offset: 4px; }
       }
 
-      /* the character cursor — desktop only */
       .acur {
-        position: fixed; z-index: 200; pointer-events: none; display: none;
+        position: fixed; top: 0; left: 0; z-index: 200; pointer-events: none; display: none;
         font-family: 'IBM Plex Mono', monospace; font-weight: 700;
         font-size: 9px; line-height: 8px; letter-spacing: 0;
         color: #141414; white-space: pre;
@@ -161,8 +163,12 @@ import { MV_CLIENT } from '../../lib/multiverse';
           { w: 'LAB', href: '/lab' },
           { w: 'ABOUT', href: '/3/about' },
         ];
-        var RAMP = ' .,:;-=+*#%@';
-        var GLYPHS = '#%@*+=&$0123456789TRESWOKACHIVLBU';
+        var RAMP = ' .:-=+*#%@';                       /* Bourke short, light->dark */
+        var EDGE = ['|', '\\', '-', '/'];              /* gradient-angle bins */
+        var SCRAM = '#%@*+=&$?!0123456789TRESWOKACHIVLBU<>[]{}';
+        var DUST = ',.`\'';
+        var ALL = (RAMP + EDGE.join('') + SCRAM + DUST).split('')
+          .filter(function (c, i, a) { return c !== ' ' && a.indexOf(c) === i; });
 
         var wrap = document.getElementById('wrap');
         var cv = document.getElementById('ascii');
@@ -170,17 +176,39 @@ import { MV_CLIENT } from '../../lib/multiverse';
         var hint = document.getElementById('hint');
         var dpr = Math.min(2, devicePixelRatio || 1);
         var CW = 0, CH = 0, cols = 0, rows = 0, FS = 0;
-        var rasters = [], bg = [];
-        var burst = 0;            /* click-shatter energy, decays */
-        var boot = null;          /* whirl-in start time */
+        var fields = [], active = [], dust = [];
+        var atlas = null, AW = 0, AH = 0, idx = {};
+        var heat = null;                               /* cursor wake buffer */
+        var click = { x: 0, y: 0, t: -1e9 };
+        var boot = null;
 
         function hash(a, b) {
           var h = (a * 374761393 + b * 668265263) | 0;
           h = ((h ^ (h >>> 13)) * 1274126177) | 0;
           return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
         }
-        function glyphFor(seedA, seedB) {
-          return GLYPHS[Math.floor(hash(seedA, seedB) * GLYPHS.length)];
+
+        function buildAtlas() {
+          AW = Math.ceil(CW) + 2; AH = Math.ceil(CH) + 2;
+          atlas = document.createElement('canvas');
+          atlas.width = ALL.length * AW * dpr;
+          atlas.height = AH * dpr;
+          var a = atlas.getContext('2d');
+          a.setTransform(dpr, 0, 0, dpr, 0, 0);
+          a.font = '600 ' + FS + 'px "IBM Plex Mono", monospace';
+          a.textBaseline = 'top';
+          a.fillStyle = '#141414';
+          idx = {};
+          for (var i = 0; i < ALL.length; i++) {
+            a.fillText(ALL[i], i * AW + 1, 1);
+            idx[ALL[i]] = i;
+          }
+        }
+        function blit(chr, x, y, alpha) {
+          var i = idx[chr];
+          if (i === undefined) return;
+          ctx.globalAlpha = alpha;
+          ctx.drawImage(atlas, i * AW * dpr, 0, AW * dpr, AH * dpr, x, y, AW, AH);
         }
 
         function build() {
@@ -191,11 +219,10 @@ import { MV_CLIENT } from '../../lib/multiverse';
           rows = Math.floor(innerHeight / CH);
           cv.width = innerWidth * dpr; cv.height = innerHeight * dpr;
           ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-          ctx.font = '600 ' + FS + 'px "IBM Plex Mono", monospace';
-          ctx.textBaseline = 'top';
+          buildAtlas();
 
-          /* raster each word once */
-          rasters = WORDS.map(function (W) {
+          /* density field + Sobel edge map per word */
+          fields = WORDS.map(function (W) {
             var off = document.createElement('canvas');
             off.width = cols; off.height = rows;
             var o = off.getContext('2d');
@@ -205,40 +232,57 @@ import { MV_CLIENT } from '../../lib/multiverse';
             o.save();
             o.translate(cols / 2, rows / 2);
             var tw = o.measureText(W.w).width;
-            /* fill the width — scale UP for short words, down for long ones */
             o.scale(Math.min(2.8, (cols * 0.9) / tw), 0.62);
             o.fillText(W.w, 0, 0);
             o.restore();
             var data = o.getImageData(0, 0, cols, rows).data;
-            var cells = [];
-            var minX = 1e9, maxX = -1e9, minY = 1e9, maxY = -1e9;
+            var d = new Float32Array(cols * rows);
+            for (var i = 0; i < d.length; i++) d[i] = data[i * 4 + 3] / 255;
+            /* Sobel */
+            var edge = new Int8Array(cols * rows).fill(-1);
+            var box = [1e9, 1e9, -1e9, -1e9];
+            function at(c, r) { return (c < 0 || r < 0 || c >= cols || r >= rows) ? 0 : d[r * cols + c]; }
             for (var r = 0; r < rows; r++) {
               for (var c = 0; c < cols; c++) {
-                var a = data[(r * cols + c) * 4 + 3] / 255;
-                if (a < 0.12) continue;
-                var x = c * CW, y = r * CH;
-                cells.push({
-                  x: x, y: y,
-                  ch: RAMP[Math.max(3, Math.floor(a * (RAMP.length - 1)))],
-                  seed: r * cols + c,
-                  d: Math.hypot(x - innerWidth / 2, y - innerHeight / 2),
-                  ang: Math.atan2(y - innerHeight / 2, x - innerWidth / 2),
-                });
-                if (x < minX) minX = x; if (x > maxX) maxX = x;
-                if (y < minY) minY = y; if (y > maxY) maxY = y;
+                var v = d[r * cols + c];
+                if (v > 0.08) {
+                  if (c * CW < box[0]) box[0] = c * CW;
+                  if (r * CH < box[1]) box[1] = r * CH;
+                  if (c * CW > box[2]) box[2] = c * CW;
+                  if (r * CH > box[3]) box[3] = r * CH;
+                }
+                var gx = (at(c + 1, r - 1) + 2 * at(c + 1, r) + at(c + 1, r + 1)) - (at(c - 1, r - 1) + 2 * at(c - 1, r) + at(c - 1, r + 1));
+                var gy = (at(c - 1, r + 1) + 2 * at(c, r + 1) + at(c + 1, r + 1)) - (at(c - 1, r - 1) + 2 * at(c, r - 1) + at(c + 1, r - 1));
+                var mag = Math.sqrt(gx * gx + gy * gy);
+                if (mag > 1.1) {
+                  var ang = Math.atan2(gy, gx);
+                  if (ang < 0) ang += Math.PI;
+                  var deg = ang * 180 / Math.PI;
+                  var bin = (deg < 22.5 || deg >= 157.5) ? 0 : deg < 67.5 ? 1 : deg < 112.5 ? 2 : 3;
+                  edge[r * cols + c] = bin;
+                }
               }
             }
-            return { cells: cells, box: [minX, minY, maxX + CW, maxY + CH] };
+            return { d: d, edge: edge, box: box };
           });
 
-          /* sparse background dust */
-          bg = [];
-          for (var r2 = 0; r2 < rows; r2++) {
-            for (var c2 = 0; c2 < cols; c2++) {
-              if (hash(c2, r2) > 0.045) continue;
-              bg.push({ x: c2 * CW, y: r2 * CH, seed: r2 * cols + c2 });
+          /* union of every word's live cells — the field we animate */
+          active = [];
+          for (var i2 = 0; i2 < cols * rows; i2++) {
+            for (var w = 0; w < fields.length; w++) {
+              if (fields[w].d[i2] > 0.05 || fields[w].edge[i2] >= 0) { active.push(i2); break; }
             }
           }
+
+          /* sparse dust everywhere else */
+          dust = [];
+          for (var r2 = 0; r2 < rows; r2++) {
+            for (var c2 = 0; c2 < cols; c2++) {
+              if (hash(c2, r2) <= 0.045) dust.push(r2 * cols + c2);
+            }
+          }
+
+          heat = new Float32Array(cols * rows);
         }
 
         function progress() {
@@ -247,52 +291,115 @@ import { MV_CLIENT } from '../../lib/multiverse';
           return Math.min(1, Math.max(0, -r.top / total));
         }
 
+        /* cursor wake: stamp velocity-scaled heat, decay each frame */
+        var px = -1, py = -1;
+        if (!reduce) {
+          addEventListener('pointermove', function (e) {
+            if (!heat) return;
+            var v = px < 0 ? 0 : Math.hypot(e.clientX - px, e.clientY - py);
+            px = e.clientX; py = e.clientY;
+            var power = Math.min(1, 0.25 + v / 40);
+            var cc = Math.floor(e.clientX / CW), cr = Math.floor(e.clientY / CH);
+            var R = 6;
+            for (var dr = -R; dr <= R; dr++) {
+              for (var dc = -R; dc <= R; dc++) {
+                var c = cc + dc, r = cr + dr;
+                if (c < 0 || r < 0 || c >= cols || r >= rows) continue;
+                var dd = Math.sqrt(dc * dc + dr * dr) / R;
+                if (dd > 1) continue;
+                var f = (1 - dd) * (1 - dd) * power; /* smooth falloff */
+                var i = r * cols + c;
+                if (f > heat[i]) heat[i] = f;
+              }
+            }
+          }, { passive: true });
+        }
+
         function frame(now) {
           requestAnimationFrame(frame);
           if (boot === null) boot = now;
-          var bootT = (now - boot) / 1100; /* whirl-in */
+          var bootT = (now - boot) / 1100;
           var p = reduce ? 0 : progress();
-          if (burst > 0.005) burst *= 0.9; else burst = 0;
 
           var f = p * (WORDS.length - 1);
-          var k = Math.round(f);
-          var intensity = Math.min(1, Math.abs(f - k) * 2.3) ;
-          intensity = Math.max(intensity, burst);
-          var pq = Math.floor(p * 900); /* scramble evolves WITH scroll */
-          var bq = burst > 0 ? Math.floor(now / 90) : 0;
+          var A = Math.floor(f), B = Math.min(WORDS.length - 1, A + 1);
+          var frac = f - A;
+          var pq = Math.floor(p * 1200);           /* scramble evolves WITH scroll */
+          var clickAge = now - click.t;
+          var maxD = Math.hypot(innerWidth, innerHeight);
 
           ctx.clearRect(0, 0, innerWidth, innerHeight);
 
-          /* dust */
-          for (var i = 0; i < bg.length; i++) {
-            var b = bg[i];
-            var bs = (intensity > 0.05 && hash(b.seed, pq + bq) < intensity)
-              ? glyphFor(b.seed, pq + bq + 7) : ',';
-            ctx.fillStyle = 'rgba(20,20,20,0.18)';
-            ctx.fillText(bs, b.x, b.y);
+          /* dust — quiet, but it shatters and feels the wake too */
+          for (var di = 0; di < dust.length; di++) {
+            var i = dust[di];
+            var c = i % cols, r = (i / cols) | 0;
+            var x = c * CW, y = r * CH;
+            var h = heat[i];
+            var scr0 = h * 0.9;
+            if (clickAge < 900) {
+              var delay = Math.hypot(x - click.x, y - click.y) / maxD * 450;
+              var la = (clickAge - delay) / 450;
+              if (la > 0 && la < 1) scr0 = Math.max(scr0, Math.sin(Math.PI * la));
+            }
+            var chr = scr0 > 0.25
+              ? SCRAM[Math.floor(hash(i, pq + ((now / 90) | 0)) * SCRAM.length)]
+              : DUST[i % DUST.length];
+            blit(chr, x, y, 0.2 + scr0 * 0.4);
           }
 
-          /* the word */
-          var R = rasters[k];
-          var maxD = Math.hypot(innerWidth, innerHeight) / 2;
-          for (var j = 0; j < R.cells.length; j++) {
-            var s = R.cells[j];
-            var x = s.x, y = s.y, alpha = 1;
-            if (bootT < 1 && k === 0) { /* whirl-in, TRES only, load only */
-              var e = Math.min(1, Math.max(0, (bootT - s.d / maxD * 0.5) / 0.55));
-              e = 1 - Math.pow(1 - e, 3);
-              if (e < 1) {
-                var rr = (1 - e) * maxD * 0.5;
-                x += Math.cos(s.ang + (1 - e) * 4.2) * rr;
-                y += Math.sin(s.ang + (1 - e) * 4.2) * rr;
-                alpha = e;
+          /* the word field */
+          var FA = fields[A], FB = fields[B];
+          for (var ai = 0; ai < active.length; ai++) {
+            var i2 = active[ai];
+            var c2 = i2 % cols, r2 = (i2 / cols) | 0;
+            var x2 = c2 * CW, y2 = r2 * CH;
+
+            /* per-cell staggered crossfade — the whole band boils, no flick */
+            var stag = hash(i2, 77) * 0.45;
+            var lf = frac <= 0 ? 0 : Math.min(1, Math.max(0, (frac - stag) / 0.55));
+            var d = FA.d[i2] + (FB.d[i2] - FA.d[i2]) * lf;
+
+            /* churn: peaks mid-transition; cursor wake; radial click shatter */
+            var churn = 4 * lf * (1 - lf) * 0.9;
+            var h2 = heat[i2];
+            churn = Math.max(churn, h2 * 0.85);
+            if (clickAge < 900) {
+              var delay2 = Math.hypot(x2 - click.x, y2 - click.y) / maxD * 450;
+              var la2 = (clickAge - delay2) / 450;
+              if (la2 > 0 && la2 < 1) churn = Math.max(churn, Math.sin(Math.PI * la2));
+            }
+            if (d < 0.05 && churn < 0.08) continue;
+
+            var alpha = Math.min(1, d * 1.7 + churn * 0.5);
+            var chr2;
+            if (churn > 0 && hash(i2, 3) < churn) {
+              chr2 = SCRAM[Math.floor(hash(i2, pq + (churn > 0.2 ? ((now / 90) | 0) : 0)) * SCRAM.length)];
+            } else {
+              var E = lf < 0.5 ? FA.edge[i2] : FB.edge[i2];
+              if (E >= 0 && d > 0.06) { chr2 = EDGE[E]; alpha = Math.max(alpha, 0.92); }
+              else if (d >= 0.05) chr2 = RAMP[Math.min(RAMP.length - 1, Math.max(1, Math.round(d * (RAMP.length - 1))))];
+              else continue;
+            }
+
+            /* whirl-in, first load only */
+            if (bootT < 1 && p === 0) {
+              var dd2 = Math.hypot(x2 - innerWidth / 2, y2 - innerHeight / 2);
+              var e2 = Math.min(1, Math.max(0, (bootT - dd2 / maxD * 0.9) / 0.55));
+              e2 = 1 - Math.pow(1 - e2, 3);
+              if (e2 < 1) {
+                var ang2 = Math.atan2(y2 - innerHeight / 2, x2 - innerWidth / 2) + (1 - e2) * 4.2;
+                x2 += Math.cos(ang2) * (1 - e2) * maxD * 0.25;
+                y2 += Math.sin(ang2) * (1 - e2) * maxD * 0.25;
+                alpha *= e2;
               }
             }
-            var scr = hash(s.seed, 1) < intensity;
-            var chr = scr ? glyphFor(s.seed, pq + bq) : s.ch;
-            ctx.fillStyle = 'rgba(20,20,20,' + alpha.toFixed(2) + ')';
-            ctx.fillText(chr, x, y);
+            blit(chr2, x2, y2, alpha);
           }
+          ctx.globalAlpha = 1;
+
+          /* wake cools */
+          if (heat) for (var hi = 0; hi < heat.length; hi++) if (heat[hi] > 0.003) heat[hi] *= 0.93; else heat[hi] = 0;
         }
 
         function seatedWord() {
@@ -306,8 +413,8 @@ import { MV_CLIENT } from '../../lib/multiverse';
           if (leaving) return;
           var k = seatedWord();
           if (k >= 0) {
-            var B = rasters[k].box;
-            if (e.clientX > B[0] - 20 && e.clientX < B[2] + 20 && e.clientY > B[1] - 20 && e.clientY < B[3] + 20) {
+            var B2 = fields[k].box;
+            if (e.clientX > B2[0] - 20 && e.clientX < B2[2] + 20 && e.clientY > B2[1] - 20 && e.clientY < B2[3] + 20) {
               if (WORDS[k].href) {
                 leaving = true;
                 if (!reduce) await cover({ x: e.clientX, y: e.clientY, color: '#141414' });
@@ -316,7 +423,7 @@ import { MV_CLIENT } from '../../lib/multiverse';
               }
             }
           }
-          burst = 1; /* shatter */
+          click = { x: e.clientX, y: e.clientY, t: performance.now() }; /* radial shatter */
         });
 
         addEventListener('scroll', function () {
@@ -327,25 +434,16 @@ import { MV_CLIENT } from '../../lib/multiverse';
         build();
         requestAnimationFrame(frame);
 
-        /* ── the character cursor ─────────────────────────────────────────── */
+        /* the character-arrow cursor */
         if (fine && !reduce) {
           document.documentElement.classList.add('js-cursor');
           var acur = document.getElementById('acur');
-          var MASK = [
-            '@',
-            '@@',
-            '@@@',
-            '@@@@',
-            '@@@@@',
-            '@@#',
-            '@ ##',
-            '   ##',
-          ];
+          var MASK = ['#', '##', '###', '####', '#####', '##&', '#.##', '   ##'];
           function weave() {
             var out = '';
             for (var r = 0; r < MASK.length; r++) {
               for (var c = 0; c < MASK[r].length; c++) {
-                out += MASK[r][c] === ' ' ? ' ' : GLYPHS[Math.floor(Math.random() * GLYPHS.length)];
+                out += MASK[r][c] === ' ' ? ' ' : SCRAM[Math.floor(Math.random() * SCRAM.length)];
               }
               out += '\n';
             }
