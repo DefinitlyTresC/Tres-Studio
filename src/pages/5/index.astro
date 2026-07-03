@@ -80,7 +80,8 @@ import { MV_CLIENT } from '../../lib/multiverse';
         --mvt-label: rgba(0,0,0,0.5); --mvt-accent: #2431FF; --mvt-confetti: #2431FF,#0A0A0A,#ffffff;
       }
       * { margin: 0; box-sizing: border-box; }
-      html, body { overflow-x: hidden; }
+      /* NOTE: no overflow-x:hidden on html/body — it breaks position:sticky.
+         The rail clips itself inside .sticky. */
       html { background: #fff; }
       body { font-family: 'Anton', system-ui, sans-serif; color: #0A0A0A; -webkit-font-smoothing: antialiased; }
       ::selection { background: var(--ac); color: #fff; }
@@ -91,7 +92,9 @@ import { MV_CLIENT } from '../../lib/multiverse';
         position: fixed; top: 16px; left: 50%; translate: -50% 0; z-index: 10;
         font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 0.14em;
         color: rgba(10,10,10,0.5);
+        transition: opacity 400ms ease;
       }
+      .hint.off { opacity: 0; }
       .hint span { color: var(--ac); }
 
       .hwrap { height: 700svh; } /* corrected 1:1 by JS */
@@ -107,6 +110,9 @@ import { MV_CLIENT } from '../../lib/multiverse';
         border-right: 4px solid #0A0A0A;
         position: relative;
       }
+      .p-line { width: 56vw; }
+      .p-link { width: 68vw; }
+      @media (max-width: 700px) { .p-line, .p-link { width: 100vw; } }
       .p-name h1 {
         font-size: clamp(110px, 24vw, 330px); line-height: 0.86;
         letter-spacing: 0.01em; text-align: left;
@@ -202,15 +208,19 @@ import { MV_CLIENT } from '../../lib/multiverse';
           return;
         }
 
-        /* 1:1 — one pixel scrolled = one pixel travelled. Pure sideways. */
+        /* sideways with intent: one scrolled pixel = SPEED lateral pixels,
+           so the rail crosses in a few flicks instead of eighty */
+        var SPEED = 2.4;
         function size() {
-          wrap.style.height = (track.scrollWidth - innerWidth + innerHeight) + 'px';
+          wrap.style.height = ((track.scrollWidth - innerWidth) / SPEED + innerHeight) + 'px';
         }
         function place() {
           ticking = false;
           var top = wrap.getBoundingClientRect().top;
           var max = track.scrollWidth - innerWidth;
-          track.style.setProperty('--tx', -Math.min(max, Math.max(0, -top)) + 'px');
+          var tx = Math.min(max, Math.max(0, -top * SPEED));
+          track.style.setProperty('--tx', -tx + 'px');
+          document.querySelector('.hint').classList.toggle('off', tx > 60);
         }
         addEventListener('scroll', function () {
           if (!ticking) { ticking = true; requestAnimationFrame(place); }
