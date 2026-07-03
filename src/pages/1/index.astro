@@ -1,8 +1,9 @@
 ---
-// Site 1 — cream/espresso/Archivo. CHASSIS STUB: the anchors in skeleton
-// form. Grows into the full site next phase.
+// Site 1 — landing. The journey: identity moment → the Work five, one clean
+// full-frame moment each → the menu drop → info footer with the map.
 import { MV_CLIENT } from '../../lib/multiverse';
 import { getCollection } from 'astro:content';
+import { heroUrlThumb } from '../../lib/cloudinary';
 
 const WORK = ['z07', 'ee13', 'flatwood', 'tucker', 'thesis'];
 const all = await getCollection('projects');
@@ -16,6 +17,7 @@ const work = WORK.map((s) => all.find((p) => p.id === s)?.data).filter(Boolean);
     <meta name="robots" content="noindex" />
     <meta name="theme-color" content="#FFEDDB" />
     <title>Tres.</title>
+    <link rel="preconnect" href="https://res.cloudinary.com" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600&family=Space+Mono&display=swap" rel="stylesheet" />
@@ -23,23 +25,42 @@ const work = WORK.map((s) => all.find((p) => p.id === s)?.data).filter(Boolean);
     <script is:inline set:html={MV_CLIENT(1)} />
   </head>
   <body>
+    <nav class="bar">
+      <a class="bar-mark" href="/1/">Tres<span class="pd">.</span></a>
+      <a class="bar-info" href="#mv-info">info</a>
+    </nav>
+
     <header class="hero">
       <h1 class="mark">Tres<span class="pd">.</span></h1>
       <p class="spec">architecture · art · code — 30A</p>
+      <p class="cue" aria-hidden="true">scroll</p>
     </header>
 
-    <main class="work">
+    <main>
       {work.map((p, i) => (
-        <a class="row" href={`/project/${WORK[i]}`}>
-          <span class="row-name">{p.name}</span>
-          <span class="row-spec">{p.year}</span>
-        </a>
+        <section class="moment">
+          <a class="frame" href={`/1/project/${WORK[i]}`} data-curtain>
+            <img
+              src={heroUrlThumb(p)}
+              alt={p.name}
+              loading={i === 0 ? 'eager' : 'lazy'}
+              fetchpriority={i === 0 ? 'high' : 'auto'}
+              decoding="async"
+            />
+          </a>
+          <div class="caption">
+            <p class="cap-spec">{String(i + 1).padStart(2, '0')} — {p.year}{p.location ? ` · ${p.location}` : ''}</p>
+            <h2 class="cap-name">{p.name}</h2>
+          </div>
+        </section>
       ))}
-      <div class="more">
-        <a href="/architecture">archive</a>
-        <a href="/lab">lab</a>
-        <a href="/" aria-disabled="true">plugins — soon</a>
-      </div>
+
+      <nav class="menu" aria-label="Sections">
+        <a href="/1/archive">Archive</a>
+        <a href="/lab">Lab</a>
+        <a href="/1/about">About</a>
+        <span class="soon">Plugins — soon</span>
+      </nav>
     </main>
 
     <footer id="mv-info" class="info">
@@ -59,7 +80,7 @@ const work = WORK.map((s) => all.find((p) => p.id === s)?.data).filter(Boolean);
         <div class="i-col">
           <span class="lbl">Sections</span>
           <a href="/1/">Work</a><br />
-          <a href="/architecture">Archive</a><br />
+          <a href="/1/archive">Archive</a><br />
           <a href="/lab">Lab</a><br />
           <a href="/1/about">About</a><br />
           <span class="soon">Plugins — soon</span>
@@ -74,6 +95,7 @@ const work = WORK.map((s) => all.find((p) => p.id === s)?.data).filter(Boolean);
 
     <style is:inline>
       * { margin: 0; box-sizing: border-box; }
+      html, body { overflow-x: hidden; }
       html { background: var(--v2-cream, #FFEDDB); }
       body {
         font-family: var(--v2-display, 'Archivo', sans-serif);
@@ -83,38 +105,62 @@ const work = WORK.map((s) => all.find((p) => p.id === s)?.data).filter(Boolean);
       ::selection { background: var(--v2-sand, #EDCDBB); }
       a { color: inherit; text-decoration: none; }
 
-      .hero { min-height: 88svh; display: grid; place-content: center; text-align: center; padding: var(--v2-pad, 24px); }
+      .bar {
+        position: fixed; inset: 0 0 auto 0; z-index: 10;
+        display: flex; justify-content: space-between; align-items: baseline;
+        padding: calc(var(--v2-pad, 24px) * 0.55) var(--v2-pad, 24px);
+        mix-blend-mode: multiply;
+      }
+      .bar-mark { font-weight: 600; font-size: 17px; text-transform: uppercase; }
+      .bar-info { font-family: var(--v2-mono, monospace); font-size: 12px; padding: 8px 0; }
+      @media (hover: hover) and (pointer: fine) {
+        .bar-info:hover { text-decoration: underline; text-underline-offset: 4px; }
+      }
+
+      .hero { min-height: 96svh; display: grid; place-content: center; text-align: center; position: relative; padding: var(--v2-pad, 24px); }
       .mark { font-weight: 600; font-size: clamp(72px, 17vw, 210px); line-height: 0.9; text-transform: uppercase; letter-spacing: -0.02em; }
       .pd { color: var(--v2-umber, #BF9270); }
       .spec { font-family: var(--v2-mono, monospace); font-size: 12px; letter-spacing: 0.08em; color: var(--v2-ink-soft, #6b5c54); margin-top: 18px; }
-
-      .work { max-width: 860px; margin: 0 auto; padding: 6svh var(--v2-pad, 24px) 14svh; }
-      .row {
-        display: flex; justify-content: space-between; align-items: baseline; gap: 16px;
-        padding: 22px 0; border-top: 1px solid var(--v2-hairline, rgba(43,31,26,.16));
-      }
-      .row-name { font-weight: 600; font-size: clamp(24px, 4.6vw, 44px); text-transform: uppercase; line-height: 1; }
-      .row-spec { font-family: var(--v2-mono, monospace); font-size: 12px; color: var(--v2-ink-soft, #6b5c54); }
-      @media (hover: hover) and (pointer: fine) {
-        .row:hover .row-name { translate: 6px 0; }
-        .row-name { transition: translate 200ms cubic-bezier(.23,1,.32,1); }
-      }
-      .more { display: flex; gap: 28px; padding-top: 34px; font-family: var(--v2-mono, monospace); font-size: 13px; }
-      @media (hover: hover) and (pointer: fine) {
-        .more a:hover { text-decoration: underline; text-underline-offset: 4px; }
+      .cue {
+        position: absolute; bottom: calc(var(--v2-pad, 24px) * 0.8); left: 50%; translate: -50% 0;
+        font-family: var(--v2-mono, monospace); font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase;
+        color: var(--v2-ink-soft, #6b5c54);
       }
 
-      html, body { overflow-x: hidden; } /* the dot-cluster bleeds off the right edge */
-      .info {
-        min-height: 74svh; display: grid; align-content: end; gap: 7svh;
-        padding: 10svh var(--v2-pad, 24px) 4svh;
-        border-top: 1px solid var(--v2-hairline, rgba(43,31,26,.16));
+      .moment { min-height: 100svh; display: grid; align-content: center; padding: 7svh var(--v2-pad, 24px); }
+      .frame { display: block; overflow: hidden; }
+      .frame img {
+        display: block; width: 100%; height: min(74svh, 780px); object-fit: cover;
+        outline: 1px solid rgba(0, 0, 0, 0.1); outline-offset: -1px;
+        transition: scale 1200ms cubic-bezier(0.23, 1, 0.32, 1);
+        scale: 1;
       }
+      html.js .moment.pre .frame img { scale: 1.05; }
+      @media (hover: hover) and (pointer: fine) {
+        .frame:hover img { scale: 1.02; }
+      }
+      .caption { display: flex; justify-content: space-between; align-items: baseline; gap: 18px; flex-wrap: wrap; margin-top: 16px; }
+      .cap-spec { font-family: var(--v2-mono, monospace); font-size: 12px; letter-spacing: 0.05em; color: var(--v2-ink-soft, #6b5c54); order: 2; }
+      .cap-name { font-weight: 600; font-size: clamp(26px, 4.8vw, 48px); line-height: 1; text-transform: uppercase; text-wrap: balance; }
+
+      .menu { min-height: 80svh; display: grid; align-content: center; padding: 0 var(--v2-pad, 24px); border-top: 1px solid var(--v2-hairline, rgba(43,31,26,.16)); }
+      .menu a, .menu .soon {
+        display: block; padding: 3.4svh 0;
+        font-weight: 600; font-size: clamp(38px, 8.4vw, 96px); line-height: 1; text-transform: uppercase;
+        border-bottom: 1px solid var(--v2-hairline, rgba(43,31,26,.16));
+      }
+      .menu .soon { color: var(--v2-ink-soft, #6b5c54); border-bottom: none; }
+      @media (hover: hover) and (pointer: fine) {
+        .menu a { transition: translate 220ms cubic-bezier(0.23, 1, 0.32, 1); }
+        .menu a:hover { translate: 10px 0; }
+      }
+
+      .info { min-height: 74svh; display: grid; align-content: end; gap: 7svh; position: relative; padding: 10svh var(--v2-pad, 24px) 4svh; border-top: 1px solid var(--v2-hairline, rgba(43,31,26,.16)); }
       .i-top { display: flex; justify-content: space-between; align-items: baseline; gap: 20px; flex-wrap: wrap; }
-      .stmt { font-weight: 600; font-size: clamp(28px, 4.6vw, 52px); line-height: 1.04; text-transform: none; max-width: 15ch; text-wrap: balance; }
+      .stmt { font-weight: 600; font-size: clamp(28px, 4.6vw, 52px); line-height: 1.04; max-width: 15ch; text-wrap: balance; }
       .i-cols {
         display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px;
-        padding-right: clamp(100px, 24vw, 240px); /* room for the map */
+        padding-right: clamp(100px, 24vw, 240px);
         font-family: var(--v2-mono, monospace); font-size: 12px; letter-spacing: 0.05em;
         text-transform: uppercase; line-height: 1.9;
       }
@@ -129,12 +175,47 @@ const work = WORK.map((s) => all.find((p) => p.id === s)?.data).filter(Boolean);
       @media (hover: hover) and (pointer: fine) {
         .info a:hover { text-decoration: underline; text-underline-offset: 4px; }
       }
+
+      @media (prefers-reduced-motion: reduce) {
+        .frame img { transition: none; }
+        html.js .moment.pre .frame img { scale: 1; }
+      }
     </style>
 
     <script is:inline type="module">
-      import { autoReveal } from '/mv/curtain.js';
+      import { cover, autoReveal } from '/mv/curtain.js';
       autoReveal();
       import('/mv/ring.js');
+
+      const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      document.documentElement.classList.add('js');
+
+      /* below-fold moments settle from a slight zoom as they arrive; anything
+         already visible (or unobserved) just rests sharp */
+      if (!reduce && 'IntersectionObserver' in window) {
+        const moments = [...document.querySelectorAll('.moment')];
+        moments.forEach((m) => {
+          if (m.getBoundingClientRect().top > innerHeight * 0.85) m.classList.add('pre');
+        });
+        const io = new IntersectionObserver((ens) => {
+          ens.forEach((en) => {
+            if (en.isIntersecting) { en.target.classList.remove('pre'); io.unobserve(en.target); }
+          });
+        }, { threshold: 0.2 });
+        moments.forEach((m) => { if (m.classList.contains('pre')) io.observe(m); });
+      }
+
+      /* through the ink to the project */
+      let leaving = false;
+      document.querySelectorAll('[data-curtain]').forEach((a) => {
+        a.addEventListener('click', async (e) => {
+          if (reduce || leaving) return;
+          leaving = true;
+          e.preventDefault();
+          await cover({ x: e.clientX, y: e.clientY, color: '#2B1F1A' });
+          location.href = a.href;
+        });
+      });
     </script>
     <script is:inline defer src="/mv/ticker.js"></script>
   </body>

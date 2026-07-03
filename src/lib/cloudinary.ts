@@ -12,9 +12,12 @@ export const CLOUDINARY_BASE =
   'https://res.cloudinary.com/dodk1b5l7/image/upload/f_auto,q_auto';
 
 // THUMB used for gallery thumbnails + lightbox view (config.js: 'w_1800').
-// TODO(Phase 5): THUMB will split into two tiers — a smaller grid-tile
-// transform and this larger lightbox transform — rather than one shared value.
 export const THUMB_TRANSFORM = 'w_1800';
+
+// Grid tiles (the two-tier split): grid cells render ~400-650px wide, so
+// w_900 covers 2x displays at a fraction of w_1800's weight. Lightbox keeps
+// THUMB_TRANSFORM.
+export const GRID_TRANSFORM = 'w_900';
 
 // Hero images (config.js: 'w_2400').
 export const HERO_TRANSFORM = 'w_2400';
@@ -64,4 +67,9 @@ export function mediaUrl(
     return joinUrl(item.path, null, 'video');
   }
   return joinUrl(item.path, transform, 'image');
+}
+
+// Grid-tier URL for gallery tiles (videos are unaffected by width transforms).
+export function gridUrl(item: MediaItem): string | null {
+  return mediaUrl(item, GRID_TRANSFORM);
 }
