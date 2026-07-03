@@ -1,7 +1,8 @@
 ---
-// Site 5 — "the sideways one." Scroll down, travel right: giant editorial
-// panels in Unbounded with one electric accent. On touch the track swipes
-// natively with snap; on desktop the wheel drives it. Funky, on purpose.
+// Site 5 — "the sideways one," revised: travel reads PURELY lateral now.
+// 1:1 scroll-to-slide mapping, the info screen is the rail's final panel,
+// the marquee rides fixed along the bottom. Type went poster-bold (Anton),
+// and Archie's cutout joins the name panel when Tres supplies the PNG.
 import { MV_CLIENT } from '../../lib/multiverse';
 ---
 
@@ -11,10 +12,10 @@ import { MV_CLIENT } from '../../lib/multiverse';
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="robots" content="noindex" />
     <meta name="theme-color" content="#FFFFFF" />
-    <title>TRES ⁵</title>
+    <title>TRESCARTER ⁵</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;900&family=Space+Mono&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
     <script is:inline set:html={MV_CLIENT(5)} />
   </head>
   <body>
@@ -24,7 +25,9 @@ import { MV_CLIENT } from '../../lib/multiverse';
       <div class="sticky">
         <div class="track" id="track">
           <div class="panel p-name">
-            <h1>TRES<span class="ac">.</span></h1>
+            <h1>TRES<br />CARTER<span class="ac">.</span></h1>
+            <img class="archie" src="/assets/archie.png" alt="" onerror="this.nextElementSibling.style.display='grid';this.remove()" />
+            <div class="archie-slot" aria-hidden="true"><span>[ archie ]</span></div>
           </div>
           <div class="panel p-line">
             <p class="mono">buildings · pictures · code<br />— from 30A, florida</p>
@@ -33,9 +36,35 @@ import { MV_CLIENT } from '../../lib/multiverse';
           <a class="panel p-link alt" href="/5/archive"><span>ARCHIVE</span></a>
           <a class="panel p-link" href="/lab"><span>LAB</span></a>
           <a class="panel p-link alt" href="/5/about"><span>ABOUT</span></a>
-          <div class="panel p-end">
-            <p class="mono">↓ info below</p>
-          </div>
+          <footer id="mv-info" class="panel p-info">
+            <div class="i-cols">
+              <div class="i-col">
+                <span class="lbl">location</span>
+                seagrove · 30a<br />florida, usa
+              </div>
+              <div class="i-col">
+                <span class="lbl">contact</span>
+                <a href="mailto:tres@tres.studio">tres@tres.studio</a><br />
+                <a href="https://instagram.com/tres.studio" target="_blank" rel="noopener">ig</a><br />
+                <a href="https://www.linkedin.com/in/tres-carter" target="_blank" rel="noopener">linkedin</a>
+              </div>
+              <div class="i-col">
+                <span class="lbl">sections</span>
+                <a href="/5/work">work</a><br />
+                <a href="/5/archive">archive</a><br />
+                <a href="/lab">lab</a><br />
+                <a href="/5/about">about</a><br />
+                <a href="/resume.pdf">resume</a><br />
+                <a href="/portfolio.pdf">portfolio</a><br />
+                <span class="soon">plugins — soon</span>
+              </div>
+            </div>
+            <div class="i-meta">
+              <span>© 2026 tres carter</span>
+              <span id="mv-ticker-slot"></span>
+              <a href="/privacy">privacy</a>
+            </div>
+          </footer>
         </div>
       </div>
     </section>
@@ -43,36 +72,6 @@ import { MV_CLIENT } from '../../lib/multiverse';
     <div class="marquee" aria-hidden="true">
       <div class="m-in">TRES CARTER — TRES CARTER — TRES CARTER — TRES CARTER — TRES CARTER — TRES CARTER — </div>
     </div>
-
-    <footer id="mv-info" class="info">
-      <div class="i-cols">
-        <div class="i-col">
-          <span class="lbl">location</span>
-          seagrove · 30a<br />florida, usa
-        </div>
-        <div class="i-col">
-          <span class="lbl">contact</span>
-          <a href="mailto:tres@tres.studio">tres@tres.studio</a><br />
-          <a href="https://instagram.com/tres.studio" target="_blank" rel="noopener">ig</a><br />
-          <a href="https://www.linkedin.com/in/tres-carter" target="_blank" rel="noopener">linkedin</a>
-        </div>
-        <div class="i-col">
-          <span class="lbl">sections</span>
-          <a href="/5/work">work</a><br />
-          <a href="/5/archive">archive</a><br />
-          <a href="/lab">lab</a><br />
-          <a href="/5/about">about</a><br />
-          <a href="/resume.pdf">resume</a><br />
-          <a href="/portfolio.pdf">portfolio</a><br />
-          <span style="color:rgba(10,10,10,0.45)">plugins — soon</span>
-        </div>
-      </div>
-      <div class="i-meta">
-        <span>© 2026 tres carter</span>
-        <span id="mv-ticker-slot"></span>
-        <a href="/privacy">privacy</a>
-      </div>
-    </footer>
 
     <style is:inline>
       :root {
@@ -83,7 +82,7 @@ import { MV_CLIENT } from '../../lib/multiverse';
       * { margin: 0; box-sizing: border-box; }
       html, body { overflow-x: hidden; }
       html { background: #fff; }
-      body { font-family: 'Unbounded', system-ui, sans-serif; color: #0A0A0A; -webkit-font-smoothing: antialiased; }
+      body { font-family: 'Anton', system-ui, sans-serif; color: #0A0A0A; -webkit-font-smoothing: antialiased; }
       ::selection { background: var(--ac); color: #fff; }
       a { color: inherit; text-decoration: none; }
       .mono { font-family: 'Space Mono', monospace; }
@@ -95,8 +94,7 @@ import { MV_CLIENT } from '../../lib/multiverse';
       }
       .hint span { color: var(--ac); }
 
-      /* desktop: vertical scroll drives horizontal travel */
-      .hwrap { height: 440svh; }
+      .hwrap { height: 700svh; } /* corrected 1:1 by JS */
       .sticky { position: sticky; top: 0; height: 100svh; overflow: hidden; }
       .track {
         display: flex; height: 100%; width: max-content;
@@ -106,24 +104,63 @@ import { MV_CLIENT } from '../../lib/multiverse';
       .panel {
         flex: 0 0 auto; width: 100vw; height: 100%;
         display: grid; place-content: center; text-align: center;
-        border-right: 3px solid #0A0A0A;
+        border-right: 4px solid #0A0A0A;
+        position: relative;
       }
-      .p-name h1 { font-weight: 900; font-size: clamp(70px, 16vw, 220px); line-height: 1; }
+      .p-name h1 {
+        font-size: clamp(110px, 24vw, 330px); line-height: 0.86;
+        letter-spacing: 0.01em; text-align: left;
+      }
       .ac { color: var(--ac); }
+      .archie { position: absolute; right: 6vw; bottom: 0; height: min(64svh, 560px); }
+      .archie-slot {
+        display: none; place-items: center;
+        position: absolute; right: 8vw; bottom: 8svh;
+        width: min(30vw, 300px); height: min(46svh, 420px);
+        border: 2px dashed rgba(10,10,10,0.3);
+      }
+      .archie-slot span { font-family: 'Space Mono', monospace; font-size: 12px; color: rgba(10,10,10,0.4); }
       .p-line p { font-size: 15px; line-height: 2; letter-spacing: 0.1em; text-transform: uppercase; }
-      .p-link span { font-weight: 900; font-size: clamp(44px, 10vw, 140px); line-height: 1; }
+      .p-link span { font-size: clamp(70px, 15vw, 210px); line-height: 1; letter-spacing: 0.01em; }
       .p-link.alt { background: #0A0A0A; color: #fff; }
-      .p-link.alt span { -webkit-text-stroke: 0; }
       @media (hover: hover) and (pointer: fine) {
         .p-link span { transition: color 200ms ease; }
         .p-link:hover span { color: var(--ac); }
       }
-      .p-end { border-right: none; }
-      .p-end p { font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(10,10,10,0.5); }
 
-      /* touch: the track is a native swipe rail with snap */
+      .p-info { border-right: none; place-content: end center; padding: 0 6vw 12svh; text-align: left; width: 100vw; }
+      .i-cols {
+        display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px;
+        padding-right: clamp(100px, 22vw, 230px);
+        font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: 0.05em;
+        text-transform: uppercase; line-height: 1.9;
+      }
+      @media (max-width: 640px) { .i-cols { grid-template-columns: 1fr; } }
+      .lbl { display: block; color: rgba(10,10,10,0.45); margin-bottom: 6px; }
+      .soon { color: rgba(10,10,10,0.45); }
+      .i-meta {
+        display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap;
+        border-top: 1px solid rgba(0,0,0,0.16); padding-top: 16px; margin-top: 6svh;
+        font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase;
+      }
+      @media (hover: hover) and (pointer: fine) {
+        .p-info a:hover { text-decoration: underline; text-underline-offset: 4px; }
+      }
+
+      .marquee {
+        position: fixed; left: 0; right: 0; bottom: 0; z-index: 9;
+        overflow: hidden; border-top: 4px solid #0A0A0A; background: #fff; padding: 10px 0;
+      }
+      .m-in {
+        white-space: nowrap; width: max-content;
+        font-size: 17px; letter-spacing: 0.06em;
+        animation: slide 26s linear infinite;
+      }
+      @keyframes slide { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+      /* touch: native sideways swipe with snap */
       @media (hover: none), (pointer: coarse) {
-        .hwrap { height: auto; }
+        .hwrap { height: auto !important; }
         .sticky { position: static; height: 100svh; overflow: visible; }
         .track {
           transform: none !important;
@@ -132,33 +169,6 @@ import { MV_CLIENT } from '../../lib/multiverse';
         }
         .panel { scroll-snap-align: center; }
       }
-
-      .marquee { overflow: hidden; border-top: 3px solid #0A0A0A; border-bottom: 3px solid #0A0A0A; padding: 14px 0; }
-      .m-in {
-        white-space: nowrap; width: max-content;
-        font-weight: 500; font-size: 18px; letter-spacing: 0.08em;
-        animation: slide 26s linear infinite;
-      }
-      @keyframes slide { from { transform: translateX(0); } to { transform: translateX(-50%); } }
-
-      .info { min-height: 70svh; display: grid; align-content: end; gap: 7svh; position: relative; padding: 10svh 6vw 4svh; }
-      .i-cols {
-        display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px;
-        padding-right: clamp(100px, 24vw, 240px);
-        font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: 0.05em;
-        text-transform: uppercase; line-height: 1.9;
-      }
-      @media (max-width: 640px) { .i-cols { grid-template-columns: 1fr; } }
-      .lbl { display: block; color: rgba(10,10,10,0.45); margin-bottom: 6px; }
-      .i-meta {
-        display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap;
-        border-top: 1px solid rgba(0,0,0,0.16); padding-top: 16px;
-        font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase;
-      }
-      @media (hover: hover) and (pointer: fine) {
-        .info a:hover { text-decoration: underline; text-underline-offset: 4px; }
-      }
-
       @media (prefers-reduced-motion: reduce) {
         .m-in { animation: none; }
       }
@@ -177,31 +187,36 @@ import { MV_CLIENT } from '../../lib/multiverse';
           reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
           coarse = matchMedia('(hover: none), (pointer: coarse)').matches;
         } catch (e) {}
-        if (coarse) return; /* touch uses native swipe */
+        if (coarse) return; /* touch swipes the rail natively */
+
         var wrap = document.getElementById('hwrap');
         var track = document.getElementById('track');
+        var sticky = document.querySelector('.sticky');
         var ticking = false;
-        function place() {
-          ticking = false;
-          var r = wrap.getBoundingClientRect();
-          var total = r.height - innerHeight;
-          var p = Math.min(1, Math.max(0, -r.top / total));
-          var max = track.scrollWidth - innerWidth;
-          track.style.setProperty('--tx', (-p * max).toFixed(1) + 'px');
-        }
+
         if (reduce) {
-          /* reduced motion: plain vertical page — unwrap the rail */
           wrap.style.height = 'auto';
           track.style.flexWrap = 'wrap';
           track.style.width = '100%';
-          document.querySelector('.sticky').style.position = 'static';
+          sticky.style.position = 'static';
           return;
+        }
+
+        /* 1:1 — one pixel scrolled = one pixel travelled. Pure sideways. */
+        function size() {
+          wrap.style.height = (track.scrollWidth - innerWidth + innerHeight) + 'px';
+        }
+        function place() {
+          ticking = false;
+          var top = wrap.getBoundingClientRect().top;
+          var max = track.scrollWidth - innerWidth;
+          track.style.setProperty('--tx', -Math.min(max, Math.max(0, -top)) + 'px');
         }
         addEventListener('scroll', function () {
           if (!ticking) { ticking = true; requestAnimationFrame(place); }
         }, { passive: true });
-        addEventListener('resize', place, { passive: true });
-        place();
+        addEventListener('resize', function () { size(); place(); }, { passive: true });
+        size(); place();
       })();
     </script>
     <script is:inline defer src="/mv/ticker.js"></script>
