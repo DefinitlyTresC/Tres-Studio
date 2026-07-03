@@ -1,5 +1,5 @@
-﻿---
-// Site 5 â€” work.
+---
+// Site 5 — work. Filled heading; rows hollow out on hover (type play).
 import { MV_CLIENT } from '../../lib/multiverse';
 import { getCollection } from 'astro:content';
 const WORK = ['z07', 'ee13', 'flatwood', 'tucker', 'thesis'];
@@ -13,17 +13,17 @@ const rows = WORK.map((s) => all.find((p) => p.slug === s)).filter(Boolean);
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="robots" content="noindex" />
     <meta name="theme-color" content="#FFFFFF" />
-    <title>WORK â€” TRES âµ</title>
+    <title>WORK — TRES ⁵</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Anton&family=Space+Mono&display=swap" rel="stylesheet" />
     <script is:inline set:html={MV_CLIENT(5)} />
   </head>
   <body>
-    <a class="back" id="back" href="/5/">â† index</a>
+    <a class="back" id="back" href="/5/">← index</a>
     <main class="arch">
       <header class="head">
-        <p class="spec">work â€” 05</p>
+        <p class="spec">work — 05</p>
         <h1 class="name">WORK<span class="ac">.</span></h1>
       </header>
       <div class="list">
@@ -36,7 +36,7 @@ const rows = WORK.map((s) => all.find((p) => p.slug === s)).filter(Boolean);
         ))}
       </div>
     </main>
-    <footer class="foot"><span>Â© 2026 tres carter</span><a href="/privacy">privacy</a></footer>
+    <footer class="foot"><span>© 2026 tres carter</span><a href="/privacy">privacy</a></footer>
 
     <style is:inline>
       :root { --ac: #2431FF; }
@@ -59,8 +59,13 @@ const rows = WORK.map((s) => all.find((p) => p.slug === s)).filter(Boolean);
       .r-meta { margin-left: auto; }
       .r-name { font-size: clamp(20px, 3.8vw, 42px); line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
       @media (hover: hover) and (pointer: fine) {
-        .r-name { transition: color 180ms ease; }
+        .r-name, .r-no { transition: color 150ms cubic-bezier(0.16, 1, 0.3, 1); }
         .row:hover .r-name { color: var(--ac); }
+        .row:hover .r-no { color: var(--ac); }
+        /* filled hollows out on hover — solid blue fallback above */
+        @supports (-webkit-text-stroke: 1.5px #000) {
+          .row:hover .r-name { color: transparent; -webkit-text-stroke: 1.5px #0A0A0A; }
+        }
       }
       .foot { display: flex; justify-content: space-between; max-width: 1100px; margin: 0 auto; padding: 3svh 6vw 4svh; border-top: 1px solid rgba(0,0,0,0.16); font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; }
     </style>

@@ -17,6 +17,7 @@ import { MV_CLIENT } from '../../lib/multiverse';
   </head>
   <body>
     <a class="back" id="back" href="/4/">← INDEX</a>
+    <span class="an" aria-hidden="true">SHEET 04.3</span>
     <main class="about">
       <div class="card">
         <h1 class="name">TRES CARTER</h1>
@@ -34,6 +35,14 @@ import { MV_CLIENT } from '../../lib/multiverse';
       body { font-family: 'Inter Tight', system-ui, sans-serif; font-weight: 900; color: #141210; -webkit-font-smoothing: antialiased; }
       ::selection { background: #141210; color: #EC5B13; }
       a { color: inherit; text-decoration: none; }
+      /* print finish — same sheet of film grain as the landing */
+      body::after {
+        content: ""; position: fixed; inset: 0; z-index: 200; pointer-events: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23g)'/%3E%3C/svg%3E");
+        background-size: 220px 220px;
+        opacity: 0.11; mix-blend-mode: soft-light;
+      }
+      .an { position: fixed; top: 18px; right: 18px; z-index: 90; pointer-events: none; font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: 0.14em; color: rgba(20,18,16,0.5); }
       .back { position: fixed; z-index: 10; top: var(--y, 14px); left: 18px; font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 0.16em; padding: 12px 0; transition: transform 140ms cubic-bezier(0.23,1,0.32,1); }
       .back:active { transform: scale(0.96); }
       @media (hover: hover) and (pointer: fine) { .back:hover { text-decoration: underline; text-underline-offset: 4px; } }
@@ -42,7 +51,11 @@ import { MV_CLIENT } from '../../lib/multiverse';
       .name { font-weight: 700; font-size: clamp(38px, 8vw, 96px); line-height: 1; }
       .lede { font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: 0.14em; margin-top: 12px; }
       .acts { display: flex; gap: 28px; font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: 0.1em; }
-      @media (hover: hover) and (pointer: fine) { .acts a:hover { text-decoration: underline; text-underline-offset: 4px; } }
+      .acts a { position: relative; z-index: 0; padding: 14px 5px; margin: -14px -5px; }
+      .acts a::before { content: ""; position: absolute; inset: 9px 0; z-index: -1; background: #E8DCC6; transform: scaleY(0); transform-origin: bottom; transition: transform 180ms cubic-bezier(0.19, 1, 0.22, 1); }
+      .acts a:active { transform: scale(0.96); }
+      @media (hover: hover) and (pointer: fine) { .acts a:hover::before { transform: scaleY(1); } }
+      @media (prefers-reduced-motion: reduce) { .acts a::before { transition: none; } }
     </style>
 
     <script is:inline type="module">

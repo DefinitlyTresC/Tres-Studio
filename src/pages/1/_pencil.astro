@@ -1,0 +1,208 @@
+---
+// Site 1 — the pencil (R4). Fine-pointer only: the cursor becomes a pencil
+// glyph and press+move sketches graphite onto a full-page canvas overlay.
+// Speed-modulated width (1.2–2.6px), ghost double-strokes, noise-pattern ink
+// (rgba espresso tooth) — reads pencil, not marker. Strokes persist across
+// pages and sessions via localStorage (point cap, FIFO trim by stroke).
+// Canvas is pointer-events:none with window-level tracking, so links, the
+// tracking back link, and native touch scrolling are never blocked.
+// Not a route: underscore-prefixed files in src/pages are excluded by Astro.
+---
+<canvas class="sk-cv" id="sk-cv" aria-hidden="true"></canvas>
+<button class="sk-clear off" id="sk-clear" type="button" hidden>[ clear sketch ]</button>
+
+<style is:inline>
+  .sk-cv, .sk-clear { display: none; }
+  body.sk-drawing { user-select: none; -webkit-user-select: none; }
+
+  @media (hover: hover) and (pointer: fine) {
+    html, body, a, button {
+      cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='26' height='26'%3E%3Cpath fill='%232B1F1A' d='M3 23L5.1 16.7 13.6 8.2 17.8 12.4 9.3 20.9Z'/%3E%3Cpath stroke='%23FFEDDB' stroke-width='1.1' fill='none' d='M5.1 16.7L9.3 20.9M11.5 10.3L15.7 14.5'/%3E%3C/svg%3E") 3 23, auto;
+    }
+    .sk-cv {
+      display: block;
+      position: fixed; inset: 0; z-index: 3;
+      pointer-events: none;
+    }
+    .sk-clear {
+      display: block;
+      position: fixed; right: var(--v2-pad, 24px); bottom: 14px; z-index: 12;
+      min-height: 44px; min-width: 44px; padding: 10px 8px;
+      background: var(--v2-cream, #FFEDDB); border: none;
+      color: var(--v2-ink-soft, #6b5c54);
+      font-family: var(--v2-mono, monospace); font-size: 11px;
+      letter-spacing: 0.06em; text-transform: uppercase;
+      cursor: inherit;
+      transition: opacity 220ms var(--v2-out, ease-out), transform var(--v2-press, 140ms) var(--v2-out, ease-out);
+    }
+    .sk-clear[hidden] { display: none; }
+    .sk-clear.off { opacity: 0; }
+    .sk-clear:hover { text-decoration: underline; text-underline-offset: 4px; }
+    .sk-clear:active { transform: scale(0.96); }
+    .sk-clear:focus-visible { outline: 2px solid var(--v2-ink, #2B1F1A); outline-offset: 3px; }
+  }
+</style>
+
+<script is:inline>
+  (function () {
+    'use strict';
+    var fine = false;
+    try { fine = matchMedia('(hover: hover) and (pointer: fine)').matches; } catch (e) {}
+    if (!fine) return;
+    var cv = document.getElementById('sk-cv');
+    var btn = document.getElementById('sk-clear');
+    if (!cv || !btn) return;
+    var ctx = cv.getContext('2d');
+    if (!ctx) return;
+
+    var KEY = 'mv1-sketch';
+    var MAX_PTS = 6000;
+
+    /* strokes: array of strokes; each stroke = array of [x, y, w] points */
+    var strokes = [];
+    try {
+      var raw = JSON.parse(localStorage.getItem(KEY));
+      if (Array.isArray(raw)) {
+        strokes = raw.filter(function (s) { return Array.isArray(s) && s.length > 1; });
+      }
+    } catch (e) {}
+
+    /* graphite tooth: espresso noise pattern picked up by every stroke */
+    var pat = null;
+    function makePattern() {
+      var n = document.createElement('canvas');
+      n.width = n.height = 64;
+      var nx = n.getContext('2d');
+      var id = nx.createImageData(64, 64);
+      for (var i = 0; i < id.data.length; i += 4) {
+        id.data[i] = 43; id.data[i + 1] = 31; id.data[i + 2] = 26;
+        id.data[i + 3] = 150 + (Math.random() * 105 | 0);
+      }
+      nx.putImageData(id, 0, 0);
+      pat = ctx.createPattern(n, 'repeat');
+    }
+
+    function jr(k) { return (Math.random() - 0.5) * k; }
+
+    /* one smoothed segment (quadratic through midpoints), three ghost
+       passes with jitter + descending alpha — the pencil-not-marker move */
+    function seg(pp, p0, p1) {
+      var m0x = pp ? (pp[0] + p0[0]) / 2 : p0[0];
+      var m0y = pp ? (pp[1] + p0[1]) / 2 : p0[1];
+      var m1x = (p0[0] + p1[0]) / 2, m1y = (p0[1] + p1[1]) / 2;
+      var w = p1[2];
+      var passes = [[0.32, 0], [0.16, 1.4], [0.09, 0.8]];
+      ctx.strokeStyle = pat;
+      for (var i = 0; i < passes.length; i++) {
+        var a = passes[i][0], o = passes[i][1];
+        ctx.globalAlpha = a * (0.8 + Math.random() * 0.4);
+        ctx.lineWidth = Math.max(0.5, w * (i === 0 ? 1 : 0.6 + Math.random() * 0.7));
+        ctx.beginPath();
+        ctx.moveTo(m0x + jr(o), m0y + jr(o));
+        ctx.quadraticCurveTo(p0[0] + jr(o), p0[1] + jr(o), m1x + jr(o), m1y + jr(o));
+        ctx.stroke();
+      }
+    }
+
+    function renderStroke(pts) {
+      for (var i = 1; i < pts.length; i++) {
+        seg(i > 1 ? pts[i - 2] : null, pts[i - 1], pts[i]);
+      }
+    }
+
+    function redraw() {
+      ctx.clearRect(0, 0, innerWidth, innerHeight);
+      for (var i = 0; i < strokes.length; i++) renderStroke(strokes[i]);
+    }
+
+    function size() {
+      var dpr = Math.min(2, window.devicePixelRatio || 1);
+      cv.width = Math.round(innerWidth * dpr);
+      cv.height = Math.round(innerHeight * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      makePattern();
+      redraw();
+    }
+
+    function save() {
+      try { localStorage.setItem(KEY, JSON.stringify(strokes)); } catch (e) {}
+    }
+    function trim() {
+      var total = 0, i;
+      for (i = 0; i < strokes.length; i++) total += strokes[i].length;
+      while (total > MAX_PTS && strokes.length > 1) total -= strokes.shift().length;
+    }
+    function showBtn() {
+      if (!btn.hidden) return;
+      btn.hidden = false;
+      requestAnimationFrame(function () {
+        requestAnimationFrame(function () { btn.classList.remove('off'); });
+      });
+    }
+    function hideBtn() {
+      btn.classList.add('off');
+      btn.hidden = true;
+    }
+
+    var drawing = false, cur = null, vf = 0, lastT = 0, lastW = 2.2;
+
+    addEventListener('pointerdown', function (e) {
+      if (e.button !== 0 || e.pointerType === 'touch') return;
+      if (e.target && e.target.closest && e.target.closest('#sk-clear')) return;
+      drawing = true;
+      vf = 0; lastT = e.timeStamp; lastW = 2.2;
+      cur = [[Math.round(e.clientX), Math.round(e.clientY), 2]];
+      document.body.classList.add('sk-drawing');
+    }, { passive: true });
+
+    addEventListener('pointermove', function (e) {
+      if (!drawing || !cur) return;
+      var last = cur[cur.length - 1];
+      var dx = e.clientX - last[0], dy = e.clientY - last[1];
+      var d = Math.sqrt(dx * dx + dy * dy);
+      if (d < 2.5) return;
+      var dt = Math.max(1, e.timeStamp - lastT);
+      lastT = e.timeStamp;
+      var v = d / dt; /* px per ms */
+      vf = 0.7 * v + 0.3 * vf;
+      var w = Math.min(2.6, Math.max(1.2, 2.6 / (vf + 0.8)));
+      w = lastW + (w - lastW) * 0.35; /* interpolate — no bamboo joints */
+      lastW = w;
+      var p = [Math.round(e.clientX), Math.round(e.clientY), Math.round(w * 10) / 10];
+      cur.push(p);
+      seg(cur.length > 2 ? cur[cur.length - 3] : null, cur[cur.length - 2], p);
+      if (cur.length === 2) showBtn();
+    }, { passive: true });
+
+    function end() {
+      if (!drawing) return;
+      drawing = false;
+      document.body.classList.remove('sk-drawing');
+      /* a plain click (no movement) is a click, not a dot — keep taps clean */
+      if (cur && cur.length > 1) { strokes.push(cur); trim(); save(); }
+      cur = null;
+    }
+    addEventListener('pointerup', end, { passive: true });
+    addEventListener('pointercancel', end, { passive: true });
+    addEventListener('blur', end);
+    addEventListener('dragstart', function (e) { if (drawing) e.preventDefault(); });
+
+    btn.addEventListener('click', function () {
+      strokes = [];
+      try { localStorage.removeItem(KEY); } catch (e) {}
+      redraw();
+      hideBtn();
+    });
+
+    var rto = null;
+    addEventListener('resize', function () {
+      clearTimeout(rto);
+      rto = setTimeout(size, 120);
+    });
+
+    size();
+    if (strokes.length) showBtn();
+  })();
+</script>

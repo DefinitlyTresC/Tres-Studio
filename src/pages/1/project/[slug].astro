@@ -1,6 +1,8 @@
 ---
 // Site 1 — project page. Every project gets one (Work five + archive).
 // Grid tiles at w_900, lightbox at w_1800, hero at w_2400.
+// R4: watercolor-paper texture layer (shared with the rest of site 1).
+import Paper from '../_paper.astro';
 import { MV_CLIENT } from '../../../lib/multiverse';
 import { getCollection } from 'astro:content';
 import { heroUrl, gridUrl, mediaUrl } from '../../../lib/cloudinary';
@@ -104,6 +106,8 @@ const paragraphs = (p.description || '')
       <span>© 2026 Tres Carter</span>
       <a href="/privacy">Privacy</a>
     </footer>
+
+    <Paper />
 
     <div class="lb" id="lb" hidden>
       <img id="lb-img" alt="" />

@@ -1,8 +1,11 @@
 ---
 // Site 1 — archive. The dense index: everything that isn't the Work five,
 // one honest row each. No heroes, no persuasion.
+// R4: pencil cursor sketches on the page, paper texture, handwritten eyebrow.
 import { MV_CLIENT } from '../../lib/multiverse';
 import { getCollection } from 'astro:content';
+import Paper from './_paper.astro';
+import Pencil from './_pencil.astro';
 
 const WORK = ['z07', 'ee13', 'flatwood', 'tucker', 'thesis'];
 const all = (await getCollection('projects')).map((e) => e.data);
@@ -18,7 +21,7 @@ const rows = all.filter((p) => !WORK.includes(p.slug));
     <title>Archive — Tres.</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600&family=Space+Mono&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600&family=Caveat:wght@500;600&family=Space+Mono&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/v2-tokens.css" />
     <script is:inline set:html={MV_CLIENT(1)} />
   </head>
@@ -29,6 +32,7 @@ const rows = all.filter((p) => !WORK.includes(p.slug));
       <header class="head">
         <p class="spec">— Archive · {String(rows.length).padStart(2, '0')} entries</p>
         <h1 class="name">Everything else</h1>
+        <span class="annot" aria-hidden="true">no heroes — no persuasion</span>
       </header>
 
       <div class="list">
@@ -47,6 +51,9 @@ const rows = all.filter((p) => !WORK.includes(p.slug));
       <span>© 2026 Tres Carter</span>
       <a href="/privacy">Privacy</a>
     </footer>
+
+    <Paper />
+    <Pencil />
 
     <style is:inline>
       * { margin: 0; box-sizing: border-box; }
@@ -69,15 +76,27 @@ const rows = all.filter((p) => !WORK.includes(p.slug));
       .back:focus-visible { outline: 2px solid var(--v2-ink, #2B1F1A); outline-offset: 3px; }
 
       .arch { max-width: 1180px; margin: 0 auto; padding: 0 var(--v2-pad, 24px) 10svh; }
-      .head { padding: clamp(110px, 20vh, 220px) 0 6svh; }
-      .spec { font-family: var(--v2-mono, monospace); font-size: 12px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--v2-ink-soft, #6b5c54); }
+      .head { position: relative; padding: clamp(110px, 20vh, 220px) 0 6svh; }
+      .spec { font-family: 'Caveat', cursive; font-weight: 500; font-size: 21px; letter-spacing: 0.01em; color: rgba(43, 31, 26, 0.62); }
       .name { font-weight: 600; font-size: clamp(40px, 8.4vw, 96px); line-height: 0.96; text-transform: uppercase; margin-top: 12px; }
+      .annot {
+        display: none;
+        font-family: 'Caveat', cursive; font-weight: 500;
+        font-size: 19px; line-height: 1.1; color: rgba(43, 31, 26, 0.62);
+        rotate: 2deg;
+      }
+      @media (min-width: 640px) {
+        .annot { display: block; position: absolute; right: 0; bottom: 6.5svh; }
+      }
 
       .list { border-top: 1px solid var(--v2-hairline, rgba(43,31,26,.16)); }
       .row {
         display: grid; grid-template-columns: 3ch minmax(0, 1fr) auto auto; gap: 18px; align-items: baseline;
         padding: 17px 0; border-bottom: 1px solid var(--v2-hairline, rgba(43,31,26,.16));
+        transition: transform var(--v2-press, 140ms) var(--v2-out, ease-out);
+        transform-origin: left center;
       }
+      .row:active { transform: scale(0.985); }
       .r-no, .r-meta { font-family: var(--v2-mono, monospace); font-size: 12px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--v2-ink-soft, #6b5c54); }
       .r-name { font-weight: 500; font-size: clamp(17px, 2.4vw, 24px); text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
       .r-year { text-align: right; min-width: 4ch; }
@@ -85,6 +104,12 @@ const rows = all.filter((p) => !WORK.includes(p.slug));
       @media (hover: hover) and (pointer: fine) {
         .r-name { transition: translate 200ms cubic-bezier(0.23, 1, 0.32, 1); }
         .row:hover .r-name { translate: 6px 0; }
+        .row { transition: transform var(--v2-press, 140ms) var(--v2-out, ease-out), opacity 240ms var(--v2-out, ease-out); }
+        .list:hover .row { opacity: 0.45; }
+        .list .row:hover { opacity: 1; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .row, .list:hover .row { transition: opacity 180ms ease-out; }
       }
 
       .foot {

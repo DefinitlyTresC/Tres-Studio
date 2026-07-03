@@ -163,15 +163,23 @@ function run(from, to, dur, origin, color) {
   cv.style.display = 'block';
   const t0 = performance.now();
   return new Promise((res) => {
+    let done = false;
+    const finish = () => {
+      if (done) return;
+      done = true;
+      if (to === 0) cv.style.display = 'none';
+      res();
+    };
+    /* failsafe: rAF can starve in throttled/backgrounded tabs — navigation
+       must never hang on the animation */
+    setTimeout(finish, dur + 600);
     (function frame(now) {
+      if (done) return;
       const p = Math.min(1, (now - t0) / dur);
       const t = from + (to - from) * EASE(p);
       draw(t, origin, ink, now / 1000);
       if (p < 1) requestAnimationFrame(frame);
-      else {
-        if (to === 0) cv.style.display = 'none';
-        res();
-      }
+      else finish();
     })(t0);
   });
 }

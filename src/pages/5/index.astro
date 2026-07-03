@@ -1,8 +1,11 @@
 ---
-// Site 5 — "the sideways one," revised: travel reads PURELY lateral now.
-// 1:1 scroll-to-slide mapping, the info screen is the rail's final panel,
-// the marquee rides fixed along the bottom. Type went poster-bold (Anton),
-// and Archie's cutout joins the name panel when Tres supplies the PNG.
+// Site 5 — "the sideways one," elevated: LONGSHOT editorial energy.
+// Rail mechanics UNTOUCHED (sticky + scroll-driven translateX at 2.4x,
+// touch = native swipe+snap, no overflow-x:hidden on html/body).
+// New this round: slashed two-layer TRESCARTER (shear widens with scroll
+// velocity), per-panel inner parallax driven from the same rAF pass,
+// filled/outlined type alternation with snap hovers, velocity-reactive
+// marquee (playbackRate), taped-cutout Archie frame.
 import { MV_CLIENT } from '../../lib/multiverse';
 ---
 
@@ -25,17 +28,39 @@ import { MV_CLIENT } from '../../lib/multiverse';
       <div class="sticky">
         <div class="track" id="track">
           <div class="panel p-name">
-            <h1>TRES<br />CARTER<span class="ac">.</span></h1>
-            <img class="archie" src="/assets/archie.png" alt="" onerror="this.nextElementSibling.style.display='grid';this.remove()" />
-            <div class="archie-slot" aria-hidden="true"><span>[ archie ]</span></div>
+            <h1 class="slash" aria-label="Tres Carter">
+              <span class="sz" aria-hidden="true">TRES<br />CARTER<span class="ac">.</span></span>
+              <span class="cut cut-a" aria-hidden="true">TRES<br />CARTER<span class="ac">.</span></span>
+              <span class="cut cut-b" aria-hidden="true">TRES<br />CARTER<span class="ac">.</span></span>
+            </h1>
+            <div class="archie-frame">
+              <span class="tape tp-a" aria-hidden="true"></span>
+              <span class="tape tp-b" aria-hidden="true"></span>
+              <img class="archie" src="/assets/archie.png" alt="" onerror="this.closest('.archie-frame').classList.add('empty');this.remove()" />
+              <span class="archie-ph" aria-hidden="true">[ archie ]</span>
+            </div>
+            <span class="ptag" aria-hidden="true">panel 01 / 07</span>
           </div>
           <div class="panel p-line">
             <p class="mono">buildings · pictures · code<br />— from 30A, florida</p>
+            <span class="ptag" aria-hidden="true">panel 02 / 07</span>
           </div>
-          <a class="panel p-link" href="/5/work"><span>WORK</span></a>
-          <a class="panel p-link alt" href="/5/archive"><span>ARCHIVE</span></a>
-          <a class="panel p-link" href="/lab"><span>LAB</span></a>
-          <a class="panel p-link alt" href="/5/about"><span>ABOUT</span></a>
+          <a class="panel p-link" href="/5/work">
+            <span class="pspan"><span class="word">WORK</span></span>
+            <span class="ptag" aria-hidden="true">panel 03 / 07</span>
+          </a>
+          <a class="panel p-link alt t-out" href="/5/archive">
+            <span class="pspan"><span class="word">ARCHIVE</span></span>
+            <span class="ptag" aria-hidden="true">panel 04 / 07</span>
+          </a>
+          <a class="panel p-link t-out" href="/lab">
+            <span class="pspan"><span class="word">LAB</span></span>
+            <span class="ptag" aria-hidden="true">panel 05 / 07</span>
+          </a>
+          <a class="panel p-link alt" href="/5/about">
+            <span class="pspan"><span class="word">ABOUT</span></span>
+            <span class="ptag" aria-hidden="true">panel 06 / 07</span>
+          </a>
           <footer id="mv-info" class="panel p-info">
             <div class="i-cols">
               <div class="i-col">
@@ -64,13 +89,14 @@ import { MV_CLIENT } from '../../lib/multiverse';
               <span id="mv-ticker-slot"></span>
               <a href="/privacy">privacy</a>
             </div>
+            <span class="ptag" aria-hidden="true">panel 07 / 07</span>
           </footer>
         </div>
       </div>
     </section>
 
     <div class="marquee" aria-hidden="true">
-      <div class="m-in">TRES CARTER — TRES CARTER — TRES CARTER — TRES CARTER — TRES CARTER — TRES CARTER — </div>
+      <div class="m-in" id="mq">TRES CARTER — TRES CARTER — TRES CARTER — TRES CARTER — TRES CARTER — TRES CARTER — </div>
     </div>
 
     <style is:inline>
@@ -92,7 +118,7 @@ import { MV_CLIENT } from '../../lib/multiverse';
         position: fixed; top: 16px; left: 50%; translate: -50% 0; z-index: 10;
         font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 0.14em;
         color: rgba(10,10,10,0.5);
-        transition: opacity 400ms ease;
+        transition: opacity 400ms cubic-bezier(0.16, 1, 0.3, 1);
       }
       .hint.off { opacity: 0; }
       .hint span { color: var(--ac); }
@@ -113,26 +139,90 @@ import { MV_CLIENT } from '../../lib/multiverse';
       .p-line { width: 56vw; }
       .p-link { width: 68vw; }
       @media (max-width: 700px) { .p-line, .p-link { width: 100vw; } }
-      .p-name h1 {
+
+      /* margin annotations — LONGSHOT spirit, one per panel */
+      .ptag {
+        position: absolute; left: 18px; bottom: 76px;
+        writing-mode: vertical-rl;
+        font-family: 'Space Mono', monospace; font-size: 10px;
+        letter-spacing: 0.14em; text-transform: uppercase;
+        color: rgba(10,10,10,0.4); text-align: left;
+        transition: color 160ms cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      .panel.alt .ptag { color: rgba(255,255,255,0.45); }
+
+      /* — slashed TRESCARTER: two clipped copies sheared along the cut — */
+      .slash {
+        position: relative;
         font-size: clamp(110px, 24vw, 330px); line-height: 0.86;
         letter-spacing: 0.01em; text-align: left;
+        transform: translateX(calc(var(--d, 0px) * -0.07)); /* parallax: lags the rail */
+      }
+      .slash .sz { visibility: hidden; }
+      .cut { position: absolute; inset: 0; will-change: transform; }
+      .cut-a {
+        clip-path: polygon(0 0, 100% 0, 100% 42%, 0 55%);
+        transform: translate(calc(-0.016em - var(--vx, 0px)), -0.008em);
+      }
+      .cut-b {
+        clip-path: polygon(0 55%, 100% 42%, 100% 100%, 0 100%);
+        transform: translate(calc(0.016em + var(--vx, 0px)), 0.008em);
       }
       .ac { color: var(--ac); }
-      .archie { position: absolute; right: 6vw; bottom: 0; height: min(64svh, 560px); }
-      .archie-slot {
-        display: none; place-items: center;
-        position: absolute; right: 8vw; bottom: 8svh;
-        width: min(30vw, 300px); height: min(46svh, 420px);
-        border: 2px dashed rgba(10,10,10,0.3);
+
+      /* — Archie: taped-cutout frame; PNG drops into the same frame — */
+      .archie-frame {
+        position: absolute; right: 6vw; bottom: 9svh;
+        width: min(30vw, 320px);
+        padding: 10px; background: #fff; border: 2px solid #0A0A0A;
+        rotate: -2.5deg;
+        transform: translateX(calc(var(--d, 0px) * 0.06)); /* parallax: leads the rail */
       }
-      .archie-slot span { font-family: 'Space Mono', monospace; font-size: 12px; color: rgba(10,10,10,0.4); }
-      .p-line p { font-size: 15px; line-height: 2; letter-spacing: 0.1em; text-transform: uppercase; }
-      .p-link span { font-size: clamp(70px, 15vw, 210px); line-height: 1; letter-spacing: 0.01em; }
+      .archie { display: block; width: 100%; height: auto; }
+      .archie-ph {
+        display: none;
+        font-family: 'Space Mono', monospace; font-size: 12px;
+        letter-spacing: 0.08em; color: rgba(10,10,10,0.4);
+      }
+      .archie-frame.empty { min-height: min(44svh, 400px); display: grid; place-items: center; }
+      .archie-frame.empty .archie-ph { display: block; }
+      .tape {
+        position: absolute; z-index: 1; width: 96px; height: 28px;
+        background: rgba(219,214,199,0.85); border: 1px solid rgba(10,10,10,0.14);
+      }
+      .tp-a { top: -14px; left: -38px; rotate: -45deg; }
+      .tp-b { bottom: -14px; right: -38px; rotate: -45deg; }
+
+      .p-line p {
+        font-size: 15px; line-height: 2; letter-spacing: 0.1em; text-transform: uppercase;
+        transform: translateX(calc(var(--d, 0px) * -0.1));
+      }
+
+      /* — section panels: filled / outlined alternation — */
+      .p-link .pspan { display: block; transform: translateX(calc(var(--d, 0px) * -0.07)); }
+      .p-link .word {
+        display: block;
+        font-size: clamp(70px, 15vw, 210px); line-height: 1; letter-spacing: 0.01em;
+        transition: color 160ms cubic-bezier(0.16, 1, 0.3, 1), transform 140ms cubic-bezier(0.16, 1, 0.3, 1);
+      }
       .p-link.alt { background: #0A0A0A; color: #fff; }
-      @media (hover: hover) and (pointer: fine) {
-        .p-link span { transition: color 200ms ease; }
-        .p-link:hover span { color: var(--ac); }
+      @supports (-webkit-text-stroke: 2px #000) {
+        .p-link.t-out .word { color: transparent; -webkit-text-stroke: 3px #0A0A0A; }
+        .p-link.alt.t-out .word { -webkit-text-stroke: 3px #fff; }
       }
+      @media (hover: hover) and (pointer: fine) {
+        .p-link:hover .ptag { color: var(--ac); }
+        /* fallback hover (no text-stroke support): flip to blue */
+        .p-link:hover .word { color: var(--ac); }
+        @supports (-webkit-text-stroke: 2px #000) {
+          /* filled hollows out; outline fills in — a snap either way */
+          .p-link:hover .word { color: transparent; -webkit-text-stroke: 3px #0A0A0A; }
+          .p-link.alt:hover .word { -webkit-text-stroke: 3px #fff; }
+          .p-link.t-out:hover .word { color: #0A0A0A; }
+          .p-link.alt.t-out:hover .word { color: #fff; }
+        }
+      }
+      .p-link:active .word { transform: scale(0.96); }
 
       .p-info { border-right: none; place-content: end center; padding: 0 6vw 12svh; text-align: left; width: 100vw; }
       .i-cols {
@@ -164,7 +254,7 @@ import { MV_CLIENT } from '../../lib/multiverse';
       }
       @keyframes slide { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 
-      /* touch: native sideways swipe with snap */
+      /* touch: native sideways swipe with snap; parallax/shear stay at rest */
       @media (hover: none), (pointer: coarse) {
         .hwrap { height: auto !important; }
         .sticky { position: static; height: 100svh; overflow: visible; }
@@ -198,6 +288,10 @@ import { MV_CLIENT } from '../../lib/multiverse';
         var wrap = document.getElementById('hwrap');
         var track = document.getElementById('track');
         var sticky = document.querySelector('.sticky');
+        var hint = document.querySelector('.hint');
+        var mq = document.getElementById('mq');
+        var panels = Array.prototype.slice.call(track.children);
+        var centers = [];
         var ticking = false;
 
         if (reduce) {
@@ -211,16 +305,47 @@ import { MV_CLIENT } from '../../lib/multiverse';
         /* sideways with intent: one scrolled pixel = SPEED lateral pixels,
            so the rail crosses in a few flicks instead of eighty */
         var SPEED = 2.4;
+        var lastTx = 0, vel = 0, disp = 0, loopOn = false, anim = null;
+
         function size() {
           wrap.style.height = ((track.scrollWidth - innerWidth) / SPEED + innerHeight) + 'px';
+          centers = panels.map(function (p) { return p.offsetLeft + p.offsetWidth / 2; });
         }
+
+        /* velocity settle loop: shears the name apart while travelling and
+           speeds the marquee up, both easing back to rest when idle */
+        function settle() {
+          disp += (vel - disp) * 0.12;
+          vel *= 0.88;
+          track.style.setProperty('--vx', (disp * 0.25).toFixed(2) + 'px');
+          if (!anim && mq.getAnimations) {
+            try { anim = mq.getAnimations()[0] || null; } catch (e) {}
+          }
+          if (anim) anim.playbackRate = 1 + Math.min(disp * 0.05, 3.5);
+          if (disp > 0.1 || vel > 0.1) {
+            requestAnimationFrame(settle);
+          } else {
+            loopOn = false; disp = 0;
+            track.style.setProperty('--vx', '0px');
+            if (anim) anim.playbackRate = 1;
+          }
+        }
+
         function place() {
           ticking = false;
           var top = wrap.getBoundingClientRect().top;
           var max = track.scrollWidth - innerWidth;
           var tx = Math.min(max, Math.max(0, -top * SPEED));
           track.style.setProperty('--tx', -tx + 'px');
-          document.querySelector('.hint').classList.toggle('off', tx > 60);
+          /* per-panel parallax input: distance from viewport centre */
+          var mid = innerWidth / 2;
+          for (var i = 0; i < panels.length; i++) {
+            panels[i].style.setProperty('--d', (centers[i] - tx - mid).toFixed(1) + 'px');
+          }
+          vel = Math.min(Math.abs(tx - lastTx), 120);
+          lastTx = tx;
+          if (!loopOn && vel > 0.5) { loopOn = true; requestAnimationFrame(settle); }
+          hint.classList.toggle('off', tx > 60);
         }
         addEventListener('scroll', function () {
           if (!ticking) { ticking = true; requestAnimationFrame(place); }

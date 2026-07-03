@@ -1,5 +1,5 @@
-﻿---
-// Site 5 â€” about.
+---
+// Site 5 — about. Carries the slashed name from the landing (static shear).
 import { MV_CLIENT } from '../../lib/multiverse';
 ---
 
@@ -9,20 +9,25 @@ import { MV_CLIENT } from '../../lib/multiverse';
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="robots" content="noindex" />
     <meta name="theme-color" content="#FFFFFF" />
-    <title>ABOUT â€” TRES âµ</title>
+    <title>ABOUT — TRES ⁵</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Anton&family=Space+Mono&display=swap" rel="stylesheet" />
     <script is:inline set:html={MV_CLIENT(5)} />
   </head>
   <body>
-    <a class="back" id="back" href="/5/">â† index</a>
+    <a class="back" id="back" href="/5/">← index</a>
     <main class="about">
-      <h1 class="name">TRES<br />CART<span class="ac">â€”</span><br />ER<span class="ac">.</span></h1>
-      <p class="lede">architectural designer â€” 30a, florida</p>
+      <h1 class="name slash" aria-label="Tres Carter">
+        <span class="sz" aria-hidden="true">TRES<br />CARTER<span class="ac">.</span></span>
+        <span class="cut cut-a" aria-hidden="true">TRES<br />CARTER<span class="ac">.</span></span>
+        <span class="cut cut-b" aria-hidden="true">TRES<br />CARTER<span class="ac">.</span></span>
+      </h1>
+      <p class="lede">architectural designer — 30a, florida</p>
       <div class="acts">
         <a href="mailto:tres@tres.studio">tres@tres.studio</a>
         <a href="https://instagram.com/tres.studio" target="_blank" rel="noopener">ig</a>
+        <a href="https://www.linkedin.com/in/tres-carter" target="_blank" rel="noopener">linkedin</a>
       </div>
     </main>
 
@@ -37,8 +42,14 @@ import { MV_CLIENT } from '../../lib/multiverse';
       .back:active { transform: scale(0.96); }
       @media (hover: hover) and (pointer: fine) { .back:hover { text-decoration: underline; text-underline-offset: 4px; } }
       .about { padding: clamp(130px, 24vh, 300px) 6vw 16svh; }
-      .name { font-size: clamp(58px, 13vw, 170px); line-height: 0.98; }
+      .name { font-size: clamp(58px, 13vw, 170px); line-height: 0.94; }
       .ac { color: var(--ac); }
+      /* slashed two-layer name — same cut as the landing, at rest */
+      .slash { position: relative; display: inline-block; }
+      .slash .sz { visibility: hidden; }
+      .cut { position: absolute; inset: 0; }
+      .cut-a { clip-path: polygon(0 0, 100% 0, 100% 42%, 0 55%); transform: translate(-0.016em, -0.008em); }
+      .cut-b { clip-path: polygon(0 55%, 100% 42%, 100% 100%, 0 100%); transform: translate(0.016em, 0.008em); }
       .lede { font-family: 'Space Mono', monospace; font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(10,10,10,0.5); margin-top: 26px; }
       .acts { display: flex; gap: 28px; margin-top: 44px; font-family: 'Space Mono', monospace; font-size: 13px; }
       @media (hover: hover) and (pointer: fine) { a:hover { text-decoration: underline; text-underline-offset: 4px; } }

@@ -25,6 +25,13 @@ import { MV_CLIENT } from '../../lib/multiverse';
       <span>03 — TRES CARTER · TRES MEANS THREE · ARCHITECTURE / ART / CODE · 30A</span>
     </header>
 
+    <div class="plate" aria-hidden="true">
+      <i class="cm tl"></i><i class="cm tr"></i><i class="cm bl"></i><i class="cm br"></i>
+      <span class="an an-fig">FIG. 03</span>
+      <span class="an an-scale">DO NOT SCALE DRAWING</span>
+      <span class="an an-sheet">SHEET 04 / 05</span>
+    </div>
+
     <section class="pin-wrap" id="pinWrap">
       <div class="pin">
         <div class="scene" id="scene">
@@ -89,6 +96,30 @@ import { MV_CLIENT } from '../../lib/multiverse';
       ::selection { background: var(--ink); color: var(--org); }
       a { color: inherit; text-decoration: none; }
 
+      /* print finish — one sheet of film grain over everything (static tile,
+         soft-light keeps the orange reading flat, just inked) */
+      body::after {
+        content: ""; position: fixed; inset: 0; z-index: 200; pointer-events: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23g)'/%3E%3C/svg%3E");
+        background-size: 220px 220px;
+        opacity: 0.11; mix-blend-mode: soft-light;
+      }
+
+      /* drawing-sheet marginalia — crop marks + spec notes on a fixed frame */
+      .plate { position: fixed; inset: 0; z-index: 90; pointer-events: none; font-family: 'Space Mono', monospace; }
+      .cm { position: absolute; width: 24px; height: 24px; }
+      .cm::before, .cm::after { content: ""; position: absolute; background: var(--ink); opacity: 0.5; }
+      .cm::before { width: 13px; height: 1px; }
+      .cm::after { width: 1px; height: 13px; }
+      .cm.tl { top: 15px; left: 15px; } .cm.tl::before { top: 0; left: 11px; } .cm.tl::after { left: 0; top: 11px; }
+      .cm.tr { top: 15px; right: 15px; } .cm.tr::before { top: 0; right: 11px; } .cm.tr::after { right: 0; top: 11px; }
+      .cm.bl { bottom: 15px; left: 15px; } .cm.bl::before { bottom: 0; left: 11px; } .cm.bl::after { left: 0; bottom: 11px; }
+      .cm.br { bottom: 15px; right: 15px; } .cm.br::before { bottom: 0; right: 11px; } .cm.br::after { right: 0; bottom: 11px; }
+      .an { position: absolute; font-size: 9px; letter-spacing: 0.14em; color: rgba(20,18,16,0.5); white-space: nowrap; }
+      .an-fig { right: 17px; top: clamp(90px, 16svh, 160px); writing-mode: vertical-rl; }
+      .an-scale { left: 17px; top: 56px; }
+      .an-sheet { left: 56px; bottom: 16px; }
+
       .strip {
         position: fixed; inset: 0 0 auto 0; z-index: 10;
         display: flex; align-items: center; gap: 10px; justify-content: center;
@@ -109,22 +140,50 @@ import { MV_CLIENT } from '../../lib/multiverse';
         transform: translate(var(--nx, 0px), var(--ny, 0px));
         user-select: none;
       }
+      /* press texture inside the glyph: a fine dot screen clipped to the 03 —
+         reads as ink sitting on stock, not a flat fill */
+      @supports ((-webkit-background-clip: text) or (background-clip: text)) {
+        .num {
+          color: transparent;
+          background-color: var(--num);
+          background-image: radial-gradient(circle, rgba(20,18,16,0.14) 0.8px, transparent 1.15px);
+          background-size: 6px 6px;
+          -webkit-background-clip: text;
+          background-clip: text;
+        }
+      }
       .stack {
         position: absolute; left: max(24px, 5vw); top: 50%; translate: 0 -50%;
         display: grid; justify-items: start; gap: 2.6svh;
         text-align: left;
       }
       .it {
+        position: relative;
         font-weight: 900; font-size: clamp(40px, 8.4vw, 104px); line-height: 0.95;
         letter-spacing: -0.01em;
-        transform: translate(var(--x, 0), var(--y, 0));
+        transform: translate(var(--x, 0), var(--y, 0)) scale(var(--pr, 1));
         will-change: transform;
       }
+      /* block inversion: a beige plate snaps up behind the ink word */
+      a.it::before {
+        content: ""; position: absolute; inset: -0.03em -0.12em -0.06em; z-index: -1;
+        background: var(--num);
+        transform: scaleY(0); transform-origin: bottom;
+        transition: transform 220ms cubic-bezier(0.19, 1, 0.22, 1);
+      }
+      a.it:active { --pr: 0.96; }
       .it.small { display: flex; gap: 20px; font-family: 'Space Mono', monospace; font-weight: 400; font-size: 12px; letter-spacing: 0.1em; }
+      .it.small a { position: relative; z-index: 0; padding: 14px 5px; margin: -14px -5px; }
+      .it.small a::before {
+        content: ""; position: absolute; inset: 9px 0; z-index: -1;
+        background: var(--num);
+        transform: scaleY(0); transform-origin: bottom;
+        transition: transform 180ms cubic-bezier(0.19, 1, 0.22, 1);
+      }
+      .it.small a:active { transform: scale(0.96); }
       .soon { color: rgba(20,18,16,0.55); }
       @media (hover: hover) and (pointer: fine) {
-        a.it, .it.small a { transition: color 160ms ease; }
-        a.it:hover, .it.small a:hover { color: var(--num); }
+        a.it:hover::before, .it.small a:hover::before { transform: scaleY(1); }
       }
       .cue {
         position: absolute; bottom: 3.4svh; left: 50%; translate: -50% 0;
@@ -155,6 +214,7 @@ import { MV_CLIENT } from '../../lib/multiverse';
       @media (prefers-reduced-motion: reduce) {
         .pin-wrap { height: auto; }
         .pin { position: static; height: 100svh; }
+        a.it::before, .it.small a::before { transition: none; }
       }
     </style>
 
@@ -177,6 +237,9 @@ import { MV_CLIENT } from '../../lib/multiverse';
         var ticking = false;
 
         function ease(t) { return 1 - Math.pow(1 - t, 3); }
+        /* arrivals get a whisper of settle: easeOutBack with a small back
+           constant (~1.8% overshoot) — pure progress mapping, no tweens */
+        function backOut(t) { var c = 0.7, u = t - 1; return 1 + (c + 1) * u * u * u + c * u * u; }
         function place() {
           ticking = false;
           var r = wrap.getBoundingClientRect();
@@ -187,7 +250,7 @@ import { MV_CLIENT } from '../../lib/multiverse';
           for (var i = 0; i < items.length; i++) {
             var start = 0.04 + i * 0.1;
             var t = Math.min(1, Math.max(0, (p - start) / 0.14));
-            items[i].style.setProperty('--x', (-(1 - ease(t)) * 120) + 'vw');
+            items[i].style.setProperty('--x', (-(1 - backOut(t)) * 120) + 'vw');
           }
           /* the 03 drifts as you dig; the cue bows out once you're moving */
           num.style.setProperty('--nx', (-p * 5) + 'vw');

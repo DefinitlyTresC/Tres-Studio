@@ -1,7 +1,22 @@
 ---
 // Site 1 — landing. Pure identity: the mark, the menu, the info footer.
-// No project imagery here (landing rule, 2026-07-02) — work lives at /1/work.
+// No project imagery at rest (landing rule, 2026-07-02) — R4 adds hover-only
+// plow-out previews on the menu (Tres-requested), the pencil cursor that
+// sketches on the page, watercolor-paper texture, and a handwritten accent.
 import { MV_CLIENT } from '../../lib/multiverse';
+import { getCollection } from 'astro:content';
+import { joinUrl } from '../../lib/cloudinary';
+import Paper from './_paper.astro';
+import Pencil from './_pencil.astro';
+
+const all = (await getCollection('projects')).map((e) => e.data);
+// w_900 covers the ~360px hover preview at 2x; w_1800 would be dead weight.
+const hero = (slug) => {
+  const p = all.find((q) => q.slug === slug);
+  return p ? joinUrl(p.heroImage, 'w_900', 'image') : null;
+};
+const workPv = hero('z07');
+const archivePv = hero('schoolwork');
 ---
 
 <html lang="en">
@@ -11,24 +26,42 @@ import { MV_CLIENT } from '../../lib/multiverse';
     <meta name="robots" content="noindex" />
     <meta name="theme-color" content="#FFEDDB" />
     <title>Tres.</title>
+    <link rel="preconnect" href="https://res.cloudinary.com" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600&family=Space+Mono&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600&family=Caveat:wght@500;600&family=Space+Mono&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/v2-tokens.css" />
     <script is:inline set:html={MV_CLIENT(1)} />
   </head>
   <body>
     <header class="hero">
       <h1 class="mark">Tres<span class="pd">.</span></h1>
+      <p class="annot" aria-hidden="true">( the tan one )</p>
       <p class="spec">architecture · art · code — 30A</p>
       <p class="cue" aria-hidden="true">scroll</p>
     </header>
 
     <nav class="menu" aria-label="Sections">
-      <a href="/1/work">Work</a>
-      <a href="/1/archive">Archive</a>
-      <a href="/lab">Lab</a>
-      <a href="/1/about">About</a>
+      <a href="/1/work">Work
+        <span class="pv" aria-hidden="true">
+          {workPv && <img src={workPv} alt="" loading="lazy" decoding="async" />}
+        </span>
+      </a>
+      <a href="/1/archive">Archive
+        <span class="pv" aria-hidden="true">
+          {archivePv && <img src={archivePv} alt="" loading="lazy" decoding="async" />}
+        </span>
+      </a>
+      <a href="/lab">Lab
+        <span class="pv" aria-hidden="true">
+          <span class="pvc"><span class="pc-big">Lab</span><span class="pc-sub">experiments</span></span>
+        </span>
+      </a>
+      <a href="/1/about">About
+        <span class="pv" aria-hidden="true">
+          <span class="pvc"><span class="pc-big">TC<span class="pd">.</span></span><span class="pc-sub">Seagrove · 30A</span></span>
+        </span>
+      </a>
       <span class="soon">Plugins — soon</span>
     </nav>
 
@@ -65,6 +98,9 @@ import { MV_CLIENT } from '../../lib/multiverse';
       </div>
     </footer>
 
+    <Paper />
+    <Pencil />
+
     <style is:inline>
       * { margin: 0; box-sizing: border-box; }
       html, body { overflow-x: hidden; }
@@ -80,6 +116,11 @@ import { MV_CLIENT } from '../../lib/multiverse';
       .hero { min-height: 96svh; display: grid; place-content: center; text-align: center; position: relative; padding: var(--v2-pad, 24px); }
       .mark { font-weight: 600; font-size: clamp(72px, 17vw, 210px); line-height: 0.9; text-transform: uppercase; letter-spacing: -0.02em; }
       .pd { color: var(--v2-umber, #BF9270); }
+      .annot {
+        font-family: 'Caveat', cursive; font-weight: 500;
+        font-size: 20px; line-height: 1.1; color: rgba(43, 31, 26, 0.62);
+        text-align: right; rotate: -2.5deg; margin-top: 4px;
+      }
       .spec { font-family: var(--v2-mono, monospace); font-size: 12px; letter-spacing: 0.08em; color: var(--v2-ink-soft, #6b5c54); margin-top: 18px; }
       .cue {
         position: absolute; bottom: calc(var(--v2-pad, 24px) * 0.8); left: 50%; translate: -50% 0;
@@ -89,15 +130,55 @@ import { MV_CLIENT } from '../../lib/multiverse';
 
       .menu { min-height: 92svh; display: grid; align-content: center; padding: 0 var(--v2-pad, 24px); }
       .menu a, .menu .soon {
-        display: block; padding: 3.6svh 0;
+        display: block; position: relative; padding: 3.6svh 0;
         font-weight: 600; font-size: clamp(40px, 9vw, 104px); line-height: 1; text-transform: uppercase;
         border-bottom: 1px solid var(--v2-hairline, rgba(43,31,26,.16));
       }
       .menu a:first-child { border-top: 1px solid var(--v2-hairline, rgba(43,31,26,.16)); }
       .menu .soon { color: var(--v2-ink-soft, #6b5c54); border-bottom: none; }
+
+      /* plow-out previews — desktop only, hover only, zero layout shift */
+      .pv { display: none; }
       @media (hover: hover) and (pointer: fine) {
-        .menu a { transition: translate 220ms cubic-bezier(0.23, 1, 0.32, 1); }
-        .menu a:hover { translate: 10px 0; }
+        .menu a {
+          transition: translate 220ms cubic-bezier(0.23, 1, 0.32, 1),
+                      transform var(--v2-press, 140ms) var(--v2-out, ease-out),
+                      opacity 240ms var(--v2-out, ease-out);
+          transform-origin: left center;
+        }
+        .menu a:hover { translate: 10px 0; z-index: 2; }
+        .menu a:active { transform: scale(0.985); }
+        .menu:hover a { opacity: 0.4; }
+        .menu a:hover { opacity: 1; }
+
+        .pv {
+          display: grid; place-items: center;
+          position: absolute; right: clamp(20px, 7vw, 130px); top: 50%; translate: 0 -50%;
+          width: clamp(220px, 24vw, 360px); aspect-ratio: 4 / 3;
+          overflow: hidden; pointer-events: none;
+        }
+        .pv > * {
+          transform: translateX(115%) rotate(3deg);
+          transition: transform 480ms cubic-bezier(0.19, 1, 0.22, 1);
+        }
+        .menu a:hover .pv > * { transform: translateX(0) rotate(-2deg); }
+        .pv img {
+          width: calc(100% - 16px); height: calc(100% - 20px); object-fit: cover;
+          outline: 1px solid rgba(0, 0, 0, 0.1); outline-offset: -1px;
+        }
+        .pvc {
+          width: calc(100% - 16px); height: calc(100% - 20px);
+          background: var(--v2-ink, #2B1F1A); color: var(--v2-cream, #FFEDDB);
+          display: grid; align-content: center; justify-items: start; gap: 8px; padding: 24px;
+          outline: 1px solid rgba(0, 0, 0, 0.1); outline-offset: -1px;
+        }
+        .pc-big { font-weight: 600; font-size: clamp(28px, 3vw, 44px); line-height: 1; text-transform: uppercase; }
+        .pc-sub { font-family: var(--v2-mono, monospace); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.7; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .pv > * { transition: opacity 180ms ease-out; transform: rotate(-2deg); opacity: 0; }
+        .menu a:hover .pv > * { transform: rotate(-2deg); opacity: 1; }
+        .menu a, .menu:hover a { transition: opacity 180ms ease-out; }
       }
 
       .info { min-height: 74svh; display: grid; align-content: end; gap: 7svh; position: relative; padding: 10svh var(--v2-pad, 24px) 4svh; border-top: 1px solid var(--v2-hairline, rgba(43,31,26,.16)); }
