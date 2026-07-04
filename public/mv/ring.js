@@ -39,9 +39,16 @@ import { cover } from '/mv/curtain.js';
     const row = document.createElement('nav');
     row.id = 'mv-map';
     row.setAttribute('aria-label', 'Universes');
+    /* phones: mid-right collides with stacked footer links (site 5 measured
+       real tap interception at 360-390px) — drop to the lower-right instead */
+    let narrow = false;
+    try { narrow = matchMedia('(max-width: 700px)').matches; } catch (e) {}
     row.style.cssText =
-      'position:absolute;right:max(24px,4vw);top:50%;transform:translateY(-50%);' +
-      'display:flex;gap:clamp(14px,2vw,26px);z-index:6';
+      'position:absolute;right:max(24px,4vw);' +
+      (narrow ? 'top:auto;bottom:104px;transform:none;' : 'top:50%;transform:translateY(-50%);') +
+      /* pointer-events surgical: the row box can overlap footer links on
+         small phones — only the dots themselves may swallow taps */
+      'display:flex;gap:clamp(14px,2vw,26px);z-index:6;pointer-events:none';
 
     MV.sites.forEach((s) => {
       const isCur = s.id === MV.current;
@@ -50,6 +57,7 @@ import { cover } from '/mv/curtain.js';
       b.style.cssText =
         'display:flex;flex-direction:column;align-items:center;gap:8px;' +
         'min-width:34px;padding:6px 2px;text-decoration:none;cursor:' + (isCur ? 'default' : 'pointer') + ';' +
+        'pointer-events:auto;' +
         'transition:transform 180ms cubic-bezier(0.23,1,0.32,1)';
       const dot = document.createElement('span');
       dot.style.cssText =

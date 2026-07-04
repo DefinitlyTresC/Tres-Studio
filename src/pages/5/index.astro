@@ -27,10 +27,32 @@ const worm = (word, offset = 0) =>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Bungee+Shade&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+    <script is:inline>
+      /* the signature entrance must never play in a fallback face: hold the
+         name's worm until Bungee Shade lands (700ms failsafe cap). Runs in
+         <head> so .worm-wait applies before first paint. */
+      (function () {
+        try {
+          if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+          var h = document.documentElement;
+          h.classList.add('worm-wait');
+          var done = false;
+          function go() { if (done) return; done = true; h.classList.remove('worm-wait'); h.classList.add('fonts-in'); }
+          setTimeout(go, 700);
+          if (document.fonts && document.fonts.load) {
+            document.fonts.load('400 1em "Bungee Shade"').then(go, go);
+          }
+        } catch (e) {}
+      })();
+    </script>
     <script is:inline set:html={MV_CLIENT(5)} />
   </head>
   <body>
-    <p class="hint"><span>↓</span> scroll down to move right</p>
+    <button class="go" id="go" type="button" aria-label="Next panel">
+      <svg viewBox="0 0 56 16" width="56" height="16" aria-hidden="true">
+        <path d="M0 8h48M42 2l7 6-7 6" fill="none" stroke="currentColor" stroke-width="2.5" />
+      </svg>
+    </button>
     <svg class="reg" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
       <circle cx="12" cy="12" r="7.5" fill="none" stroke="#2431FF" stroke-width="1.5" />
       <path d="M12 1v22M1 12h22" fill="none" stroke="#2431FF" stroke-width="1.5" />
@@ -106,7 +128,7 @@ const worm = (word, offset = 0) =>
     </section>
 
     <div class="marquee" aria-hidden="true">
-      <div class="m-in" id="mq">TRES CARTER — TRES CARTER — TRES CARTER — TRES CARTER — TRES CARTER — TRES CARTER — </div>
+      <div class="m-in" id="mq">TRES CARTER — TRES CARTER — TRES CARTER — TRES CARTER — TRES CARTER — TRES CARTER — TRES CARTER — TRES CARTER — TRES CARTER — TRES CARTER — TRES CARTER — TRES CARTER — TRES CARTER — TRES CARTER — TRES CARTER — TRES CARTER — TRES CARTER — TRES CARTER — TRES CARTER — TRES CARTER — </div>
     </div>
 
     <style is:inline>
@@ -117,26 +139,39 @@ const worm = (word, offset = 0) =>
       }
       * { margin: 0; box-sizing: border-box; }
       /* NOTE: no overflow-x:hidden on html/body — it breaks position:sticky.
-         The rail clips itself inside .sticky. */
-      html { background: #fff; }
+         The rail clips itself inside .sticky. overscroll-behavior-x is safe
+         (and required: consumed trackpad deltaX must not trigger back-swipe). */
+      html { background: #fff; overscroll-behavior-x: none; }
       body { font-family: 'Space Mono', ui-monospace, monospace; color: #0A0A0A; -webkit-font-smoothing: antialiased; }
       ::selection { background: var(--ac); color: #fff; }
       a { color: inherit; text-decoration: none; }
       .mono { font-family: 'Space Mono', monospace; }
 
-      .hint {
-        position: fixed; top: 16px; left: 50%; translate: -50% 0; z-index: 10;
-        font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 0.14em;
-        color: rgba(10,10,10,0.5);
-        transition: opacity 400ms cubic-bezier(0.16, 1, 0.3, 1);
+      /* the way is RIGHT: one drawn arrow, mid right edge; click = advance.
+         Replaces the old "scroll down to move right" text (Tres, 2026-07-03). */
+      .go {
+        position: fixed; top: 50%; right: calc(14px + env(safe-area-inset-right, 0px));
+        translate: 0 -50%; z-index: 10;
+        color: var(--ac); background: none; border: 0; padding: 14px 8px; cursor: pointer;
+        transition: opacity 400ms cubic-bezier(0.16, 1, 0.3, 1), transform 300ms cubic-bezier(0.16, 1, 0.3, 1);
       }
-      .hint.off { opacity: 0; }
-      .hint span { color: var(--ac); }
+      .go svg { display: block; }
+      /* lifecycle: full presence at the front door; DEMOTED (not deleted —
+         arrows go unnoticed enough as it is) once travelling; FLIPPED into a
+         return arrow on the last panel */
+      .go.dim { opacity: 0.35; }
+      .go.flip { transform: rotate(180deg); }
+      @media (hover: hover) and (pointer: fine) { .go.dim:hover { opacity: 1; } }
+      .go:focus-visible { outline: 2px solid var(--ac); outline-offset: 3px; opacity: 1; }
+      @keyframes nudge { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(7px); } }
+      @media (prefers-reduced-motion: no-preference) {
+        .go:not(.dim):not(.flip) svg { animation: nudge 1.6s cubic-bezier(0.45, 0, 0.55, 1) infinite; }
+      }
 
       /* — registration mark: the chromatic-print signature, fixed like a
            press sheet corner. Decorative; half-lost over dark panels on
            purpose (a passing print artifact). — */
-      .reg { position: fixed; top: 15px; right: 6vw; z-index: 10; pointer-events: none; }
+      .reg { position: fixed; top: calc(15px + env(safe-area-inset-top, 0px)); right: max(6vw, calc(12px + env(safe-area-inset-right, 0px))); z-index: 10; pointer-events: none; }
 
       .hwrap { height: 700svh; } /* corrected 1:1 by JS */
       .sticky { position: sticky; top: 0; height: 100svh; overflow: hidden; }
@@ -151,6 +186,9 @@ const worm = (word, offset = 0) =>
         border-right: 4px solid #0A0A0A;
         position: relative;
       }
+      /* panel 1 is 72px short of the viewport: panel 2's cut edge PEEKS at
+         the right on load — the strongest "there's more this way" signal */
+      .p-name { width: calc(100vw - 72px); }
       .p-line { width: 56vw; }
       .p-link { width: 68vw; }
       @media (max-width: 700px) { .p-line, .p-link { width: 100vw; } }
@@ -178,8 +216,11 @@ const worm = (word, offset = 0) =>
         100% { opacity: 1; transform: none; }
       }
       @media (prefers-reduced-motion: no-preference) {
-        /* name worms on load — pure CSS, no JS required */
-        .giant .l {
+        /* name worms on load — held until the display font is in (head
+           script adds .fonts-in; letters only hide once .worm-wait proves
+           JS is present, so no-JS never blanks the name) */
+        html.worm-wait .giant .l { opacity: 0; }
+        html.fonts-in .giant .l {
           animation: worm 900ms cubic-bezier(0.22, 1, 0.36, 1) both;
           animation-delay: calc(var(--i) * 70ms);
         }
@@ -190,6 +231,15 @@ const worm = (word, offset = 0) =>
           animation: worm 900ms cubic-bezier(0.22, 1, 0.36, 1) both;
           animation-delay: calc(var(--i) * 70ms);
         }
+      }
+
+      /* chromatic misregistration: while the rail travels the print plates
+         slip — blue/red ghost impressions offset by --ab px — and re-register
+         the moment it rests. Gated by .mis so rest state costs nothing. */
+      .mis .giant, .mis .p-link .word, .mis .spine {
+        text-shadow:
+          calc(var(--ab, 0) * 1px) 0 0 rgba(36, 49, 255, 0.5),
+          calc(var(--ab, 0) * -1px) 0 0 rgba(232, 41, 41, 0.42);
       }
 
       /* — TRESCARTER: Bungee Shade carries its own dimension now — */
@@ -246,7 +296,7 @@ const worm = (word, offset = 0) =>
       .v-col {
         display: flex; flex-direction: column; justify-content: space-between;
         max-width: 640px; min-width: 0;
-        padding: 9svh clamp(100px, 22vw, 230px) 10svh clamp(20px, 4vw, 56px);
+        padding: 9svh clamp(100px, 22vw, 230px) max(10svh, 70px) clamp(20px, 4vw, 56px);
         font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: 0.05em;
         text-transform: uppercase; line-height: 1.7;
       }
@@ -270,17 +320,22 @@ const worm = (word, offset = 0) =>
 
       .marquee {
         position: fixed; left: 0; right: 0; bottom: 0; z-index: 9;
-        overflow: hidden; border-top: 4px solid #0A0A0A; background: #fff; padding: 10px 0;
+        overflow: hidden; border-top: 4px solid #0A0A0A; background: #fff;
+        padding: 10px 0 calc(10px + env(safe-area-inset-bottom, 0px));
       }
       .m-in {
         white-space: nowrap; width: max-content;
         font-family: 'Bungee', system-ui, sans-serif; font-weight: 400;
         font-size: 15px; letter-spacing: 0.04em;
         animation: slide 26s linear infinite;
+        will-change: transform;
       }
+      .m-in .sep { color: var(--ac); }
       @keyframes slide { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 
-      /* touch: native sideways swipe with snap; parallax stays at rest */
+      /* touch: native sideways swipe with snap; parallax stays at rest.
+         touch-action pan-x keeps horizontal native while handing VERTICAL
+         flicks to JS — swipe down/up advances the rail (Tres, 2026-07-03) */
       @media (hover: none), (pointer: coarse) {
         .hwrap { height: auto !important; }
         .sticky { position: static; height: 100svh; overflow: visible; }
@@ -288,9 +343,16 @@ const worm = (word, offset = 0) =>
           transform: none !important;
           overflow-x: auto; overscroll-behavior-x: contain;
           scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch;
+          touch-action: pan-x;
         }
-        .panel { scroll-snap-align: center; }
+        .panel { scroll-snap-align: center; scroll-snap-stop: always; }
       }
+      /* reduced-motion desktop: the rail becomes a plain vertical stack —
+         .sticky must unclip or everything past panel 1 is UNREACHABLE */
+      html.rm .hwrap { height: auto; }
+      html.rm .sticky { position: static; height: auto; overflow: visible; }
+      html.rm .track { height: auto; width: 100%; flex-wrap: wrap; transform: none; }
+      html.rm .panel { width: 100%; height: auto; min-height: 100svh; border-right: none; border-bottom: 4px solid #0A0A0A; }
       @media (prefers-reduced-motion: reduce) {
         .m-in { animation: none; }
       }
@@ -309,37 +371,56 @@ const worm = (word, offset = 0) =>
           reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
           coarse = matchMedia('(hover: none), (pointer: coarse)').matches;
         } catch (e) {}
-        if (coarse) return; /* touch swipes the rail natively */
 
         var wrap = document.getElementById('hwrap');
         var track = document.getElementById('track');
         var sticky = document.querySelector('.sticky');
-        var hint = document.querySelector('.hint');
+        var go = document.getElementById('go');
         var mq = document.getElementById('mq');
         var panels = Array.prototype.slice.call(track.children);
         var centers = [];
         var ticking = false;
+        var SPEED = 2.4;
+        var lastTx = 0;
+
+        /* — marquee: rebuilt as an EVEN number of segments spanning >= 2x the
+             viewport — the -50% loop only reads seamless when the two halves
+             are identical AND wider than the screen (6 fixed reps weren't,
+             on anything past ~1500px: the banner showed a blank gap) — */
+        function buildMq() {
+          mq.innerHTML = 'TRES CARTER <span class="sep">—</span> ';
+          var one = Math.max(1, mq.scrollWidth);
+          var n = Math.ceil((innerWidth * 2) / one);
+          n += n % 2; /* identical halves */
+          n = Math.max(n, 4);
+          var s = '';
+          for (var i = 0; i < n; i++) s += 'TRES CARTER <span class="sep">—</span> ';
+          mq.innerHTML = s;
+          /* constant ~90px/s editorial pace on every screen width — a fixed
+             26s loop ran 30px/s on phones and 200px/s on wide desktops */
+          mq.style.animationDuration = Math.max(12, Math.round(mq.scrollWidth / 2 / 90)) + 's';
+        }
+        buildMq();
+        /* Bungee reshapes the segments when it lands — re-measure once */
+        if (document.fonts && document.fonts.ready) document.fonts.ready.then(buildMq);
 
         if (reduce) {
-          wrap.style.height = 'auto';
-          track.style.flexWrap = 'wrap';
-          track.style.width = '100%';
-          sticky.style.position = 'static';
+          document.documentElement.classList.add('rm'); /* stacked layout, CSS-owned */
+          if (go) go.hidden = true; /* nothing scrubs sideways to point at */
+          addEventListener('resize', buildMq, { passive: true });
           return;
         }
 
-        /* sideways with intent: one scrolled pixel = SPEED lateral pixels,
-           so the rail crosses in a few flicks instead of eighty */
-        var SPEED = 2.4;
-        var lastTx = 0, vel = 0, disp = 0, loopOn = false, anim = null;
-
-        function size() {
-          wrap.style.height = ((track.scrollWidth - innerWidth) / SPEED + innerHeight) + 'px';
+        var VW = document.documentElement.clientWidth || innerWidth; /* excludes the Windows scrollbar */
+        function measure() {
+          VW = document.documentElement.clientWidth || innerWidth;
           centers = panels.map(function (p) { return p.offsetLeft + p.offsetWidth / 2; });
         }
 
-        /* velocity settle loop: speeds the marquee up while travelling,
-           easing back to rest when idle */
+        /* — velocity settle loop: marquee speeds up while travelling, and
+             the print plates slip off-register (--ab), re-registering at
+             rest. .mis gates the text-shadow so idle costs nothing. — */
+        var disp = 0, vel = 0, loopOn = false, anim = null, lastAb = 0;
         function settle() {
           disp += (vel - disp) * 0.12;
           vel *= 0.88;
@@ -347,34 +428,147 @@ const worm = (word, offset = 0) =>
             try { anim = mq.getAnimations()[0] || null; } catch (e) {}
           }
           if (anim) anim.playbackRate = 1 + Math.min(disp * 0.05, 3.5);
+          var ab = Math.round(Math.min(disp * 0.045, 2.2) * 4) / 4; /* quantized: fewer repaints */
+          if (ab !== lastAb) {
+            lastAb = ab;
+            track.style.setProperty('--ab', ab);
+            track.classList.toggle('mis', ab > 0);
+          }
           if (disp > 0.1 || vel > 0.1) {
             requestAnimationFrame(settle);
           } else {
             loopOn = false; disp = 0;
             if (anim) anim.playbackRate = 1;
+            if (lastAb !== 0) { lastAb = 0; track.style.setProperty('--ab', 0); track.classList.remove('mis'); }
           }
         }
+        function kickVel(v) {
+          vel = Math.min(Math.max(v, vel), 120);
+          if (!loopOn && vel > 0.5) { loopOn = true; requestAnimationFrame(settle); }
+        }
 
+        /* — shared travel helpers: the arrow, keys and flicks all speak in
+             panels; both rail modes translate that to their own scroller — */
+        function railX() { return coarse ? track.scrollLeft : lastTx; }
+        function wrapTop() { return wrap.getBoundingClientRect().top + scrollY; }
+        function nearest() {
+          var x = railX() + VW / 2, best = 0, d = 1e9;
+          for (var i = 0; i < centers.length; i++) {
+            var dd = Math.abs(centers[i] - x);
+            if (dd < d) { d = dd; best = i; }
+          }
+          return best;
+        }
+        function goTo(i) {
+          i = Math.min(panels.length - 1, Math.max(0, i));
+          var x = Math.max(0, centers[i] - VW / 2);
+          if (coarse) track.scrollTo({ left: x, behavior: 'smooth' });
+          else scrollTo({ top: wrapTop() + x / SPEED, behavior: 'smooth' });
+        }
+        go.addEventListener('click', function () {
+          goTo(nearest() + (go.classList.contains('flip') ? -1 : 1));
+        });
+        /* arrow lifecycle: demote once travelling (never delete — arrows go
+           unnoticed enough as it is), flip into a return arrow at the END */
+        function cueState(x, max) {
+          var nr = nearest();
+          go.classList.toggle('dim', x > 120 && nr < panels.length - 1);
+          go.classList.toggle('flip', nr === panels.length - 1);
+        }
+
+        if (coarse) {
+          /* — touch: the rail swipes natively sideways; this layer adds the
+               missing pieces — arrow fade, marquee/plate coupling, and the
+               direction fix: a mostly-VERTICAL flick (which used to do
+               nothing) now advances the rail — swipe up = onward, down =
+               back, matching how every page "continues" under a thumb — */
+          measure();
+          var lastL = 0;
+          track.addEventListener('scroll', function () {
+            if (!ticking) {
+              ticking = true;
+              requestAnimationFrame(function () {
+                ticking = false;
+                kickVel(Math.abs(track.scrollLeft - lastL));
+                lastL = track.scrollLeft;
+                cueState(track.scrollLeft);
+              });
+            }
+          }, { passive: true });
+          var t0 = null;
+          track.addEventListener('pointerdown', function (e) {
+            if (e.pointerType !== 'touch') return;
+            t0 = { x: e.clientX, y: e.clientY, t: performance.now() };
+          }, { passive: true });
+          track.addEventListener('pointerup', function (e) {
+            if (!t0 || e.pointerType !== 'touch') return;
+            var dx = e.clientX - t0.x, dy = e.clientY - t0.y, dt = performance.now() - t0.t;
+            t0 = null;
+            /* Hammer-derived flick gate: vertical dominance + 50px or 0.3px/ms */
+            if (Math.abs(dy) > Math.abs(dx) && (Math.abs(dy) > 50 || Math.abs(dy) / Math.max(1, dt) > 0.3)) {
+              goTo(nearest() + (dy < 0 ? 1 : -1));
+            }
+          }, { passive: true });
+          addEventListener('resize', function () { buildMq(); measure(); }, { passive: true });
+          return;
+        }
+
+        /* — desktop rail: scroll-driven translateX at SPEED — */
+        function size() {
+          /* sticky.clientHeight, not innerHeight: svh-true (URL-bar class);
+             VW, not innerWidth: the classic Windows scrollbar isn't viewport */
+          wrap.style.height = ((track.scrollWidth - VW) / SPEED + sticky.clientHeight) + 'px';
+          measure();
+        }
         function place() {
           ticking = false;
           var top = wrap.getBoundingClientRect().top;
-          var max = track.scrollWidth - innerWidth;
+          var max = track.scrollWidth - VW;
           var tx = Math.min(max, Math.max(0, -top * SPEED));
           track.style.setProperty('--tx', -tx + 'px');
           /* per-panel parallax input: distance from viewport centre */
-          var mid = innerWidth / 2;
+          var mid = VW / 2;
           for (var i = 0; i < panels.length; i++) {
             panels[i].style.setProperty('--d', (centers[i] - tx - mid).toFixed(1) + 'px');
           }
-          vel = Math.min(Math.abs(tx - lastTx), 120);
+          kickVel(Math.abs(tx - lastTx));
           lastTx = tx;
-          if (!loopOn && vel > 0.5) { loopOn = true; requestAnimationFrame(settle); }
-          hint.classList.toggle('off', tx > 60);
+          cueState(tx, max);
         }
+        /* focus must never scroll the clipped sticky box — a container
+           scroll would stack on top of --tx and shear the rail for good */
+        sticky.addEventListener('scroll', function () {
+          if (sticky.scrollLeft || sticky.scrollTop) { sticky.scrollLeft = 0; sticky.scrollTop = 0; }
+        }, { passive: true });
+        track.addEventListener('focusin', function (e) {
+          sticky.scrollLeft = 0;
+          var p = e.target;
+          while (p && p !== track && !(p.classList && p.classList.contains('panel'))) p = p.parentNode;
+          var i = panels.indexOf(p);
+          if (i >= 0) goTo(i); /* the reveal happens in page scroll instead */
+        });
         addEventListener('scroll', function () {
           if (!ticking) { ticking = true; requestAnimationFrame(place); }
         }, { passive: true });
-        addEventListener('resize', function () { size(); place(); }, { passive: true });
+        /* trackpad sideways swipe / tilt-wheel: the rail's native language —
+           map horizontal deltas onto the scrub instead of dropping them */
+        addEventListener('wheel', function (e) {
+          if (e.ctrlKey) return; /* pinch-zoom stays untouched */
+          var dx = e.deltaX, dy = e.deltaY;
+          if (e.deltaMode === 1) { dx *= 16; dy *= 16; }        /* lines (Firefox) */
+          else if (e.deltaMode === 2) { dx *= innerHeight; dy *= innerHeight; } /* pages */
+          if (Math.abs(dx) > Math.abs(dy)) {
+            scrollBy(0, dx);
+            e.preventDefault();
+          }
+        }, { passive: false });
+        /* arrow keys travel the rail one panel at a time */
+        addEventListener('keydown', function (e) {
+          if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
+          if (e.key === 'ArrowRight') { goTo(nearest() + 1); e.preventDefault(); }
+          else if (e.key === 'ArrowLeft') { goTo(nearest() - 1); e.preventDefault(); }
+        });
+        addEventListener('resize', function () { buildMq(); size(); place(); }, { passive: true });
         size(); place();
       })();
     </script>

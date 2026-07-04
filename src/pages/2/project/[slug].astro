@@ -8,10 +8,11 @@ export async function getStaticPaths() {
   const all = (await getCollection('projects')).map((e) => e.data);
   return all.map((p) => {
     const cat = all.filter((q) => q.category === p.category);
-    const i = cat.findIndex((q) => q.slug === p.slug);
+    const ring = cat.length > 1 ? cat : all; /* singleton category: nav must not self-link */
+    const i = ring.findIndex((q) => q.slug === p.slug);
     return {
       params: { slug: p.slug },
-      props: { p, prev: cat[(i - 1 + cat.length) % cat.length], next: cat[(i + 1) % cat.length] },
+      props: { p, prev: ring[(i - 1 + ring.length) % ring.length], next: ring[(i + 1) % ring.length] },
     };
   });
 }

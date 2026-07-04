@@ -1,83 +1,88 @@
 # tres.studio — Brief V3: the Multiverse
 
-## ✅ SITE 4 PASS BUILT — 2026-07-03, awaiting Tres review
+## ✅ SITE 5 PASS BUILT — 2026-07-03, awaiting Tres review
 
 **The process (Tres's contract, unchanged):** one site at a time; finish →
 "done" → Tres comments → fix → he says go → next. Site 1 ✅ (3375858).
-Site 2 ✅ (bdd4f9e). Site 3 ✅ (a972033, approved "looks good" 2026-07-03).
-**Site 4 pass is built + verified — Tres reviews now.** Then site 5, then
-the lab rebuild.
+Site 2 ✅ (bdd4f9e). Site 3 ✅ (a972033). Site 4 ✅ (759b8b5 + c5b152c,
+approved "looks good. i loke the updates"). **Site 5 pass is built +
+verified — Tres reviews now.** Then the lab rebuild.
 
-**Tres's Site 4 feedback (his words):** (1) "a bunch of space between the 03
-and the bottom info panel. its kinda weird. clean it up"; (2) "make the info
-nav panel better so like its stays on screen longer when scrolling"; (3)
-"full pass, bug check, everything. smoothness is key on this site."
+**Tres's Site 5 feedback (his words):** review desktop AND mobile; "take
+away the scroll stuff and just put an arrow pointing right"; "do some
+fixes on the banner at the bottom"; "make swiping down or right take you
+the correct way so its not confusing"; full bug check, "wow me".
 
 **What shipped:**
 
-1. **The gap is gone — the info panel is now a SHEET.** .info overlaps the
-   last viewport of the scrub (margin-top:-100svh, min-height:100svh, opaque
-   orange, z-index 5) and slides up OVER the emptied scene — filing a new
-   sheet onto the drawing stack. Wrap grew 240→320svh (220svh scrub). The
-   scroll ends exactly as the sheet seats — no residual band. Sheet content
-   recomposed: columns top, © meta pinned to the bottom edge (title block).
-2. **The menu HOLDS.** Arrivals 0.02→0.34, seated dwell 0.34→0.60 (~26% of
-   the scrub ≈ 560+px of scroll — was 18%/290px, one wheel flick). Exits
-   0.60→0.92 staggered BOTTOM-UP and coupled to the sheet's rise so it
-   flicks each word off as its edge arrives (research-derived coupling:
-   sheet enters p=0.545, covers at 1.0).
-3. **Smoothness: one damped clock for everything.** Raw scroll only sets a
-   target; a frame-rate-independent follower (k=0.14@60fps, dt-clamped,
-   snap-before-stop) drives the words AND the sheet — apply() cancels the
-   sheet's native-scroll lead via translateY((target−cur)·S) so nothing can
-   desync on a fast flick. Zero layout reads during scroll (offsets cached;
-   was getBoundingClientRect per event). Choreography numbers validated
-   against Lenis/GSAP/Codrops norms by the research agent.
-4. **Confirmed audit findings fixed (10/10, 0 false positives):** scrub
-   denominator now pin.clientHeight not innerHeight (URL-bar drift class,
-   same as site 3); resize glides instead of teleporting (hard-snap only on
-   width change); reduced-motion .pin{position:relative} not static (static
-   destroyed the containing block → the -2vw 03 caused real horizontal
-   scroll); focusin seat-scroll now covers BOTH directions (shift-tab from
-   footer no longer lands on invisible exited items); .soon/.lbl/--mvt-label
-   contrast → solid #3A2113 (0.55-alpha ink on orange was 2.7:1, AA needs
-   4.5); curtain.js GL buffer now sized from the canvas box not
-   innerWidth/Height (tap-origin drift on mobile URL-bar, site-3 bug class);
-   **lightbox step() scroll-jump (sites 2+3+4, shipped in the "fixed"
-   references!):** prev/next re-ran the iOS lock capture, zeroing lockY —
-   closing after stepping teleported the page to top and dumped keyboard
-   focus; now guarded by wasClosed on all three project pages.
-5. **Polish/lows:** dead --sx/will-change dropped from .scene; apply()
-   short-circuits unchanged p; small-row + about contact hit targets ≥44px
-   (inversion plates visually unchanged via inset compensation); safe-area
-   env() on .back/.an/.lb-x/plate/strip/cue everywhere; ring.js keyboard
-   activation floods from the control, not (0,0) (chassis, all sites);
-   ticker confetti physics now time-based (was 2x speed on 120Hz);
-   gallery videos stop autoplay-looping under reduced-motion (sites 2/3/4);
-   stale header comment + dead --i props removed.
-6. **Mobile 03 (Tres: "the 3 is too low on mobile"):** on ≤700px the numeral
-   was a 46vw stub half-buried by bottom:-10svh — now min(52svh, 118vw),
-   right-cropped and lifted (bottom:-4svh): a genuine giant hero filling the
-   lower phone viewport. Verified in a portrait window: landing, dwell
-   (menu over the numeral), sheet handoff, and the single-column end sheet.
+1. **The arrow.** The "↓ scroll down to move right" hint is gone. In its
+   place: one drawn blue arrow, fixed mid-right, nudging gently. It's a
+   real control (44px, click = advance one panel, ArrowRight/Left keys do
+   the same). Lifecycle per NN/g research: DEMOTED to 35% opacity once
+   travelling (never deleted — arrows go unnoticed enough), FLIPS into a
+   return arrow on the END panel. Reinforced by a 72px panel-2 PEEK on the
+   name panel (the strongest "more this way" signal there is).
+2. **The banner.** The marquee was 6 fixed reps (~900px) sliding -50% — on
+   anything wider than ~1500px it showed a blank gap every loop. Now JS
+   rebuilds it to an even segment count spanning ≥2x the viewport (re-run
+   on fonts.ready + resize), pace normalized to ~90px/s on every screen
+   (the fixed 26s loop ran 30px/s on phones, 200px/s on wide desktops),
+   blue — separators, safe-area bottom padding, will-change on the strip.
+3. **Direction mapping.** Desktop: trackpad sideways swipes now drive the
+   rail (dominant-axis wheel handler, deltaMode-normalized, pinch-zoom
+   exempt, overscroll-behavior-x:none so consumed deltas can't trigger
+   back-swipe). Touch: the rail still swipes natively sideways, and a
+   mostly-VERTICAL flick — which used to do nothing — now advances a panel
+   (touch-action:pan-x hands vertical gestures to JS; Hammer-derived
+   thresholds; finger-up = onward, matching scroll semantics). NOT yet
+   verified on a real touch device — Tres should confirm the feel.
+4. **The wow: chromatic misregistration.** While the rail travels, the
+   Bungee Shade display type slips off-register — blue/red ghost plates
+   offset up to 2.2px with velocity — and re-registers the instant it
+   rests. Ties the whole chromatic-print identity (registration mark, blue
+   accent) to motion. Gated by a .mis class so rest state costs zero;
+   quantized to limit repaints; never under reduced-motion.
+5. **Confirmed audit findings fixed (7, 0 real false-positives):** the
+   reduced-motion desktop fallback CLIPPED everything after panel 1
+   (sticky overflow:hidden + 100svh heights — nav unreachable; now a
+   CSS-owned stacked layout via html.rm); keyboard Tab used to scroll the
+   hidden sticky container and permanently shear the rail (now: container
+   scroll zeroed + focusin seats the focused panel via the same goTo path
+   — verified: two Tabs from load lands seated on WORK); the signature
+   name entrance raced Bungee Shade on cold cache (worm now gated on
+   fonts.load with a 700ms failsafe, head-script class contract so no-JS
+   never blanks); the dot map intercepted taps on 360-390px phones
+   (ring.js: row is pointer-events:none with dots auto + drops to
+   lower-right below 700px — chassis fix, all sites); .reg registration
+   mark under the iOS status bar (safe-area env on all five pages);
+   about contact links under 44px ("ig" was 36px — inline-flex + mins).
+6. **Parity set ported (site 5 was the last old-generation holdout):**
+   lightbox dialog/aria-modal/Tab trap/44px/86svh/iOS body-fixed lock
+   with the wasClosed step guard/image-only ordinals/PRM video guard;
+   back-link touch guard + :focus-visible + reduce blocks everywhere;
+   dynamic work count; Windows classic-scrollbar drift fixed
+   (clientWidth, not innerWidth — the rail end was ~15px unreachable).
+   Cross-site: prev/next project nav no longer self-links on singleton
+   categories (the lab-index page did) — fixed on ALL FIVE sites.
 
-**VERIFIED in real visible Chrome (PowerShell-driven walk):** clean top →
-staggered arrivals → long seated dwell → sheet chasing words off bottom-up
-(the money frame: ARCHIVE/WORK mid-flight, footer readable on the rising
-sheet, 03 arcs above the edge) → exact full-cover end. Lightbox: open
-mid-page → arrow-step → Escape → scroll position preserved (was: jump to
-top). `astro build` green, 128 pages. NOT hand-verified: real-iOS touch
-behavior, reduced-motion visual pass, 120Hz feel.
+**VERIFIED in real visible Chrome:** desktop top (peek + nudging arrow +
+seamless full-width marquee), travel, END panel (flipped return arrow, dot
+map, column), Tab-seat test (no shear), arrow states; portrait-window
+layout: name fits, arrow present, END stacks single-column, marquee
+seamless with blue seps. `astro build` green, 128 pages. NOT hand-verified:
+real-touch vertical flick + native swipe feel (no touch device in the
+loop), misregistration pacing (one-rule CSS, judge live), real-iOS.
 
-**Open flags for Tres:** the dot-ring map labels this universe "04" while
-the whole site brands itself "03" (ids are 1-indexed, the brand is
-0-indexed) — pick a convention and I'll wire it (registry label field).
-Inter Tight still font-swaps the giant 03 on first uncached paint
-(one-time reshape; fix = preload woff2 or accept).
+**Open flags for Tres:** (1) the ptag "panel 01 / 07" margin annotations
+are numbered — the standing no-slop rule bans numbered DECORATION; these
+are a real progress sequence, so I kept them — your call. (2) The site-4
+dot-map "03 vs 04" label question is still open. (3) Vertical-flick
+direction on touch (finger-up = onward) follows scroll semantics — flag
+if it feels backwards on your phone.
 
-**Carry-notes for the site 5 pass:** 5/project lightbox still 86vh + the
-step() fix and PRM-video guard are NOT yet on site 5 (only 2/3/4); apply
-the full parity set there. Lab rebuild queued after site 5.
+**NEXT after Tres's go: the lab rebuild** (7 experiments, still V1 —
+queued in §11). Cutover checklist (meta/OG, Lighthouse vs baseline,
+counter reset, redirects verify) after that.
 
 **VERIFICATION LESSONS (this session, save yourself the hour):** an
 OCCLUDED/minimized Chrome window throttles rAF to ~0 and clamps timers —
@@ -164,20 +169,26 @@ on Tres's explicit go.
   + crop marks + PROPRIETARY marginalia, block-invert hovers. Strip:
   "⚠ 03 — TRES CARTER · ARCHITECTURE / ART / CODE · 30A". Choreography
   constants live in apply() in the inline script.
-- **Site 5 (sideways/Bungee Shade):** horizontal rail (SPEED 2.4, touch
-  snap), per-letter worm-on entrances, vertical END.-spine info panel,
-  blue registration marks. Archie image REMOVED by request.
+- **Site 5 (sideways/Bungee Shade) — full pass 2026-07-03 (see the ✅
+  section up top):** horizontal rail (SPEED 2.4, touch snap + vertical
+  flick-to-advance), per-letter worm-on entrances (fonts.load-gated),
+  right-arrow affordance (click/keys advance, demotes, flips at END),
+  72px panel-2 peek, seamless width-adaptive marquee (~90px/s, blue
+  seps), velocity-driven chromatic misregistration on the display type,
+  vertical END.-spine info panel, blue registration marks. Archie image
+  REMOVED by request.
 - **/lab (portals):** random universe skin per load, 7 living doorways →
   labs/*.html through the curtain.
 - Cross-board: short privacy page, LinkedIn everywhere, Resume/Portfolio/
   plugins-soon links, legacy-URL redirects in public/_redirects.
 
-**AWAITING TRES:** review of the **Site 4 pass** (2026-07-03 — sheet
-handoff, menu dwell, one-clock smoothness, audit fixes; he comments, we
-fix, then he says go on site 5); the 03-vs-04 dot-map label decision (see
-Open flags); files per ASSETS-NEEDED.md (resume.pdf, portfolio.pdf →
-public/); his next batch of site ideas ("i will work on more site ideas
-after this").
+**AWAITING TRES:** review of the **Site 5 pass** (2026-07-03 — arrow,
+banner, direction mapping, misregistration, audit fixes; he comments, we
+fix, then he says go on the lab rebuild); on-device touch check of the
+vertical-flick direction; the ptag numbering + 03-vs-04 dot-map label
+decisions (see Open flags); files per ASSETS-NEEDED.md (resume.pdf,
+portfolio.pdf → public/); his next batch of site ideas ("i will work on
+more site ideas after this").
 
 **R5 side-fixes (same pass, cross-cutting):** ticker.js confetti canvas
 now lazy (no full-viewport z:75 layer at rest, never under reduce) +
