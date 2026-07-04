@@ -1,0 +1,132 @@
+---
+// Site 6 — archive. The rest of the collection, in storage: the same
+// checklist bones as work, set denser — more rows, smaller plates.
+import { MV_CLIENT } from '../../lib/multiverse';
+import { getCollection } from 'astro:content';
+const WORK = ['z07', 'ee13', 'flatwood', 'tucker', 'thesis'];
+const all = (await getCollection('projects')).map((e) => e.data);
+const rows = all.filter((p) => !WORK.includes(p.slug));
+const HUES = ['#E8442E', '#C7356B', '#6B4C9A', '#2E5EA8', '#1F8A70', '#E3B71F'];
+const LIGHT = new Set(['#E3B71F']);
+// hover paint deepens where the raw pigment misses AA for paper text
+const FLOODBG = { '#E8442E': '#C53A27', '#1F8A70': '#1A755F' };
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="robots" content="noindex" />
+    <meta name="theme-color" content="#FAF8F3" />
+    <title>ARCHIVE — 06 TRES CARTER</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+    <script is:inline set:html={MV_CLIENT(6)} />
+  </head>
+  <body>
+    <a class="back" id="back" href="/6/">← index</a>
+    <span class="tag" aria-hidden="true">cat. 06.2 — storage</span>
+    <main class="wall">
+      <header class="head">
+        <p class="spec">the rest of the collection · {String(rows.length).padStart(2, '0')} works</p>
+        <h1 class="name">Everything else</h1>
+      </header>
+      <div class="list">
+        {rows.map((p, i) => (
+          <a
+            class="row"
+            href={`/6/project/${p.slug}`}
+            style={`--hue:${HUES[i % HUES.length]};--fbg:${FLOODBG[HUES[i % HUES.length]] || HUES[i % HUES.length]};--flood:${LIGHT.has(HUES[i % HUES.length]) ? '#141310' : '#FAF8F3'}`}
+          >
+            <span class="r-no">cat. {String(i + 6).padStart(2, '0')}</span>
+            <span class="r-chip" aria-hidden="true"></span>
+            <span class="r-name">{p.name}</span>
+            <span class="r-cat">{p.category}</span>
+            <span class="r-meta">{p.year}</span>
+          </a>
+        ))}
+      </div>
+    </main>
+    <footer class="foot"><span>© 2026 tres carter</span><a href="/privacy">privacy</a></footer>
+
+    <style is:inline>
+      * { margin: 0; box-sizing: border-box; }
+      html { background: #FAF8F3; }
+      body { font-family: 'Schibsted Grotesk', system-ui, sans-serif; color: #141310; -webkit-font-smoothing: antialiased; }
+      ::selection { background: #141310; color: #FAF8F3; }
+      a { color: inherit; text-decoration: none; }
+      .tag { position: fixed; top: calc(16px + env(safe-area-inset-top, 0px)); right: calc(20px + env(safe-area-inset-right, 0px)); z-index: 90; pointer-events: none; font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.14em; color: #6B665A; }
+      .back { position: fixed; z-index: 10; top: var(--y, 14px); left: calc(20px + env(safe-area-inset-left, 0px)); font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 0.16em; padding: 12px 0; transition: transform 140ms cubic-bezier(0.23,1,0.32,1); }
+      .back:active { transform: scale(0.96); }
+      @media (hover: hover) and (pointer: fine) { .back:hover { text-decoration: underline; text-underline-offset: 4px; } }
+      .back:focus-visible { outline: 2px solid #141310; outline-offset: 3px; }
+      .wall { max-width: 1000px; margin: 0 auto; padding: 0 6vw 12svh; }
+      .head { padding: clamp(110px, 22vh, 260px) 0 6svh; }
+      .spec { font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 0.16em; color: #6B665A; }
+      .name { font-weight: 700; font-size: clamp(40px, 8vw, 92px); line-height: 1.02; letter-spacing: -0.01em; margin-top: 12px; }
+      .list { border-top: 1px solid rgba(20,19,16,0.3); }
+      .row {
+        display: flex; align-items: baseline; gap: 14px; padding: 15px 0;
+        border-bottom: 1px solid rgba(20,19,16,0.3);
+        position: relative; z-index: 0;
+        transition: color 180ms cubic-bezier(0.19, 1, 0.22, 1), transform 140ms cubic-bezier(0.23,1,0.32,1);
+      }
+      .row::before {
+        content: ""; position: absolute; inset: 0 -14px; z-index: -1;
+        background: var(--fbg, var(--hue));
+        transform: scaleY(0); transform-origin: bottom;
+        transition: transform 200ms cubic-bezier(0.19, 1, 0.22, 1);
+      }
+      .row:active { transform: scale(0.99); }
+      .row:focus-visible { outline: 2px solid #141310; outline-offset: 3px; }
+      .r-no { font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 0.08em; color: #6B665A; min-width: 64px; transition: color 180ms cubic-bezier(0.19, 1, 0.22, 1); }
+      .r-chip { width: 11px; height: 11px; background: var(--hue); align-self: center; flex: 0 0 auto; transition: opacity 180ms cubic-bezier(0.19, 1, 0.22, 1); }
+      .r-name { font-weight: 500; font-size: clamp(17px, 2.6vw, 26px); line-height: 1.15; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .r-cat { font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.1em; color: #6B665A; text-transform: lowercase; transition: color 180ms cubic-bezier(0.19, 1, 0.22, 1); }
+      .r-meta { font-family: 'Space Mono', monospace; font-size: 11px; color: #6B665A; margin-left: auto; transition: color 180ms cubic-bezier(0.19, 1, 0.22, 1); }
+      @media (hover: hover) and (pointer: fine) {
+        .r-name { transition: translate 200ms cubic-bezier(0.23,1,0.32,1); }
+        .row:hover { color: var(--flood); }
+        .row:hover .r-no, .row:hover .r-meta, .row:hover .r-cat { color: var(--flood); }
+        .row:hover .r-chip { opacity: 0; }
+        .row:hover .r-name { translate: 8px 0; }
+        .row:hover::before { transform: scaleY(1); }
+      }
+      @media (max-width: 560px) { .r-no, .r-cat { display: none; } }
+      @media (prefers-reduced-motion: reduce) {
+        .back, .row, .row::before, .r-name, .r-no, .r-meta, .r-cat, .r-chip { transition: none; }
+        .back:active, .row:active { transform: none; }
+      }
+      .foot { display: flex; justify-content: space-between; max-width: 1000px; margin: 0 auto; padding: 3svh 6vw 4svh; border-top: 1px solid rgba(20,19,16,0.3); font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.06em; color: #6B665A; }
+      .foot a { color: #141310; }
+      @media (hover: hover) and (pointer: fine) { .foot a:hover { text-decoration: underline; text-underline-offset: 4px; } }
+    </style>
+
+    <script is:inline type="module">
+      import { autoReveal } from '/mv/curtain.js';
+      autoReveal();
+    </script>
+    <script is:inline>
+      (function () {
+        var reduce = false, fine = false;
+        try { reduce = matchMedia('(prefers-reduced-motion: reduce)').matches; fine = matchMedia('(hover: hover) and (pointer: fine)').matches; } catch (e) {}
+        if (!fine || reduce) return;
+        var back = document.getElementById('back');
+        var target = null, cur = null, raf = null;
+        function frame() {
+          cur += (target - cur) * 0.09;
+          back.style.setProperty('--y', cur.toFixed(1) + 'px');
+          if (Math.abs(target - cur) > 0.4) raf = requestAnimationFrame(frame); else raf = null;
+        }
+        addEventListener('pointermove', function (e) {
+          if (e.pointerType === 'touch') return; /* hybrids: taps must not move it */
+          var h = back.offsetHeight;
+          target = Math.min(innerHeight - h - 12, Math.max(12, e.clientY - h / 2));
+          if (cur === null) cur = target;
+          if (!raf) raf = requestAnimationFrame(frame);
+        }, { passive: true });
+      })();
+    </script>
+  </body>
+</html>

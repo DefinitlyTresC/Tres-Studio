@@ -1,0 +1,704 @@
+---
+// Site 6 — "the hang." A gallery: one collection of 13 flat pigment blocks
+// (the letterforms of TRES + the brand's orange period-dot) rehung into six
+// compositions as you walk the show — TRES, a construction (work), sediment
+// (archive), an orbit (lab), a self-portrait (about), then the storage rack
+// as the info sheet rises. Colors are chance-assigned per visit (after
+// Kelly, 1951); the wall-label number is the visit's seed. Placards are the
+// doors. Scrubbed motion rides one damped follower (smoothness contract).
+// Blocks are server-rendered seated in composition 0 so no-JS still shows
+// the identity moment; JS recolors, disassembles, and runs the walk.
+import { MV_CLIENT } from '../../lib/multiverse';
+
+// ── the collection ─────────────────────────────────────────────────────────
+// 13 blocks. Per keyframe per block: [x, y, w, h, rot, tl, tr, br, bl]
+// x/y/w/h in % of the stage box; corner radii 0..1 of min(w,h)/2.
+// Block roles are stable: 0 T-bar · 1 T-stem · 2 R-stem · 3 R-bowl ·
+// 4 R-leg · 5 E-stem · 6 E-top · 7 E-mid · 8 E-bot · 9 S-top · 10 S-mid ·
+// 11 S-bot · 12 the period (always #FF5A1F, always the smallest voice).
+const KF = [
+  { // 0 — TRES (the identity moment)
+    b: [
+      [3, 24, 18, 10, 0, 0, 0, 0, 0],
+      [9.5, 37, 6, 35, 0, 0, 0, 0, 0],
+      [24, 24, 6, 48, 0, 0, 0, 0, 0],
+      [32.5, 24, 8.5, 19, 0, 0, 1, 1, 0],
+      [32.5, 48, 5.5, 25, 21, 0, 0, 0, 0],
+      [44, 24, 6, 48, 0, 0, 0, 0, 0],
+      [52.5, 24, 9, 10, 0, 0, 0, 0, 0],
+      [52.5, 44.5, 7.5, 8, 0, 0, 0, 0, 0],
+      [52.5, 62, 9, 10, 0, 0, 0, 0, 0],
+      [66.5, 24, 15.5, 10, 0, 1, 0, 0, 1],
+      [64.5, 42.5, 15.5, 10, 0, 0, 0, 0, 0],
+      [62.5, 60.5, 17.5, 11.5, 0, 0, 1, 1, 0],
+      [86, 62, 5, 9, 0, 1, 1, 1, 1],
+    ],
+    m: [
+      [6, 8, 38, 7, 0, 0, 0, 0, 0],
+      [19, 18, 12, 21, 0, 0, 0, 0, 0],
+      [54, 8, 11, 31, 0, 0, 0, 0, 0],
+      [68, 8, 17, 11, 0, 0, 1, 1, 0],
+      [68, 23, 10, 15, 21, 0, 0, 0, 0],
+      [6, 50, 11, 31, 0, 0, 0, 0, 0],
+      [20.5, 50, 20, 7, 0, 0, 0, 0, 0],
+      [20.5, 61.5, 16, 6.5, 0, 0, 0, 0, 0],
+      [20.5, 74, 20, 7, 0, 0, 0, 0, 0],
+      [56, 50, 26, 7, 0, 1, 0, 0, 1],
+      [53.5, 61.5, 26, 7, 0, 0, 0, 0, 0],
+      [51, 73.5, 29, 8.5, 0, 0, 1, 1, 0],
+      [84, 64, 9, 5.5, 0, 1, 1, 1, 1],
+    ],
+  },
+  { // 1 — construction in five parts (work)
+    b: [
+      [8, 79, 58, 8, 0, 0, 0, 0, 0],
+      [13, 48, 6, 28, 0, 0, 0, 0, 0],
+      [31, 48, 6, 28, 0, 0, 0, 0, 0],
+      [15, 17, 20, 16, 0, 0, 0, 0, 0],
+      [23, 51, 5, 22, -28, 0, 0, 0, 0],
+      [49, 48, 6, 28, 0, 0, 0, 0, 0],
+      [10, 37, 50, 8, 0, 0, 0, 0, 0],
+      [39, 21, 12, 12, 0, 0, 0, 0, 0],
+      [63, 60, 8, 16, 0, 0, 0, 0, 0],
+      [53, 26, 21, 6, 0, 0, 0, 0, 0],
+      [68, 82, 16, 5, 0, 0, 0, 0, 0],
+      [81, 20, 4, 59, 0, 0, 0, 0, 0],
+      [76, 13, 4, 7, 0, 1, 1, 1, 1],
+    ],
+  },
+  { // 2 — everything else, in layers (archive)
+    b: [
+      [8, 20, 62, 4.5, 0, 0, 0, 0, 0],
+      [26, 27.5, 66, 7, 0, 0, 0, 0, 0],
+      [8, 37.5, 56, 3.5, 0, 0, 0, 0, 0],
+      [40, 46, 12, 10, 0, 1, 1, 1, 1],
+      [70, 26, 4.5, 13, 14, 0, 0, 0, 0],
+      [14, 44, 52, 9, 0, 0, 0, 0, 0],
+      [8, 56, 70, 5, 0, 0, 0, 0, 0],
+      [32, 64, 60, 7.5, 0, 0, 0, 0, 0],
+      [8, 74.5, 58, 4, 0, 0, 0, 0, 0],
+      [20, 81.5, 64, 8, 0, 0, 0, 0, 0],
+      [56, 46, 30, 5, 0, 0, 0, 0, 0],
+      [8, 64, 20, 7.5, 0, 0, 0, 0, 0],
+      [85, 11, 4, 7, 0, 1, 1, 1, 1],
+    ],
+  },
+  { // 3 — controlled experiments (lab)
+    b: [
+      [18, 19, 24, 6, -27, 1, 1, 1, 1],
+      [10, 35, 5, 24, 0, 0, 0, 0, 0],
+      [13, 74, 6, 15, 0, 0, 0, 0, 0],
+      [42, 36, 16, 28.5, 0, 1, 1, 1, 1],
+      [49, 8, 5, 16, 44, 0, 0, 0, 0],
+      [78, 13, 5, 17, 0, 0, 0, 0, 0],
+      [58, 22, 19, 6, 21, 1, 1, 1, 1],
+      [24, 6, 7, 11, 0, 0, 0, 0, 0],
+      [69, 78, 9, 12, 0, 0, 0, 0, 0],
+      [61, 65, 19, 6, -24, 1, 1, 1, 1],
+      [17, 63, 21, 6, 14, 1, 1, 1, 1],
+      [86, 39, 4, 23, 0, 0, 0, 0, 0],
+      [63.5, 49, 4, 7, 0, 1, 1, 1, 1],
+    ],
+  },
+  { // 4 — self-portrait, after bauhaus (about)
+    b: [
+      [28, 55, 38, 10, 0, 0, 0, 0, 0],
+      [44.5, 45, 5, 8, 0, 0, 0, 0, 0],
+      [8, 20, 6, 41, 0, 0, 0, 0, 0],
+      [40, 17, 14, 25, 0, 1, 1, 1, 1],
+      [12, 68, 5, 17, 0, 0, 0, 0, 0],
+      [84, 20, 6, 41, 0, 0, 0, 0, 0],
+      [24, 8, 46, 6, 0, 1, 1, 0, 0],
+      [34, 67, 26, 19, 0, 0, 0, 0, 0],
+      [77, 70, 8, 13, 0, 0, 0, 0, 0],
+      [22, 8, 8, 25, 0, 1, 0, 0, 1],
+      [30, 88, 34, 5, 0, 0, 0, 0, 0],
+      [66, 8, 8, 25, 0, 0, 1, 1, 0],
+      [44.7, 25, 4, 7.2, 0, 1, 1, 1, 1],
+    ],
+  },
+  { // 5 — the rack (end; blocks stored above the rising sheet)
+    b: [
+      [5, 8, 5, 26, -5, 0, 0, 0, 0],
+      [11.5, 10, 5, 24, 4, 0, 0, 0, 0],
+      [18, 7, 5.5, 27, -3, 0, 0, 0, 0],
+      [25, 11, 7, 22, 5, 0, 1, 1, 0],
+      [33, 9, 5, 25, -4, 0, 0, 0, 0],
+      [39.5, 12, 5, 22, 3, 0, 0, 0, 0],
+      [46, 8, 6, 26, -5, 0, 0, 0, 0],
+      [53.5, 11, 5, 23, 4, 0, 0, 0, 0],
+      [60, 9, 5.5, 25, -3, 0, 0, 0, 0],
+      [67, 12, 5, 22, 5, 1, 0, 0, 1],
+      [74, 8, 5, 26, -4, 0, 0, 0, 0],
+      [80.5, 11, 5, 23, 3, 0, 0, 0, 0],
+      [88.5, 27.5, 3.6, 6.5, 0, 1, 1, 1, 1],
+    ],
+  },
+];
+
+// exhibition palette — pigment-toned, one shared value band; the brand
+// orange belongs to the period-dot alone (smallest field, loudest voice)
+const HUES = ['#E8442E', '#C7356B', '#6B4C9A', '#2E5EA8', '#1F8A70', '#E3B71F', '#141414'];
+const DOT = '#FF5A1F';
+// build-time default assignment (no-JS paint); JS redraws it by chance
+const DEFAULT_C = [0, 3, 4, 5, 6, 1, 2, 0, 3, 5, 4, 1];
+const blocksSSR = KF[0].b.map((g, i) => ({ g, c: i === 12 ? DOT : HUES[DEFAULT_C[i]] }));
+const KF_JSON = JSON.stringify(KF);
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="robots" content="noindex" />
+    <meta name="theme-color" content="#FAF8F3" />
+    <title>06 — TRES CARTER</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+    <script is:inline set:html={MV_CLIENT(6)} />
+  </head>
+  <body>
+    <span class="tag tag-l" aria-hidden="true">tres carter</span>
+    <span class="tag tag-r" aria-hidden="true">cat. 06</span>
+
+    <noscript>
+      <style>
+        /* no JS: the identity moment holds still and the directory flows
+           below it — same layout the reduced-motion show uses */
+        .pin-wrap { height: auto; }
+        .pin { position: relative; height: auto; overflow: visible; }
+        .stage { position: relative; inset: auto; height: 100svh; }
+        .plcs {
+          position: relative; left: auto; bottom: auto;
+          margin: 28px 20px 44px;
+          background: #FAF8F3; border: 1px solid rgba(20,19,16,0.25);
+          padding: 18px 22px 22px;
+        }
+        .plc { position: relative; opacity: 1; pointer-events: auto; translate: 0 0; margin-top: 18px; }
+        .plc[data-seat="0"] { margin-top: 0; }
+        .cue { display: none; }
+        .info { margin-top: 0; min-height: 0; }
+        .shh { display: none; }
+      </style>
+    </noscript>
+
+    <section class="pin-wrap" id="pinWrap">
+      <div class="pin">
+        <div class="stage" id="stage" aria-hidden="true">
+          {blocksSSR.map(({ g, c }) => (
+            <div
+              class="bk"
+              style={`left:${g[0]}%;top:${g[1]}%;width:${g[2]}%;height:${g[3]}%;background:${c};transform:rotate(${g[4]}deg);border-radius:${g.slice(5).map((r) => (r ? 999 : 0) + 'px').join(' ')}`}
+            />
+          ))}
+        </div>
+
+        <nav class="plcs" id="plcs" aria-label="The show">
+          <div class="plc on" data-seat="0">
+            <p class="p-artist">Tres Carter</p>
+            <p class="p-title"><span class="p-no">no. 000</span> — everything, so far</p>
+            <p class="p-med">buildings, pictures, code · 2026 · dimensions variable</p>
+          </div>
+          <div class="plc" data-seat="1">
+            <p class="p-title"><span class="p-no">no. 000</span>.2 — construction in five parts</p>
+            <p class="p-med">selected work · 2020–2026</p>
+            <a class="p-go" href="/6/work">work →</a>
+          </div>
+          <div class="plc" data-seat="2">
+            <p class="p-title"><span class="p-no">no. 000</span>.3 — everything else, in layers</p>
+            <p class="p-med">the archive</p>
+            <a class="p-go" href="/6/archive">archive →</a>
+          </div>
+          <div class="plc" data-seat="3">
+            <p class="p-title"><span class="p-no">no. 000</span>.4 — controlled experiments</p>
+            <p class="p-med">kept live · handle with care</p>
+            <a class="p-go" href="/lab">lab →</a>
+          </div>
+          <div class="plc" data-seat="4">
+            <p class="p-title"><span class="p-no">no. 000</span>.5 — self-portrait, after bauhaus</p>
+            <p class="p-med">the artist, abstracted</p>
+            <a class="p-go" href="/6/about">about →</a>
+          </div>
+          <p class="shh" id="shh" aria-hidden="true">( please don’t touch the artwork )</p>
+        </nav>
+
+        <p class="cue" aria-hidden="true">scroll</p>
+      </div>
+    </section>
+
+    <footer id="mv-info" class="info">
+      <div class="i-cols">
+        <div class="i-col">
+          <span class="lbl">location</span>
+          seagrove · 30a<br />florida, usa
+        </div>
+        <div class="i-col">
+          <span class="lbl">contact</span>
+          <a href="mailto:tres@tres.studio">tres@tres.studio</a><br />
+          <a href="https://instagram.com/tres.studio" target="_blank" rel="noopener">ig</a><br />
+          <a href="https://www.linkedin.com/in/tres-carter" target="_blank" rel="noopener">linkedin</a>
+        </div>
+        <div class="i-col">
+          <span class="lbl">sections</span>
+          <a href="/6/work">work</a><br />
+          <a href="/6/archive">archive</a><br />
+          <a href="/lab">lab</a><br />
+          <a href="/6/about">about</a><br />
+          <a href="/resume.pdf">resume</a><br />
+          <a href="/portfolio.pdf">portfolio</a><br />
+          <span class="soon">plugins — soon</span>
+        </div>
+      </div>
+      <div class="i-meta">
+        <span>© 2026 tres carter · hung by chance operations, after kelly 1951</span>
+        <span id="mv-ticker-slot"></span>
+        <a href="/privacy">privacy</a>
+      </div>
+    </footer>
+
+    <style is:inline>
+      :root {
+        --paper: #FAF8F3; --ink: #141310; --quiet: #6B665A; --org: #FF5A1F;
+        --sheet: #F1EDE2;
+        --mvt-card: #ffffff; --mvt-ink: #141310; --mvt-line: rgba(20,19,16,0.3);
+        --mvt-label: #5C574B; --mvt-accent: #FF5A1F;
+        --mvt-confetti: #E8442E,#C7356B,#6B4C9A,#2E5EA8,#1F8A70,#E3B71F,#FF5A1F;
+      }
+      * { margin: 0; box-sizing: border-box; }
+      /* NOTE: no overflow-x:hidden on html/body — it breaks position:sticky.
+         Anything that travels lives inside .pin, which clips itself. */
+      html { background: var(--paper); }
+      body {
+        font-family: 'Schibsted Grotesk', system-ui, sans-serif;
+        color: var(--ink); -webkit-font-smoothing: antialiased;
+      }
+      ::selection { background: var(--ink); color: var(--paper); }
+      a { color: inherit; text-decoration: none; }
+
+      .tag {
+        position: fixed; z-index: 10; pointer-events: none;
+        top: calc(16px + env(safe-area-inset-top, 0px));
+        font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.14em;
+        color: var(--quiet);
+      }
+      .tag-l { left: calc(20px + env(safe-area-inset-left, 0px)); }
+      .tag-r { right: calc(20px + env(safe-area-inset-right, 0px)); }
+
+      .pin-wrap { height: 600svh; }
+      .pin { position: sticky; top: 0; height: 100svh; overflow: hidden; }
+
+      /* the wall — blocks are hung inside a stage inset like a gallery wall;
+         hard edges, flat fills, wall-gaps instead of outlines */
+      .stage { position: absolute; inset: 0; z-index: 1; }
+      .bk {
+        position: absolute;
+        will-change: transform;
+      }
+
+      /* the wall label — one placard, museum tombstone voice, the only door */
+      .plcs {
+        position: absolute; z-index: 3;
+        left: calc(20px + env(safe-area-inset-left, 0px));
+        bottom: calc(9svh + env(safe-area-inset-bottom, 0px));
+        max-width: min(400px, 78vw);
+      }
+      /* hidden placards stay FOCUSABLE (opacity, never visibility) — tabbing
+         to a door reveals its placard and walks the scrub to its room */
+      .plc {
+        position: absolute; left: 0; bottom: 0; width: max-content; max-width: min(400px, 78vw);
+        opacity: 0; pointer-events: none; translate: 0 8px;
+        transition: opacity 320ms cubic-bezier(0.19, 1, 0.22, 1),
+                    translate 320ms cubic-bezier(0.19, 1, 0.22, 1);
+      }
+      .plc.on {
+        opacity: 1; pointer-events: auto; translate: 0 0; position: relative;
+        transition: opacity 420ms cubic-bezier(0.19, 1, 0.22, 1) 120ms,
+                    translate 420ms cubic-bezier(0.19, 1, 0.22, 1) 120ms;
+      }
+      .plc:focus-within { opacity: 1; pointer-events: auto; translate: 0 0; }
+      /* while a hidden door holds focus, the seated placard yields — two
+         labels must never superimpose during the walk to the focused room */
+      .plcs:focus-within .plc.on:not(:focus-within) { opacity: 0; }
+      .p-artist { font-weight: 700; font-size: 15px; margin-bottom: 6px; }
+      .p-title { font-weight: 500; font-size: 15px; line-height: 1.5; }
+      .p-no { font-family: 'Space Mono', monospace; font-size: 12px; }
+      .p-med {
+        font-family: 'Space Mono', monospace; font-size: 11px; line-height: 1.7;
+        color: var(--quiet); margin-top: 4px;
+      }
+      .p-go {
+        display: inline-block; margin-top: 12px; padding: 12px 8px; margin-left: -8px;
+        font-weight: 700; font-size: clamp(22px, 3vw, 32px); line-height: 1;
+        transition: translate 200ms cubic-bezier(0.19, 1, 0.22, 1);
+      }
+      .p-go:active { translate: 2px 0; }
+      .p-go:focus-visible { outline: 2px solid var(--ink); outline-offset: 4px; }
+      @media (hover: hover) and (pointer: fine) {
+        .p-go:hover { translate: 8px 0; }
+        .p-go:hover::after { content: ""; display: block; height: 3px; margin-top: 2px; background: var(--org); }
+      }
+      .shh {
+        position: absolute; left: 0; bottom: -30px; width: max-content;
+        font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.08em;
+        color: var(--quiet); opacity: 0;
+        transition: opacity 300ms cubic-bezier(0.19, 1, 0.22, 1);
+      }
+      .shh.on { opacity: 1; }
+
+      .cue {
+        position: absolute; z-index: 3; bottom: calc(3.2svh + env(safe-area-inset-bottom, 0px));
+        left: 50%; translate: -50% 0;
+        font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 0.22em;
+        color: var(--quiet);
+        transition: opacity 400ms ease;
+      }
+      .cue.off { opacity: 0; }
+
+      /* the sheet — the colophon bench rises over the bottom of the last
+         room while the collection rests on the rack above it */
+      .info {
+        min-height: 58svh; margin-top: -58svh; position: relative; z-index: 5;
+        background: var(--sheet); border-top: 1.5px solid var(--ink);
+        display: grid; align-content: space-between; gap: 5svh;
+        padding: 5svh 5vw calc(4svh + env(safe-area-inset-bottom, 0px));
+        will-change: transform;
+      }
+      .i-cols {
+        display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px;
+        padding-right: clamp(100px, 24vw, 240px);
+        font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: 0.04em; line-height: 1.9;
+      }
+      @media (max-width: 640px) { .i-cols { grid-template-columns: 1fr; padding-right: 0; } }
+      .lbl { display: block; color: var(--quiet); margin-bottom: 6px; }
+      .soon { color: var(--quiet); }
+      .i-meta {
+        display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap;
+        border-top: 1px solid rgba(20,19,16,0.25); padding-top: 14px;
+        font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.05em;
+        color: var(--quiet);
+      }
+      .i-meta a { color: var(--ink); }
+      @media (hover: hover) and (pointer: fine) {
+        .info a:hover { text-decoration: underline; text-underline-offset: 4px; }
+      }
+      .i-cols a { display: inline-block; padding: 3px 0; }
+
+      /* no-JS / reduced motion: the show holds still — composition 0 seated,
+         every placard readable, plain travel. relative, NOT static: the
+         stage children need their containing block. */
+      @media (prefers-reduced-motion: reduce) {
+        /* the still show: seated composition, then a wall directory IN FLOW
+           below it — never clipped, scrollable on any viewport. relative,
+           NOT static: the stage children need their containing block. */
+        .pin-wrap { height: auto; }
+        .pin { position: relative; height: auto; overflow: visible; }
+        .stage { position: relative; inset: auto; height: 100svh; }
+        .plc { position: relative; opacity: 1; pointer-events: auto; translate: 0 0; transition: none; margin-top: 18px; }
+        .plc[data-seat="0"] { margin-top: 0; }
+        .plcs {
+          position: relative; left: auto; bottom: auto;
+          margin: 28px 20px 44px;
+          background: var(--paper); border: 1px solid rgba(20,19,16,0.25);
+          padding: 18px 22px 22px;
+        }
+        .p-go { transition: none; }
+        .p-go:active { translate: 0 0; }
+        .cue { display: none; }
+        .info { margin-top: 0; min-height: 0; }
+        .shh { display: none; }
+      }
+    </style>
+
+    <script is:inline type="module">
+      import { autoReveal } from '/mv/curtain.js';
+      autoReveal();
+      import('/mv/ring.js');
+    </script>
+
+    <script is:inline set:html={`window.__KF=${KF_JSON};`} />
+
+    <script is:inline>
+      (function () {
+        'use strict';
+        var reduce = false;
+        try { reduce = matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+
+        var KF = window.__KF;
+        var HUES = ['#E8442E', '#C7356B', '#6B4C9A', '#2E5EA8', '#1F8A70', '#E3B71F', '#141414'];
+        var DOT = '#FF5A1F';
+        /* no two blocks in one letter share a hue; [6,9,11] is the arch trio
+           in the self-portrait — same rule, or the arch fuses into a pipe */
+        var FAM = [[0, 1], [2, 3, 4], [5, 6, 7, 8], [9, 10, 11], [6, 9, 11]];
+
+        var stage = document.getElementById('stage');
+        var blocks = Array.prototype.slice.call(stage.children);
+        var N = blocks.length;
+
+        /* ── chance operations: this visit's hang ─────────────────────────
+           fixed grammar (geometry, palette, families), random assignment —
+           the Kelly rule. The wall-label number is the seed. */
+        var seed = Math.floor(100 + Math.random() * 900);
+        var rng = (function (s) {
+          return function () { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; };
+        })(seed * 2654435761 >>> 0);
+        function shuffle(a) {
+          for (var i = a.length - 1; i > 0; i--) {
+            var j = Math.floor(rng() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t;
+          }
+          return a;
+        }
+        var colors = (function () {
+          for (var tries = 0; tries < 60; tries++) {
+            var pool = shuffle([0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5]);
+            var ok = FAM.every(function (fam) {
+              var seen = {};
+              return fam.every(function (b) {
+                if (seen[pool[b]]) return false;
+                seen[pool[b]] = 1; return true;
+              });
+            });
+            /* block 3 is the portrait's head — cadmium there fights the
+               orange eye-dot */
+            if (ok && pool[3] !== 0) return pool;
+          }
+          return [0, 3, 4, 5, 6, 1, 2, 0, 3, 5, 4, 1];
+        })();
+        for (var ci = 0; ci < 12; ci++) blocks[ci].style.background = HUES[colors[ci]];
+        blocks[12].style.background = DOT;
+        Array.prototype.forEach.call(document.querySelectorAll('.p-no'), function (el) {
+          el.textContent = 'no. ' + seed;
+        });
+
+        if (reduce) return; /* the show holds still */
+
+        /* ── geometry ─────────────────────────────────────────────────────
+           layouts resolve to px against the pin's layout box (cached; the
+           URL bar can't drift it). Portrait swaps in KF[k].m overrides. */
+        var wrap = document.getElementById('pinWrap');
+        var pin = wrap.firstElementChild;
+        var plcs = Array.prototype.slice.call(document.querySelectorAll('.plc'));
+        var cue = document.querySelector('.cue');
+        var info = document.getElementById('mv-info');
+        var W = 0, H = 0, wrapTop = 0, S = 1, lastW = innerWidth;
+        var portrait = false;
+
+        /* per-seat resolved layouts: [x, y, w, h, rot, r1..r4] in px */
+        var L = [];
+        function resolve() {
+          W = pin.clientWidth; H = pin.clientHeight;
+          portrait = W / H < 0.9;
+          L = KF.map(function (kf) {
+            var src = portrait && kf.m ? kf.m : kf.b;
+            return src.map(function (g, i) {
+              var x = g[0] * W / 100, y = g[1] * H / 100;
+              var w = g[2] * W / 100, h = g[3] * H / 100;
+              if (i === 12) h = w; /* the period is a true circle */
+              var rmax = Math.min(w, h) / 2;
+              return [x, y, w, h, g[4], g[5] * rmax, g[6] * rmax, g[7] * rmax, g[8] * rmax];
+            });
+          });
+        }
+
+        /* ── choreography ────────────────────────────────────────────────
+           six seats, five morphs. seats DWELL (a wheel flick can't blow
+           through a room); morphs stagger per block — the crew rehangs one
+           piece at a time. cubic-out only; flat geometry never bounces. */
+        var SEAT = 0.085, MORPH = 0.0715; /* 6 seats + 5 morphs + rack dwell tail */
+        var STEP = SEAT + MORPH;          /* seat k starts at k*STEP */
+        function ease(t) { return 1 - Math.pow(1 - t, 3); }
+        var ORDER = []; /* per-morph block stagger order, seeded by the visit */
+        for (var m = 0; m < 5; m++) {
+          ORDER.push(shuffle([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]));
+        }
+        var SPREAD = 0.42; /* each block's window is (1-SPREAD) of the morph */
+
+        var bump = new Array(N).fill(0);  /* bumped-frame clocks (ms left) */
+        var bAmp = new Array(N).fill(0);
+
+        var cur = 0, target = 0, raf = null, last = 0;
+        var intro = reduce ? 1 : 0;       /* 0→1 assembly clock */
+        var introT0 = 0, introOn = false;
+
+        var lastApplied = -1;
+        function apply(p, dt) {
+          var seat = Math.min(5, Math.floor(p / STEP));
+          var local = p - seat * STEP;
+          var t = local <= SEAT || seat === 5 ? 0 : (local - SEAT) / MORPH;
+          var bumping = false;
+          for (var bi = 0; bi < N; bi++) if (bump[bi] > 0) { bumping = true; break; }
+          if (p !== lastApplied || t > 0 || intro < 1 || bumping) {
+            lastApplied = p;
+            var A = L[seat], B = L[Math.min(5, seat + 1)];
+            var ord = ORDER[Math.min(4, seat)];
+            for (var i = 0; i < N; i++) {
+              var k = ord.indexOf(i) / (N - 1);
+              var u = t <= 0 ? 0 : ease(Math.min(1, Math.max(0, (t - k * SPREAD) / (1 - SPREAD))));
+              var a = A[i], b = B[i];
+              var x = a[0] + (b[0] - a[0]) * u, y = a[1] + (b[1] - a[1]) * u;
+              var w = a[2] + (b[2] - a[2]) * u, h = a[3] + (b[3] - a[3]) * u;
+              var r = a[4] + (b[4] - a[4]) * u;
+              /* assembly: each piece carried in from its nearest edge
+                 (stagger + window must fit inside intro=1: 12·0.038+0.45<1) */
+              if (intro < 1) {
+                var d = Math.min(1, Math.max(0, (intro - i * 0.038) / 0.45));
+                var e = ease(d);
+                var offX = (x + w / 2 < W / 2 ? -(x + w * 1.6) : W - x + w * 0.6) * (1 - e);
+                x += offX; r += (1 - e) * 6;
+              }
+              /* a bumped frame swings and settles — an event, then stillness */
+              if (bump[i] > 0) {
+                bump[i] -= dt;
+                var bt = 1 - Math.max(0, bump[i]) / 700;
+                r += Math.sin(bt * 12.5) * (1 - bt) * bAmp[i];
+                if (bump[i] <= 0) bump[i] = 0;
+              }
+              var st = blocks[i].style;
+              st.left = x.toFixed(1) + 'px';
+              st.top = y.toFixed(1) + 'px';
+              st.width = w.toFixed(1) + 'px';
+              st.height = h.toFixed(1) + 'px';
+              st.transform = r ? 'rotate(' + r.toFixed(2) + 'deg)' : '';
+              st.borderRadius =
+                (a[5] + (b[5] - a[5]) * u).toFixed(1) + 'px ' +
+                (a[6] + (b[6] - a[6]) * u).toFixed(1) + 'px ' +
+                (a[7] + (b[7] - a[7]) * u).toFixed(1) + 'px ' +
+                (a[8] + (b[8] - a[8]) * u).toFixed(1) + 'px';
+            }
+            /* the placard follows the room; it steps at the morph midpoint */
+            var room = t > 0.5 ? seat + 1 : seat;
+            for (var q = 0; q < plcs.length; q++) plcs[q].classList.toggle('on', q === room && room < 5);
+            cue.classList.toggle('off', p > 0.04);
+          }
+          /* the sheet rides the same clock — its native-scroll lead is
+             cancelled so a fast flick can never desync bench and rack */
+          info.style.transform = 'translateY(' + ((target - cur) * S).toFixed(2) + 'px)';
+          return bumping;
+        }
+
+        /* one damped clock (k=0.14 @60fps, dt-clamped, exact final frame) */
+        function remeasure() {
+          var r = wrap.getBoundingClientRect();
+          wrapTop = r.top + (scrollY || 0);
+          S = Math.max(1, r.height - pin.clientHeight);
+          resolve();
+          measure();
+        }
+        function measure() { target = Math.min(1, Math.max(0, ((scrollY || 0) - wrapTop) / S)); }
+        function tick(now) {
+          var dt = last ? Math.min(50, now - last) : 16.7;
+          last = now;
+          if (introOn && intro < 1) {
+            if (!introT0) introT0 = now; /* the clock starts on the first real frame */
+            intro = Math.min(1, (now - introT0) / 1600);
+            if (target > 0.02) intro = 1; /* the visitor is walking — hang it */
+          }
+          cur += (target - cur) * (1 - Math.pow(0.86, dt / 16.7));
+          var settled = Math.abs(target - cur) < 0.0006;
+          if (settled) cur = target;
+          var busy = apply(cur, dt) || intro < 1;
+          if (settled && !busy) { raf = null; last = 0; return; }
+          raf = requestAnimationFrame(tick);
+        }
+        var frozen = false; /* QA force-seat: the engine holds the pose */
+        function kick() { if (frozen) return; measure(); if (!raf) raf = requestAnimationFrame(tick); }
+        addEventListener('scroll', kick, { passive: true });
+        addEventListener('resize', function () {
+          remeasure();
+          /* layouts are resolved to px — EVERY resize must repaint, even
+             height-only ones (URL bar, window drag) where the follower is
+             already settled, or blocks keep the old viewport's geometry
+             (and a portrait/landscape flip could strand the wrong layout) */
+          lastApplied = -1;
+          if (innerWidth !== lastW) { lastW = innerWidth; cur = target; last = 0; }
+          kick();
+        }, { passive: true });
+
+        /* keyboard: tabbing to a door walks you to its room */
+        document.getElementById('plcs').addEventListener('focusin', function (e) {
+          var plc = e.target.closest('.plc');
+          if (!plc) return;
+          var k = +plc.getAttribute('data-seat');
+          measure();
+          var want = (k * STEP + SEAT * 0.5) / 1;
+          if (Math.abs(target - want) > MORPH) scrollTo({ top: wrapTop + S * want, behavior: 'smooth' });
+        });
+
+        /* please don't touch the artwork */
+        var shh = document.getElementById('shh'), shhT = null;
+        stage.style.pointerEvents = 'none';
+        blocks.forEach(function (b, i) {
+          b.style.pointerEvents = 'auto';
+          /* a TAP bumps the frame; a scroll flick that merely starts on a
+             block must not (house slop: 8px mouse / 14px touch; the pan
+             gesture also fires pointercancel) */
+          var px = 0, py = 0, live = false;
+          b.addEventListener('pointerdown', function (e) { px = e.clientX; py = e.clientY; live = true; });
+          b.addEventListener('pointercancel', function () { live = false; });
+          b.addEventListener('pointerup', function (e) {
+            if (!live) return;
+            live = false;
+            var slop = e.pointerType === 'touch' ? 14 : 8;
+            if (Math.abs(e.clientX - px) > slop || Math.abs(e.clientY - py) > slop) return;
+            if (bump[i] > 0) return;
+            bump[i] = 700; bAmp[i] = 1.5 + rng() * 1.2;
+            shh.classList.add('on');
+            clearTimeout(shhT);
+            shhT = setTimeout(function () { shh.classList.remove('on'); }, 2400);
+            kick();
+          });
+        });
+
+        remeasure();
+        cur = target;
+        lastApplied = -1;
+
+        /* staging/QA hook: /6/?hang=K force-seats room K (or a raw 0..1
+           progress) with no intro — lets a headless renderer photograph any
+           wall. Harmless in production; no UI reaches it. */
+        var dbg = /[?&]hang=([\d.]+)/.exec(location.search);
+        var v = dbg ? parseFloat(dbg[1]) : NaN;
+        if (isFinite(v)) { /* NaN ('hang=.') must not brick the engine */
+          intro = 1; frozen = true;
+          cur = target = Math.min(1, v >= 1 && v <= 5 ? v * STEP + SEAT * 0.5 : Math.max(0, v));
+          lastApplied = -1;
+          apply(cur, 16.7); /* no scroll — the pin photographs at rest */
+          /* room 5's photo includes the risen sheet (normally native flow) */
+          if (v === 5) info.style.transform = 'translateY(' + (-5 * H) + 'px)';
+        } else if (target < 0.02) {
+          /* the hang: pieces carried in one at a time, then stillness —
+             but only once the wall can actually be seen. A tab opened in
+             the background gets the show already seated (hidden documents
+             never get animation frames; an empty wall would just freeze). */
+          var arm = function () {
+            introOn = true; introT0 = 0; /* clock starts on the first frame */
+            setTimeout(function () { if (!raf) raf = requestAnimationFrame(tick); }, 420);
+            /* failsafe (curtain.js doctrine): if frames stall — throttled
+               tab, hung clock — the show seats itself on wall time */
+            setTimeout(function () {
+              if (intro < 1) { intro = 1; lastApplied = -1; apply(cur, 16.7); }
+            }, 2600);
+          };
+          if (document.hidden) {
+            intro = 1;
+            apply(cur, 16.7);
+            document.addEventListener('visibilitychange', function () {
+              if (document.hidden || intro < 1 || introOn) return;
+              intro = 0; lastApplied = -1;
+              apply(cur, 16.7);
+              arm();
+            }, { once: true });
+          } else {
+            intro = 0;
+            apply(cur, 16.7); /* offstage — the wall starts bare */
+            arm();
+          }
+        } else {
+          intro = 1;
+          apply(cur, 16.7);
+        }
+      })();
+    </script>
+    <script is:inline defer src="/mv/ticker.js"></script>
+  </body>
+</html>
