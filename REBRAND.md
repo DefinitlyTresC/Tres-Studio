@@ -1,5 +1,30 @@
 # tres.studio — Brief V3: the Multiverse
 
+## 🚀 LIVE — CUTOVER SHIPPED 2026-07-03 (Tres's explicit go: "send it")
+
+**Production `main` fast-forwarded to `astro-migration` (0274a31) and pushed;
+tres.studio now serves the SIX-universe multiverse.** Site 5 approved in the
+same go ("site 5 is done everything is done"). Site 6 "the hang" shipped with
+it: a gallery — 13 pigment blocks (TRES letterforms + the orange period-dot)
+rehung by scroll through six compositions, chance-colored per visit (after
+Kelly 1951; the wall-label no. is the visit seed), Schibsted Grotesk + Space
+Mono, site-4 engine canon. Built in ISOLATION at
+`E:\Site\Web\V1\tres-06-staging` (its HOOKUP.md = full QA record; 21-agent
+audit, 11 confirmed findings fixed), then hooked up: registry entry, roll
+COUNT=6. **roll.js upgrade:** the front door never serves the same universe
+twice in a row (mv_last functional cookie, 30d). Verified LIVE: all 6
+universes appear across fresh visits; 10 cookie'd reloads → zero consecutive
+repeats; `?u=6` forces; /6/* deep links 200.
+
+**Cutover leftovers (open):** counter reset (Netlify Blobs — untouched);
+every multiverse page still `noindex` → tres.studio is now invisible to
+search until the meta/OG+SEO pass (needs Tres's call); Lighthouse-vs-baseline
+never run; `/resume.pdf` + `/portfolio.pdf` missing from `public/` (links 404
+in prod — ASSETS-NEEDED); Cloudinary 404 on
+`architecture/z07/construction/clip.mp4` (sheet content, all universes' z07
+gallery); site-6 scroll-FEEL eyeball in visible Chrome still recommended
+(geometry/logic verified, pacing not humanly watched); lab rebuild queued.
+
 ## ✅ SITE 5 PASS BUILT — 2026-07-03, awaiting Tres review
 
 **The process (Tres's contract, unchanged):** one site at a time; finish →
