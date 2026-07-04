@@ -16,6 +16,19 @@ twice in a row (mv_last functional cookie, 30d). Verified LIVE: all 6
 universes appear across fresh visits; 10 cookie'd reloads → zero consecutive
 repeats; `?u=6` forces; /6/* deep links 200.
 
+**Full-site sweep (2026-07-03, post-cutover, cc92c54):** every page of all
+six universes + lab + privacy DOM-measured at 360/390/768/1280/1680 for
+overlap/overflow/broken assets, zero console errors. Fixed: the six-dot map
+was sitting on footer text in five places (ring.js metrics tightened to the
+five-dot footprint; site 5 + /lab phone meta rows and sites 1/2/3/6 phone
+columns now clear the bottom map strip; site 1 + /lab desktop column cap
+240→320px). **Analytics restored on all 31 multiverse pages** (Umami +
+host-guarded Clarity — production had recorded nothing since cutover).
+Content flag for Tres: `architecture/z07/construction/05-08.jpg` + `clip.mp4`
+404 on Cloudinary — the sheet lists media the folder doesn't have; z07's
+gallery shows dead plates on every universe until uploaded or removed from
+the sheet.
+
 **Cutover leftovers (open):** counter reset (Netlify Blobs — untouched);
 every multiverse page still `noindex` → tres.studio is now invisible to
 search until the meta/OG+SEO pass (needs Tres's call); Lighthouse-vs-baseline
