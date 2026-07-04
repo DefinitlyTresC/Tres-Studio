@@ -24,6 +24,19 @@ import { MV_CLIENT } from '../lib/multiverse';
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <script is:inline set:html={MV_CLIENT(0)} />
+    <!-- Umami analytics — data-domains scopes tracking to the real site so
+         previews/branch URLs don't pollute stats. Clarity below is guarded
+         to the production host for the same reason. -->
+    <script is:inline defer src="https://cloud.umami.is/script.js" data-website-id="96e73988-106a-415e-bf80-5e10ffaec0dc" data-domains="tres.studio"></script>
+    <script is:inline type="text/javascript">
+      if (location.hostname === 'tres.studio') {
+        (function(c,l,a,r,i,t,y){
+            c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+            t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+            y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+        })(window, document, "clarity", "script", "xang6oq7f9");
+      }
+    </script>
     <script is:inline>
       /* THE SKIN ROLL — runs before paint. Picks one of the five universes'
          identities, never the same one twice in a row (per tab). */
@@ -463,7 +476,8 @@ import { MV_CLIENT } from '../lib/multiverse';
       }
       .i-cols {
         display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px;
-        padding-right: clamp(100px, 24vw, 240px);
+        /* 320px cap: room for the six-dot map at desktop (2026-07-03) */
+        padding-right: clamp(100px, 24vw, 320px);
         font-family: var(--mono); font-size: 12px; letter-spacing: 0.05em;
         text-transform: var(--tt-mono); line-height: 1.9;
       }
@@ -477,6 +491,12 @@ import { MV_CLIENT } from '../lib/multiverse';
       }
       @media (hover: hover) and (pointer: fine) {
         .info a:hover { text-decoration: underline; text-underline-offset: 4px; }
+      }
+      @media (max-width: 700px) {
+        /* the six-dot map drops to bottom:104px on phones (ring.js narrow
+           mode) — the meta row clears its strip (measured over the © line
+           and the ticker at 390px, 2026-07-03) */
+        .info { padding-bottom: 168px; }
       }
 
       /* skin 5 only: the marquee rides the floor */

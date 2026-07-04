@@ -157,6 +157,19 @@ const KF_JSON = JSON.stringify(KF);
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
     <script is:inline set:html={MV_CLIENT(6)} />
+    <!-- Umami analytics — data-domains scopes tracking to the real site so
+         previews/branch URLs don't pollute stats. Clarity below is guarded
+         to the production host for the same reason. -->
+    <script is:inline defer src="https://cloud.umami.is/script.js" data-website-id="96e73988-106a-415e-bf80-5e10ffaec0dc" data-domains="tres.studio"></script>
+    <script is:inline type="text/javascript">
+      if (location.hostname === 'tres.studio') {
+        (function(c,l,a,r,i,t,y){
+            c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+            t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+            y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+        })(window, document, "clarity", "script", "xang6oq7f9");
+      }
+    </script>
   </head>
   <body>
     <span class="tag tag-l" aria-hidden="true">tres carter</span>
@@ -370,6 +383,10 @@ const KF_JSON = JSON.stringify(KF);
         font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: 0.04em; line-height: 1.9;
       }
       @media (max-width: 640px) { .i-cols { grid-template-columns: 1fr; padding-right: 0; } }
+      /* phones: the six-dot map sits at bottom:104px (ring.js narrow mode) —
+         the columns' last line must clear its strip (measured grazing
+         "plugins — soon" at 360x668, 2026-07-03) */
+      @media (max-width: 700px) { .i-cols { padding-bottom: 56px; } }
       .lbl { display: block; color: var(--quiet); margin-bottom: 6px; }
       .soon { color: var(--quiet); }
       .i-meta {

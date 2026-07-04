@@ -48,7 +48,10 @@ import { cover } from '/mv/curtain.js';
       (narrow ? 'top:auto;bottom:104px;transform:none;' : 'top:50%;transform:translateY(-50%);') +
       /* pointer-events surgical: the row box can overlap footer links on
          small phones — only the dots themselves may swallow taps */
-      'display:flex;gap:clamp(14px,2vw,26px);z-index:6;pointer-events:none';
+      /* six dots must fit the footprint sites reserved for five — measured
+         2026-07-03: at the old metrics dots 01-02 sat on the "Sections"
+         label on sites 1/2/3 at 1280px */
+      'display:flex;gap:clamp(12px,1.5vw,18px);z-index:6;pointer-events:none';
 
     MV.sites.forEach((s) => {
       const isCur = s.id === MV.current;
@@ -56,7 +59,7 @@ import { cover } from '/mv/curtain.js';
       if (!isCur) b.href = '/' + s.id + '/';
       b.style.cssText =
         'display:flex;flex-direction:column;align-items:center;gap:8px;' +
-        'min-width:34px;padding:6px 2px;text-decoration:none;cursor:' + (isCur ? 'default' : 'pointer') + ';' +
+        'min-width:28px;padding:6px 2px;text-decoration:none;cursor:' + (isCur ? 'default' : 'pointer') + ';' +
         'pointer-events:auto;' +
         'transition:transform 180ms cubic-bezier(0.23,1,0.32,1)';
       const dot = document.createElement('span');
