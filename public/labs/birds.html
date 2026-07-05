@@ -3,26 +3,43 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <title>Birds — Tres Carter</title>
+  <title>birds — tres carter</title>
   <link rel="icon" href="../favicon/favicon.ico" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+
+  <!-- Umami analytics — data-domains scopes tracking to the real site so
+       previews/branch URLs don't pollute stats. Clarity below is guarded
+       to the production host for the same reason. -->
+  <script defer src="https://cloud.umami.is/script.js" data-website-id="96e73988-106a-415e-bf80-5e10ffaec0dc" data-domains="tres.studio"></script>
+  <script type="text/javascript">
+    if (location.hostname === 'tres.studio') {
+      (function(c,l,a,r,i,t,y){
+          c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+          t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+          y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+      })(window, document, "clarity", "script", "xang6oq7f9");
+    }
+  </script>
+
   <style>
-    /* ─────────── BIRDS — matches tres.studio Lab aesthetic ─────────── */
+    /* ───────────────────────────────────────────────────────────
+       BIRDS — a field study at dusk.
+       Lab rebuild template: Space Mono chrome, one yellow accent,
+       the scene is the page.
+       ─────────────────────────────────────────────────────────── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
       --white:     #FFFFFF;
-      --black:     #0A0A0A;
+      --black:     #07080B;
       --yellow:    #F5CB5C;
-      --ink-faint: rgba(255, 255, 255, 0.35);
-      --ink-soft:  rgba(255, 255, 255, 0.55);
-      --line:     rgba(255, 255, 255, 0.12);
+      --ink-faint: rgba(255, 255, 255, 0.38);
+      --ink-soft:  rgba(255, 255, 255, 0.6);
+      --line:      rgba(255, 255, 255, 0.14);
 
-      --display: 'Bebas Neue', sans-serif;
-      --body:    'DM Sans', system-ui, sans-serif;
-
+      --mono: 'Space Mono', ui-monospace, monospace;
       --pad: clamp(1.5rem, 4vw, 3rem);
       --ease: cubic-bezier(.2, .8, .2, 1);
     }
@@ -30,8 +47,7 @@
     html, body {
       background: var(--black);
       color: var(--white);
-      font-family: var(--body);
-      font-weight: 300;
+      font-family: var(--mono);
       font-size: 15px;
       height: 100%;
       width: 100%;
@@ -44,19 +60,15 @@
     }
 
     a { color: inherit; text-decoration: none; }
-    button { font: inherit; color: inherit; background: none; border: none; cursor: pointer; -webkit-tap-highlight-color: transparent; }
-
-    /* ─── Dot grid background ─── */
-    .dot-grid {
-      position: fixed;
-      inset: -40px;
-      z-index: 0;
-      pointer-events: none;
-      background-image: radial-gradient(circle, rgba(255, 255, 255, 0.06) 1px, transparent 1.4px);
-      background-size: 32px 32px;
+    button {
+      font: inherit; color: inherit; background: none; border: none;
+      cursor: pointer; -webkit-tap-highlight-color: transparent;
+    }
+    a:focus-visible, button:focus-visible {
+      outline: 1px solid var(--yellow);
+      outline-offset: 3px;
     }
 
-    /* ─── Canvas ─── */
     canvas#sky {
       position: fixed;
       inset: 0;
@@ -67,7 +79,7 @@
       display: block;
     }
 
-    /* ─── Nav (same as lab.html) ─── */
+    /* ─── Chrome ─── */
     .nav {
       position: fixed;
       top: 0; left: 0; right: 0;
@@ -75,221 +87,248 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 1.5rem var(--pad);
+      padding: calc(1.2rem + env(safe-area-inset-top, 0px)) var(--pad) 1.2rem;
       pointer-events: none;
-      color: var(--white);
     }
     .nav > * { pointer-events: auto; }
     .nav .mark {
-      font-family: var(--display);
-      font-size: 0.95rem;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      transition: opacity 0.25s;
+      font-weight: 700;
+      font-size: 0.7rem;
+      letter-spacing: 0.14em;
+      transition: opacity 0.25s var(--ease);
     }
     .nav .mark .y { color: var(--yellow); }
-    .nav .mark:hover { opacity: 0.7; }
-    .nav-links { display: flex; gap: 1.8rem; }
-    .nav-links a {
-      font-size: 0.6rem;
-      letter-spacing: 0.24em;
-      text-transform: uppercase;
-      font-weight: 400;
-      transition: opacity 0.25s;
+    .nav .back {
+      font-size: 0.62rem;
+      letter-spacing: 0.14em;
+      color: var(--ink-soft);
+      padding: 0.5rem 0;
+      transition: color 0.25s var(--ease);
     }
-    .nav-links a:hover { opacity: 0.55; }
 
-    /* ─── Corner mark (same position/style as Lab — Drift) ─── */
     .mark-bottom {
       position: fixed;
-      bottom: 2rem;
+      bottom: calc(1.6rem + env(safe-area-inset-bottom, 0px));
       left: var(--pad);
-      font-family: var(--display);
-      font-size: 1rem;
-      letter-spacing: 0.24em;
-      color: var(--yellow);
+      font-weight: 700;
+      font-size: 0.85rem;
+      letter-spacing: 0.14em;
       z-index: 5;
       pointer-events: none;
     }
+    .mark-bottom .y { color: var(--yellow); }
 
     .hint {
       position: fixed;
-      bottom: 2rem;
+      bottom: calc(1.7rem + env(safe-area-inset-bottom, 0px));
       right: var(--pad);
-      font-size: 0.55rem;
-      letter-spacing: 0.3em;
-      text-transform: uppercase;
+      font-size: 0.56rem;
+      letter-spacing: 0.16em;
       color: var(--ink-faint);
       z-index: 5;
       pointer-events: none;
-      transition: opacity 0.6s var(--ease);
+      transition: opacity 0.8s var(--ease);
     }
     .hint.fade { opacity: 0; }
 
-    /* ─── Mode switcher ─── */
+    /* ─── Controls ─── */
     .modes {
       position: fixed;
-      top: 5rem;
+      top: 50%;
       right: var(--pad);
+      transform: translateY(-50%);
       display: flex;
       flex-direction: column;
-      gap: 0.5rem;
+      align-items: flex-end;
+      gap: 0.35rem;
       z-index: 10;
     }
     .mode-btn {
-      font-family: var(--body);
-      font-size: 0.55rem;
-      letter-spacing: 0.3em;
-      text-transform: uppercase;
-      color: var(--ink-soft);
-      padding: 0.7rem 1.3rem;
-      border: 1px solid var(--line);
-      background: rgba(10, 10, 10, 0.55);
-      -webkit-backdrop-filter: blur(8px);
-      backdrop-filter: blur(8px);
-      transition: color 0.3s, border-color 0.3s, background 0.3s, transform 0.4s var(--ease);
-      min-width: 130px;
-      text-align: left;
+      font-size: 0.62rem;
+      letter-spacing: 0.1em;
+      color: var(--ink-faint);
+      padding: 0.55rem 0.2rem;
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+      transition: color 0.3s var(--ease);
     }
-    .mode-btn:hover {
-      color: var(--white);
-      border-color: rgba(255, 255, 255, 0.28);
-    }
-    .mode-btn.active {
-      background: var(--yellow);
-      color: var(--black);
-      border-color: var(--yellow);
+    .mode-btn.active { color: var(--yellow); }
+    .mode-btn.hawk-live { color: var(--yellow); }
+
+    @media (hover: hover) {
+      .nav .mark:hover { opacity: 0.65; }
+      .nav .back:hover { color: var(--white); }
+      .mode-btn:hover { color: var(--white); }
+      .mode-btn.active:hover, .mode-btn.hawk-live:hover { color: var(--yellow); }
     }
 
-    /* ─── Mobile layout ─── */
+    /* ─── Mobile ─── */
     @media (max-width: 700px) {
-      .nav { padding: 1rem var(--pad); }
       .modes {
-        flex-direction: row;
         top: auto;
-        bottom: 4rem;
-        left: 0;
+        bottom: calc(3.6rem + env(safe-area-inset-bottom, 0px));
         right: 0;
-        padding: 0 0.6rem;
+        left: 0;
+        transform: none;
+        flex-direction: row;
+        align-items: center;
         justify-content: center;
-        gap: 0.35rem;
+        gap: 0.2rem;
       }
       .mode-btn {
-        min-width: 0;
-        flex: 1;
-        max-width: 90px;
-        padding: 0.6rem 0.4rem;
-        text-align: center;
-        font-size: 0.5rem;
-        letter-spacing: 0.2em;
+        padding: 0.55rem 0.55rem;
+        font-size: 0.56rem;
       }
-      .mark-bottom {
-        bottom: 1rem;
-        font-size: 0.85rem;
-        letter-spacing: 0.2em;
-      }
-      .hint {
-        bottom: 1rem;
-        font-size: 0.45rem;
-        letter-spacing: 0.25em;
-      }
+      .mark-bottom { font-size: 0.75rem; }
+      .hint { max-width: 40vw; text-align: right; }
+    }
+
+    /* ─── Reduced motion: chrome settles instantly; the sim itself
+           calms down in JS (slower flock, no gusts, short trails). ─── */
+    @media (prefers-reduced-motion: reduce) {
+      .nav .mark, .nav .back, .mode-btn, .hint { transition: none; }
+    }
+
+    .sr {
+      position: absolute;
+      width: 1px; height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      white-space: nowrap;
     }
   </style>
 </head>
 <body>
 
-<div class="dot-grid"></div>
+<canvas id="sky" aria-hidden="true"></canvas>
+
+<p class="sr">A flock of birds at dusk. Hold the pointer to gather them, tap to
+scatter, and use the mode buttons to make them murmur, roost on a wire, ride a
+storm, or flee a hawk.</p>
+<noscript><p style="position:fixed;inset:0;display:grid;place-items:center;">birds needs JavaScript.</p></noscript>
 
 <nav class="nav">
-  <a class="mark" href="../index.html">Tres Carter<span class="y">.</span></a>
-  <div class="nav-links">
-    <a href="../lab.html">← Lab</a>
-  </div>
+  <a class="mark" href="/">tres carter<span class="y">.</span></a>
+  <a class="back" href="/lab">[ &larr; lab ]</a>
 </nav>
 
-<canvas id="sky"></canvas>
-
-<div class="modes" id="modes">
-  <button class="mode-btn active" data-mode="drift">Drift</button>
-  <button class="mode-btn" data-mode="storm">Storm</button>
-  <button class="mode-btn" data-mode="murmur">Murmur</button>
-  <button class="mode-btn" data-mode="scatter">Scatter</button>
+<div class="modes" id="modes" role="group" aria-label="sky states">
+  <button class="mode-btn active" data-mode="murmur" aria-pressed="true">[ murmur ]</button>
+  <button class="mode-btn" data-mode="roost" aria-pressed="false">[ roost ]</button>
+  <button class="mode-btn" data-mode="storm" aria-pressed="false">[ storm ]</button>
+  <button class="mode-btn" id="hawkBtn">[ hawk ]</button>
 </div>
 
-<div class="mark-bottom">Lab — Birds</div>
-<div class="hint" id="hint">touch &amp; hold to gather</div>
+<div class="mark-bottom">birds<span class="y">.</span></div>
+<div class="hint" id="hint">hold to gather &middot; tap to scatter</div>
 
 <script>
 (function () {
   'use strict';
 
-  // ════════════════════════════════════════════════════════
-  // STATE
-  // ════════════════════════════════════════════════════════
+  // ══════════════════════════════════════════════════════════
+  // SETUP
+  // ══════════════════════════════════════════════════════════
   const canvas = document.getElementById('sky');
   const ctx = canvas.getContext('2d', { alpha: false });
   if (!ctx) return;
 
+  const PRM = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const isCoarse = window.matchMedia('(pointer: coarse)').matches;
-  const isSmall  = window.innerWidth < 700;
-  const isMobile = isCoarse || isSmall;
+  const isMobile = isCoarse || window.innerWidth < 700;
 
   let W = window.innerWidth;
   let H = window.innerHeight;
   let DPR = Math.min(2, window.devicePixelRatio || 1);
 
-  // Tuned param set — gets swapped when modes change
-  const P = {
-    count:           isMobile ? 160 : 380,
-    maxSpeed:         95,
-    maxForce:        140,
-    alignW:          1.0,
-    cohesionW:       0.8,
-    separationW:     1.4,
-    viewRadius:       70,
-    sepRadius:        22,
-    trails:          0.18,    // 0 = no trails, 1 = infinite trails (the alpha of the per-frame clear is 1-trails)
-    attractStrength: 1.8,
-    repulse:        false,
-    tint:           [225, 232, 240],
-  };
+  const COUNT = isMobile ? 140 : 320;
+  const CALM  = PRM ? 0.55 : 1;          // global speed damp under reduced motion
 
-  // Each mode is a complete vibe — params + color tint
+  // Palette (canvas side)
+  const C_BIRD  = [222, 229, 238];       // pale slate
+  const C_ROGUE = [245, 203, 92];        // the yellow
+  const C_HAWK  = 'rgba(196, 92, 74, 0.95)';
+  const C_WIRE  = 'rgba(226, 233, 242, 0.30)';
+
+  // ══════════════════════════════════════════════════════════
+  // SKY STATES — each is a complete weather, not just numbers
+  // ══════════════════════════════════════════════════════════
   const MODES = {
-    drift: {
-      maxSpeed: 95,  alignW: 1.0, cohesionW: 0.8, separationW: 1.4,
-      viewRadius: 70, sepRadius: 22, trails: 0.18, attractStrength: 1.6,
-      repulse: false, tint: [225, 232, 240],
+    murmur: {
+      maxSpeed: 118, alignW: 1.6, cohesionW: 0.7, separationW: 1.5,
+      viewR: 84, sepR: 30, fade: 0.3, attract: 1.7, centroidW: 0.16,
+      windX: 7, windY: -2, gust: 14, roostThr: 0.94, roostCap: 16,
+    },
+    roost: {
+      maxSpeed: 96, alignW: 1.0, cohesionW: 0.7, separationW: 1.4,
+      viewR: 72, sepR: 22, fade: 0.4, attract: 1.5, centroidW: 0.15,
+      windX: 4, windY: 0, gust: 8, roostThr: 0.3, roostCap: 999,
     },
     storm: {
-      maxSpeed: 230, alignW: 0.5, cohesionW: 0.3, separationW: 3.0,
-      viewRadius: 55, sepRadius: 28, trails: 0.06, attractStrength: 2.4,
-      repulse: false, tint: [245, 203, 92],
-    },
-    murmur: {
-      maxSpeed: 140, alignW: 2.2, cohesionW: 2.8, separationW: 0.7,
-      viewRadius: 110, sepRadius: 18, trails: 0.16, attractStrength: 2.0,
-      repulse: false, tint: [205, 220, 235],
-    },
-    scatter: {
-      maxSpeed: 200, alignW: 0.6, cohesionW: 0.3, separationW: 2.2,
-      viewRadius: 75, sepRadius: 24, trails: 0.10, attractStrength: 2.6,
-      repulse: true,  tint: [250, 230, 170],
+      maxSpeed: 250, alignW: 0.8, cohesionW: 0.4, separationW: 2.4,
+      viewR: 62, sepR: 26, fade: 0.5, attract: 2.4, centroidW: 0.05,
+      windX: 120, windY: 10, gust: 170, roostThr: 2, roostCap: 0,   // no one roosts in a storm
     },
   };
+  let P = MODES.murmur;
+  let modeName = 'murmur';
 
   function setMode(name) {
-    const m = MODES[name];
-    if (!m) return;
-    for (const k in m) P[k] = m[k];
-    document.querySelectorAll('.mode-btn').forEach(b => {
-      b.classList.toggle('active', b.dataset.mode === name);
+    if (!MODES[name]) return;
+    P = MODES[name];
+    modeName = name;
+    document.querySelectorAll('.mode-btn[data-mode]').forEach(b => {
+      const on = b.dataset.mode === name;
+      b.classList.toggle('active', on);
+      b.setAttribute('aria-pressed', String(on));
     });
+    if (name === 'storm') {
+      // A storm empties the wire — staggered, downwind
+      for (let i = 0; i < birds.length; i++) {
+        const b = birds[i];
+        if (b.state !== FLY) scheduleLaunch(b, Math.random() * 900);
+      }
+    }
   }
 
-  // ════════════════════════════════════════════════════════
-  // CANVAS SIZING
-  // ════════════════════════════════════════════════════════
+  // ══════════════════════════════════════════════════════════
+  // CANVAS + BAKED SKY (gradient, moon disc, seeded grain —
+  // rebuilt on resize only; per-frame trails blit this image)
+  // ══════════════════════════════════════════════════════════
+  const skyCanvas = document.createElement('canvas');
+
+  function bakeSky() {
+    skyCanvas.width  = Math.floor(W * DPR);
+    skyCanvas.height = Math.floor(H * DPR);
+    const s = skyCanvas.getContext('2d');
+    s.setTransform(DPR, 0, 0, DPR, 0, 0);
+
+    const g = s.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, '#06070A');
+    g.addColorStop(1, '#0D1016');
+    s.fillStyle = g;
+    s.fillRect(0, 0, W, H);
+
+    // One enormous flat disc, low and off-center — the moon, matte.
+    s.fillStyle = '#141821';
+    s.beginPath();
+    s.arc(W * 0.64, H * 0.58, Math.min(W, H) * 0.36, 0, Math.PI * 2);
+    s.fill();
+
+    // Seeded grain — deterministic, no shimmer between bakes
+    let seed = 1372;
+    const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+    const n = Math.floor((W * H) / 700);
+    for (let i = 0; i < n; i++) {
+      const x = rnd() * W, y = rnd() * H;
+      s.fillStyle = rnd() > 0.5
+        ? 'rgba(255,255,255,0.035)'
+        : 'rgba(0,0,0,0.05)';
+      s.fillRect(x, y, 1, 1);
+    }
+  }
+
   function resize() {
     DPR = Math.min(2, window.devicePixelRatio || 1);
     W = window.innerWidth;
@@ -299,326 +338,724 @@
     canvas.style.width  = W + 'px';
     canvas.style.height = H + 'px';
     ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-    ctx.fillStyle = '#0A0A0A';
-    ctx.fillRect(0, 0, W, H);
+    bakeSky();
+    ctx.drawImage(skyCanvas, 0, 0, W, H);
+    buildWire();
+    for (let i = 0; i < birds.length; i++) {
+      const b = birds[i];
+      if (b.x > W + 40) b.x = W - 40;
+      if (b.y > H + 40) b.y = H - 40;
+      // birds seated OR mid-approach keep a reachable spot on the new wire
+      if (b.state !== FLY) {
+        b.perchX = Math.max(30, Math.min(W - 30, b.perchX));
+        if (b.state === PERCH) b.x = b.perchX;
+      }
+    }
   }
   window.addEventListener('resize', resize, { passive: true });
   window.addEventListener('orientationchange', () => setTimeout(resize, 200));
-  resize();
 
-  // ════════════════════════════════════════════════════════
-  // MATH
-  // ════════════════════════════════════════════════════════
-  function rand(a, b) { return Math.random() * (b - a) + a; }
+  // ══════════════════════════════════════════════════════════
+  // THE WIRE — a sagging line with spring nodes. Landings and
+  // takeoffs put real bounce into it; waves travel down the line.
+  // ══════════════════════════════════════════════════════════
+  const wire = { nodes: [], x0: 0, dx: 1 };
+  const WIRE_N = 48;
 
-  class Vec2 {
-    constructor(x = 0, y = 0) { this.x = x; this.y = y; }
-    set(x, y) { this.x = x; this.y = y; return this; }
-    copy() { return new Vec2(this.x, this.y); }
-    add(v) { this.x += v.x; this.y += v.y; return this; }
-    sub(v) { this.x -= v.x; this.y -= v.y; return this; }
-    mul(s) { this.x *= s; this.y *= s; return this; }
-    div(s) { this.x /= s; this.y /= s; return this; }
-    len() { return Math.hypot(this.x, this.y); }
-    setLen(l) { const cl = this.len() || 1e-6; this.x = this.x / cl * l; this.y = this.y / cl * l; return this; }
-    limit(max) {
-      const l2 = this.x * this.x + this.y * this.y;
-      const m2 = max * max;
-      if (l2 > m2) { const l = Math.sqrt(l2); this.x = this.x / l * max; this.y = this.y / l * max; }
-      return this;
+  function wireBaseY() { return H * 0.72; }
+
+  function buildWire() {
+    wire.nodes.length = 0;
+    wire.x0 = -20;
+    wire.dx = (W + 40) / (WIRE_N - 1);
+    const base = wireBaseY();
+    const sag = Math.min(H * 0.05, 42);
+    for (let i = 0; i < WIRE_N; i++) {
+      const t = i / (WIRE_N - 1);
+      const rest = base + sag * (1 - Math.pow(2 * t - 1, 2));
+      wire.nodes.push({ rest, y: rest, vy: 0 });
     }
   }
 
-  // ════════════════════════════════════════════════════════
-  // SPATIAL HASH — keeps neighbor-finding O(1) per query
-  // ════════════════════════════════════════════════════════
-  class Hash {
-    constructor(cell = 80) { this.cell = cell; this.map = new Map(); }
-    clear() { this.map.clear(); }
-    insert(b) {
-      const k = ((b.pos.x / this.cell) | 0) + ',' + ((b.pos.y / this.cell) | 0);
-      let a = this.map.get(k);
-      if (!a) this.map.set(k, a = []);
-      a.push(b);
+  function wireY(x) {
+    const f = (x - wire.x0) / wire.dx;
+    const i = Math.max(0, Math.min(WIRE_N - 2, Math.floor(f)));
+    const t = Math.max(0, Math.min(1, f - i));
+    return wire.nodes[i].y * (1 - t) + wire.nodes[i + 1].y * t;
+  }
+
+  function wireKick(x, impulse) {
+    const f = (x - wire.x0) / wire.dx;
+    const i = Math.max(0, Math.min(WIRE_N - 1, Math.round(f)));
+    wire.nodes[i].vy += impulse;
+    if (i > 0) wire.nodes[i - 1].vy += impulse * 0.5;
+    if (i < WIRE_N - 1) wire.nodes[i + 1].vy += impulse * 0.5;
+  }
+
+  function stepWire(dt) {
+    const k = 110, damp = 4.2, couple = 32;
+    const n = wire.nodes;
+    for (let i = 0; i < WIRE_N; i++) {
+      const nd = n[i];
+      let a = (nd.rest - nd.y) * k - nd.vy * damp;
+      if (i > 0)          a += (n[i - 1].y - nd.y) * couple;
+      if (i < WIRE_N - 1) a += (n[i + 1].y - nd.y) * couple;
+      nd.vy += a * dt;
     }
-    query(x, y, r) {
-      const cs = this.cell;
-      const minX = ((x - r) / cs) | 0, maxX = ((x + r) / cs) | 0;
-      const minY = ((y - r) / cs) | 0, maxY = ((y + r) / cs) | 0;
-      const out = [];
-      for (let gx = minX; gx <= maxX; gx++) {
-        for (let gy = minY; gy <= maxY; gy++) {
-          const a = this.map.get(gx + ',' + gy);
-          if (a) for (let i = 0; i < a.length; i++) out.push(a[i]);
-        }
+    for (let i = 0; i < WIRE_N; i++) n[i].y += n[i].vy * dt;
+  }
+
+  function drawWire() {
+    ctx.beginPath();
+    ctx.moveTo(wire.x0, wire.nodes[0].y);
+    for (let i = 1; i < WIRE_N; i++) {
+      ctx.lineTo(wire.x0 + i * wire.dx, wire.nodes[i].y);
+    }
+    ctx.strokeStyle = C_WIRE;
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }
+
+  // ══════════════════════════════════════════════════════════
+  // SPATIAL HASH — neighbor queries stay O(1)-ish per bird
+  // ══════════════════════════════════════════════════════════
+  const CELL = 92;
+  const hashMap = new Map();
+  function hashClear() { hashMap.clear(); }
+  function hashInsert(b) {
+    const k = ((b.x / CELL) | 0) * 4096 + ((b.y / CELL) | 0);
+    let a = hashMap.get(k);
+    if (!a) hashMap.set(k, a = []);
+    a.push(b);
+  }
+  const queryOut = [];
+  function hashQuery(x, y, r) {
+    queryOut.length = 0;
+    const minX = ((x - r) / CELL) | 0, maxX = ((x + r) / CELL) | 0;
+    const minY = ((y - r) / CELL) | 0, maxY = ((y + r) / CELL) | 0;
+    for (let gx = minX; gx <= maxX; gx++) {
+      for (let gy = minY; gy <= maxY; gy++) {
+        const a = hashMap.get(gx * 4096 + gy);
+        if (a) for (let i = 0; i < a.length; i++) queryOut.push(a[i]);
       }
-      return out;
     }
+    return queryOut;
   }
-  const hash = new Hash(90);
 
-  // ════════════════════════════════════════════════════════
-  // TOUCH / MOUSE — unified
-  // ════════════════════════════════════════════════════════
-  const touch = { x: W / 2, y: H / 2, down: false, hadInput: false };
+  // ══════════════════════════════════════════════════════════
+  // INPUT — one pointer, two gestures: hold gathers, tap scatters
+  // ══════════════════════════════════════════════════════════
+  const touch = { x: W / 2, y: H / 2, down: false, downAt: 0, downX: 0, downY: 0, had: false, id: -1 };
+  const claps = [];   // {x, y, t0}
   const hintEl = document.getElementById('hint');
 
-  function noteInput() {
-    if (!touch.hadInput) {
-      touch.hadInput = true;
-      if (hintEl) hintEl.classList.add('fade');
-    }
-  }
-  function readPoint(e) {
-    if (e.touches && e.touches[0]) return { x: e.touches[0].clientX, y: e.touches[0].clientY };
-    if (e.changedTouches && e.changedTouches[0]) return { x: e.changedTouches[0].clientX, y: e.changedTouches[0].clientY };
-    return { x: e.clientX, y: e.clientY };
-  }
+  function isUI(t) { return t && t.closest && t.closest('a, button'); }
 
-  function isUI(target) {
-    return target && target.closest && target.closest('button, a, .nav, .modes');
-  }
-
-  // Mouse
-  window.addEventListener('mousedown', (e) => {
+  window.addEventListener('pointerdown', (e) => {
     if (isUI(e.target)) return;
-    const p = readPoint(e);
-    touch.x = p.x; touch.y = p.y; touch.down = true;
-    noteInput();
-  });
-  window.addEventListener('mousemove', (e) => {
-    const p = readPoint(e);
-    touch.x = p.x; touch.y = p.y;
-  });
-  window.addEventListener('mouseup', () => { touch.down = false; });
-
-  // Touch — must preventDefault to stop iOS scroll/zoom
-  window.addEventListener('touchstart', (e) => {
-    if (isUI(e.target)) return;
-    const p = readPoint(e);
-    touch.x = p.x; touch.y = p.y; touch.down = true;
-    noteInput();
+    touch.x = e.clientX; touch.y = e.clientY;
+    touch.downX = e.clientX; touch.downY = e.clientY;
+    touch.down = true;
+    touch.id = e.pointerId;      // latest finger owns the gesture
+    touch.downAt = performance.now();
+    if (!touch.had) { touch.had = true; if (hintEl) hintEl.classList.add('fade'); }
     e.preventDefault();
   }, { passive: false });
-  window.addEventListener('touchmove', (e) => {
-    if (!touch.down) return;
-    const p = readPoint(e);
-    touch.x = p.x; touch.y = p.y;
-    e.preventDefault();
-  }, { passive: false });
-  window.addEventListener('touchend',    () => { touch.down = false; }, { passive: true });
-  window.addEventListener('touchcancel', () => { touch.down = false; }, { passive: true });
 
-  // ════════════════════════════════════════════════════════
-  // BIRD
-  // ════════════════════════════════════════════════════════
-  class Bird {
-    constructor(x, y) {
-      this.pos = new Vec2(x, y);
-      const a = rand(0, Math.PI * 2);
-      this.vel = new Vec2(Math.cos(a), Math.sin(a)).mul(rand(40, 100));
-      this.acc = new Vec2(0, 0);
-      this.flapPhase = rand(0, Math.PI * 2);
-      this.size = rand(0.85, 1.15);
-      // ~3% rogue birds — yellow, wander independently, ignore most of the flock
-      this.rogue = Math.random() < 0.03;
-    }
+  window.addEventListener('pointermove', (e) => {
+    if (touch.down && e.pointerId !== touch.id) return;
+    touch.x = e.clientX; touch.y = e.clientY;
+  }, { passive: true });
 
-    think(neighbors) {
-      const align = new Vec2(), cohesion = new Vec2(), separation = new Vec2();
-      let cA = 0, cC = 0, cS = 0;
-      const vr2 = P.viewRadius * P.viewRadius;
-      const sr2 = P.sepRadius * P.sepRadius;
+  function pointerEnd(e) {
+    if (!touch.down || e.pointerId !== touch.id) return;
+    touch.down = false;
+    const dtMs = performance.now() - touch.downAt;
+    const moved = Math.hypot(e.clientX - touch.downX, e.clientY - touch.downY);
+    if (dtMs < 220 && moved < 10) clap(e.clientX, e.clientY);
+  }
+  window.addEventListener('pointerup', pointerEnd, { passive: true });
+  window.addEventListener('pointercancel', () => { touch.down = false; }, { passive: true });
 
-      for (let i = 0; i < neighbors.length; i++) {
-        const o = neighbors[i];
-        if (o === this) continue;
-        const dx = o.pos.x - this.pos.x;
-        const dy = o.pos.y - this.pos.y;
-        const d2 = dx * dx + dy * dy;
-        if (d2 < vr2) {
-          align.x += o.vel.x; align.y += o.vel.y; cA++;
-          cohesion.x += o.pos.x; cohesion.y += o.pos.y; cC++;
+  // A clap: a pressure wave. Fliers get shoved and panicked; the
+  // wire empties in a ripple that spreads from the point.
+  function clap(x, y) {
+    claps.push({ x, y, t0: performance.now() });
+    if (claps.length > 4) claps.shift();
+    const R = 280;
+    for (let i = 0; i < birds.length; i++) {
+      const b = birds[i];
+      const dx = b.x - x, dy = b.y - y;
+      const d = Math.hypot(dx, dy);
+      if (d > R + 160) continue;
+      if (b.state === FLY) {
+        if (d < R && d > 0.01) {
+          const f = (1 - d / R);
+          b.vx += (dx / d) * f * 420;
+          b.vy += (dy / d) * f * 420;
+          b.panic = Math.max(b.panic, f);
         }
-        if (d2 < sr2) {
-          const d = Math.sqrt(d2) || 1e-6;
-          separation.x += -dx / d / d;
-          separation.y += -dy / d / d;
-          cS++;
-        }
-      }
-
-      // Rogues only loosely care about the flock
-      const flockScale = this.rogue ? 0.35 : 1.0;
-
-      if (cA) {
-        align.div(cA).setLen(P.maxSpeed);
-        align.x -= this.vel.x; align.y -= this.vel.y;
-        align.limit(P.maxForce).mul(P.alignW * flockScale);
-        this.acc.add(align);
-      }
-      if (cC) {
-        cohesion.div(cC).sub(this.pos).setLen(P.maxSpeed);
-        cohesion.x -= this.vel.x; cohesion.y -= this.vel.y;
-        cohesion.limit(P.maxForce).mul(P.cohesionW * flockScale);
-        this.acc.add(cohesion);
-      }
-      if (cS) {
-        separation.div(cS).setLen(P.maxSpeed);
-        separation.x -= this.vel.x; separation.y -= this.vel.y;
-        separation.limit(P.maxForce).mul(P.separationW);
-        this.acc.add(separation);
-      }
-
-      // Touch / mouse force — attract or repulse depending on mode
-      if (touch.down) {
-        const tdx = touch.x - this.pos.x;
-        const tdy = touch.y - this.pos.y;
-        const td = Math.hypot(tdx, tdy);
-        const radius = 320;
-        if (td < radius && td > 0.5) {
-          const sign = P.repulse ? -1 : 1;
-          // Stronger near center, falls off to radius
-          const falloff = 1 - td / radius;
-          const force = falloff * P.maxForce * P.attractStrength * sign;
-          this.acc.x += (tdx / td) * force;
-          this.acc.y += (tdy / td) * force;
-        }
-      }
-
-      // Soft edge avoidance — feels nicer than hard wrap for a focused canvas
-      const margin = 80;
-      const eForce = P.maxForce * 1.8;
-      if (this.pos.x < margin)         this.acc.x += eForce * (1 - this.pos.x / margin);
-      else if (this.pos.x > W - margin) this.acc.x -= eForce * (1 - (W - this.pos.x) / margin);
-      if (this.pos.y < margin)         this.acc.y += eForce * (1 - this.pos.y / margin);
-      else if (this.pos.y > H - margin) this.acc.y -= eForce * (1 - (H - this.pos.y) / margin);
-    }
-
-    step(dt) {
-      this.vel.add(this.acc.copy().mul(dt)).limit(P.maxSpeed);
-      // Minimum speed — birds shouldn't ever just stop dead
-      const sp = this.vel.len();
-      if (sp < 25) this.vel.setLen(25);
-      this.pos.x += this.vel.x * dt;
-      this.pos.y += this.vel.y * dt;
-      this.acc.set(0, 0);
-      // Safety clamp
-      if (this.pos.x < -50) this.pos.x = -50;
-      if (this.pos.x > W + 50) this.pos.x = W + 50;
-      if (this.pos.y < -50) this.pos.y = -50;
-      if (this.pos.y > H + 50) this.pos.y = H + 50;
-    }
-
-    draw(t) {
-      const angle = Math.atan2(this.vel.y, this.vel.x);
-      // Wing flap — gentle scale pulse offset per-bird
-      const flap = Math.sin(t * 0.012 + this.flapPhase) * 0.22 + 0.88;
-      const s = this.size * flap;
-
-      ctx.save();
-      ctx.translate(this.pos.x, this.pos.y);
-      ctx.rotate(angle);
-
-      if (this.rogue) {
-        ctx.fillStyle = 'rgba(245, 203, 92, 0.96)';
       } else {
-        // Tint comes from current mode — slight alpha for atmosphere
-        ctx.fillStyle = 'rgba(' + P.tint[0] + ',' + P.tint[1] + ',' + P.tint[2] + ',0.92)';
+        // ripple: farther birds leave later
+        scheduleLaunch(b, d * 1.1);
       }
+    }
+    wireKick(x, 90);
+  }
 
-      // Tiny chevron — like a gull silhouette
+  window.addEventListener('keydown', (e) => {
+    // space on a focused control must stay a button-press
+    if (e.target && e.target.closest && e.target.closest('a, button')) return;
+    const k = e.key.toLowerCase();
+    if (k === '1') setMode('murmur');
+    else if (k === '2') setMode('roost');
+    else if (k === '3') setMode('storm');
+    else if (k === 'h') summonHawk();
+    else if (k === ' ') { e.preventDefault(); clap(touch.x, touch.y); }
+  });
+
+  // ══════════════════════════════════════════════════════════
+  // BIRDS
+  // ══════════════════════════════════════════════════════════
+  const FLY = 0, LAND = 1, PERCH = 2;
+  const birds = [];
+
+  function rand(a, b) { return Math.random() * (b - a) + a; }
+
+  function makeBird(x, y, vx, vy) {
+    return {
+      x, y, vx, vy,
+      ax: 0, ay: 0,
+      z: rand(0.25, 1),          // depth: draw size/alpha, and who flocks with whom
+      zPhase: rand(0, Math.PI * 2),
+      state: FLY,
+      perchX: 0,
+      launchAt: 0,               // scheduled takeoff (ripples)
+      urge: rand(0, 1),          // roosting appetite, drifts slowly
+      urgePhase: rand(0, Math.PI * 2),
+      // nobody roosts during the entrance — let the flock arrive first
+      retryAt: performance.now() + rand(6000, 15000),
+      hopAt: performance.now() + rand(3000, 9000),
+      flapPhase: rand(0, Math.PI * 2),
+      size: rand(0.85, 1.15),
+      dir: Math.random() < 0.5 ? -1 : 1,
+      panic: 0, panicNext: 0,
+      rogue: Math.random() < 0.03,   // rogues: yellow, loose, never roost
+    };
+  }
+
+  // Entrance: the flock arrives from one side, already in formation,
+  // then folds into the murmuration.
+  (function spawn() {
+    const fromLeft = Math.random() < 0.5;
+    const heading = fromLeft ? 0 : Math.PI;
+    for (let i = 0; i < COUNT; i++) {
+      const x = fromLeft ? rand(-W * 0.35, -20) : rand(W + 20, W * 1.35);
+      const y = rand(H * 0.15, H * 0.6);
+      const a = heading + rand(-0.25, 0.25);
+      const sp = rand(80, 130);
+      birds.push(makeBird(x, y, Math.cos(a) * sp, Math.sin(a) * sp));
+    }
+  })();
+
+  function scheduleLaunch(b, delayMs) {
+    if (b.state === FLY) return;
+    if (b.launchAt === 0 || b.launchAt > performance.now() + delayMs) {
+      b.launchAt = performance.now() + delayMs;
+    }
+  }
+
+  function launch(b) {
+    b.state = FLY;
+    b.launchAt = 0;
+    b.vx = rand(-60, 60) + (b.dir * 40);
+    b.vy = rand(-150, -80);
+    b.urge = 0;
+    b.retryAt = performance.now() + rand(4000, 9000);
+    wireKick(b.x, -55);
+  }
+
+  // Landing spots: sampled, spaced against everyone already on
+  // (or heading to) the wire.
+  function findPerch(b) {
+    const MIN_GAP = 16;
+    let bestX = 0, bestGap = 0;
+    for (let tries = 0; tries < 8; tries++) {
+      const x = rand(40, W - 40);
+      let gap = 1e9;
+      for (let i = 0; i < birds.length; i++) {
+        const o = birds[i];
+        if (o === b || o.state === FLY) continue;
+        const d = Math.abs(o.perchX - x);
+        if (d < gap) gap = d;
+      }
+      if (gap > bestGap) { bestGap = gap; bestX = x; }
+    }
+    return bestGap >= MIN_GAP ? bestX : null;
+  }
+
+  // ══════════════════════════════════════════════════════════
+  // THE HAWK — enters, hunts, leaves. Panic travels through the
+  // flock as a wave: birds pass fear to their neighbors.
+  // ══════════════════════════════════════════════════════════
+  const hawk = { on: false, x: 0, y: 0, vx: 0, vy: 0, until: 0, target: null, retargetAt: 0 };
+  const hawkBtn = document.getElementById('hawkBtn');
+  const HAWK_SPEED = 300;
+
+  function summonHawk() {
+    if (hawk.on) return;
+    hawk.on = true;
+    hawk.until = performance.now() + 11000;
+    const side = Math.floor(Math.random() * 4);
+    if (side === 0)      { hawk.x = -60;    hawk.y = rand(H * 0.15, H * 0.5); hawk.vx =  HAWK_SPEED; hawk.vy = 0; }
+    else if (side === 1) { hawk.x = W + 60; hawk.y = rand(H * 0.15, H * 0.5); hawk.vx = -HAWK_SPEED; hawk.vy = 0; }
+    else if (side === 2) { hawk.x = rand(W * 0.2, W * 0.8); hawk.y = -60; hawk.vx = 0; hawk.vy = HAWK_SPEED; }
+    else                 { hawk.x = rand(W * 0.2, W * 0.8); hawk.y = H + 60; hawk.vx = 0; hawk.vy = -HAWK_SPEED; }
+    hawk.target = null;
+    hawk.retargetAt = 0;
+    if (hawkBtn) hawkBtn.classList.add('hawk-live');
+  }
+
+  function stepHawk(dt, now) {
+    if (!hawk.on) return;
+    const leaving = now > hawk.until;
+
+    if (!leaving) {
+      if (now > hawk.retargetAt || !hawk.target || hawk.target.state !== FLY) {
+        // hunt whoever is flying; re-pick every couple of seconds
+        const fliers = [];
+        for (let i = 0; i < birds.length; i++) if (birds[i].state === FLY) fliers.push(birds[i]);
+        hawk.target = fliers.length ? fliers[(Math.random() * fliers.length) | 0] : null;
+        hawk.retargetAt = now + 2200;
+      }
+      if (hawk.target) {
+        // pursue with a little lead
+        const tx = hawk.target.x + hawk.target.vx * 0.4;
+        const ty = hawk.target.y + hawk.target.vy * 0.4;
+        steerHawkToward(tx, ty, dt);
+      }
+    } else {
+      // glide out the nearest edge
+      const ex = hawk.x < W / 2 ? -300 : W + 300;
+      steerHawkToward(ex, hawk.y - 60, dt);
+      if (hawk.x < -120 || hawk.x > W + 120 || hawk.y < -120 || hawk.y > H + 120) {
+        hawk.on = false;
+        if (hawkBtn) hawkBtn.classList.remove('hawk-live');
+      }
+    }
+
+    hawk.x += hawk.vx * dt;
+    hawk.y += hawk.vy * dt;
+
+    // fear radius — fliers panic, perched birds bail in a ripple
+    const R = 240;
+    for (let i = 0; i < birds.length; i++) {
+      const b = birds[i];
+      const dx = b.x - hawk.x, dy = b.y - hawk.y;
+      const d2 = dx * dx + dy * dy;
+      if (d2 > R * R) continue;
+      const d = Math.sqrt(d2) || 0.01;
+      const f = 1 - d / R;
+      if (b.state === FLY) {
+        b.ax += (dx / d) * f * 2600;
+        b.ay += (dy / d) * f * 2600;
+        b.panic = Math.max(b.panic, f);
+      } else {
+        scheduleLaunch(b, d * 0.9);
+      }
+    }
+  }
+
+  function steerHawkToward(tx, ty, dt) {
+    const want = Math.atan2(ty - hawk.y, tx - hawk.x);
+    const cur = Math.atan2(hawk.vy, hawk.vx);
+    let diff = want - cur;
+    while (diff > Math.PI) diff -= Math.PI * 2;
+    while (diff < -Math.PI) diff += Math.PI * 2;
+    const turn = Math.max(-3.0 * dt, Math.min(3.0 * dt, diff));
+    const a = cur + turn;
+    hawk.vx = Math.cos(a) * HAWK_SPEED;
+    hawk.vy = Math.sin(a) * HAWK_SPEED;
+  }
+
+  function drawHawk() {
+    if (!hawk.on) return;
+    const a = Math.atan2(hawk.vy, hawk.vx);
+    ctx.save();
+    ctx.translate(hawk.x, hawk.y);
+    ctx.rotate(a);
+    ctx.fillStyle = C_HAWK;
+    // swept-wing silhouette, gliding
+    ctx.beginPath();
+    ctx.moveTo(14, 0);
+    ctx.quadraticCurveTo(-2, 2, -8, 12);
+    ctx.quadraticCurveTo(-4, 3, -12, 2);
+    ctx.lineTo(-12, -2);
+    ctx.quadraticCurveTo(-4, -3, -8, -12);
+    ctx.quadraticCurveTo(-2, -2, 14, 0);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
+
+  if (hawkBtn) hawkBtn.addEventListener('click', summonHawk);
+
+  // ══════════════════════════════════════════════════════════
+  // FLOCKING
+  // ══════════════════════════════════════════════════════════
+  // gust: a slow-changing wind on top of the mode's base wind
+  const gust = { x: 0, y: 0, tx: 0, ty: 0, nextAt: 0 };
+  // flock centroid + roost head-count, refreshed once per frame
+  const flock = { cx: 0, cy: 0, n: 0, roosted: 0 };
+
+  function stepGust(now) {
+    if (now > gust.nextAt) {
+      const s = PRM ? 0.3 : 1;
+      gust.tx = rand(-P.gust, P.gust) * s;
+      gust.ty = rand(-P.gust * 0.5, P.gust * 0.5) * s;
+      gust.nextAt = now + rand(1800, 3600);
+    }
+    gust.x += (gust.tx - gust.x) * 0.02;
+    gust.y += (gust.ty - gust.y) * 0.02;
+  }
+
+  function think(b, now) {
+    const maxSpeed = P.maxSpeed * CALM * (1 + b.panic * 0.9) * (0.75 + b.z * 0.25);
+    const maxForce = maxSpeed * 1.4;
+
+    let alX = 0, alY = 0, cA = 0;
+    let coX = 0, coY = 0, cC = 0;
+    let seX = 0, seY = 0, cS = 0;
+    let nPanic = 0;
+
+    const vr2 = P.viewR * P.viewR;
+    const sr2 = P.sepR * P.sepR;
+    const neighbors = hashQuery(b.x, b.y, P.viewR);
+
+    for (let i = 0; i < neighbors.length; i++) {
+      const o = neighbors[i];
+      if (o === b) continue;
+      const dx = o.x - b.x, dy = o.y - b.y;
+      const d2 = dx * dx + dy * dy;
+      // depth layers gate schooling only — separation is screen-space
+      // (cross-plane birds still overlap visually; they must repel)
+      if (d2 < vr2 && Math.abs(o.z - b.z) <= 0.5) {
+        alX += o.vx; alY += o.vy; cA++;
+        coX += o.x;  coY += o.y;  cC++;
+        if (o.panic > nPanic) nPanic = o.panic;
+      }
+      if (d2 < sr2) {
+        const d = Math.sqrt(d2) || 1e-6;
+        seX -= dx / d / d;
+        seY -= dy / d / d;
+        cS++;
+      }
+    }
+
+    // fear is contagious
+    b.panicNext = Math.max(b.panic * 0.965, nPanic * 0.9);
+
+    const flockScale = b.rogue ? 0.35 : 1.0;
+
+    if (cA) {
+      let x = alX / cA, y = alY / cA;
+      const l = Math.hypot(x, y) || 1e-6;
+      x = x / l * maxSpeed - b.vx; y = y / l * maxSpeed - b.vy;
+      const fl = Math.hypot(x, y);
+      const lim = Math.min(fl, maxForce) / (fl || 1e-6);
+      b.ax += x * lim * P.alignW * flockScale;
+      b.ay += y * lim * P.alignW * flockScale;
+    }
+    if (cC) {
+      let x = coX / cC - b.x, y = coY / cC - b.y;
+      const l = Math.hypot(x, y) || 1e-6;
+      x = x / l * maxSpeed - b.vx; y = y / l * maxSpeed - b.vy;
+      const fl = Math.hypot(x, y);
+      const lim = Math.min(fl, maxForce) / (fl || 1e-6);
+      b.ax += x * lim * P.cohesionW * flockScale;
+      b.ay += y * lim * P.cohesionW * flockScale;
+    }
+    if (cS) {
+      let x = seX, y = seY;
+      const l = Math.hypot(x, y) || 1e-6;
+      x = x / l * maxSpeed - b.vx; y = y / l * maxSpeed - b.vy;
+      const fl = Math.hypot(x, y);
+      const lim = Math.min(fl, maxForce) / (fl || 1e-6);
+      const w = P.separationW * (1 + b.panic);
+      b.ax += x * lim * w;
+      b.ay += y * lim * w;
+    }
+
+    // one flock, not islands: a whisper of pull toward the centroid
+    if (flock.n > 0) {
+      const cdx = flock.cx - b.x, cdy = flock.cy - b.y;
+      const cd = Math.hypot(cdx, cdy);
+      if (cd > 260) {
+        const cf = maxForce * P.centroidW * flockScale;
+        b.ax += (cdx / cd) * cf;
+        b.ay += (cdy / cd) * cf;
+      }
+    }
+
+    // wind + gusts (rogues feel it too — everyone lives in the same sky)
+    // in a storm the gale swings — the flock tacks across the sky
+    // instead of pinning against one edge
+    const swing = modeName === 'storm' ? Math.sin(now * 0.00025) : 1;
+    b.ax += (P.windX * swing + gust.x) * (0.5 + b.z * 0.5);
+    b.ay += (P.windY + gust.y) * (0.5 + b.z * 0.5);
+    if (modeName === 'storm' && !PRM) {
+      b.ay += Math.sin(now * 0.0011 + b.flapPhase * 3) * 90;
+    }
+
+    // pointer: held = gather
+    if (touch.down) {
+      const tdx = touch.x - b.x, tdy = touch.y - b.y;
+      const td = Math.hypot(tdx, tdy);
+      const R = 340;
+      if (td < R && td > 0.5) {
+        const f = (1 - td / R) * maxForce * P.attract;
+        b.ax += (tdx / td) * f;
+        b.ay += (tdy / td) * f;
+      }
+    }
+
+    // soft edges
+    const m = 80, eF = maxForce * 1.8;
+    if (b.x < m)          b.ax += eF * (1 - b.x / m);
+    else if (b.x > W - m) b.ax -= eF * (1 - (W - b.x) / m);
+    if (b.y < m)          b.ay += eF * (1 - b.y / m);
+    else if (b.y > H - m) b.ay -= eF * (1 - (H - b.y) / m);
+  }
+
+  function stepBird(b, dt, now) {
+    // roosting appetite drifts on a slow personal cycle
+    b.urge = 0.5 + 0.5 * Math.sin(now * 0.00006 + b.urgePhase);
+
+    if (b.state === PERCH) {
+      b.panic = 0; b.panicNext = 0;
+      if (b.launchAt && now >= b.launchAt) { launch(b); return; }
+      // sit: follow the (bouncing) wire
+      b.y = wireY(b.perchX) - 3.5 * b.size;
+      b.x = b.perchX;
+      // idle life: hop or turn now and then
+      if (now > b.hopAt) {
+        b.hopAt = now + rand(3000, 9000);
+        if (Math.random() < 0.45) b.dir *= -1;
+        else wireKick(b.x, 26);
+      }
+      // shuffle apart if crowded — sampled, so a full wire stays O(n)-ish
+      if (Math.random() < 0.25) {
+        for (let i = 0; i < birds.length; i++) {
+          const o = birds[i];
+          if (o === b || o.state !== PERCH) continue;
+          const d = b.perchX - o.perchX;
+          if (Math.abs(d) < 13) b.perchX += (d >= 0 ? 1 : -1) * 32 * dt;
+        }
+      }
+      // done sitting?
+      if (b.urge < P.roostThr - 0.18 && !b.launchAt && Math.random() < 0.002) launch(b);
+      return;
+    }
+
+    if (b.state === LAND) {
+      if (b.launchAt && now >= b.launchAt) { b.state = FLY; b.launchAt = 0; return; }
+      const ty = wireY(b.perchX) - 3.5 * b.size;
+      const dx = b.perchX - b.x, dy = ty - b.y;
+      const d = Math.hypot(dx, dy);
+      if (d < 7 && Math.abs(b.vx) + Math.abs(b.vy) < 130) {
+        b.state = PERCH;
+        b.dir = dx >= 0 ? 1 : -1;
+        b.x = b.perchX; b.y = ty;
+        b.vx = 0; b.vy = 0;
+        b.panic = 0;
+        wireKick(b.perchX, 60 * b.size);
+        return;
+      }
+      // arrive steering with a landing flare
+      const sp = Math.min(P.maxSpeed * CALM, Math.max(40, d * 2.2));
+      const wvx = (dx / (d || 1e-6)) * sp;
+      const wvy = (dy / (d || 1e-6)) * sp + 14; // drop in slightly from above
+      b.ax += (wvx - b.vx) * 4;
+      b.ay += (wvy - b.vy) * 4;
+      b.z += (0.78 - b.z) * 0.04;
+      if (b.panic > 0.35) { b.state = FLY; b.launchAt = 0; }
+    } else {
+      // FLY: maybe go looking for a seat
+      if (!b.rogue && b.urge > P.roostThr && flock.roosted < P.roostCap &&
+          now > b.retryAt && !touch.down && !hawk.on) {
+        const px = findPerch(b);
+        b.retryAt = now + rand(2500, 5000);
+        if (px !== null) { b.state = LAND; b.perchX = px; b.launchAt = 0; flock.roosted++; }
+      }
+    }
+
+    // integrate
+    b.vx += b.ax * dt;
+    b.vy += b.ay * dt;
+    const maxSp = P.maxSpeed * CALM * (1 + b.panic * 0.9);
+    const sp2 = b.vx * b.vx + b.vy * b.vy;
+    if (sp2 > maxSp * maxSp) {
+      const s = maxSp / Math.sqrt(sp2);
+      b.vx *= s; b.vy *= s;
+    } else if (sp2 < 625 && b.state === FLY) {
+      // never stall dead in the air
+      const s = 25 / (Math.sqrt(sp2) || 1e-6);
+      b.vx *= s; b.vy *= s;
+    }
+    b.x += b.vx * dt;
+    b.y += b.vy * dt;
+    b.ax = 0; b.ay = 0;
+    b.panic = b.panicNext;
+
+    // depth breathes slowly
+    if (b.state === FLY && !PRM) {
+      b.z += Math.sin(now * 0.00013 + b.zPhase) * 0.0009;
+      if (b.z < 0.25) b.z = 0.25;
+      if (b.z > 1) b.z = 1;
+    }
+
+    // clamp
+    if (b.x < -60) b.x = -60;
+    if (b.x > W + 60) b.x = W + 60;
+    if (b.y < -60) b.y = -60;
+    if (b.y > H + 60) b.y = H + 60;
+  }
+
+  function drawBird(b, t) {
+    const zs = 0.45 + b.z * 0.7;         // depth scale
+    const za = 0.3 + b.z * 0.62;         // depth alpha
+
+    if (b.state === PERCH) {
+      // sitting: a plump little silhouette on the line
+      const s = b.size;
+      ctx.save();
+      ctx.translate(b.x, b.y);
+      ctx.scale(b.dir, 1);
+      ctx.fillStyle = b.rogue
+        ? 'rgba(245,203,92,0.95)'
+        : 'rgba(' + C_BIRD[0] + ',' + C_BIRD[1] + ',' + C_BIRD[2] + ',0.9)';
       ctx.beginPath();
-      ctx.moveTo( 5.5 * s,  0);
-      ctx.lineTo(-4   * s,  3.2 * s);
-      ctx.lineTo(-2   * s,  0);
-      ctx.lineTo(-4   * s, -3.2 * s);
+      ctx.ellipse(0, -2.6 * s, 3.2 * s, 2.8 * s, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(2.6 * s, -4.6 * s, 1.5 * s, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();                    // tail tick
+      ctx.moveTo(-2.6 * s, -2.4 * s);
+      ctx.lineTo(-5.6 * s, -1.2 * s);
+      ctx.lineTo(-2.6 * s, -1.4 * s);
       ctx.closePath();
       ctx.fill();
-
       ctx.restore();
+      return;
     }
+
+    const angle = Math.atan2(b.vy, b.vx);
+    const flapSpeed = 0.012 * (1 + b.panic * 0.8);
+    const flap = Math.sin(t * flapSpeed + b.flapPhase) * 0.22 + 0.88;
+    const s = b.size * flap * zs;
+
+    ctx.save();
+    ctx.translate(b.x, b.y);
+    ctx.rotate(angle);
+    if (b.rogue) {
+      ctx.fillStyle = 'rgba(245,203,92,' + (za + 0.15).toFixed(3) + ')';
+    } else {
+      // panic lifts them toward white — escape waves read as light
+      const lift = b.panic * 30;
+      ctx.fillStyle = 'rgba(' + Math.min(255, C_BIRD[0] + lift | 0) + ',' +
+        Math.min(255, C_BIRD[1] + lift | 0) + ',' +
+        Math.min(255, C_BIRD[2] + lift | 0) + ',' + za.toFixed(3) + ')';
+    }
+    ctx.beginPath();
+    ctx.moveTo( 5.5 * s,  0);
+    ctx.lineTo(-4   * s,  3.2 * s);
+    ctx.lineTo(-2   * s,  0);
+    ctx.lineTo(-4   * s, -3.2 * s);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
   }
 
-  // ════════════════════════════════════════════════════════
-  // SPAWN
-  // ════════════════════════════════════════════════════════
-  let birds = [];
-  function spawn(n) {
-    birds = [];
-    for (let i = 0; i < n; i++) {
-      birds.push(new Bird(rand(W * 0.2, W * 0.8), rand(H * 0.2, H * 0.8)));
-    }
-  }
-  spawn(P.count);
-
-  // ════════════════════════════════════════════════════════
+  // ══════════════════════════════════════════════════════════
   // MODE BUTTONS
-  // ════════════════════════════════════════════════════════
-  document.querySelectorAll('.mode-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      setMode(btn.dataset.mode);
-      e.stopPropagation();
-    });
-    // Prevent the button's tap from bubbling into the canvas touch handler
-    btn.addEventListener('touchstart', (e) => { e.stopPropagation(); }, { passive: true });
+  // ══════════════════════════════════════════════════════════
+  document.querySelectorAll('.mode-btn[data-mode]').forEach(btn => {
+    btn.addEventListener('click', () => setMode(btn.dataset.mode));
   });
-  setMode('drift');
 
-  // ════════════════════════════════════════════════════════
+  // ══════════════════════════════════════════════════════════
   // MAIN LOOP
-  // ════════════════════════════════════════════════════════
+  // ══════════════════════════════════════════════════════════
   let last = performance.now();
+  resize();
+
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) last = performance.now();
+  });
 
   function loop(t) {
     requestAnimationFrame(loop);
-
     let dt = (t - last) / 1000;
     last = t;
-    if (dt > 0.04) dt = 0.04;    // clamp big spikes (tab switches, etc.)
+    if (dt > 0.04) dt = 0.04;
 
-    // Trail-fade clear — alpha = (1 - trails). Trails near 1 leave long ghosts.
-    ctx.fillStyle = 'rgba(10, 10, 10, ' + (1 - P.trails) + ')';
-    ctx.fillRect(0, 0, W, H);
+    // trails: fade toward the true sky, not toward a flat color
+    ctx.globalAlpha = PRM ? Math.max(0.5, P.fade) : P.fade;
+    ctx.drawImage(skyCanvas, 0, 0, W, H);
+    ctx.globalAlpha = 1;
 
-    // Rebuild spatial hash
-    hash.clear();
-    for (let i = 0; i < birds.length; i++) hash.insert(birds[i]);
+    stepGust(t);
+    stepWire(dt);
+    drawWire();
 
-    // Think (each bird inspects only its bucket neighbors)
+    // flocking: only fliers join the hash
+    hashClear();
+    flock.cx = 0; flock.cy = 0; flock.n = 0; flock.roosted = 0;
     for (let i = 0; i < birds.length; i++) {
       const b = birds[i];
-      const n = hash.query(b.pos.x, b.pos.y, P.viewRadius);
-      b.think(n);
+      if (b.state === FLY) {
+        hashInsert(b);
+        flock.cx += b.x; flock.cy += b.y; flock.n++;
+      } else {
+        flock.roosted++;
+      }
     }
-    // Step + draw
-    for (let i = 0; i < birds.length; i++) birds[i].step(dt);
-    for (let i = 0; i < birds.length; i++) birds[i].draw(t);
+    if (flock.n) { flock.cx /= flock.n; flock.cy /= flock.n; }
+    for (let i = 0; i < birds.length; i++) {
+      if (birds[i].state === FLY) think(birds[i], t);
+    }
+    for (let i = 0; i < birds.length; i++) stepBird(birds[i], dt, t);
 
-    // Touch indicator — a thin breathing ring at the active point
-    if (touch.down) {
+    stepHawk(dt, t);
+
+    // painter's order: far birds first
+    birds.sort((a, b2) => a.z - b2.z);
+    for (let i = 0; i < birds.length; i++) drawBird(birds[i], t);
+
+    drawHawk();
+
+    // input feedback
+    if (touch.down && performance.now() - touch.downAt > 160) {
       const r = 80 + Math.sin(t * 0.004) * 10;
       ctx.beginPath();
       ctx.arc(touch.x, touch.y, r, 0, Math.PI * 2);
-      ctx.strokeStyle = P.repulse
-        ? 'rgba(245, 130, 130, 0.22)'
-        : 'rgba(245, 203, 92, 0.28)';
+      ctx.strokeStyle = 'rgba(245, 203, 92, 0.28)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+    for (let i = claps.length - 1; i >= 0; i--) {
+      const c = claps[i];
+      const age = (performance.now() - c.t0) / 450;
+      if (age >= 1) { claps.splice(i, 1); continue; }
+      ctx.beginPath();
+      ctx.arc(c.x, c.y, 24 + age * 260, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(226, 233, 242, ' + (0.3 * (1 - age)).toFixed(3) + ')';
       ctx.lineWidth = 1;
       ctx.stroke();
     }
   }
   requestAnimationFrame(loop);
-
-  // ════════════════════════════════════════════════════════
-  // KEYBOARD SHORTCUTS (desktop nicety)
-  // ════════════════════════════════════════════════════════
-  window.addEventListener('keydown', (e) => {
-    const key = e.key.toLowerCase();
-    if (key === '1') setMode('drift');
-    else if (key === '2') setMode('storm');
-    else if (key === '3') setMode('murmur');
-    else if (key === '4') setMode('scatter');
-  });
 })();
 </script>
 

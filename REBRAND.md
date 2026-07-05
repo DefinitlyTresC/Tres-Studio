@@ -1,5 +1,51 @@
 # tres.studio — Brief V3: the Multiverse
 
+## ✅ LAB REBUILD 1+2: BIRDS + DRIFT — 2026-07-04 (Tres: "go off" / "redo in totality")
+
+**The lab experiments are being rebuilt ground-up, one at a time, into a
+shared LAB FAMILY language:** dusk-black paper (the birds sky gradient is
+the family reference), Space Mono chrome only, lowercase, bracketed
+controls on the right (bottom row on phones), one yellow accent, nav =
+"tres carter." → `/` + "[ ← lab ]" → `/lab`, wordmark bottom-left
+("birds." / "drift."), hint bottom-right that fades on first input,
+Umami+Clarity on both, reduced-motion always works, no numbered
+decoration, gated hovers. Same URLs — the /lab portals didn't move.
+
+- **birds.html (was: 4-preset boids on V1 yellow/Bebas):** now a dusk
+  field study. Depth-sorted murmuration (z-layers, painter's order) over
+  a huge matte moon disc; a REAL perch wire (spring-node catenary —
+  landings bounce it, waves travel); a summonable hawk that carves panic
+  waves (fear is contagious — neighbor-diffused); wind gusts; storm
+  empties the wire. Gestures: hold = gather, tap = scatter (wire empties
+  in a distance ripple). States: [ murmur ] [ roost ] [ storm ] +
+  [ hawk ] event; keys 1/2/3/h/space. ~3% rogues stay yellow and never
+  roost. Opus review: 4 findings, all fixed (space-key a11y, LAND
+  resize-strand, two-finger gesture ownership, O(n²) shuffle sampled).
+- **drift.html (was: WebGL2 fluid w/ 9 sliders + 6 numbered "studies" —
+  numbered decoration, white V1 brand, blank until dragged):** now a
+  wind study. Same proven Navier-Stokes core, EXPERIENCE rebuilt: three
+  weathers [ smoke ] [ ember ] [ gale ] (one ink each — no sliders, no
+  palette pickers), scene alive on its own via discrete BREATH events
+  (one compact dye blob + one up-impulse; the projection step rolls it
+  into mushroom vortices unaided). Buoyancy pass added (smoke rises);
+  gale = steady crosswind + silk streamers from the left edge. Move =
+  stir air, drag = draw ink, tap = puff apart, [ save ] = PNG. KEY
+  ENGINE LESSONS (paid for in blood): dye texture at ~1024 while
+  velocity solves at ~256 — the split IS the crisp-filament look;
+  velocity units are sim-px/FRAME (sane impulses are 2-6, not 16+);
+  splats centered off-screen land only their gaussian tail — sources sit
+  just inside; one-shot blobs need dyeDiss ≥0.994 to live (steady-state
+  math only applies to continuous emitters); paper color is a DISPLAY
+  color — never gamma-lift it or near-black renders milky gray; dye
+  exits via an edge-fade band at the ceiling instead of pooling.
+- Portal tags updated: birds "starlings, a wire, a hawk"; drift
+  "smoke, ember, gale".
+- **Verified in the preview browser (rAF-honest) at desktop + 375px:**
+  all modes, gather/scatter/puff/draw, hawk, wire ripple, zero console
+  errors. NOT eyeballed in visible real Chrome (non-interactive
+  session) — pacing judgment call is Tres's on the live site.
+- **Remaining 5 to rebuild:** echo, field, plan, pulse, alternates.
+
 ## 🚀 LIVE — CUTOVER SHIPPED 2026-07-03 (Tres's explicit go: "send it")
 
 **Production `main` fast-forwarded to `astro-migration` (0274a31) and pushed;

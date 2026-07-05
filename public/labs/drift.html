@@ -1,1289 +1,885 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>Drift — Tres Carter</title>
-<link rel="icon" href="../favicon/favicon.ico">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
-<style>
-/* ════════════════════════════════════════════════
-   Drift — fluid study, six lenses
-   Palette + type matched to tres.studio
-   ════════════════════════════════════════════════ */
-:root {
-  --white:     #FFFFFF;
-  --black:     #0A0A0A;
-  --ink:       #0A0A0A;
-  --ink-soft:  #6B6B6B;
-  --ink-faint: #B5B5B5;
-  --yellow:    #F5CB5C;
-  --line:      #ECECEC;
-  --display:   'Bebas Neue', sans-serif;
-  --body:      'DM Sans', system-ui, -apple-system, sans-serif;
-  --ease:      cubic-bezier(.2, .8, .2, 1);
-  --ease-out:  cubic-bezier(.16, 1, .3, 1);
-}
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>drift — tres carter</title>
+  <link rel="icon" href="../favicon/favicon.ico" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
 
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  <!-- Umami analytics — data-domains scopes tracking to the real site so
+       previews/branch URLs don't pollute stats. Clarity below is guarded
+       to the production host for the same reason. -->
+  <script defer src="https://cloud.umami.is/script.js" data-website-id="96e73988-106a-415e-bf80-5e10ffaec0dc" data-domains="tres.studio"></script>
+  <script type="text/javascript">
+    if (location.hostname === 'tres.studio') {
+      (function(c,l,a,r,i,t,y){
+          c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+          t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+          y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+      })(window, document, "clarity", "script", "xang6oq7f9");
+    }
+  </script>
 
-html, body {
-  height: 100%;
-  width: 100%;
-  background: var(--white);
-  color: var(--black);
-  font-family: var(--body);
-  font-weight: 300;
-  overflow: hidden;
-  -webkit-font-smoothing: antialiased;
-  -webkit-tap-highlight-color: transparent;
-  user-select: none;
-}
-body { cursor: none; }
-body.body-dark { background: var(--black); color: var(--white); }
-@media (hover: none) { body { cursor: auto; } }
+  <style>
+    /* ───────────────────────────────────────────────────────────
+       DRIFT — a wind study at dusk.
+       Lab family chrome (see birds.html): Space Mono, one yellow
+       accent, the scene is the page. The sim is Navier-Stokes on
+       the GPU; smoke breathes through the frame on its own.
+       ─────────────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-a { color: inherit; text-decoration: none; }
-button {
-  font: inherit;
-  color: inherit;
-  background: none;
-  border: none;
-  cursor: pointer;
-  letter-spacing: inherit;
-}
-@media (hover: none) { button { cursor: pointer; } }
+    :root {
+      --white:     #FFFFFF;
+      --black:     #07080B;
+      --yellow:    #F5CB5C;
+      --ink-faint: rgba(255, 255, 255, 0.38);
+      --ink-soft:  rgba(255, 255, 255, 0.6);
 
-/* ─── Dot grid background (matches his site) ─── */
-.dot-grid {
-  position: fixed;
-  inset: -80px;
-  z-index: 0;
-  pointer-events: none;
-  background-image: radial-gradient(circle, rgba(10,10,10,0.07) 1px, transparent 1.4px);
-  background-size: 32px 32px;
-  transition: background-image 0.7s var(--ease), opacity 0.7s var(--ease);
-}
-.dot-grid.dark {
-  background-image: radial-gradient(circle, rgba(255,255,255,0.06) 1px, transparent 1.4px);
-}
+      --mono: 'Space Mono', ui-monospace, monospace;
+      --pad: clamp(1.5rem, 4vw, 3rem);
+      --ease: cubic-bezier(.2, .8, .2, 1);
+    }
 
-/* ─── Canvas (fluid sim renders here) ─── */
-#bg {
-  position: fixed;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 1;
-  background: var(--white);
-  transition: background 0.7s var(--ease);
-  display: block;
-  touch-action: none;
-}
+    html, body {
+      background: var(--black);
+      color: var(--white);
+      font-family: var(--mono);
+      font-size: 15px;
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+      touch-action: none;
+      overscroll-behavior: none;
+      -webkit-user-select: none;
+      user-select: none;
+    }
 
-/* ─── Top bar ─── */
-.top {
-  position: fixed;
-  top: 0; left: 0; right: 0;
-  z-index: 30;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1.5rem clamp(1.5rem, 4vw, 3rem);
-  pointer-events: none;
-  mix-blend-mode: difference;
-  color: var(--white);
-}
-.top > * { pointer-events: auto; }
-.mark {
-  font-family: var(--display);
-  font-size: 0.95rem;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  transition: opacity 0.3s;
-}
-.mark .y { color: var(--yellow); }
-.mark:hover { opacity: 0.6; }
-.top-right {
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
-  font-size: 0.6rem;
-  letter-spacing: 0.24em;
-  text-transform: uppercase;
-}
-.top-right .y { color: var(--yellow); }
-.adv-toggle {
-  width: 30px;
-  height: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid currentColor;
-  border-radius: 50%;
-  font-size: 1rem;
-  font-family: var(--body);
-  font-weight: 300;
-  transition: all 0.3s var(--ease);
-  padding-bottom: 2px;
-}
-.adv-toggle:hover {
-  background: var(--yellow);
-  color: var(--black);
-  border-color: var(--yellow);
-}
-.back-link {
-  font-size: 0.6rem;
-  letter-spacing: 0.24em;
-  text-transform: uppercase;
-  opacity: 0.7;
-  transition: opacity 0.25s, transform 0.4s var(--ease);
-}
-.back-link:hover {
-  opacity: 1;
-  transform: translateX(-3px);
-}
+    a { color: inherit; text-decoration: none; }
+    button {
+      font: inherit; color: inherit; background: none; border: none;
+      cursor: pointer; -webkit-tap-highlight-color: transparent;
+    }
+    a:focus-visible, button:focus-visible {
+      outline: 1px solid var(--yellow);
+      outline-offset: 3px;
+    }
 
-/* ─── Bottom bar ─── */
-.bottom {
-  position: fixed;
-  bottom: 0; left: 0; right: 0;
-  z-index: 30;
-  padding: clamp(1rem, 2vw, 1.5rem) clamp(1.5rem, 4vw, 3rem) clamp(1.5rem, 3vw, 2.2rem);
-  display: grid;
-  grid-template-columns: 1fr auto;
-  align-items: end;
-  gap: 2rem;
-  pointer-events: none;
-  mix-blend-mode: difference;
-  color: var(--white);
-}
-.bottom > * { pointer-events: auto; }
+    canvas#sky {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      touch-action: none;
+      display: block;
+      cursor: crosshair;
+    }
 
-.studies {
-  display: flex;
-  flex-wrap: wrap;
-  gap: clamp(1rem, 2.6vw, 2.4rem);
-  align-items: baseline;
-}
-.study-tab {
-  font-family: var(--display);
-  font-size: clamp(0.95rem, 1.4vw, 1.2rem);
-  letter-spacing: 0.06em;
-  padding: 0.4rem 0;
-  position: relative;
-  opacity: 0.38;
-  transition: opacity 0.5s var(--ease);
-  display: inline-flex;
-  align-items: baseline;
-  gap: 0.55em;
-  white-space: nowrap;
-}
-.study-tab .n {
-  font-size: 0.7em;
-  opacity: 0.75;
-  letter-spacing: 0.05em;
-}
-.study-tab:hover { opacity: 0.85; }
-.study-tab.active { opacity: 1; }
-.study-tab.active::before {
-  content: '';
-  position: absolute;
-  left: -0.9em;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 0.32em;
-  height: 0.32em;
-  background: var(--yellow);
-  border-radius: 50%;
-}
+    /* ─── Chrome (identical bones to birds.html) ─── */
+    .nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: calc(1.2rem + env(safe-area-inset-top, 0px)) var(--pad) 1.2rem;
+      pointer-events: none;
+    }
+    .nav > * { pointer-events: auto; }
+    .nav .mark {
+      font-weight: 700;
+      font-size: 0.7rem;
+      letter-spacing: 0.14em;
+      transition: opacity 0.25s var(--ease);
+    }
+    .nav .mark .y { color: var(--yellow); }
+    .nav .back {
+      font-size: 0.62rem;
+      letter-spacing: 0.14em;
+      color: var(--ink-soft);
+      padding: 0.5rem 0;
+      transition: color 0.25s var(--ease);
+    }
 
-.right-cluster {
-  display: flex;
-  align-items: center;
-  gap: clamp(1rem, 2vw, 1.6rem);
-}
-.palette {
-  display: flex;
-  gap: 0.55rem;
-  align-items: center;
-}
-.swatch {
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  border: 1.5px solid rgba(255,255,255,0.18);
-  transition: transform 0.35s var(--ease), border-color 0.3s;
-  flex-shrink: 0;
-}
-.swatch:hover { transform: scale(1.18); }
-.swatch.active {
-  transform: scale(1.3);
-  border-color: var(--yellow);
-}
-.actions {
-  display: flex;
-  gap: 1.1rem;
-  font-size: 0.6rem;
-  letter-spacing: 0.24em;
-  text-transform: uppercase;
-  font-weight: 400;
-}
-.actions button { padding: 0.3rem 0; transition: opacity 0.3s; font-weight: 400; }
-.actions button:hover { opacity: 0.55; }
+    .mark-bottom {
+      position: fixed;
+      bottom: calc(1.6rem + env(safe-area-inset-bottom, 0px));
+      left: var(--pad);
+      font-weight: 700;
+      font-size: 0.85rem;
+      letter-spacing: 0.14em;
+      z-index: 5;
+      pointer-events: none;
+    }
+    .mark-bottom .y { color: var(--yellow); }
 
-/* ─── Study transition overlay ─── */
-.study-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 25;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  pointer-events: none;
-  opacity: 0;
-  mix-blend-mode: difference;
-  color: var(--white);
-  transition: opacity 0.5s var(--ease);
-}
-.study-overlay.show { opacity: 1; }
-.study-overlay .n {
-  font-family: var(--display);
-  font-size: 0.7rem;
-  letter-spacing: 0.4em;
-  margin-bottom: 1rem;
-  opacity: 0.75;
-}
-.study-overlay .n .y { color: var(--yellow); }
-.study-overlay .name {
-  font-family: var(--display);
-  font-size: clamp(4rem, 14vw, 12rem);
-  letter-spacing: -0.005em;
-  line-height: 0.85;
-  margin-bottom: 1.2rem;
-}
-.study-overlay .tag {
-  font-size: 0.62rem;
-  letter-spacing: 0.32em;
-  text-transform: uppercase;
-  opacity: 0.7;
-}
+    .hint {
+      position: fixed;
+      bottom: calc(1.7rem + env(safe-area-inset-bottom, 0px));
+      right: var(--pad);
+      font-size: 0.56rem;
+      letter-spacing: 0.16em;
+      color: var(--ink-faint);
+      z-index: 5;
+      pointer-events: none;
+      transition: opacity 0.8s var(--ease);
+    }
+    .hint.fade { opacity: 0; }
 
-/* ─── Brush cursor ─── */
-.brush {
-  position: fixed;
-  top: 0; left: 0;
-  border: 1.5px solid var(--black);
-  border-radius: 50%;
-  pointer-events: none;
-  z-index: 9999;
-  transform: translate(-50%, -50%);
-  transition: width 0.3s var(--ease), height 0.3s var(--ease),
-              background 0.2s, border-color 0.3s, opacity 0.3s;
-  mix-blend-mode: difference;
-  border-color: var(--white);
-  opacity: 0.85;
-}
-.brush::after {
-  content: '';
-  position: absolute;
-  top: 50%; left: 50%;
-  width: 4px; height: 4px;
-  background: currentColor;
-  color: var(--white);
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-  opacity: 0.4;
-}
-.brush.painting {
-  background: var(--yellow);
-  mix-blend-mode: normal;
-  opacity: 0.32;
-  border-color: var(--yellow);
-}
-@media (hover: none) { .brush { display: none; } }
+    .modes {
+      position: fixed;
+      top: 50%;
+      right: var(--pad);
+      transform: translateY(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 0.35rem;
+      z-index: 10;
+    }
+    .mode-btn {
+      font-size: 0.62rem;
+      letter-spacing: 0.1em;
+      color: var(--ink-faint);
+      padding: 0.55rem 0.2rem;
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+      transition: color 0.3s var(--ease);
+    }
+    .mode-btn.active { color: var(--yellow); }
 
-/* ─── Hint shown on first load ─── */
-.hint {
-  position: fixed;
-  top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 20;
-  text-align: center;
-  pointer-events: none;
-  mix-blend-mode: difference;
-  color: var(--white);
-  opacity: 1;
-  transition: opacity 1s var(--ease);
-}
-.hint.hide { opacity: 0; }
-.hint .big {
-  font-family: var(--display);
-  font-size: clamp(3rem, 9vw, 7rem);
-  letter-spacing: 0.005em;
-  line-height: 0.9;
-  margin-bottom: 1.2rem;
-}
-.hint .big .y { color: var(--yellow); }
-.hint .small {
-  font-size: 0.6rem;
-  letter-spacing: 0.3em;
-  text-transform: uppercase;
-  opacity: 0.78;
-  line-height: 1.9;
-}
-.hint kbd {
-  display: inline-block;
-  padding: 0.2em 0.55em;
-  margin: 0 0.12em;
-  border: 1px solid currentColor;
-  border-radius: 4px;
-  font-family: var(--body);
-  font-size: 0.85em;
-  letter-spacing: 0.1em;
-  font-weight: 400;
-}
+    @media (hover: hover) {
+      .nav .mark:hover { opacity: 0.65; }
+      .nav .back:hover { color: var(--white); }
+      .mode-btn:hover { color: var(--white); }
+      .mode-btn.active:hover { color: var(--yellow); }
+    }
 
-/* ─── Advanced panel ─── */
-.adv {
-  position: fixed;
-  top: 0; right: 0;
-  width: min(380px, 90vw);
-  height: 100%;
-  background: rgba(255, 255, 255, 0.97);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border-left: 1px solid var(--line);
-  z-index: 40;
-  padding: 5.5rem clamp(1.5rem, 3vw, 2.4rem) 2rem;
-  overflow-y: auto;
-  transform: translateX(100%);
-  transition: transform 0.55s var(--ease);
-  color: var(--black);
-}
-.adv.open { transform: translateX(0); }
-.adv-head {
-  font-family: var(--display);
-  font-size: 0.7rem;
-  letter-spacing: 0.3em;
-  color: var(--ink-soft);
-  margin-bottom: 2rem;
-  border-bottom: 1px solid var(--line);
-  padding-bottom: 1rem;
-}
-.adv-head .y { color: var(--yellow); }
-.adv-row { margin-bottom: 1.3rem; }
-.adv-row label {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.55rem;
-  letter-spacing: 0.24em;
-  text-transform: uppercase;
-  color: var(--ink-soft);
-  margin-bottom: 0.35rem;
-}
-.adv-row label .v {
-  color: var(--black);
-  font-family: var(--display);
-  letter-spacing: 0.06em;
-}
-.adv-row input[type=range] {
-  width: 100%;
-  accent-color: var(--yellow);
-  cursor: pointer;
-  height: 4px;
-}
-.adv-close {
-  position: absolute;
-  top: 1.5rem;
-  right: 1.5rem;
-  width: 30px;
-  height: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid var(--black);
-  border-radius: 50%;
-  font-size: 0.95rem;
-  color: var(--black);
-  font-weight: 300;
-}
-.adv-close:hover { background: var(--yellow); border-color: var(--yellow); }
+    @media (max-width: 700px) {
+      .modes {
+        top: auto;
+        bottom: calc(3.6rem + env(safe-area-inset-bottom, 0px));
+        right: 0;
+        left: 0;
+        transform: none;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        gap: 0.2rem;
+      }
+      .mode-btn {
+        padding: 0.55rem 0.55rem;
+        font-size: 0.56rem;
+      }
+      .mark-bottom { font-size: 0.75rem; }
+      .hint { max-width: 40vw; text-align: right; }
+    }
 
-/* ─── Save flash ─── */
-.flash {
-  position: fixed;
-  inset: 0;
-  background: var(--yellow);
-  z-index: 50;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.4s var(--ease);
-}
-.flash.go { opacity: 0.9; }
+    @media (prefers-reduced-motion: reduce) {
+      .nav .mark, .nav .back, .mode-btn, .hint { transition: none; }
+    }
 
-/* ─── Mobile ─── */
-@media (max-width: 760px) {
-  .top { padding: 1.1rem 1.2rem; }
-  .top-right span { display: none; }
-  .bottom {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-    padding: 1rem 1.2rem 1.3rem;
-  }
-  .studies {
-    gap: 0.7rem 1rem;
-    justify-content: flex-start;
-  }
-  .study-tab { font-size: 0.95rem; }
-  .right-cluster { justify-content: space-between; }
-  .swatch { width: 28px; height: 28px; }
-  .hint .big { font-size: 3rem; }
-  .hint .small { font-size: 0.55rem; letter-spacing: 0.22em; }
-}
-</style>
+    .fallback {
+      position: fixed;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      z-index: 50;
+      padding: 2rem;
+      text-align: center;
+      font-size: 0.7rem;
+      letter-spacing: 0.1em;
+      color: var(--ink-soft);
+    }
+
+    .sr {
+      position: absolute;
+      width: 1px; height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      white-space: nowrap;
+    }
+  </style>
 </head>
 <body>
 
-<div class="dot-grid" id="dotGrid"></div>
-<canvas id="bg"></canvas>
+<canvas id="sky" aria-hidden="true"></canvas>
 
-<nav class="top">
-  <a class="mark" href="../index.html">Tres Carter<span class="y">.</span></a>
-  <div class="top-right">
-    <a class="back-link" href="../lab.html">← Lab</a>
-    <span>— Lab<span class="y"> · </span>Drift</span>
-    <button class="adv-toggle" id="advOpen" aria-label="Advanced controls">+</button>
-  </div>
+<p class="sr">Smoke drifting through a dark frame, simulated as fluid. Move the
+pointer to stir the air, drag to draw ink into it, tap to puff it apart, and
+switch between smoke, ember, and gale weathers.</p>
+<noscript><p class="fallback">drift needs JavaScript.</p></noscript>
+
+<nav class="nav">
+  <a class="mark" href="/">tres carter<span class="y">.</span></a>
+  <a class="back" href="/lab">[ &larr; lab ]</a>
 </nav>
 
-<div class="study-overlay" id="studyOverlay">
-  <div class="n">Study<span class="y"> · </span><span id="oN">01</span></div>
-  <div class="name" id="oName">DRIFT</div>
+<div class="modes" id="modes" role="group" aria-label="weathers">
+  <button class="mode-btn active" data-mode="smoke" aria-pressed="true">[ smoke ]</button>
+  <button class="mode-btn" data-mode="ember" aria-pressed="false">[ ember ]</button>
+  <button class="mode-btn" data-mode="gale" aria-pressed="false">[ gale ]</button>
+  <button class="mode-btn" id="saveBtn">[ save ]</button>
 </div>
 
-<div class="hint" id="hint">
-  <div class="big">DRIFT<span class="y">.</span></div>
-  <div class="small">
-    Drag to paint &nbsp;·&nbsp; <kbd>1</kbd>–<kbd>6</kbd> for studies<br>
-    <kbd>C</kbd> clear &nbsp;·&nbsp; <kbd>S</kbd> save &nbsp;·&nbsp; <kbd>?</kbd> controls
-  </div>
-</div>
-
-<div class="bottom">
-  <div class="studies" id="studies"></div>
-  <div class="right-cluster">
-    <div class="palette" id="palette"></div>
-    <div class="actions">
-      <button id="saveBtn">Save</button>
-      <button id="clearBtn">Clear</button>
-    </div>
-  </div>
-</div>
-
-<div class="brush" id="brush" style="width: 60px; height: 60px;"></div>
-
-<aside class="adv" id="adv">
-  <button class="adv-close" id="advClose" aria-label="Close">×</button>
-  <div class="adv-head">— Advanced<span class="y"> · </span>Control</div>
-
-  <div class="adv-row">
-    <label>Brush Radius <span class="v" id="vRad">0.030</span></label>
-    <input id="rad" type="range" min="0.005" max="0.12" step="0.001" value="0.03">
-  </div>
-  <div class="adv-row">
-    <label>Ink Amount <span class="v" id="vInk">0.60</span></label>
-    <input id="ink" type="range" min="0.05" max="3.0" step="0.01" value="0.6">
-  </div>
-  <div class="adv-row">
-    <label>Flow Force <span class="v" id="vForce">80</span></label>
-    <input id="force" type="range" min="0" max="300" step="1" value="80">
-  </div>
-  <div class="adv-row">
-    <label>Vorticity <span class="v" id="vVort">1.2</span></label>
-    <input id="vort" type="range" min="0" max="5.0" step="0.05" value="1.2">
-  </div>
-  <div class="adv-row">
-    <label>Dye Dissipation <span class="v" id="vDiss">0.9998</span></label>
-    <input id="diss" type="range" min="0.92" max="1.0" step="0.0001" value="0.9998">
-  </div>
-  <div class="adv-row">
-    <label>Velocity Dissipation <span class="v" id="vVdiss">0.9995</span></label>
-    <input id="vdiss" type="range" min="0.92" max="1.0" step="0.0001" value="0.9995">
-  </div>
-  <div class="adv-row">
-    <label>Bloom <span class="v" id="vBloom">0.80</span></label>
-    <input id="bloom" type="range" min="0" max="3" step="0.02" value="0.8">
-  </div>
-  <div class="adv-row">
-    <label>Saturation <span class="v" id="vSat">1.40</span></label>
-    <input id="sat" type="range" min="0.6" max="2.2" step="0.02" value="1.4">
-  </div>
-  <div class="adv-row">
-    <label>Iterations <span class="v" id="vIters">35</span></label>
-    <input id="iters" type="range" min="6" max="80" step="1" value="35">
-  </div>
-</aside>
-
-<div class="flash" id="flash"></div>
+<div class="mark-bottom">drift<span class="y">.</span></div>
+<div class="hint" id="hint">drag to draw &middot; tap to puff</div>
 
 <script>
-(() => {
-'use strict';
+(function () {
+  'use strict';
 
-// ════════════════════════════════════════════════
-// STUDIES — six lenses
-// ════════════════════════════════════════════════
-const STUDIES = [
-  {
-    n: '01', name: 'DRIFT', tag: 'ink on still water',
-    bg: '#FFFFFF', dark: false,
-    palette: ['#0A0A0A','#3A3A3A','#6B6B6B','#B5B5B5','#F5CB5C'],
-    p: { brush:0.045, ink:0.55, force:55, vort:0.6, diss:0.9998, vdiss:0.9995, bloom:0.18, sat:1.05, iters:35, blend:0 }
-  },
-  {
-    n: '02', name: 'TIDE', tag: '30A in liquid form',
-    bg: '#FFFFFF', dark: false,
-    palette: ['#1F3A52','#487FA8','#B5D2DE','#E8D4A8','#F5CB5C'],
-    p: { brush:0.05, ink:0.70, force:95, vort:1.0, diss:0.9997, vdiss:0.9993, bloom:0.45, sat:1.35, iters:30, blend:0 }
-  },
-  {
-    n: '03', name: 'PLUME', tag: 'gold caught in updraft',
-    bg: '#FFFFFF', dark: false,
-    palette: ['#F5CB5C','#E5B83D','#C99A1F','#7A5C0E','#0A0A0A'],
-    p: { brush:0.038, ink:0.80, force:130, vort:2.4, diss:0.9996, vdiss:0.9990, bloom:1.20, sat:1.45, iters:30, blend:0 }
-  },
-  {
-    n: '04', name: 'MARBLE', tag: 'suminagashi · paper float',
-    bg: '#F4EFE3', dark: false,
-    palette: ['#0A0A0A','#8E2B2B','#1F3A52','#C99A1F','#3D5A3D'],
-    p: { brush:0.028, ink:1.10, force:45, vort:0.4, diss:0.9999, vdiss:0.9996, bloom:0.08, sat:1.0, iters:40, blend:0 }
-  },
-  {
-    n: '05', name: 'STORM', tag: 'hurricane — Atlantic basin',
-    bg: '#FFFFFF', dark: false,
-    palette: ['#0A0A0A','#F5CB5C','#3A3A3A','#6B6B6B','#FFFFFF'],
-    p: { brush:0.05, ink:0.70, force:200, vort:3.8, diss:0.9995, vdiss:0.9988, bloom:0.45, sat:1.25, iters:25, blend:0 }
-  },
-  {
-    n: '06', name: 'VOID', tag: 'nebula · night work',
-    bg: '#0A0A0A', dark: true,
-    palette: ['#F5CB5C','#FFFFFF','#FF6B6B','#27C3FF','#9F7BFF'],
-    p: { brush:0.05, ink:0.95, force:110, vort:1.6, diss:0.9997, vdiss:0.9993, bloom:1.70, sat:1.55, iters:30, blend:1 }
+  const canvas = document.getElementById('sky');
+  const PRM = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const isCoarse = window.matchMedia('(pointer: coarse)').matches;
+  const isMobile = isCoarse || window.innerWidth < 700;
+  const CALM = PRM ? 0.45 : 1;
+
+  let dead = false;
+  function fail(msg) {
+    dead = true;
+    const d = document.createElement('p');
+    d.className = 'fallback';
+    d.textContent = msg;
+    document.body.appendChild(d);
   }
-];
 
-let currentStudy = 0;
-let activeColorIdx = 0;
-let hintHidden = false;
-
-const $ = id => document.getElementById(id);
-const canvas = $('bg');
-
-function hexToRGB(hex) {
-  const n = parseInt(hex.slice(1), 16);
-  return [(n>>16 & 255)/255, (n>>8 & 255)/255, (n & 255)/255];
-}
-
-// ════════════════════════════════════════════════
-// UI rendering
-// ════════════════════════════════════════════════
-function renderStudies() {
-  $('studies').innerHTML = STUDIES.map((s, i) =>
-    `<button class="study-tab ${i===currentStudy?'active':''}" data-i="${i}"><span class="n">${s.n}</span>${s.name}</button>`
-  ).join('');
-  $('studies').querySelectorAll('.study-tab').forEach(b => {
-    b.addEventListener('click', () => setStudy(+b.dataset.i));
+  const gl = canvas.getContext('webgl2', {
+    antialias: false, depth: false, stencil: false, preserveDrawingBuffer: true,
   });
-}
+  if (!gl) { fail('drift needs WebGL2 — this browser doesn’t have it.'); return; }
+  gl.getExtension('EXT_color_buffer_float');
+  gl.getExtension('EXT_color_buffer_half_float');
 
-function renderPalette() {
-  const s = STUDIES[currentStudy];
-  $('palette').innerHTML = s.palette.map((c, i) =>
-    `<span class="swatch ${i===activeColorIdx?'active':''}" data-i="${i}" style="background:${c}"></span>`
-  ).join('');
-  $('palette').querySelectorAll('.swatch').forEach(sw => {
-    sw.addEventListener('click', () => {
-      activeColorIdx = +sw.dataset.i;
-      renderPalette();
+  canvas.addEventListener('webglcontextlost', (e) => {
+    e.preventDefault();
+    fail('graphics context lost — reload to restart the wind.');
+  });
+
+  // ══════════════════════════════════════════════════════════
+  // WEATHERS — one ink each; the mode IS the palette
+  // ══════════════════════════════════════════════════════════
+  const MODES = {
+    smoke: {
+      ink: [0.87, 0.91, 0.96],
+      vort: 3.0,  buoy: 0.42, dyeDiss: 0.996, velDiss: 0.992,
+      bloom: 0.3, force: 60,  emitUp: 4,  side: 0,
+    },
+    ember: {
+      ink: [0.96, 0.80, 0.36],
+      vort: 2.8,  buoy: 0.55, dyeDiss: 0.994, velDiss: 0.991,
+      bloom: 1.5, force: 80,  emitUp: 6,  side: 0,
+    },
+    gale: {
+      ink: [0.72, 0.82, 0.94],
+      vort: 3.2,  buoy: 0.06, dyeDiss: 0.995, velDiss: 0.9975,
+      bloom: 0.7, force: 110, emitUp: 8, side: 6,
+    },
+  };
+  let P = MODES.smoke;
+  let modeName = 'smoke';
+
+  function setMode(name) {
+    if (!MODES[name]) return;
+    P = MODES[name];
+    modeName = name;
+    document.querySelectorAll('.mode-btn[data-mode]').forEach(b => {
+      const on = b.dataset.mode === name;
+      b.classList.toggle('active', on);
+      b.setAttribute('aria-pressed', String(on));
     });
+  }
+  document.querySelectorAll('.mode-btn[data-mode]').forEach(btn => {
+    btn.addEventListener('click', () => setMode(btn.dataset.mode));
   });
-}
 
-function applyParams() {
-  const p = STUDIES[currentStudy].p;
-  $('rad').value   = p.brush; $('vRad').textContent   = p.brush.toFixed(3);
-  $('ink').value   = p.ink;   $('vInk').textContent   = p.ink.toFixed(2);
-  $('force').value = p.force; $('vForce').textContent = p.force;
-  $('vort').value  = p.vort;  $('vVort').textContent  = p.vort.toFixed(2);
-  $('diss').value  = p.diss;  $('vDiss').textContent  = p.diss.toFixed(4);
-  $('vdiss').value = p.vdiss; $('vVdiss').textContent = p.vdiss.toFixed(4);
-  $('bloom').value = p.bloom; $('vBloom').textContent = p.bloom.toFixed(2);
-  $('sat').value   = p.sat;   $('vSat').textContent   = p.sat.toFixed(2);
-  $('iters').value = p.iters; $('vIters').textContent = p.iters;
-  pointer.radius = p.brush;
-  updateBrushSize();
-}
+  // ══════════════════════════════════════════════════════════
+  // SHADERS — stable-fluids kit (advect / project / vorticity),
+  // plus buoyancy so smoke actually rises, and a radial puff.
+  // ══════════════════════════════════════════════════════════
+  const VS = `#version 300 es
+  precision highp float;
+  const vec2 v[3] = vec2[3](vec2(-1,-1), vec2(3,-1), vec2(-1,3));
+  out vec2 uv;
+  void main() { vec2 p = v[gl_VertexID]; uv = 0.5*(p+1.0); gl_Position = vec4(p, 0, 1); }`;
 
-function setStudy(i, skipOverlay) {
-  if (i === currentStudy && !skipOverlay) return;
-  currentStudy = i;
-  const s = STUDIES[i];
-  activeColorIdx = 0;
-  canvas.style.background = s.bg;
-  $('dotGrid').classList.toggle('dark', s.dark);
-  document.body.classList.toggle('body-dark', s.dark);
-  $('brush').style.borderColor = s.dark ? '#FFFFFF' : '#0A0A0A';
-  applyParams();
-  renderStudies();
-  renderPalette();
-  // overlay
-  const o = $('studyOverlay');
-  $('oN').textContent = s.n;
-  $('oName').textContent = s.name;
-  if (!skipOverlay) {
-    o.classList.add('show');
-    clearTimeout(setStudy._t);
-    setStudy._t = setTimeout(() => o.classList.remove('show'), 1200);
+  let shaderFail = false;
+  function compile(fs) {
+    const vs = gl.createShader(gl.VERTEX_SHADER);
+    gl.shaderSource(vs, VS); gl.compileShader(vs);
+    if (!gl.getShaderParameter(vs, gl.COMPILE_STATUS)) { shaderFail = true; console.error('VS:', gl.getShaderInfoLog(vs)); }
+    const f = gl.createShader(gl.FRAGMENT_SHADER);
+    gl.shaderSource(f, fs); gl.compileShader(f);
+    if (!gl.getShaderParameter(f, gl.COMPILE_STATUS)) { shaderFail = true; console.error('FS:', gl.getShaderInfoLog(f)); }
+    const p = gl.createProgram();
+    gl.attachShader(p, vs); gl.attachShader(p, f);
+    gl.linkProgram(p);
+    if (!gl.getProgramParameter(p, gl.LINK_STATUS)) { shaderFail = true; console.error('LINK:', gl.getProgramInfoLog(p)); }
+    return p;
   }
-  clearSim();
-}
 
-function dismissHint() {
-  if (hintHidden) return;
-  hintHidden = true;
-  $('hint').classList.add('hide');
-  setTimeout(() => $('hint').style.display = 'none', 1000);
-}
+  const ADVECT = `#version 300 es
+  precision highp float; in vec2 uv; out vec4 o;
+  uniform sampler2D Vel, Src; uniform vec2 texel; uniform float dt; uniform float diss;
+  uniform float edgeFade;
+  void main() {
+    vec2 v = texture(Vel, uv).xy;
+    o = texture(Src, uv - dt * v * texel) * diss;
+    // dye leaves the frame at the ceiling (and downwind edge) instead
+    // of pooling against the clamped border
+    float ef = max(smoothstep(0.86, 1.0, uv.y), smoothstep(0.9, 1.0, uv.x));
+    o *= 1.0 - edgeFade * ef;
+  }`;
 
-// Advanced sliders → live update
-['rad','ink','force','vort','diss','vdiss','bloom','sat','iters'].forEach(id => {
-  $(id).addEventListener('input', () => {
-    const el = $(id);
-    const v = +el.value;
-    const vid = 'v' + id.charAt(0).toUpperCase() + id.slice(1);
-    const prec = (id==='diss'||id==='vdiss')?4 : (id==='rad')?3 : (id==='iters'||id==='force')?0 : 2;
-    $(vid).textContent = prec===0 ? v.toString() : v.toFixed(prec);
-    if (id === 'rad') { pointer.radius = v; updateBrushSize(); }
-  });
-});
+  const DIVG = `#version 300 es
+  precision highp float; in vec2 uv; out vec4 o;
+  uniform sampler2D Vel; uniform vec2 texel;
+  void main() {
+    float L = texture(Vel, uv - vec2(texel.x, 0)).x;
+    float R = texture(Vel, uv + vec2(texel.x, 0)).x;
+    float B = texture(Vel, uv - vec2(0, texel.y)).y;
+    float T = texture(Vel, uv + vec2(0, texel.y)).y;
+    o = vec4(0.5 * ((R-L) + (T-B)), 0, 0, 1);
+  }`;
 
-$('advOpen').addEventListener('click', () => $('adv').classList.add('open'));
-$('advClose').addEventListener('click', () => $('adv').classList.remove('open'));
-$('saveBtn').addEventListener('click', saveImg);
-$('clearBtn').addEventListener('click', () => { clearSim(); savePulse(); });
+  const CLEARK = `#version 300 es
+  precision highp float; in vec2 uv; out vec4 o;
+  uniform sampler2D T; uniform float k;
+  void main() { o = texture(T, uv) * k; }`;
 
-// ════════════════════════════════════════════════
-// WebGL2 fluid sim (Navier-Stokes, semi-Lagrangian)
-// ════════════════════════════════════════════════
-const gl = canvas.getContext('webgl2', {
-  antialias: false, depth: false, stencil: false, preserveDrawingBuffer: true
-});
-if (!gl) {
-  document.body.innerHTML = '<div style="padding:4rem;font-family:DM Sans;color:#666">Your browser doesn\'t support WebGL2. Drift needs a modern browser.</div>';
-  return;
-}
-gl.getExtension('EXT_color_buffer_float');
-gl.getExtension('EXT_color_buffer_half_float');
+  const JAC = `#version 300 es
+  precision highp float; in vec2 uv; out vec4 o;
+  uniform sampler2D Pr, Div; uniform vec2 texel;
+  void main() {
+    float L = texture(Pr, uv - vec2(texel.x, 0)).x;
+    float R = texture(Pr, uv + vec2(texel.x, 0)).x;
+    float B = texture(Pr, uv - vec2(0, texel.y)).x;
+    float T = texture(Pr, uv + vec2(0, texel.y)).x;
+    float d = texture(Div, uv).x;
+    o = vec4((L + R + B + T - d) * 0.25, 0, 0, 1);
+  }`;
 
-// Keydown shortcuts — bound AFTER the WebGL check so a failed sim
-// doesn't leave orphaned listeners that try to manipulate elements
-// the early-return replaced with the error fallback.
-window.addEventListener('keydown', e => {
-  const k = e.key.toLowerCase();
-  if (k >= '1' && k <= '6') { setStudy(parseInt(k,10) - 1); dismissHint(); }
-  else if (k === 'c') { clearSim(); dismissHint(); }
-  else if (k === 's') { saveImg(); }
-  else if (k === '?' || k === '/') { $('adv').classList.toggle('open'); }
-  else if (k === 'escape') { $('adv').classList.remove('open'); }
-});
+  const GRAD = `#version 300 es
+  precision highp float; in vec2 uv; out vec4 o;
+  uniform sampler2D Vel, Pr; uniform vec2 texel;
+  void main() {
+    float L = texture(Pr, uv - vec2(texel.x, 0)).x;
+    float R = texture(Pr, uv + vec2(texel.x, 0)).x;
+    float B = texture(Pr, uv - vec2(0, texel.y)).x;
+    float T = texture(Pr, uv + vec2(0, texel.y)).x;
+    o = vec4(texture(Vel, uv).xy - 0.5 * vec2(R - L, T - B), 0, 1);
+  }`;
 
-// ─── Shaders ───
-const VS = `#version 300 es
-precision highp float;
-const vec2 v[3] = vec2[3](vec2(-1,-1), vec2(3,-1), vec2(-1,3));
-out vec2 uv;
-void main() { vec2 p = v[gl_VertexID]; uv = 0.5*(p+1.0); gl_Position = vec4(p, 0, 1); }`;
+  const CURL = `#version 300 es
+  precision highp float; in vec2 uv; out vec4 o;
+  uniform sampler2D Vel; uniform vec2 texel;
+  void main() {
+    float L = texture(Vel, uv - vec2(texel.x, 0)).y;
+    float R = texture(Vel, uv + vec2(texel.x, 0)).y;
+    float B = texture(Vel, uv - vec2(0, texel.y)).x;
+    float T = texture(Vel, uv + vec2(0, texel.y)).x;
+    o = vec4((R - L) - (T - B), 0, 0, 1);
+  }`;
 
-function compile(fs) {
-  const vs = gl.createShader(gl.VERTEX_SHADER);
-  gl.shaderSource(vs, VS); gl.compileShader(vs);
-  const f = gl.createShader(gl.FRAGMENT_SHADER);
-  gl.shaderSource(f, fs); gl.compileShader(f);
-  if (!gl.getShaderParameter(f, gl.COMPILE_STATUS)) console.error('FS:', gl.getShaderInfoLog(f));
-  const p = gl.createProgram();
-  gl.attachShader(p, vs); gl.attachShader(p, f);
-  gl.linkProgram(p);
-  if (!gl.getProgramParameter(p, gl.LINK_STATUS)) console.error('LINK:', gl.getProgramInfoLog(p));
-  return p;
-}
+  const VORT = `#version 300 es
+  precision highp float; in vec2 uv; out vec4 o;
+  uniform sampler2D Vel, Curl; uniform vec2 texel;
+  uniform float dt, vort;
+  void main() {
+    float L = texture(Curl, uv - vec2(texel.x, 0)).x;
+    float R = texture(Curl, uv + vec2(texel.x, 0)).x;
+    float B = texture(Curl, uv - vec2(0, texel.y)).x;
+    float T = texture(Curl, uv + vec2(0, texel.y)).x;
+    vec2 g = 0.5 * vec2(abs(T) - abs(B), abs(R) - abs(L)) + 1e-5;
+    float c = texture(Curl, uv).x;
+    vec2 f = vort * vec2(g.y, -g.x) * c;
+    float m = length(f);
+    if (m > 200.0) f *= 200.0 / (m + 1e-6);
+    o = vec4(texture(Vel, uv).xy + dt * f, 0, 1);
+  }`;
 
-const CLEAR = `#version 300 es
-precision highp float; in vec2 uv; out vec4 o;
-uniform sampler2D T; uniform float k;
-void main() { o = texture(T, uv) * k; }`;
-
-const BRIGHT = `#version 300 es
-precision highp float; in vec2 uv; out vec4 o;
-uniform sampler2D T; uniform float th; uniform float sc; uniform int dark; uniform vec3 paper;
-void main() {
-  vec3 c = texture(T, uv).rgb;
-  if (dark == 1) {
-    // VOID: bg is black, dye IS the bright thing — threshold-extract bright
-    o = vec4(max(c - vec3(th), 0.0) * sc, 1.0);
-  } else {
-    // Light studies: extract regions FAR from paper color (= ink areas).
-    // Bloom emits the SATURATED chroma of the ink, so we add gentle color glow
-    // around ink edges instead of brightening the whole white field.
-    float dist = length(c - paper);
-    float strength = smoothstep(0.15, 0.7, dist) * sc;
-    // Glow color = the ink itself, but biased toward chroma not lightness
-    vec3 glow = c * strength;
-    o = vec4(glow, 1.0);
-  }
-}`;
-
-const ADVECT = `#version 300 es
-precision highp float; in vec2 uv; out vec4 o;
-uniform sampler2D Vel, Src; uniform vec2 texel; uniform float dt; uniform float diss;
-uniform vec3 paper; uniform int isDye;
-void main() {
-  vec2 v = texture(Vel, uv).xy;
-  vec2 coord = uv - dt * v * texel;
-  vec4 s = texture(Src, coord);
-  if (isDye == 1) {
-    // Dye lerps toward paper color (so paper stays paper-colored as ink fades)
-    s.rgb = mix(s.rgb, paper, 1.0 - diss);
-    o = s;
-  } else {
-    // Velocity multiplies toward zero (standard)
-    o = s * diss;
-  }
-}`;
-
-const DIVG = `#version 300 es
-precision highp float; in vec2 uv; out vec4 o;
-uniform sampler2D Vel; uniform vec2 texel;
-void main() {
-  float L = texture(Vel, uv - vec2(texel.x, 0)).x;
-  float R = texture(Vel, uv + vec2(texel.x, 0)).x;
-  float B = texture(Vel, uv - vec2(0, texel.y)).y;
-  float T = texture(Vel, uv + vec2(0, texel.y)).y;
-  o = vec4(0.5 * ((R-L) + (T-B)), 0, 0, 1);
-}`;
-
-const JAC = `#version 300 es
-precision highp float; in vec2 uv; out vec4 o;
-uniform sampler2D P, Div; uniform vec2 texel;
-void main() {
-  float L = texture(P, uv - vec2(texel.x, 0)).x;
-  float R = texture(P, uv + vec2(texel.x, 0)).x;
-  float B = texture(P, uv - vec2(0, texel.y)).x;
-  float T = texture(P, uv + vec2(0, texel.y)).x;
-  float d = texture(Div, uv).x;
-  o = vec4((L + R + B + T - d) * 0.25, 0, 0, 1);
-}`;
-
-const GRAD = `#version 300 es
-precision highp float; in vec2 uv; out vec4 o;
-uniform sampler2D Vel, P; uniform vec2 texel;
-void main() {
-  float L = texture(P, uv - vec2(texel.x, 0)).x;
-  float R = texture(P, uv + vec2(texel.x, 0)).x;
-  float B = texture(P, uv - vec2(0, texel.y)).x;
-  float T = texture(P, uv + vec2(0, texel.y)).x;
-  vec2 v = texture(Vel, uv).xy - 0.5 * vec2(R - L, T - B);
-  o = vec4(v, 0, 1);
-}`;
-
-const CURL = `#version 300 es
-precision highp float; in vec2 uv; out vec4 o;
-uniform sampler2D Vel; uniform vec2 texel;
-void main() {
-  float L = texture(Vel, uv - vec2(texel.x, 0)).y;
-  float R = texture(Vel, uv + vec2(texel.x, 0)).y;
-  float B = texture(Vel, uv - vec2(0, texel.y)).x;
-  float T = texture(Vel, uv + vec2(0, texel.y)).x;
-  o = vec4((R - L) - (T - B), 0, 0, 1);
-}`;
-
-const VORT = `#version 300 es
-precision highp float; in vec2 uv; out vec4 o;
-uniform sampler2D Vel, Curl; uniform vec2 texel;
-uniform float dt, vort, limit;
-void main() {
-  float L = texture(Curl, uv - vec2(texel.x, 0)).x;
-  float R = texture(Curl, uv + vec2(texel.x, 0)).x;
-  float B = texture(Curl, uv - vec2(0, texel.y)).x;
-  float T = texture(Curl, uv + vec2(0, texel.y)).x;
-  vec2 g = 0.5 * vec2(abs(T) - abs(B), abs(R) - abs(L)) + 1e-5;
-  float c = texture(Curl, uv).x;
-  vec2 f = vort * vec2(g.y, -g.x) * c;
-  float m = length(f);
-  if (m > limit) f *= limit / (m + 1e-6);
-  vec2 v = texture(Vel, uv).xy + dt * f;
-  o = vec4(v, 0, 1);
-}`;
-
-const SPLAT = `#version 300 es
-precision highp float; in vec2 uv; out vec4 o;
-uniform sampler2D T;
-uniform vec2 point; uniform float radius; uniform vec3 color;
-uniform vec2 force; uniform int mode; uniform float maxVel; uniform float inkGain; uniform int inkMode;
-uniform vec3 paperColor; uniform int hasPaper;
-void main() {
-  vec4 base = texture(T, uv);
-  float d = distance(uv, point);
-  float fall = exp(-d*d / max(radius*radius, 1e-6));
-  float a = 1.0 - exp(-fall * inkGain);
-  if (mode == 0) {
-    vec3 s = clamp(color, 0.0, 1.0);
-    vec3 b = clamp(base.rgb, 0.0, 1.0);
-    vec3 outc;
-    if (inkMode == 1) {
-      // Additive saturating (for VOID — dark bg)
-      outc = b + s * a * (1.0 - b);
-    } else {
-      // Blend toward color (default for all light-bg studies)
-      outc = mix(b, s, a);
-    }
-    o = vec4(outc, 1.0);
-  } else {
-    vec2 v = base.xy + force * fall;
-    float m = length(v);
-    if (m > maxVel) v *= maxVel / (m + 1e-6);
+  // smoke rises: lift velocity by how much dye sits in the cell
+  const BUOY = `#version 300 es
+  precision highp float; in vec2 uv; out vec4 o;
+  uniform sampler2D Vel, Dye; uniform float k; uniform float dtN; uniform float wx;
+  void main() {
+    vec2 v = texture(Vel, uv).xy;
+    vec3 d = texture(Dye, uv).rgb;
+    float lum = dot(d, vec3(0.299, 0.587, 0.114));
+    v.y += k * min(lum, 1.2) * dtN;
+    v.x += wx * dtN;                 // the gale's steady crosswind
     o = vec4(v, 0, 1);
+  }`;
+
+  const SPLAT = `#version 300 es
+  precision highp float; in vec2 uv; out vec4 o;
+  uniform sampler2D T;
+  uniform vec2 point; uniform float radius; uniform float aspect;
+  uniform vec3 color; uniform vec2 force; uniform int mode; uniform float inkGain;
+  void main() {
+    vec4 base = texture(T, uv);
+    vec2 d = uv - point; d.x *= aspect;
+    float fall = exp(-dot(d, d) / max(radius * radius, 1e-6));
+    if (mode == 0) {
+      // additive saturating ink — dark paper, dye is the light
+      float a = 1.0 - exp(-fall * inkGain);
+      vec3 b = clamp(base.rgb, 0.0, 1.2);
+      o = vec4(b + color * a * (1.05 - b), base.a);
+    } else {
+      vec2 v = base.xy + force * fall;
+      float m = length(v);
+      if (m > 900.0) v *= 900.0 / (m + 1e-6);
+      o = vec4(v, 0, 1);
+    }
+  }`;
+
+  const PUFF = `#version 300 es
+  precision highp float; in vec2 uv; out vec4 o;
+  uniform sampler2D T;
+  uniform vec2 point; uniform float radius; uniform float aspect; uniform float power;
+  void main() {
+    vec2 base = texture(T, uv).xy;
+    vec2 d = uv - point; d.x *= aspect;
+    float dist = length(d) + 1e-5;
+    float fall = exp(-dist * dist / max(radius * radius, 1e-6));
+    vec2 v = base + (d / dist) * fall * power;
+    float m = length(v);
+    if (m > 900.0) v *= 900.0 / (m + 1e-6);
+    o = vec4(v, 0, 1);
+  }`;
+
+  const BRIGHT = `#version 300 es
+  precision highp float; in vec2 uv; out vec4 o;
+  uniform sampler2D T;
+  void main() {
+    // only dense cores glow — ambient haze must never bloom
+    vec3 c = texture(T, uv).rgb;
+    o = vec4(max(c - vec3(0.5), 0.0) * 1.4, 1.0);
+  }`;
+
+  const BLUR = `#version 300 es
+  precision highp float; in vec2 uv; out vec4 o;
+  uniform sampler2D T; uniform vec2 dir;
+  void main() {
+    vec2 tx = 1.0 / vec2(textureSize(T, 0));
+    float w[5] = float[5](0.227027, 0.316216, 0.070270, 0.010381, 0.004);
+    vec3 s = w[0] * texture(T, uv).rgb;
+    for (int i = 1; i < 5; i++) {
+      s += w[i] * texture(T, uv + dir * float(i) * tx).rgb;
+      s += w[i] * texture(T, uv - dir * float(i) * tx).rgb;
+    }
+    o = vec4(s, 1.0);
+  }`;
+
+  const DISP = `#version 300 es
+  precision highp float; in vec2 uv; out vec4 o;
+  uniform sampler2D Dye, Glow; uniform float bloomK;
+  float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+  void main() {
+    // dusk paper — the same family gradient as the birds sky.
+    // Paper is a DISPLAY color (added as-is, never gamma-lifted);
+    // only the ink gets tone-mapped, so the empty frame stays black.
+    vec3 paper = mix(vec3(0.0235, 0.0275, 0.039), vec3(0.051, 0.063, 0.086), 1.0 - uv.y);
+    vec3 ink = clamp(texture(Dye, uv).rgb + texture(Glow, uv).rgb * bloomK, 0.0, 1.35);
+    ink = max(ink - 0.03, 0.0);              // crush residue — blacks stay black
+    ink = ink / (ink + 0.35) * 1.35;         // soft shoulder
+    vec3 c = paper + ink;
+    vec2 p = uv * 2.0 - 1.0;
+    c *= 1.0 - 0.10 * dot(p, p);
+    c += (hash(uv) - 0.5) * 0.016 * (0.25 + c.g);   // grain rides the light, static
+    o = vec4(clamp(c, 0.0, 1.0), 1.0);
+  }`;
+
+  const PROG = {
+    advect: compile(ADVECT), div: compile(DIVG), cleark: compile(CLEARK),
+    jac: compile(JAC), grad: compile(GRAD), curl: compile(CURL),
+    vort: compile(VORT), buoy: compile(BUOY), splat: compile(SPLAT),
+    puff: compile(PUFF), bright: compile(BRIGHT), blur: compile(BLUR),
+    disp: compile(DISP),
+  };
+  if (shaderFail) { fail('drift couldn’t compile its shaders on this GPU.'); return; }
+
+  // ══════════════════════════════════════════════════════════
+  // FRAMEBUFFERS
+  // ══════════════════════════════════════════════════════════
+  function fbo(w, h) {
+    const t = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, t);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA16F, w, h, 0, gl.RGBA, gl.HALF_FLOAT, null);
+    const fb = gl.createFramebuffer();
+    gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, t, 0);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    return { tex: t, fb, w, h };
   }
-}`;
-
-const BLUR = `#version 300 es
-precision highp float; in vec2 uv; out vec4 o;
-uniform sampler2D T; uniform vec2 dir;
-void main() {
-  vec2 tx = 1.0 / vec2(textureSize(T, 0));
-  float w[5] = float[5](0.227027, 0.316216, 0.070270, 0.010381, 0.004);
-  vec3 s = w[0] * texture(T, uv).rgb;
-  for (int i = 1; i < 5; i++) {
-    s += w[i] * texture(T, uv + dir * float(i) * tx).rgb;
-    s += w[i] * texture(T, uv - dir * float(i) * tx).rgb;
+  function pair(w, h) {
+    return { read: fbo(w, h), write: fbo(w, h),
+      swap() { const t = this.read; this.read = this.write; this.write = t; } };
   }
-  o = vec4(s, 1.0);
-}`;
-
-const DISP = `#version 300 es
-precision highp float; in vec2 uv; out vec4 o;
-uniform sampler2D Dye, Glow;
-uniform float satBoost, bloomK;
-uniform int darkMode;
-uniform vec3 paper;
-vec3 rgb2hsv(vec3 c) {
-  float M = max(max(c.r, c.g), c.b);
-  float m = min(min(c.r, c.g), c.b);
-  float d = M - m;
-  float h = 0.0;
-  if (d > 1e-5) {
-    if (M == c.r) h = mod((c.g - c.b) / d, 6.0);
-    else if (M == c.g) h = (c.b - c.r) / d + 2.0;
-    else h = (c.r - c.g) / d + 4.0;
+  function setF(b) {
+    gl.bindFramebuffer(gl.FRAMEBUFFER, b ? b.fb : null);
+    gl.viewport(0, 0, b ? b.w : gl.drawingBufferWidth, b ? b.h : gl.drawingBufferHeight);
   }
-  h /= 6.0;
-  float s = M > 0.0 ? d / M : 0.0;
-  return vec3(h, s, M);
-}
-vec3 hsv2rgb(vec3 c) {
-  float h = c.x * 6.0; float s = c.y; float v = c.z;
-  int i = int(floor(h)); float f = h - float(i);
-  float p = v*(1.0-s), q = v*(1.0-f*s), t = v*(1.0-(1.0-f)*s);
-  if (i == 0) return vec3(v,t,p); if (i == 1) return vec3(q,v,p);
-  if (i == 2) return vec3(p,v,t); if (i == 3) return vec3(p,q,v);
-  if (i == 4) return vec3(t,p,v); return vec3(v,p,q);
-}
-void main() {
-  vec3 dye = texture(Dye, uv).rgb;
-  vec3 g   = texture(Glow, uv).rgb;
-  vec3 c;
-  if (darkMode == 1) {
-    // VOID: bg is black, dye is the picture itself
-    c = clamp(dye, 0.0, 1.0);
-    vec3 hsv = rgb2hsv(c); hsv.y = clamp(hsv.y * satBoost, 0.0, 1.0); c = hsv2rgb(hsv);
-    c += g * bloomK;
-  } else {
-    // Light studies: dye represents how much we've moved toward color
-    // Blend dye over paper color, then add glow
-    c = clamp(dye, 0.0, 1.0);
-    vec3 hsv = rgb2hsv(c); hsv.y = clamp(hsv.y * satBoost, 0.0, 1.0); c = hsv2rgb(hsv);
-    // soft bloom — additive, scaled by ink density relative to paper
-    c += g * bloomK * 0.6;
+  function bind(unit, tex, name, pr) {
+    gl.activeTexture(gl.TEXTURE0 + unit);
+    gl.bindTexture(gl.TEXTURE_2D, tex);
+    gl.uniform1i(gl.getUniformLocation(pr, name), unit);
   }
-  c = clamp(c, 0.0, 1.4);
-  c = pow(c, vec3(1.0 / 2.2));
-  // subtle vignette
-  vec2 p = uv * 2.0 - 1.0;
-  c *= 1.0 - 0.10 * dot(p, p);
-  o = vec4(c, 1.0);
-}`;
+  function blit() { gl.drawArrays(gl.TRIANGLES, 0, 3); }
+  function u1f(p, n, v) { gl.uniform1f(gl.getUniformLocation(p, n), v); }
+  function u2f(p, n, a, b) { gl.uniform2f(gl.getUniformLocation(p, n), a, b); }
+  function u3f(p, n, a, b, c) { gl.uniform3f(gl.getUniformLocation(p, n), a, b, c); }
+  function u1i(p, n, v) { gl.uniform1i(gl.getUniformLocation(p, n), v); }
 
-const P = {
-  clear:    compile(CLEAR),
-  bright:   compile(BRIGHT),
-  advect:   compile(ADVECT),
-  divergence: compile(DIVG),
-  jacobi:   compile(JAC),
-  gradient: compile(GRAD),
-  curl:     compile(CURL),
-  vorticity: compile(VORT),
-  splat:    compile(SPLAT),
-  blur:     compile(BLUR),
-  display:  compile(DISP),
-};
-
-function fbo(w, h) {
-  const t = gl.createTexture();
-  gl.bindTexture(gl.TEXTURE_2D, t);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA16F, w, h, 0, gl.RGBA, gl.HALF_FLOAT, null);
-  const fb = gl.createFramebuffer();
-  gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
-  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, t, 0);
-  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-  return { tex: t, fb, w, h };
-}
-function pair(w, h) { return { read: fbo(w, h), write: fbo(w, h), swap() { const t = this.read; this.read = this.write; this.write = t; } }; }
-function setF(b) {
-  gl.bindFramebuffer(gl.FRAMEBUFFER, b ? b.fb : null);
-  gl.viewport(0, 0, b ? b.w : gl.drawingBufferWidth, b ? b.h : gl.drawingBufferHeight);
-}
-function bind(unit, tex, name, pr) {
-  gl.activeTexture(gl.TEXTURE0 + unit);
-  gl.bindTexture(gl.TEXTURE_2D, tex);
-  gl.uniform1i(gl.getUniformLocation(pr, name), unit);
-}
-function blit() { gl.drawArrays(gl.TRIANGLES, 0, 3); }
-
-let sim = null, needsResize = true;
-
-function createSim() {
-  const SIM_RES = 320;
-  const w = Math.max(32, Math.floor(canvas.clientWidth));
-  const h = Math.max(32, Math.floor(canvas.clientHeight));
-  const scale = Math.min(1, SIM_RES / Math.max(w, h));
-  const W = Math.max(16, Math.floor(w * scale));
-  const H = Math.max(16, Math.floor(h * scale));
-  const vel = pair(W, H), dye = pair(W, H), press = pair(W, H);
-  const div = fbo(W, H), curl = fbo(W, H);
-  const gA = pair(W, H), gB = pair(W, H);
-  [vel.read, vel.write, dye.read, dye.write, press.read, press.write, div, curl, gA.read, gA.write, gB.read, gB.write].forEach(t => {
-    setF(t); gl.clearColor(0, 0, 0, 1); gl.clear(gl.COLOR_BUFFER_BIT);
-  });
-  return { W, H, vel, dye, press, div, curl, gA, gB };
-}
-function clearSim() {
-  if (!sim) return;
-  [sim.vel.read, sim.vel.write, sim.dye.read, sim.dye.write, sim.press.read, sim.press.write, sim.div, sim.curl, sim.gA.read, sim.gA.write, sim.gB.read, sim.gB.write].forEach(t => {
-    setF(t); gl.clearColor(0, 0, 0, 1); gl.clear(gl.COLOR_BUFFER_BIT);
-  });
-}
-function resize() {
-  const ratio = Math.min(2, window.devicePixelRatio || 1);
-  const w = Math.floor(canvas.clientWidth * ratio);
-  const h = Math.floor(canvas.clientHeight * ratio);
-  if (canvas.width !== w || canvas.height !== h) {
-    canvas.width = w; canvas.height = h;
-    needsResize = true;
-  }
-  if (!sim || needsResize) { sim = createSim(); needsResize = false; }
-}
-window.addEventListener('resize', () => needsResize = true);
-
-// ════════════════════════════════════════════════
-// Pointer
-// ════════════════════════════════════════════════
-const pointer = { down: false, x: 0.5, y: 0.5, px: 0.5, py: 0.5, dx: 0, dy: 0, radius: 0.045 };
-
-function uvFrom(e) {
-  const r = canvas.getBoundingClientRect();
-  const x = (e.clientX - r.left) / r.width;
-  const y = 1.0 - (e.clientY - r.top) / r.height;
-  return [x, y];
-}
-function updateBrushSize() {
-  const r = (+$('rad').value) * Math.min(window.innerWidth, window.innerHeight) * 1.4;
-  const px = Math.max(20, Math.min(220, r));
-  $('brush').style.width = px + 'px';
-  $('brush').style.height = px + 'px';
-}
-window.addEventListener('mousemove', e => {
-  $('brush').style.transform = `translate(${e.clientX}px, ${e.clientY}px) translate(-50%, -50%)`;
-});
-canvas.addEventListener('pointerdown', e => {
-  pointer.down = true;
-  $('brush').classList.add('painting');
-  const [u, v] = uvFrom(e);
-  pointer.x = pointer.px = u;
-  pointer.y = pointer.py = v;
-  pointer.dx = 0; pointer.dy = 0;
-  dismissHint();
-});
-window.addEventListener('pointerup', () => {
-  pointer.down = false;
-  $('brush').classList.remove('painting');
-});
-window.addEventListener('pointermove', e => {
-  const [u, v] = uvFrom(e);
-  pointer.dx = u - pointer.x;
-  pointer.dy = v - pointer.y;
-  pointer.px = pointer.x; pointer.py = pointer.y;
-  pointer.x = u; pointer.y = v;
-});
-canvas.addEventListener('wheel', e => {
-  e.preventDefault();
-  const cur = +$('rad').value;
-  const nxt = Math.max(0.005, Math.min(0.12, cur + (e.deltaY < 0 ? 0.004 : -0.004)));
-  $('rad').value = nxt;
-  $('vRad').textContent = nxt.toFixed(3);
-  pointer.radius = nxt;
-  updateBrushSize();
-}, { passive: false });
-
-// touch dismiss hint
-canvas.addEventListener('touchstart', () => dismissHint(), { passive: true });
-
-// ════════════════════════════════════════════════
-// Save & flash
-// ════════════════════════════════════════════════
-function savePulse() {
-  const f = $('flash');
-  f.classList.add('go');
-  setTimeout(() => f.classList.remove('go'), 250);
-}
-function saveImg() {
-  savePulse();
-  setTimeout(() => {
-    const a = document.createElement('a');
-    a.download = `drift-${STUDIES[currentStudy].name.toLowerCase()}-${Date.now()}.png`;
-    a.href = canvas.toDataURL('image/png');
-    a.click();
-  }, 100);
-}
-
-// ════════════════════════════════════════════════
-// Initialize paper color in dye texture (so blending works)
-// ════════════════════════════════════════════════
-function paintPaperBg(hex) {
-  if (!sim) return;
-  const [r, g, b] = hexToRGB(hex);
-  // Use splat with huge radius to fill the dye buffer with paper color
-  setF(sim.dye.write);
-  const p = P.splat; gl.useProgram(p);
-  bind(0, sim.dye.read.tex, 'T', p);
-  gl.uniform2f(gl.getUniformLocation(p, 'point'), 0.5, 0.5);
-  gl.uniform1f(gl.getUniformLocation(p, 'radius'), 10.0); // huge — fills entire buffer
-  gl.uniform3f(gl.getUniformLocation(p, 'color'), r, g, b);
-  gl.uniform2f(gl.getUniformLocation(p, 'force'), 0, 0);
-  gl.uniform1i(gl.getUniformLocation(p, 'mode'), 0);
-  gl.uniform1f(gl.getUniformLocation(p, 'maxVel'), 800);
-  gl.uniform1f(gl.getUniformLocation(p, 'inkGain'), 50.0); // huge — fully opaque
-  gl.uniform1i(gl.getUniformLocation(p, 'inkMode'), 0);
-  blit();
-  sim.dye.swap();
-}
-
-// Override clearSim to repaint paper for light studies
-const _clearSim = clearSim;
-clearSim = function() {
-  _clearSim();
-  // For light studies, refill dye buffer with paper color so the first stroke
-  // blends correctly into the background instead of from black
-  const s = STUDIES[currentStudy];
-  if (!s.dark) {
-    requestAnimationFrame(() => paintPaperBg(s.bg));
-  }
-};
-
-// ════════════════════════════════════════════════
-// Render loop
-// ════════════════════════════════════════════════
-let last = performance.now();
-function frame(t) {
-  resize();
-  const dt = Math.min(0.033, (t - last) / 1000) * 0.9;
-  last = t;
-  const texel = [1 / sim.W, 1 / sim.H];
-  const s = STUDIES[currentStudy];
-
-  // advect velocity
-  setF(sim.vel.write);
-  let p = P.advect; gl.useProgram(p);
-  bind(0, sim.vel.read.tex, 'Vel', p);
-  bind(1, sim.vel.read.tex, 'Src', p);
-  gl.uniform2f(gl.getUniformLocation(p, 'texel'), texel[0], texel[1]);
-  gl.uniform1f(gl.getUniformLocation(p, 'dt'), dt * 60.0);
-  gl.uniform1f(gl.getUniformLocation(p, 'diss'), +$('vdiss').value);
-  gl.uniform3f(gl.getUniformLocation(p, 'paper'), 0, 0, 0);
-  gl.uniform1i(gl.getUniformLocation(p, 'isDye'), 0);
-  blit(); sim.vel.swap();
-
-  // vorticity
-  setF(sim.curl);
-  p = P.curl; gl.useProgram(p);
-  bind(0, sim.vel.read.tex, 'Vel', p);
-  gl.uniform2f(gl.getUniformLocation(p, 'texel'), texel[0], texel[1]);
-  blit();
-  setF(sim.vel.write);
-  p = P.vorticity; gl.useProgram(p);
-  bind(0, sim.vel.read.tex, 'Vel', p);
-  bind(1, sim.curl.tex, 'Curl', p);
-  gl.uniform2f(gl.getUniformLocation(p, 'texel'), texel[0], texel[1]);
-  gl.uniform1f(gl.getUniformLocation(p, 'dt'), dt);
-  gl.uniform1f(gl.getUniformLocation(p, 'vort'), +$('vort').value);
-  gl.uniform1f(gl.getUniformLocation(p, 'limit'), 200.0);
-  blit(); sim.vel.swap();
-
-  // divergence
-  setF(sim.div);
-  p = P.divergence; gl.useProgram(p);
-  bind(0, sim.vel.read.tex, 'Vel', p);
-  gl.uniform2f(gl.getUniformLocation(p, 'texel'), texel[0], texel[1]);
-  blit();
-
-  // pressure solve
-  setF(sim.press.write);
-  p = P.clear; gl.useProgram(p);
-  bind(0, sim.press.read.tex, 'T', p);
-  gl.uniform1f(gl.getUniformLocation(p, 'k'), 0.97);
-  blit(); sim.press.swap();
-  const iters = parseInt($('iters').value, 10);
-  for (let i = 0; i < iters; i++) {
-    setF(sim.press.write);
-    p = P.jacobi; gl.useProgram(p);
-    bind(0, sim.press.read.tex, 'P', p);
-    bind(1, sim.div.tex, 'Div', p);
-    gl.uniform2f(gl.getUniformLocation(p, 'texel'), texel[0], texel[1]);
-    blit(); sim.press.swap();
+  // some GL stacks report WebGL2 but can't render to float textures —
+  // probe once so those users get words instead of a dead black canvas
+  {
+    const probe = fbo(4, 4);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, probe.fb);
+    const ok = gl.checkFramebufferStatus(gl.FRAMEBUFFER) === gl.FRAMEBUFFER_COMPLETE;
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    gl.deleteFramebuffer(probe.fb); gl.deleteTexture(probe.tex);
+    if (!ok) { fail('drift needs floating-point render targets — this browser/GPU combination doesn’t offer them.'); return; }
   }
 
-  // subtract gradient
-  setF(sim.vel.write);
-  p = P.gradient; gl.useProgram(p);
-  bind(0, sim.vel.read.tex, 'Vel', p);
-  bind(1, sim.press.read.tex, 'P', p);
-  gl.uniform2f(gl.getUniformLocation(p, 'texel'), texel[0], texel[1]);
-  blit(); sim.vel.swap();
+  let sim = null, needsResize = true, aspect = 1;
+  // velocity solves on a coarse smooth grid; dye rides it at high res —
+  // that split is where the crisp filaments come from
+  const SIM_RES = isMobile ? 192 : 256;
+  const DYE_RES = isMobile ? 720 : 1024;
 
-  // advect dye
-  setF(sim.dye.write);
-  p = P.advect; gl.useProgram(p);
-  bind(0, sim.vel.read.tex, 'Vel', p);
-  bind(1, sim.dye.read.tex, 'Src', p);
-  gl.uniform2f(gl.getUniformLocation(p, 'texel'), texel[0], texel[1]);
-  gl.uniform1f(gl.getUniformLocation(p, 'dt'), dt * 60.0);
-  gl.uniform1f(gl.getUniformLocation(p, 'diss'), +$('diss').value);
-  const [pr, pg, pb] = hexToRGB(s.bg);
-  gl.uniform3f(gl.getUniformLocation(p, 'paper'), pr, pg, pb);
-  gl.uniform1i(gl.getUniformLocation(p, 'isDye'), 1);
-  blit(); sim.dye.swap();
+  function createSim() {
+    const w = Math.max(32, canvas.clientWidth);
+    const h = Math.max(32, canvas.clientHeight);
+    aspect = w / h;
+    const sScale = Math.min(1, SIM_RES / Math.max(w, h));
+    const dScale = Math.min(1, DYE_RES / Math.max(w, h));
+    const W = Math.max(16, Math.floor(w * sScale));
+    const H = Math.max(16, Math.floor(h * sScale));
+    const DW = Math.max(16, Math.floor(w * dScale));
+    const DH = Math.max(16, Math.floor(h * dScale));
+    const s = {
+      W, H, DW, DH,
+      vel: pair(W, H), dye: pair(DW, DH), press: pair(W, H),
+      div: fbo(W, H), curl: fbo(W, H), gA: pair(W, H), gB: pair(W, H),
+    };
+    [s.vel.read, s.vel.write, s.dye.read, s.dye.write, s.press.read,
+     s.press.write, s.div, s.curl, s.gA.read, s.gA.write, s.gB.read, s.gB.write]
+      .forEach(t => { setF(t); gl.clearColor(0, 0, 0, 1); gl.clear(gl.COLOR_BUFFER_BIT); });
+    return s;
+  }
 
-  // splat when dragging
-  if (pointer.down) {
-    const col = s.palette[activeColorIdx];
-    const [r, g, b] = hexToRGB(col);
-    // dye splat
+  // only touches layout when a resize event actually queued one —
+  // no per-frame clientWidth reads
+  function resize() {
+    const r = Math.min(2, window.devicePixelRatio || 1);
+    canvas.width = Math.floor(canvas.clientWidth * r);
+    canvas.height = Math.floor(canvas.clientHeight * r);
+    sim = createSim();
+    needsResize = false;
+  }
+  window.addEventListener('resize', () => { needsResize = true; }, { passive: true });
+  window.addEventListener('orientationchange', () => setTimeout(() => { needsResize = true; }, 200), { passive: true });
+
+  // ══════════════════════════════════════════════════════════
+  // SPLAT HELPERS (uv coords, y up)
+  // ══════════════════════════════════════════════════════════
+  function splatDye(x, y, rad, rgb, gain) {
     setF(sim.dye.write);
-    p = P.splat; gl.useProgram(p);
+    const p = PROG.splat; gl.useProgram(p);
     bind(0, sim.dye.read.tex, 'T', p);
-    gl.uniform2f(gl.getUniformLocation(p, 'point'), pointer.x, pointer.y);
-    gl.uniform1f(gl.getUniformLocation(p, 'radius'), +$('rad').value);
-    gl.uniform3f(gl.getUniformLocation(p, 'color'), r, g, b);
-    gl.uniform2f(gl.getUniformLocation(p, 'force'), 0, 0);
-    gl.uniform1i(gl.getUniformLocation(p, 'mode'), 0);
-    gl.uniform1f(gl.getUniformLocation(p, 'maxVel'), 800);
-    gl.uniform1f(gl.getUniformLocation(p, 'inkGain'), +$('ink').value);
-    gl.uniform1i(gl.getUniformLocation(p, 'inkMode'), s.p.blend);
+    u2f(p, 'point', x, y);
+    u1f(p, 'radius', rad);
+    u1f(p, 'aspect', aspect);
+    u3f(p, 'color', rgb[0], rgb[1], rgb[2]);
+    u2f(p, 'force', 0, 0);
+    u1i(p, 'mode', 0);
+    u1f(p, 'inkGain', gain);
     blit(); sim.dye.swap();
-
-    // velocity splat
-    const dead = 0.0005;
-    const px = (Math.abs(pointer.dx) < dead && Math.abs(pointer.dy) < dead) ? 0 : pointer.dx * sim.W;
-    const py = (Math.abs(pointer.dx) < dead && Math.abs(pointer.dy) < dead) ? 0 : pointer.dy * sim.H;
-    const mag = +$('force').value * 0.08;
+  }
+  function splatVel(x, y, rad, fx, fy) {
     setF(sim.vel.write);
-    p = P.splat; gl.useProgram(p);
+    const p = PROG.splat; gl.useProgram(p);
     bind(0, sim.vel.read.tex, 'T', p);
-    gl.uniform2f(gl.getUniformLocation(p, 'point'), pointer.x, pointer.y);
-    gl.uniform1f(gl.getUniformLocation(p, 'radius'), +$('rad').value * 0.7);
-    gl.uniform3f(gl.getUniformLocation(p, 'color'), 0, 0, 0);
-    gl.uniform2f(gl.getUniformLocation(p, 'force'), px * mag, py * mag);
-    gl.uniform1i(gl.getUniformLocation(p, 'mode'), 1);
-    gl.uniform1f(gl.getUniformLocation(p, 'maxVel'), 800);
-    gl.uniform1f(gl.getUniformLocation(p, 'inkGain'), 1.0);
-    gl.uniform1i(gl.getUniformLocation(p, 'inkMode'), 0);
+    u2f(p, 'point', x, y);
+    u1f(p, 'radius', rad);
+    u1f(p, 'aspect', aspect);
+    u3f(p, 'color', 0, 0, 0);
+    u2f(p, 'force', fx, fy);
+    u1i(p, 'mode', 1);
+    u1f(p, 'inkGain', 1);
     blit(); sim.vel.swap();
   }
+  function puff(x, y) {
+    setF(sim.vel.write);
+    const p = PROG.puff; gl.useProgram(p);
+    bind(0, sim.vel.read.tex, 'T', p);
+    u2f(p, 'point', x, y);
+    u1f(p, 'radius', 0.22);
+    u1f(p, 'aspect', aspect);
+    u1f(p, 'power', 14 * CALM);
+    blit(); sim.vel.swap();
+    // the burst carries a breath of ink with it
+    splatDye(x, y, 0.06, P.ink, 0.2 * CALM);
+  }
 
-  // ── Bloom (two-pass) ──
-  setF(sim.gA.write);
-  p = P.bright; gl.useProgram(p);
-  bind(0, sim.dye.read.tex, 'T', p);
-  gl.uniform1f(gl.getUniformLocation(p, 'th'), 0.55);
-  gl.uniform1f(gl.getUniformLocation(p, 'sc'), 1.4);
-  gl.uniform1i(gl.getUniformLocation(p, 'dark'), s.dark ? 1 : 0);
-  gl.uniform3f(gl.getUniformLocation(p, 'paper'), pr, pg, pb);
-  blit(); sim.gA.swap();
+  // ══════════════════════════════════════════════════════════
+  // BREATHS — discrete events, not steady sources. One compact
+  // blob of ink over one hard upward impulse: the projection
+  // step rolls it into a mushroom vortex on its own, it rises,
+  // curls, and dissolves. Every few seconds, somewhere new.
+  // ══════════════════════════════════════════════════════════
+  let nextBreathAt = 0, breathsFired = 0;
 
-  const spread = 1.6;
-  setF(sim.gB.write);
-  p = P.blur; gl.useProgram(p);
-  bind(0, sim.gA.read.tex, 'T', p);
-  gl.uniform2f(gl.getUniformLocation(p, 'dir'), spread, 0);
-  blit(); sim.gB.swap();
+  function rand(a, b) { return a + Math.random() * (b - a); }
 
-  setF(sim.gA.write);
-  p = P.blur; gl.useProgram(p);
-  bind(0, sim.gB.read.tex, 'T', p);
-  gl.uniform2f(gl.getUniformLocation(p, 'dir'), 0, spread);
-  blit(); sim.gA.swap();
+  function breath(now) {
+    if (now < nextBreathAt) return;
+    // the first two come quickly so the scene is alive on arrival;
+    // reduced motion breathes at half tempo
+    const tempo = PRM ? 2 : 1;
+    nextBreathAt = breathsFired < 2
+      ? now + 700
+      : now + rand(1200, 2600) * tempo * (modeName === 'gale' ? 0.4 : 1);
+    breathsFired++;
 
-  // ── Display ──
-  setF(null);
-  p = P.display; gl.useProgram(p);
-  bind(0, sim.dye.read.tex, 'Dye', p);
-  bind(1, sim.gA.read.tex, 'Glow', p);
-  gl.uniform1f(gl.getUniformLocation(p, 'satBoost'), +$('sat').value);
-  gl.uniform1f(gl.getUniformLocation(p, 'bloomK'), +$('bloom').value);
-  gl.uniform1i(gl.getUniformLocation(p, 'darkMode'), s.dark ? 1 : 0);
-  gl.uniform3f(gl.getUniformLocation(p, 'paper'), pr, pg, pb);
-  blit();
+    if (modeName === 'gale') {
+      const y = rand(0.2, 0.8);
+      splatDye(0.04, y, 0.028, P.ink, 0.55 * CALM);
+      splatDye(0.04, Math.min(0.9, y + rand(0.06, 0.14)), 0.02, P.ink, 0.4 * CALM);
+      splatVel(0.02, y, 0.07, P.side * 0.9 * CALM, rand(-0.8, 0.8));
+    } else {
+      const x = rand(0.15, 0.85);
+      const kick = P.emitUp * CALM;
+      splatDye(x, 0.055, 0.042, P.ink, 0.5 * CALM);
+      splatVel(x, 0.02, 0.05, rand(-1, 1), kick);
+    }
+  }
 
-  requestAnimationFrame(frame);
-}
+  // ══════════════════════════════════════════════════════════
+  // INPUT — move stirs the air, drag draws ink, tap puffs
+  // ══════════════════════════════════════════════════════════
+  const pointer = {
+    x: 0.5, y: 0.5, dx: 0, dy: 0, down: false, id: -1,
+    downAt: 0, downX: 0, downY: 0, had: false, fresh: false,
+  };
+  const hintEl = document.getElementById('hint');
+  let puffAt = null;   // uv of a pending tap-puff, consumed in the frame
 
-// ════════════════════════════════════════════════
-// Boot
-// ════════════════════════════════════════════════
-function init() {
-  // Force initial size
-  canvas.style.width = '100%';
-  canvas.style.height = '100%';
-  const r = Math.min(2, window.devicePixelRatio || 1);
-  canvas.width = Math.floor(canvas.clientWidth * r);
-  canvas.height = Math.floor(canvas.clientHeight * r);
+  function isUI(t) { return t && t.closest && t.closest('a, button'); }
+  function toUV(e) {
+    return [e.clientX / Math.max(1, window.innerWidth),
+            1 - e.clientY / Math.max(1, window.innerHeight)];
+  }
+
+  window.addEventListener('pointerdown', (e) => {
+    if (isUI(e.target)) return;
+    const [u, v] = toUV(e);
+    pointer.x = u; pointer.y = v;
+    pointer.dx = 0; pointer.dy = 0;
+    pointer.down = true;
+    pointer.id = e.pointerId;
+    pointer.downAt = performance.now();
+    pointer.downX = e.clientX; pointer.downY = e.clientY;
+    if (!pointer.had) { pointer.had = true; if (hintEl) hintEl.classList.add('fade'); }
+    e.preventDefault();
+  }, { passive: false });
+
+  window.addEventListener('pointermove', (e) => {
+    if (pointer.down && e.pointerId !== pointer.id) return;
+    const [u, v] = toUV(e);
+    // deltas ACCUMULATE between frames — a fast flick fires many move
+    // events per frame, and only the sum carries the real stroke force
+    pointer.dx = Math.max(-0.2, Math.min(0.2, pointer.dx + (u - pointer.x)));
+    pointer.dy = Math.max(-0.2, Math.min(0.2, pointer.dy + (v - pointer.y)));
+    pointer.x = u; pointer.y = v;
+    pointer.fresh = true;
+  }, { passive: true });
+
+  function pointerEnd(e) {
+    if (!pointer.down || e.pointerId !== pointer.id) return;
+    pointer.down = false;
+    const dtMs = performance.now() - pointer.downAt;
+    const moved = Math.hypot(e.clientX - pointer.downX, e.clientY - pointer.downY);
+    if (dtMs < 220 && moved < 10) puffAt = toUV(e);
+  }
+  window.addEventListener('pointerup', pointerEnd, { passive: true });
+  window.addEventListener('pointercancel', () => { pointer.down = false; }, { passive: true });
+
+  window.addEventListener('keydown', (e) => {
+    if (e.target && e.target.closest && e.target.closest('a, button')) return;
+    const k = e.key.toLowerCase();
+    if (k === '1') setMode('smoke');
+    else if (k === '2') setMode('ember');
+    else if (k === '3') setMode('gale');
+    else if (k === 's') saveImg();
+    else if (k === ' ') { e.preventDefault(); puffAt = [pointer.x, pointer.y]; }
+  });
+
+  // ══════════════════════════════════════════════════════════
+  // SAVE
+  // ══════════════════════════════════════════════════════════
+  function saveImg() {
+    const a = document.createElement('a');
+    a.download = 'drift-' + modeName + '-' + Date.now() + '.png';
+    a.href = canvas.toDataURL('image/png');
+    a.click();
+  }
+  document.getElementById('saveBtn').addEventListener('click', saveImg);
+
+  // ══════════════════════════════════════════════════════════
+  // FRAME
+  // ══════════════════════════════════════════════════════════
+  let last = performance.now();
+
+  function frame(t) {
+    if (dead) return;
+    requestAnimationFrame(frame);
+    if (needsResize) resize();
+    const dt = Math.min(0.033, (t - last) / 1000);
+    last = t;
+    const dtN = dt * 60;
+    const tx = 1 / sim.W, ty = 1 / sim.H;
+    let p;
+
+    // advect velocity
+    setF(sim.vel.write);
+    p = PROG.advect; gl.useProgram(p);
+    bind(0, sim.vel.read.tex, 'Vel', p);
+    bind(1, sim.vel.read.tex, 'Src', p);
+    u2f(p, 'texel', tx, ty);
+    u1f(p, 'dt', dtN);
+    u1f(p, 'diss', P.velDiss);
+    u1f(p, 'edgeFade', 0);
+    blit(); sim.vel.swap();
+
+    // vorticity confinement
+    setF(sim.curl);
+    p = PROG.curl; gl.useProgram(p);
+    bind(0, sim.vel.read.tex, 'Vel', p);
+    u2f(p, 'texel', tx, ty);
+    blit();
+    setF(sim.vel.write);
+    p = PROG.vort; gl.useProgram(p);
+    bind(0, sim.vel.read.tex, 'Vel', p);
+    bind(1, sim.curl.tex, 'Curl', p);
+    u2f(p, 'texel', tx, ty);
+    u1f(p, 'dt', dt);
+    u1f(p, 'vort', P.vort * CALM);
+    blit(); sim.vel.swap();
+
+    // buoyancy — smoke rises through the frame
+    setF(sim.vel.write);
+    p = PROG.buoy; gl.useProgram(p);
+    bind(0, sim.vel.read.tex, 'Vel', p);
+    bind(1, sim.dye.read.tex, 'Dye', p);
+    u1f(p, 'k', P.buoy * CALM);
+    u1f(p, 'dtN', dtN);
+    u1f(p, 'wx', (modeName === 'gale' ? 0.004 : 0) * CALM);
+    blit(); sim.vel.swap();
+
+    // sources: ambient breaths + the hand
+    breath(t);
+    if (pointer.fresh) {
+      pointer.fresh = false;
+      const fx = pointer.dx * sim.W * (P.force * 0.05);
+      const fy = pointer.dy * sim.H * (P.force * 0.05);
+      pointer.dx = 0; pointer.dy = 0;
+      // moving the pointer always stirs the air
+      splatVel(pointer.x, pointer.y, 0.055, fx * CALM, fy * CALM);
+      // holding it down draws ink into the stream
+      if (pointer.down) splatDye(pointer.x, pointer.y, 0.032, P.ink, 0.35 * CALM);
+    }
+    if (puffAt) { puff(puffAt[0], puffAt[1]); puffAt = null; }
+
+    // project (incompressibility)
+    setF(sim.div);
+    p = PROG.div; gl.useProgram(p);
+    bind(0, sim.vel.read.tex, 'Vel', p);
+    u2f(p, 'texel', tx, ty);
+    blit();
+
+    setF(sim.press.write);
+    p = PROG.cleark; gl.useProgram(p);
+    bind(0, sim.press.read.tex, 'T', p);
+    u1f(p, 'k', 0.97);
+    blit(); sim.press.swap();
+
+    for (let i = 0; i < 26; i++) {
+      setF(sim.press.write);
+      p = PROG.jac; gl.useProgram(p);
+      bind(0, sim.press.read.tex, 'Pr', p);
+      bind(1, sim.div.tex, 'Div', p);
+      u2f(p, 'texel', tx, ty);
+      blit(); sim.press.swap();
+    }
+
+    setF(sim.vel.write);
+    p = PROG.grad; gl.useProgram(p);
+    bind(0, sim.vel.read.tex, 'Vel', p);
+    bind(1, sim.press.read.tex, 'Pr', p);
+    u2f(p, 'texel', tx, ty);
+    blit(); sim.vel.swap();
+
+    // advect dye
+    setF(sim.dye.write);
+    p = PROG.advect; gl.useProgram(p);
+    bind(0, sim.vel.read.tex, 'Vel', p);
+    bind(1, sim.dye.read.tex, 'Src', p);
+    // velocity is in SIM px/frame — the uv conversion uses the SIM texel
+    // no matter which resolution the target rides at
+    u2f(p, 'texel', tx, ty);
+    u1f(p, 'dt', dtN);
+    u1f(p, 'diss', P.dyeDiss);
+    u1f(p, 'edgeFade', 0.025);
+    blit(); sim.dye.swap();
+
+    // bloom
+    setF(sim.gA.write);
+    p = PROG.bright; gl.useProgram(p);
+    bind(0, sim.dye.read.tex, 'T', p);
+    blit(); sim.gA.swap();
+
+    setF(sim.gB.write);
+    p = PROG.blur; gl.useProgram(p);
+    bind(0, sim.gA.read.tex, 'T', p);
+    u2f(p, 'dir', 1.6, 0);
+    blit(); sim.gB.swap();
+
+    setF(sim.gA.write);
+    p = PROG.blur; gl.useProgram(p);
+    bind(0, sim.gB.read.tex, 'T', p);
+    u2f(p, 'dir', 0, 1.6);
+    blit(); sim.gA.swap();
+
+    // display
+    setF(null);
+    p = PROG.disp; gl.useProgram(p);
+    bind(0, sim.dye.read.tex, 'Dye', p);
+    bind(1, sim.gA.read.tex, 'Glow', p);
+    u1f(p, 'bloomK', P.bloom);
+    blit();
+  }
+
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) last = performance.now();
+  });
+
   resize();
-  renderStudies();
-  renderPalette();
-  applyParams();
-  setStudy(0, true);  // skip overlay on first load — the hint is the intro
-  updateBrushSize();
   requestAnimationFrame(frame);
-}
-init();
-
 })();
 </script>
+
 </body>
 </html>
