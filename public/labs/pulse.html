@@ -3,26 +3,44 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <title>Pulse — Tres Carter</title>
+  <title>pulse — tres carter</title>
   <link rel="icon" href="../favicon/favicon.ico" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+
+  <!-- Umami analytics — data-domains scopes tracking to the real site so
+       previews/branch URLs don't pollute stats. Clarity below is guarded
+       to the production host for the same reason. -->
+  <script defer src="https://cloud.umami.is/script.js" data-website-id="96e73988-106a-415e-bf80-5e10ffaec0dc" data-domains="tres.studio"></script>
+  <script type="text/javascript">
+    if (location.hostname === 'tres.studio') {
+      (function(c,l,a,r,i,t,y){
+          c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+          t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+          y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+      })(window, document, "clarity", "script", "xang6oq7f9");
+    }
+  </script>
+
   <style>
-    /* ─────────── PULSE — Lab aesthetic ─────────── */
+    /* ───────────────────────────────────────────────────────────
+       PULSE — sounding the dark.
+       A hidden terrain, pitch black until a ping crosses it;
+       contours light where the wavefront passes, then fade.
+       Lab family: Space Mono chrome, one yellow accent.
+       ─────────────────────────────────────────────────────────── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
       --white:     #FFFFFF;
-      --black:     #0A0A0A;
+      --black:     #07080B;
       --yellow:    #F5CB5C;
-      --ink-faint: rgba(255, 255, 255, 0.35);
-      --ink-soft:  rgba(255, 255, 255, 0.55);
-      --line:      rgba(255, 255, 255, 0.12);
+      --ink-faint: rgba(255, 255, 255, 0.38);
+      --ink-soft:  rgba(255, 255, 255, 0.6);
+      --line:      rgba(255, 255, 255, 0.14);
 
-      --display: 'Bebas Neue', sans-serif;
-      --body:    'DM Sans', system-ui, sans-serif;
-
+      --mono: 'Space Mono', ui-monospace, monospace;
       --pad: clamp(1.5rem, 4vw, 3rem);
       --ease: cubic-bezier(.2, .8, .2, 1);
     }
@@ -30,8 +48,7 @@
     html, body {
       background: var(--black);
       color: var(--white);
-      font-family: var(--body);
-      font-weight: 300;
+      font-family: var(--mono);
       font-size: 15px;
       height: 100%;
       width: 100%;
@@ -44,34 +61,31 @@
     }
 
     a { color: inherit; text-decoration: none; }
-    button { font: inherit; color: inherit; background: none; border: none; cursor: pointer; -webkit-tap-highlight-color: transparent; }
-
-    /* ─── Vignette overlay ─── */
-    .vignette {
-      position: fixed;
-      inset: 0;
-      z-index: 3;
-      pointer-events: none;
-      background: radial-gradient(
-        ellipse at center,
-        transparent 35%,
-        rgba(10, 10, 10, 0.72) 100%
-      );
+    button {
+      font: inherit; color: inherit; background: none; border: none;
+      cursor: pointer; -webkit-tap-highlight-color: transparent;
+    }
+    a:focus-visible, button:focus-visible {
+      outline: 1px solid var(--yellow);
+      outline-offset: 3px;
     }
 
-    /* ─── Canvas ─── */
-    canvas#play {
+    canvas#chart {
       position: fixed;
       inset: 0;
       width: 100%;
       height: 100%;
-      display: block;
       z-index: 1;
-      cursor: none;
-      background: #0A0A0A;
+      touch-action: none;
+      display: block;
     }
 
-    /* ─── Nav ─── */
+    .fallback {
+      position: fixed; inset: 0;
+      display: grid; place-items: center;
+    }
+
+    /* ─── Chrome ─── */
     .nav {
       position: fixed;
       top: 0; left: 0; right: 0;
@@ -79,1038 +93,609 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 1.5rem var(--pad);
-      padding-top: max(1.5rem, env(safe-area-inset-top));
+      padding: calc(1.2rem + env(safe-area-inset-top, 0px)) var(--pad) 1.2rem;
       pointer-events: none;
     }
     .nav > * { pointer-events: auto; }
     .nav .mark {
-      font-family: var(--display);
-      font-size: 0.95rem;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      color: var(--white);
-      mix-blend-mode: difference;
+      font-weight: 700;
+      font-size: 0.7rem;
+      letter-spacing: 0.14em;
+      transition: opacity 0.25s var(--ease);
     }
     .nav .mark .y { color: var(--yellow); }
     .nav .back {
-      font-size: 0.6rem;
-      letter-spacing: 0.24em;
-      text-transform: uppercase;
-      font-weight: 400;
-      color: var(--white);
-      transition: opacity 0.25s;
-      mix-blend-mode: difference;
-    }
-    .nav .back:hover { opacity: 0.55; }
-
-    /* ─── HUD ─── */
-    .hud {
-      position: fixed;
-      top: 0; left: 0; right: 0;
-      z-index: 50;
-      pointer-events: none;
-      padding: 4.6rem var(--pad) 0;
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 2rem;
-      mix-blend-mode: difference;
-    }
-    .hud .stat {
-      display: flex;
-      flex-direction: column;
-      gap: 0.15rem;
-    }
-    .hud .stat.right { align-items: flex-end; }
-    .hud .label {
-      font-family: var(--display);
       font-size: 0.62rem;
-      letter-spacing: 0.32em;
-      color: var(--ink-faint);
-      text-transform: uppercase;
-    }
-    .hud .value {
-      font-family: var(--display);
-      font-size: 2.4rem;
-      letter-spacing: 0.08em;
-      color: var(--white);
-      line-height: 1;
-      font-variant-numeric: tabular-nums;
-      transition: color 0.2s var(--ease);
-    }
-    .hud .value.pulse { color: var(--yellow); }
-    .hud .value.warn  { color: var(--yellow); }
-    .hud .sub {
-      font-family: var(--display);
-      font-size: 0.6rem;
-      letter-spacing: 0.32em;
-      color: var(--ink-faint);
-      margin-top: 0.2rem;
-      text-transform: uppercase;
-    }
-    .hud .lives {
-      display: flex;
-      gap: 0.4rem;
-      margin-top: 0.4rem;
-    }
-    .hud .life {
-      width: 0.55rem;
-      height: 0.55rem;
-      border-radius: 50%;
-      background: var(--yellow);
-      box-shadow: 0 0 8px rgba(245, 203, 92, 0.7);
-      transition: transform 0.3s var(--ease), opacity 0.3s var(--ease);
-    }
-    .hud .life.gone {
-      opacity: 0.15;
-      transform: scale(0.7);
-      background: var(--white);
-      box-shadow: none;
-    }
-
-    /* ─── Mode switcher ─── */
-    .modes {
-      position: fixed;
-      bottom: 2rem;
-      right: var(--pad);
-      z-index: 60;
-      display: flex;
-      gap: 0.4rem;
-      padding: 0.4rem;
-      border: 1px solid var(--line);
-      border-radius: 999px;
-      background: rgba(10, 10, 10, 0.55);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-    }
-    .mode-btn {
-      font-family: var(--display);
-      font-size: 0.72rem;
-      letter-spacing: 0.22em;
-      text-transform: uppercase;
+      letter-spacing: 0.14em;
       color: var(--ink-soft);
-      background: none;
-      border: none;
-      padding: 0.55rem 1.1rem;
-      border-radius: 999px;
-      cursor: pointer;
-      transition: color 0.35s var(--ease), background 0.35s var(--ease);
-    }
-    .mode-btn:hover { color: var(--white); }
-    .mode-btn.active {
-      color: var(--black);
-      background: var(--yellow);
+      padding: 0.5rem 0;
+      transition: color 0.25s var(--ease);
     }
 
-    /* ─── Bottom-left mark ─── */
     .mark-bottom {
       position: fixed;
-      bottom: 2rem;
+      bottom: calc(1.6rem + env(safe-area-inset-bottom, 0px));
       left: var(--pad);
-      z-index: 60;
-      font-family: var(--display);
-      font-size: 1rem;
-      letter-spacing: 0.24em;
-      color: var(--yellow);
+      font-weight: 700;
+      font-size: 0.85rem;
+      letter-spacing: 0.14em;
+      z-index: 5;
       pointer-events: none;
-      white-space: nowrap;
-      mix-blend-mode: difference;
     }
+    .mark-bottom .y { color: var(--yellow); }
 
-    /* ─── Floating hint ─── */
     .hint {
       position: fixed;
-      bottom: 5.3rem;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 50;
-      font-size: 0.55rem;
-      letter-spacing: 0.3em;
-      text-transform: uppercase;
+      bottom: calc(1.7rem + env(safe-area-inset-bottom, 0px));
+      right: var(--pad);
+      font-size: 0.56rem;
+      letter-spacing: 0.16em;
       color: var(--ink-faint);
+      z-index: 5;
       pointer-events: none;
-      transition: opacity 0.6s var(--ease);
-      text-align: center;
-      line-height: 1.7;
-      white-space: nowrap;
-      mix-blend-mode: difference;
+      transition: opacity 0.8s var(--ease);
     }
-    .hint .yellow { color: var(--yellow); }
-    .hint.gone { opacity: 0; }
+    .hint.fade { opacity: 0; }
 
-    /* ─── Result card ─── */
-    .result {
+    /* ─── Controls ─── */
+    .modes {
       position: fixed;
-      inset: 0;
-      z-index: 80;
+      top: 50%;
+      right: var(--pad);
+      transform: translateY(-50%);
       display: flex;
       flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: var(--pad);
-      background: rgba(10, 10, 10, 0.62);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      transition: opacity 0.6s var(--ease), visibility 0.6s var(--ease);
-      text-align: center;
-      cursor: pointer;
-      opacity: 0;
-      visibility: hidden;
+      align-items: flex-end;
+      gap: 0.35rem;
+      z-index: 10;
     }
-    .result.show { opacity: 1; visibility: visible; }
-    .result .r-tag {
-      font-family: var(--display);
+    .mode-btn {
       font-size: 0.62rem;
-      letter-spacing: 0.32em;
-      color: var(--yellow);
-      text-transform: uppercase;
-      margin-bottom: 0.9rem;
-    }
-    .result .r-title {
-      font-family: var(--display);
-      font-size: clamp(3rem, 9vw, 5.6rem);
-      letter-spacing: 0.04em;
-      line-height: 0.9;
-      color: var(--white);
-      margin-bottom: 1.5rem;
-    }
-    .result .r-stats {
-      display: flex;
-      gap: 3rem;
-      margin-bottom: 2rem;
-      font-variant-numeric: tabular-nums;
-    }
-    .result .r-label {
-      font-family: var(--display);
-      font-size: 0.6rem;
-      letter-spacing: 0.32em;
+      letter-spacing: 0.1em;
       color: var(--ink-faint);
-      margin-bottom: 0.2rem;
+      padding: 0.55rem 0.2rem;
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+      transition: color 0.3s var(--ease);
     }
-    .result .r-value {
-      font-family: var(--display);
-      font-size: 2.6rem;
-      letter-spacing: 0.06em;
-      color: var(--white);
-    }
-    .result .r-value.best { color: var(--yellow); }
-    .result .r-cta {
-      font-family: var(--display);
-      font-size: 0.7rem;
-      letter-spacing: 0.32em;
-      color: var(--yellow);
-      text-transform: uppercase;
-      padding: 0.9rem 1.8rem;
-      border: 1px solid var(--yellow);
-      border-radius: 999px;
-      transition: color 0.3s var(--ease), background 0.3s var(--ease);
-    }
-    .result:hover .r-cta {
-      color: var(--black);
-      background: var(--yellow);
-    }
-    .result .r-hint {
-      margin-top: 1.2rem;
-      font-size: 0.55rem;
-      letter-spacing: 0.3em;
-      text-transform: uppercase;
-      color: var(--ink-faint);
-    }
-    .result .r-hint .yellow { color: var(--yellow); }
-    .result .r-new {
-      display: none;
-      margin: -0.6rem 0 1.4rem;
-      font-family: var(--display);
-      font-size: 0.72rem;
-      letter-spacing: 0.32em;
-      color: var(--yellow);
-    }
-    .result.new-best .r-new {
-      display: block;
-      animation: blink 1.4s ease infinite;
-    }
-    @keyframes blink {
-      0%, 100% { opacity: 1; }
-      50%      { opacity: 0.3; }
+    .mode-btn.active { color: var(--yellow); }
+
+    @media (hover: hover) {
+      .nav .mark:hover { opacity: 0.65; }
+      .nav .back:hover { color: var(--white); }
+      .mode-btn:hover { color: var(--white); }
+      .mode-btn.active:hover { color: var(--yellow); }
     }
 
     /* ─── Mobile ─── */
     @media (max-width: 700px) {
       .modes {
-        bottom: 5.4rem;
-        right: 50%;
-        transform: translateX(50%);
+        top: auto;
+        bottom: calc(3.6rem + env(safe-area-inset-bottom, 0px));
+        right: 0;
+        left: 0;
+        transform: none;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
         gap: 0.2rem;
-        padding: 0.3rem;
       }
-      .mode-btn { padding: 0.5rem 0.7rem; font-size: 0.6rem; letter-spacing: 0.18em; }
-      .mark-bottom {
-        bottom: 2rem;
-        left: 50%;
-        transform: translateX(-50%);
-        font-size: 0.85rem;
-        letter-spacing: 0.22em;
+      .mode-btn {
+        padding: 0.55rem 0.55rem;
+        font-size: 0.56rem;
       }
-      .hud { padding-top: 4rem; gap: 1rem; }
-      .hud .value { font-size: 1.9rem; }
-      .hint { bottom: 9rem; font-size: 0.5rem; letter-spacing: 0.25em; }
-      .result .r-stats { gap: 2rem; }
+      .mark-bottom { font-size: 0.75rem; }
+      .hint { max-width: 40vw; text-align: right; }
+    }
+
+    /* ─── Reduced motion: chrome settles instantly; pings travel
+           slower and fade longer in JS, and the beacon stays quiet. ─── */
+    @media (prefers-reduced-motion: reduce) {
+      .nav .mark, .nav .back, .mode-btn, .hint { transition: none; }
+    }
+
+    .sr {
+      position: absolute;
+      width: 1px; height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      white-space: nowrap;
     }
   </style>
 </head>
 <body>
 
-<canvas id="play"></canvas>
-<div class="vignette"></div>
+<canvas id="chart" aria-hidden="true"></canvas>
+
+<p class="sr">A sonar chart of a hidden landscape. Tap to send a ping; as the
+ring travels, contour lines light up where it passes and fade behind it. The
+highest ground answers back in yellow. Hold to keep sounding, and switch
+between ridge, atoll, and blocks worlds.</p>
+<noscript><p class="fallback">pulse needs JavaScript.</p></noscript>
 
 <nav class="nav">
-  <a class="mark" href="../index.html">Tres Carter<span class="y">.</span></a>
-  <a class="back" href="../lab.html">← Lab</a>
+  <a class="mark" href="/">tres carter<span class="y">.</span></a>
+  <a class="back" href="/lab">[ &larr; lab ]</a>
 </nav>
 
-<div class="hud">
-  <div class="stat">
-    <div class="label">Passed</div>
-    <div class="value" id="scoreVal">000</div>
-    <div class="sub">Best <span id="bestVal">000</span></div>
-  </div>
-  <div class="stat right">
-    <div class="label">Combo</div>
-    <div class="value" id="comboVal">×0</div>
-    <div class="lives" id="livesEl"></div>
-  </div>
+<div class="modes" id="modes" role="group" aria-label="worlds">
+  <button class="mode-btn active" data-mode="ridge" aria-pressed="true">[ ridge ]</button>
+  <button class="mode-btn" data-mode="atoll" aria-pressed="false">[ atoll ]</button>
+  <button class="mode-btn" data-mode="blocks" aria-pressed="false">[ blocks ]</button>
 </div>
 
-<div class="hint" id="hint">
-  <span class="yellow">move</span> &nbsp;to orbit &nbsp;·&nbsp; thread your scout through each <span class="yellow">gap</span>
-</div>
-
-<div class="modes" id="modes">
-  <button class="mode-btn" data-mode="chill">Chill</button>
-  <button class="mode-btn active" data-mode="standard">Standard</button>
-  <button class="mode-btn" data-mode="frenzy">Frenzy</button>
-</div>
-
-<div class="mark-bottom">Lab — Pulse</div>
-
-<div class="result" id="result">
-  <div class="r-tag">Lab · 06 — Pulse</div>
-  <div class="r-title" id="rTitle">Pulse</div>
-  <div class="r-new">New best</div>
-  <div class="r-stats">
-    <div>
-      <div class="r-label">Passed</div>
-      <div class="r-value" id="rScore">000</div>
-    </div>
-    <div>
-      <div class="r-label">Best</div>
-      <div class="r-value best" id="rBest">000</div>
-    </div>
-  </div>
-  <div class="r-cta">Again</div>
-  <div class="r-hint">
-    <span class="yellow">click</span> &nbsp;to restart &nbsp;·&nbsp; <span class="yellow">space</span> works too
-  </div>
-</div>
+<div class="mark-bottom">pulse<span class="y">.</span></div>
+<div class="hint" id="hint">tap to sound the dark</div>
 
 <script>
 (function () {
   'use strict';
 
-  // ════════════════════════════════════════════════════════
-  // PULSE
-  //
-  // The center is an iris that emits concentric color rings,
-  // each with one transparent gap. A scout orbits at a fixed
-  // radius — move the cursor to spin it around the center.
-  // When a ring expands past the scout's orbit, thread the
-  // gap or get smashed. Three lives.
-  // ════════════════════════════════════════════════════════
-
-  const canvas = document.getElementById('play');
-  const ctx    = canvas.getContext('2d');
+  // ══════════════════════════════════════════════════════════
+  // SETUP
+  // ══════════════════════════════════════════════════════════
+  const canvas = document.getElementById('chart');
+  const ctx = canvas.getContext('2d', { alpha: false });
   if (!ctx) return;
 
-  // ─── Resize + DPR ──────────────────────────────────────
+  const PRM = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
   let W = window.innerWidth;
   let H = window.innerHeight;
-  let CX = W * 0.5;
-  let CY = H * 0.5;
   let DPR = Math.min(2, window.devicePixelRatio || 1);
-  let SCOUT_R = Math.min(W, H) * 0.30;
 
-  function resize() {
-    DPR = Math.min(2, window.devicePixelRatio || 1);
-    W = window.innerWidth;
-    H = window.innerHeight;
-    CX = W * 0.5;
-    CY = H * 0.5;
-    SCOUT_R = Math.min(W, H) * 0.30;
-    canvas.width  = Math.floor(W * DPR);
-    canvas.height = Math.floor(H * DPR);
-    canvas.style.width  = W + 'px';
-    canvas.style.height = H + 'px';
-    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-  }
-  resize();
-  window.addEventListener('resize', resize);
-  window.addEventListener('orientationchange', () => setTimeout(resize, 200));
+  const K = 7;                 // contour levels; the top one answers in yellow
+  const RING_V = PRM ? 230 : 430;     // ping speed, px/s
+  const BAND = 30;             // wavefront thickness
+  const DECAY = PRM ? 0.55 : 0.30;    // lit-per-second retention
 
-  const isCoarse = window.matchMedia('(pointer: coarse)').matches;
-  const isSmall  = window.innerWidth < 700;
-  const isMobile = isCoarse || isSmall;
-  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let modeName = 'ridge';
 
-  // ─── Palette (vivid, screenshot-trippy) ────────────────
-  // The yellow is reserved for the player scout + accents,
-  // so it doesn't appear in the ring palette.
-  const PALETTE = [
-    '#FF1F5A', // magenta-red
-    '#9B59FF', // purple
-    '#2EE6E1', // cyan
-    '#F5F5F5', // off-white
-    '#0F0F0F', // near-black band (reads as a void slice)
-  ];
-
-  // ─── Modes ─────────────────────────────────────────────
-  // Each mode tunes ring speed, gap width, spawn cadence,
-  // and lives. The scout's orbit radius stays the same.
-  const MODES = {
-    chill: {
-      ringSpeed:    isMobile ? 0.13 : 0.15,    // px/ms
-      thickness:    isMobile ? 46 : 56,
-      spawnMs:      460,
-      spawnMsMin:   320,
-      rampSec:      80,                         // seconds to reach min spawn
-      gapDeg:       58,
-      gapDegMin:    40,
-      lives:        4,
-      label:        'chill',
-    },
-    standard: {
-      ringSpeed:    isMobile ? 0.16 : 0.19,
-      thickness:    isMobile ? 50 : 60,
-      spawnMs:      420,
-      spawnMsMin:   240,
-      rampSec:      70,
-      gapDeg:       46,
-      gapDegMin:    28,
-      lives:        3,
-      label:        'standard',
-    },
-    frenzy: {
-      ringSpeed:    isMobile ? 0.20 : 0.24,
-      thickness:    isMobile ? 54 : 66,
-      spawnMs:      380,
-      spawnMsMin:   180,
-      rampSec:      55,
-      gapDeg:       36,
-      gapDegMin:    20,
-      lives:        2,
-      label:        'frenzy',
-    },
-  };
-
-  let modeName = localStorage.getItem('pulse:mode') || 'standard';
-  if (!MODES[modeName]) modeName = 'standard';
-  let M = MODES[modeName];
-
-  function bestKey() { return 'pulse:best:' + modeName; }
-  function getBest() { return parseInt(localStorage.getItem(bestKey()) || '0', 10) || 0; }
-  function setBest(v) { localStorage.setItem(bestKey(), String(v)); }
-
-  // ─── State ─────────────────────────────────────────────
-  const STATE = { LIVE: 0, OVER: 1 };
-  let state = STATE.LIVE;
-
-  let score = 0;
-  let combo = 0;
-  let bestCombo = 0;
-  let lives = M.lives;
-  let best = getBest();
-  let elapsedMs = 0;
-
-  // Rings: { r, prevR, gapAngle, gapWidth, color, thickness, born, resolved }
-  const rings = [];
-  let ringSeq = 0;
-  let spawnTimer = 0;
-  let lastColorIdx = -1;
-
-  // Particles: { x, y, vx, vy, life, maxLife, color, size }
-  const particles = [];
-
-  // Screen shake on smash
-  let shake = 0;
-
-  // Center iris pulse — beats with each spawn
-  let beat = 0;            // 0..1, decays to 0
-  let irisMorph = 0;       // continuous phase for shape morph
-
-  // Cursor
-  const cursor = { x: CX, y: CY };
-  // Scout angle — derived from cursor each frame
-  let scoutAngle = 0;
-  let scoutAngleSmoothed = 0;
-
-  // ─── HUD refs ──────────────────────────────────────────
-  const scoreEl = document.getElementById('scoreVal');
-  const bestEl  = document.getElementById('bestVal');
-  const comboEl = document.getElementById('comboVal');
-  const livesEl = document.getElementById('livesEl');
-  const hintEl  = document.getElementById('hint');
-  const result  = document.getElementById('result');
-  const rScore  = document.getElementById('rScore');
-  const rBest   = document.getElementById('rBest');
-  const rTitle  = document.getElementById('rTitle');
-
-  function fmt3(n) { return String(Math.max(0, n|0)).padStart(3, '0'); }
-
-  function renderLives() {
-    livesEl.innerHTML = '';
-    const max = M.lives;
-    for (let i = 0; i < max; i++) {
-      const d = document.createElement('div');
-      d.className = 'life' + (i >= lives ? ' gone' : '');
-      livesEl.appendChild(d);
+  // ══════════════════════════════════════════════════════════
+  // VALUE NOISE — the hidden ground.
+  // ══════════════════════════════════════════════════════════
+  const PERM = new Uint8Array(512);
+  let noiseSeed = 991;
+  function reseedNoise() {
+    let seed = noiseSeed;
+    const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+    for (let i = 0; i < 256; i++) PERM[i] = i;
+    for (let i = 255; i > 0; i--) {
+      const j = (rnd() * (i + 1)) | 0;
+      const t = PERM[i]; PERM[i] = PERM[j]; PERM[j] = t;
     }
+    for (let i = 0; i < 256; i++) PERM[256 + i] = PERM[i];
+  }
+  function fade(t) { return t * t * (3 - 2 * t); }
+  function gridN(ix, iy) { return PERM[(PERM[ix & 255] + iy) & 255] / 255; }
+  function noise2(x, y) {
+    const ix = Math.floor(x), iy = Math.floor(y);
+    const fx = x - ix, fy = y - iy;
+    const u = fade(fx), v = fade(fy);
+    const a = gridN(ix, iy), b = gridN(ix + 1, iy);
+    const c = gridN(ix, iy + 1), d = gridN(ix + 1, iy + 1);
+    return (a + (b - a) * u) * (1 - v) + (c + (d - c) * u) * v;
+  }
+  function fbm(x, y) {
+    return noise2(x, y) * 0.52
+         + noise2(x * 2.03, y * 2.03) * 0.26
+         + noise2(x * 4.01, y * 4.01) * 0.14
+         + noise2(x * 8.11, y * 8.11) * 0.08;
   }
 
-  function syncHUD() {
-    scoreEl.textContent = fmt3(score);
-    bestEl.textContent  = fmt3(best);
-    comboEl.textContent = '×' + combo;
-    comboEl.classList.toggle('warn', combo >= 10);
-  }
+  // ══════════════════════════════════════════════════════════
+  // THE WORLDS — each builds a segment list once. A segment:
+  // short piece of contour {x1,y1,x2,y2, lvl, lit, echoAt}.
+  // Short pieces matter: the front lights them one by one.
+  // ══════════════════════════════════════════════════════════
+  let segs = [];
 
-  function flashScore() {
-    scoreEl.classList.remove('pulse');
-    void scoreEl.offsetWidth;
-    scoreEl.classList.add('pulse');
-    setTimeout(() => scoreEl.classList.remove('pulse'), 260);
-  }
-
-  function flashCombo() {
-    comboEl.classList.remove('pulse');
-    void comboEl.offsetWidth;
-    comboEl.classList.add('pulse');
-    setTimeout(() => comboEl.classList.remove('pulse'), 260);
-  }
-
-  // ─── Setup ─────────────────────────────────────────────
-  function reset() {
-    state = STATE.LIVE;
-    score = 0;
-    combo = 0;
-    bestCombo = 0;
-    lives = M.lives;
-    elapsedMs = 0;
-    rings.length = 0;
-    particles.length = 0;
-    ringSeq = 0;
-    spawnTimer = 0;
-    lastColorIdx = -1;
-    shake = 0;
-    beat = 0;
-    result.classList.remove('show', 'new-best');
-    renderLives();
-    syncHUD();
-  }
-
-  function setMode(name) {
-    if (!MODES[name] || name === modeName) return;
-    modeName = name;
-    M = MODES[name];
-    localStorage.setItem('pulse:mode', name);
-    best = getBest();
-    document.querySelectorAll('.mode-btn').forEach(b => {
-      b.classList.toggle('active', b.dataset.mode === name);
-    });
-    reset();
-  }
-
-  // ─── Input ─────────────────────────────────────────────
-  window.addEventListener('mousemove', (e) => {
-    cursor.x = e.clientX;
-    cursor.y = e.clientY;
-    fadeHint();
-  });
-  window.addEventListener('mousedown', (e) => {
-    if (e.target.closest('.mode-btn, .nav .mark, .nav .back, .result')) return;
-    if (state === STATE.OVER) { restart(); return; }
-  });
-
-  // Touch — single finger drag to orbit
-  canvas.addEventListener('touchstart', (e) => {
-    e.preventDefault();
-    const t = e.touches[0]; if (!t) return;
-    cursor.x = t.clientX; cursor.y = t.clientY;
-    if (state === STATE.OVER) { restart(); return; }
-    fadeHint();
-  }, { passive: false });
-  canvas.addEventListener('touchmove', (e) => {
-    e.preventDefault();
-    const t = e.touches[0]; if (!t) return;
-    cursor.x = t.clientX; cursor.y = t.clientY;
-  }, { passive: false });
-
-  let hintFaded = false;
-  function fadeHint() {
-    if (hintFaded) return;
-    hintFaded = true;
-    hintEl.classList.add('gone');
-  }
-  setTimeout(() => fadeHint(), 8000);
-
-  result.addEventListener('click', () => { if (state === STATE.OVER) restart(); });
-
-  document.querySelectorAll('.mode-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      setMode(btn.dataset.mode);
-    });
-  });
-
-  window.addEventListener('keydown', (e) => {
-    if (e.key === ' ' || e.key === 'Enter') {
-      if (state === STATE.OVER) { e.preventDefault(); restart(); }
-    } else if (e.key === '1') setMode('chill');
-    else if (e.key === '2') setMode('standard');
-    else if (e.key === '3') setMode('frenzy');
-  });
-
-  // ─── Ring spawn ────────────────────────────────────────
-  // Pick a fresh color (not the same as last). Gap angle is
-  // random — but biased away from the *current* scout angle
-  // by ~20° so the player has to actually move. As elapsed
-  // time grows, gap shrinks and spawn cadence speeds up.
-  function spawnRing(now) {
-    const t = Math.min(1, elapsedMs / (M.rampSec * 1000));
-    const gapDeg = M.gapDeg - (M.gapDeg - M.gapDegMin) * t;
-    const gapWidth = gapDeg * Math.PI / 180;
-
-    // Gap angle: random, but rejection-sample to avoid landing
-    // too close to the scout's current angle. Keeps it honest.
-    let gap;
-    let tries = 0;
-    do {
-      gap = Math.random() * Math.PI * 2;
-      tries++;
-      if (tries > 6) break;
-      const da = angleDelta(gap, scoutAngleSmoothed);
-      if (Math.abs(da) > 0.35) break; // ~20°
-    } while (true);
-
-    // Color — different from last one
-    let ci;
-    do { ci = (Math.random() * PALETTE.length) | 0; }
-    while (ci === lastColorIdx && PALETTE.length > 1);
-    lastColorIdx = ci;
-
-    rings.push({
-      id: ++ringSeq,
-      r: 0,
-      prevR: 0,
-      gapAngle: gap,
-      gapWidth,
-      color: PALETTE[ci],
-      thickness: M.thickness * (0.94 + Math.random() * 0.12),
-      born: now,
-      resolved: false,
-      result: null, // 'pass' | 'smash' | null
-    });
-
-    beat = 1;
-  }
-
-  function angleDelta(a, b) {
-    let d = a - b;
-    while (d > Math.PI) d -= Math.PI * 2;
-    while (d < -Math.PI) d += Math.PI * 2;
-    return d;
-  }
-
-  function currentSpawnMs() {
-    const t = Math.min(1, elapsedMs / (M.rampSec * 1000));
-    return M.spawnMs - (M.spawnMs - M.spawnMsMin) * t;
-  }
-
-  // ─── Particles ─────────────────────────────────────────
-  function burst(x, y, color, count, speed, life) {
-    for (let i = 0; i < count; i++) {
-      const a = Math.random() * Math.PI * 2;
-      const s = speed * (0.4 + Math.random() * 0.8);
-      particles.push({
-        x, y,
-        vx: Math.cos(a) * s,
-        vy: Math.sin(a) * s,
-        life,
-        maxLife: life,
-        color,
-        size: 1.4 + Math.random() * 2.4,
-      });
-    }
-  }
-
-  // ─── Step ──────────────────────────────────────────────
-  let lastT = performance.now();
-  function step(now) {
-    const dtMs = Math.min(50, now - lastT);
-    lastT = now;
-
-    if (state === STATE.LIVE) {
-      elapsedMs += dtMs;
-
-      // Spawn cadence
-      spawnTimer += dtMs;
-      const sm = currentSpawnMs();
-      while (spawnTimer >= sm) {
-        spawnTimer -= sm;
-        spawnRing(now);
+  // marching squares over a heightmap fn, K levels
+  function buildContours(hAt, cell) {
+    const gw = Math.ceil(W / cell) + 1;
+    const gh = Math.ceil(H / cell) + 1;
+    const h = new Float32Array(gw * gh);
+    let mn = 1e9, mx = -1e9;
+    for (let y = 0; y < gh; y++) {
+      for (let x = 0; x < gw; x++) {
+        const v = hAt(x * cell, y * cell);
+        h[y * gw + x] = v;
+        if (v < mn) mn = v;
+        if (v > mx) mx = v;
       }
     }
-
-    // Cursor → scout angle. Smooth a touch for nice feel.
-    const dx = cursor.x - CX;
-    const dy = cursor.y - CY;
-    // Avoid jitter when cursor sits exactly at center
-    if (dx * dx + dy * dy > 4) {
-      scoutAngle = Math.atan2(dy, dx);
-    }
-    // Smooth via shortest-path lerp
-    const sd = angleDelta(scoutAngle, scoutAngleSmoothed);
-    scoutAngleSmoothed += sd * Math.min(1, dtMs / 60);
-
-    // Iris morph + beat decay
-    irisMorph += dtMs * 0.0014;
-    beat *= Math.pow(0.001, dtMs / 1000); // decay to ~0 over a second
-    if (shake > 0) shake = Math.max(0, shake - dtMs * 0.005);
-
-    // Advance rings
-    for (let i = rings.length - 1; i >= 0; i--) {
-      const ring = rings[i];
-      ring.prevR = ring.r;
-      ring.r += M.ringSpeed * dtMs;
-
-      // Resolve the moment ring crosses the scout radius
-      if (!ring.resolved && ring.prevR <= SCOUT_R && ring.r >= SCOUT_R) {
-        resolveRing(ring, now);
-      }
-
-      // Cull off-screen
-      const maxR = Math.hypot(W, H) * 0.55 + 80;
-      if (ring.r > maxR) rings.splice(i, 1);
-    }
-
-    // Particles
-    for (let i = particles.length - 1; i >= 0; i--) {
-      const p = particles[i];
-      p.x += p.vx * dtMs;
-      p.y += p.vy * dtMs;
-      p.vx *= Math.pow(0.001, dtMs / 1000);
-      p.vy *= Math.pow(0.001, dtMs / 1000);
-      p.life -= dtMs;
-      if (p.life <= 0) particles.splice(i, 1);
-    }
-
-    syncHUD();
-  }
-
-  function resolveRing(ring, now) {
-    ring.resolved = true;
-    const d = Math.abs(angleDelta(scoutAngleSmoothed, ring.gapAngle));
-    const half = ring.gapWidth * 0.5 + 0.04; // tiny fairness buffer
-    const scoutX = CX + Math.cos(scoutAngleSmoothed) * SCOUT_R;
-    const scoutY = CY + Math.sin(scoutAngleSmoothed) * SCOUT_R;
-
-    if (d <= half) {
-      // Threaded the gap
-      ring.result = 'pass';
-      score += 1;
-      combo += 1;
-      if (combo > bestCombo) bestCombo = combo;
-      flashScore();
-      if (combo > 0 && combo % 5 === 0) flashCombo();
-      burst(scoutX, scoutY, '#F5CB5C', 14, 0.25, 520);
-    } else {
-      // Smash
-      ring.result = 'smash';
-      combo = 0;
-      lives -= 1;
-      shake = 1;
-      renderLives();
-      // Burst at the point where the band hit the scout's radius (closest band edge)
-      const hitX = CX + Math.cos(scoutAngleSmoothed) * SCOUT_R;
-      const hitY = CY + Math.sin(scoutAngleSmoothed) * SCOUT_R;
-      burst(hitX, hitY, ring.color, 22, 0.42, 700);
-      burst(hitX, hitY, '#FFFFFF', 8, 0.30, 500);
-      if (lives <= 0) gameOver();
-    }
-  }
-
-  // ─── Render ────────────────────────────────────────────
-  function drawBackground() {
-    ctx.fillStyle = '#0A0A0A';
-    ctx.fillRect(0, 0, W, H);
-  }
-
-  function drawRings() {
-    // Iterate in spawn order (oldest first → drawn outermost on bottom),
-    // so newer (smaller) rings render on top — visually correct.
-    for (let i = 0; i < rings.length; i++) {
-      const ring = rings[i];
-      if (ring.r <= 1) continue;
-
-      // Fade ring out after it passes the scout — keeps the
-      // visual band stack but de-emphasizes resolved layers.
-      let alpha = 1;
-      if (ring.r > SCOUT_R) {
-        const past = (ring.r - SCOUT_R) / (Math.hypot(W, H) * 0.55);
-        alpha = Math.max(0, 1 - past * 1.4);
-      }
-      if (alpha <= 0.01) continue;
-
-      // Draw the band as a stroked arc skipping the gap
-      const g  = ring.gapAngle;
-      const gw = ring.gapWidth;
-      const start = g + gw * 0.5;
-      const end   = g - gw * 0.5 + Math.PI * 2;
-
-      ctx.strokeStyle = withAlpha(ring.color, alpha);
-      ctx.lineWidth = ring.thickness;
-      ctx.lineCap = 'butt';
-      ctx.beginPath();
-      ctx.arc(CX, CY, ring.r, start, end);
-      ctx.stroke();
-
-      // If smashed, briefly flash the band white at the scout angle
-      if (ring.result === 'smash' && ring.r < SCOUT_R + 60) {
-        const flashT = 1 - (ring.r - SCOUT_R) / 60;
-        if (flashT > 0) {
-          ctx.strokeStyle = `rgba(255,255,255,${0.55 * flashT})`;
-          ctx.lineWidth = ring.thickness;
-          ctx.beginPath();
-          ctx.arc(CX, CY, ring.r, scoutAngleSmoothed - 0.15, scoutAngleSmoothed + 0.15);
-          ctx.stroke();
+    const span = (mx - mn) || 1;
+    for (let lvl = 0; lvl < K; lvl++) {
+      const T = mn + span * ((lvl + 0.72) / (K + 0.4));
+      for (let y = 0; y < gh - 1; y++) {
+        for (let x = 0; x < gw - 1; x++) {
+          const a = h[y * gw + x],       b = h[y * gw + x + 1];
+          const c = h[(y + 1) * gw + x + 1], d = h[(y + 1) * gw + x];
+          let idx = 0;
+          if (a > T) idx |= 8;
+          if (b > T) idx |= 4;
+          if (c > T) idx |= 2;
+          if (d > T) idx |= 1;
+          if (idx === 0 || idx === 15) continue;
+          const px = x * cell, py = y * cell;
+          // edge interpolators: top, right, bottom, left
+          const tX = px + cell * ((T - a) / ((b - a) || 1e-9)), tY = py;
+          const rX = px + cell, rY = py + cell * ((T - b) / ((c - b) || 1e-9));
+          const bX = px + cell * ((T - d) / ((c - d) || 1e-9)), bY = py + cell;
+          const lX = px, lY = py + cell * ((T - a) / ((d - a) || 1e-9));
+          const put = (x1, y1, x2, y2) => segs.push({ x1, y1, x2, y2, lvl, lit: 0, echoAt: 0, eLit: 0 });
+          switch (idx) {
+            case 1:  put(lX, lY, bX, bY); break;
+            case 2:  put(bX, bY, rX, rY); break;
+            case 3:  put(lX, lY, rX, rY); break;
+            case 4:  put(tX, tY, rX, rY); break;
+            case 5:  put(tX, tY, lX, lY); put(bX, bY, rX, rY); break;
+            case 6:  put(tX, tY, bX, bY); break;
+            case 7:  put(tX, tY, lX, lY); break;
+            case 8:  put(tX, tY, lX, lY); break;
+            case 9:  put(tX, tY, bX, bY); break;
+            case 10: put(tX, tY, rX, rY); put(lX, lY, bX, bY); break;
+            case 11: put(tX, tY, rX, rY); break;
+            case 12: put(lX, lY, rX, rY); break;
+            case 13: put(bX, bY, rX, rY); break;
+            case 14: put(lX, lY, bX, bY); break;
+          }
         }
       }
     }
   }
 
-  function drawIris() {
-    // The center pupil — morphs between circle/squircle/heart
-    // shapes with the beat. The beat pulse makes it briefly
-    // larger + brighter when a new ring spawns.
-    const baseR = 22 + beat * 8;
-    const phase = (Math.sin(irisMorph) + 1) * 0.5;          // 0..1
-    const morph = (Math.sin(irisMorph * 0.6) + 1) * 0.5;    // 0..1, slower
-
-    // Outer faint halo
-    const halo = ctx.createRadialGradient(CX, CY, 0, CX, CY, baseR * 3.6);
-    halo.addColorStop(0, `rgba(245, 203, 92, ${0.18 + beat * 0.25})`);
-    halo.addColorStop(0.45, `rgba(245, 203, 92, ${0.05 + beat * 0.10})`);
-    halo.addColorStop(1, 'rgba(245, 203, 92, 0)');
-    ctx.fillStyle = halo;
-    ctx.beginPath();
-    ctx.arc(CX, CY, baseR * 3.6, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Iris body — morph between shapes by blending paths.
-    // Cycle index based on integer part of morph phase, every few seconds.
-    const shapeT = Math.sin(irisMorph * 0.5);
-    const shape = shapeT > 0.5 ? 'squircle' : (shapeT < -0.5 ? 'heart' : 'circle');
-
-    ctx.save();
-    ctx.translate(CX, CY);
-    ctx.rotate(irisMorph * 0.25);
-
-    // Outer dark frame
-    ctx.fillStyle = '#0A0A0A';
-    drawIrisShape(shape, baseR + 6, phase);
-    ctx.fill();
-
-    // Color disc (rotates through palette by morph)
-    const palIdx = Math.floor(irisMorph * 0.5) % PALETTE.length;
-    const col = PALETTE[(palIdx + PALETTE.length) % PALETTE.length] || '#F5CB5C';
-    ctx.fillStyle = col === '#0F0F0F' ? '#F5CB5C' : col;
-    drawIrisShape(shape, baseR, phase);
-    ctx.fill();
-
-    // Inner pupil
-    ctx.fillStyle = '#0A0A0A';
-    drawIrisShape(shape, baseR * 0.45, phase);
-    ctx.fill();
-
-    // Tiny core highlight (yellow)
-    ctx.fillStyle = '#F5CB5C';
-    ctx.beginPath();
-    ctx.arc(0, 0, Math.max(2.4, baseR * 0.13), 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.restore();
+  // chop a straight run into front-sized pieces
+  function putRun(x1, y1, x2, y2, lvl) {
+    const dx = x2 - x1, dy = y2 - y1;
+    const len = Math.sqrt(dx * dx + dy * dy);
+    const n = Math.max(1, Math.round(len / 15));
+    for (let i = 0; i < n; i++) {
+      segs.push({
+        x1: x1 + dx * (i / n),     y1: y1 + dy * (i / n),
+        x2: x1 + dx * ((i + 1) / n), y2: y1 + dy * ((i + 1) / n),
+        lvl, lit: 0, echoAt: 0, eLit: 0,
+      });
+    }
   }
 
-  function drawIrisShape(shape, r, phase) {
-    ctx.beginPath();
-    if (shape === 'circle') {
-      ctx.arc(0, 0, r, 0, Math.PI * 2);
-    } else if (shape === 'squircle') {
-      // Superellipse-ish: x^n + y^n = r^n with n=4
-      const n = 4;
-      const steps = 48;
-      for (let i = 0; i <= steps; i++) {
-        const a = (i / steps) * Math.PI * 2;
-        const c = Math.cos(a), s = Math.sin(a);
-        const denom = Math.pow(Math.abs(c), n) + Math.pow(Math.abs(s), n);
-        const k = Math.pow(denom, -1 / n);
-        const x = r * c * k;
-        const y = r * s * k;
-        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-      }
+  function buildWorld() {
+    segs = [];
+    noiseSeed = 100 + ((Math.random() * 100000) | 0);
+    reseedNoise();
+    const cell = Math.min(W, H) < 700 ? 7 : 9;
+    if (modeName === 'ridge') {
+      // long ranges: anisotropic fbm
+      const s = 0.0021;
+      buildContours((x, y) => fbm(x * s * 1.7, y * s), cell);
+    } else if (modeName === 'atoll') {
+      // islands strung on a broken ring
+      const cx = W * 0.5, cy = H * 0.5;
+      const R0 = Math.min(W, H) * 0.33;
+      const s = 0.0038;
+      buildContours((x, y) => {
+        const dx = x - cx, dy = y - cy;
+        const d = Math.sqrt(dx * dx + dy * dy);
+        const rim = Math.exp(-Math.pow((d - R0) / (R0 * 0.38), 2));
+        const core = Math.exp(-Math.pow(d / (R0 * 0.34), 2)) * 0.6;
+        // sharpened noise breaks the rim into separate islands
+        const n = Math.pow(fbm(x * s, y * s), 2.4) * 1.6;
+        return n * (rim + core) + fbm(x * s * 0.7, y * s * 0.7) * 0.05;
+      }, cell);
     } else {
-      // Heart: parametric heart curve, scaled
-      const scale = r / 17;
-      const steps = 64;
-      for (let i = 0; i <= steps; i++) {
-        const t = (i / steps) * Math.PI * 2;
-        const sin = Math.sin(t);
-        const cos = Math.cos(t);
-        const x = 16 * Math.pow(sin, 3);
-        const y = -(13 * cos - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t));
-        if (i === 0) ctx.moveTo(x * scale, y * scale);
-        else ctx.lineTo(x * scale, y * scale);
+      // blocks — a night city surveyed street by street
+      buildBlocks();
+    }
+  }
+
+  function buildBlocks() {
+    let seed = 7 + ((Math.random() * 100000) | 0);
+    const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+    const street = 14;
+    let y = 20 + rnd() * 30;
+    while (y < H - 40) {
+      const rowH = 52 + rnd() * 86;
+      let x = 16 + rnd() * 40;
+      while (x < W - 40) {
+        const bw = 58 + rnd() * 104;
+        if (x + bw > W - 16) break;
+        const lvl = 1 + ((rnd() * (K - 1)) | 0);   // block height
+        // perimeter
+        putRun(x, y, x + bw, y, lvl);
+        putRun(x + bw, y, x + bw, y + rowH, lvl);
+        putRun(x + bw, y + rowH, x, y + rowH, lvl);
+        putRun(x, y + rowH, x, y, lvl);
+        // taller blocks carry an inner court
+        if (lvl >= K - 2 && bw > 70 && rowH > 70) {
+          const in2 = 16;
+          putRun(x + in2, y + in2, x + bw - in2, y + in2, K - 1);
+          putRun(x + bw - in2, y + in2, x + bw - in2, y + rowH - in2, K - 1);
+          putRun(x + bw - in2, y + rowH - in2, x + in2, y + rowH - in2, K - 1);
+          putRun(x + in2, y + rowH - in2, x + in2, y + in2, K - 1);
+        }
+        x += bw + street;
+      }
+      y += rowH + street;
+    }
+  }
+
+  // ══════════════════════════════════════════════════════════
+  // BAKED DARK — gradient + grain only. The world hides in it.
+  // ══════════════════════════════════════════════════════════
+  const paper = document.createElement('canvas');
+
+  function bakePaper() {
+    paper.width  = Math.floor(W * DPR);
+    paper.height = Math.floor(H * DPR);
+    const s = paper.getContext('2d');
+    s.setTransform(DPR, 0, 0, DPR, 0, 0);
+    const g = s.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, '#06070A');
+    g.addColorStop(1, '#0C0F15');
+    s.fillStyle = g;
+    s.fillRect(0, 0, W, H);
+    let seed = 5501;
+    const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+    const n = Math.floor((W * H) / 700);
+    for (let i = 0; i < n; i++) {
+      const x = rnd() * W, y = rnd() * H;
+      s.fillStyle = rnd() > 0.5
+        ? 'rgba(255,255,255,0.03)'
+        : 'rgba(0,0,0,0.05)';
+      s.fillRect(x, y, 1, 1);
+    }
+  }
+
+  function resize() {
+    DPR = Math.min(2, window.devicePixelRatio || 1);
+    W = window.innerWidth;
+    H = window.innerHeight;
+    canvas.width  = Math.floor(W * DPR);
+    canvas.height = Math.floor(H * DPR);
+    canvas.style.width  = W + 'px';
+    canvas.style.height = H + 'px';
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    bakePaper();
+    buildWorld();
+    rings = [];
+    firstPing = null;
+  }
+  window.addEventListener('resize', resize, { passive: true });
+  window.addEventListener('orientationchange', () => setTimeout(resize, 200));
+
+  // ══════════════════════════════════════════════════════════
+  // PINGS
+  // ══════════════════════════════════════════════════════════
+  let rings = [];   // {x, y, r, str}
+  const MAX_RINGS = 7;
+
+  function ping(x, y, str) {
+    if (rings.length >= MAX_RINGS) rings.shift();
+    rings.push({ x, y, r: 6, str: str || 1 });
+  }
+
+  function stepRings(dt) {
+    const lim = Math.max(W, H) * 1.5;
+    for (let i = rings.length - 1; i >= 0; i--) {
+      const g = rings[i];
+      g.r += RING_V * dt;
+      g.str *= Math.pow(0.62, dt);
+      if (g.r > lim || g.str < 0.05) rings.splice(i, 1);
+    }
+  }
+
+  // ══════════════════════════════════════════════════════════
+  // LIGHT PASS — fronts light segments; summits answer later.
+  // ══════════════════════════════════════════════════════════
+  function stepSegs(dt, now) {
+    const keep = Math.pow(DECAY, dt);
+    const eKeep = Math.pow(0.22, dt);
+    const nR = rings.length;
+    for (let i = 0; i < segs.length; i++) {
+      const s = segs[i];
+      s.lit *= keep;
+      s.eLit *= eKeep;
+      for (let r = 0; r < nR; r++) {
+        const g = rings[r];
+        const mx = (s.x1 + s.x2) * 0.5 - g.x;
+        const my = (s.y1 + s.y2) * 0.5 - g.y;
+        const d = Math.sqrt(mx * mx + my * my);
+        const band = Math.abs(d - g.r);
+        if (band < BAND) {
+          const hit = g.str * (1 - band / BAND);
+          if (hit > s.lit) s.lit = hit;
+          // the summit answers: schedule a yellow return blink
+          if (s.lvl === K - 1 && hit > 0.22 && !s.echoAt) s.echoAt = now + 480;
+        }
+      }
+      if (s.echoAt && now >= s.echoAt) {
+        s.eLit = 1;
+        s.echoAt = 0;
       }
     }
-    ctx.closePath();
   }
 
-  function drawScout() {
-    const x = CX + Math.cos(scoutAngleSmoothed) * SCOUT_R;
-    const y = CY + Math.sin(scoutAngleSmoothed) * SCOUT_R;
-
-    // Faint trail circle showing the orbit
-    ctx.strokeStyle = 'rgba(245, 203, 92, 0.10)';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.arc(CX, CY, SCOUT_R, 0, Math.PI * 2);
-    ctx.stroke();
-
-    // Glow
-    const glow = ctx.createRadialGradient(x, y, 0, x, y, 22);
-    glow.addColorStop(0, 'rgba(245, 203, 92, 0.55)');
-    glow.addColorStop(1, 'rgba(245, 203, 92, 0)');
-    ctx.fillStyle = glow;
-    ctx.beginPath();
-    ctx.arc(x, y, 22, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Scout — small triangle pointing toward center
-    const inward = scoutAngleSmoothed + Math.PI;
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.rotate(inward);
-    ctx.fillStyle = '#F5CB5C';
-    ctx.beginPath();
-    ctx.moveTo(10, 0);
-    ctx.lineTo(-6, 5.4);
-    ctx.lineTo(-6, -5.4);
-    ctx.closePath();
-    ctx.fill();
-    // Inner dot
-    ctx.fillStyle = '#0A0A0A';
-    ctx.beginPath();
-    ctx.arc(-1, 0, 1.4, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
+  function drawSegs() {
+    // slate ink, batched into alpha buckets
+    const B = 6;
+    for (let b = B - 1; b >= 0; b--) {
+      let open = false;
+      for (let i = 0; i < segs.length; i++) {
+        const s = segs[i];
+        const a = s.lit * (0.28 + 0.72 * (s.lvl / (K - 1)));
+        const bucket = Math.min(B - 1, (a * B) | 0);
+        if (bucket !== b || a < 0.015) continue;
+        if (!open) { ctx.beginPath(); open = true; }
+        ctx.moveTo(s.x1, s.y1);
+        ctx.lineTo(s.x2, s.y2);
+      }
+      if (open) {
+        ctx.strokeStyle = 'rgba(222, 229, 238, ' + ((b + 0.5) / B * 0.8).toFixed(3) + ')';
+        ctx.lineWidth = 1.1;
+        ctx.stroke();
+      }
+    }
+    // the yellow answers, drawn hot on top
+    let open = false;
+    for (let i = 0; i < segs.length; i++) {
+      const s = segs[i];
+      if (s.eLit < 0.04) continue;
+      if (!open) { ctx.beginPath(); open = true; }
+      ctx.moveTo(s.x1, s.y1);
+      ctx.lineTo(s.x2, s.y2);
+    }
+    if (open) {
+      ctx.strokeStyle = 'rgba(245, 203, 92, 0.85)';
+      ctx.lineWidth = 1.6;
+      ctx.stroke();
+    }
   }
 
-  function drawParticles() {
-    for (let i = 0; i < particles.length; i++) {
-      const p = particles[i];
-      const t = p.life / p.maxLife;
-      if (t <= 0) continue;
-      ctx.fillStyle = withAlpha(p.color, t);
+  function drawRings() {
+    for (let i = 0; i < rings.length; i++) {
+      const g = rings[i];
+      ctx.strokeStyle = 'rgba(222, 229, 238, ' + (g.str * 0.16).toFixed(3) + ')';
+      ctx.lineWidth = 1;
       ctx.beginPath();
-      ctx.arc(p.x, p.y, p.size * (0.5 + t * 0.6), 0, Math.PI * 2);
-      ctx.fill();
+      ctx.arc(g.x, g.y, g.r, 0, Math.PI * 2);
+      ctx.stroke();
     }
   }
 
-  function withAlpha(hex, a) {
-    // hex like #RRGGBB
-    const h = hex.replace('#', '');
-    const r = parseInt(h.substr(0, 2), 16);
-    const g = parseInt(h.substr(2, 2), 16);
-    const b = parseInt(h.substr(4, 2), 16);
-    return `rgba(${r},${g},${b},${a})`;
-  }
-
-  function render(now) {
-    drawBackground();
-
-    // Camera shake — translate the context by a small jitter
-    let sx = 0, sy = 0;
-    if (shake > 0) {
-      const amt = shake * 9;
-      sx = (Math.random() - 0.5) * amt;
-      sy = (Math.random() - 0.5) * amt;
-      ctx.save();
-      ctx.translate(sx, sy);
+  // ══════════════════════════════════════════════════════════
+  // THE BEACON — someone else is out there, sounding too.
+  // ══════════════════════════════════════════════════════════
+  let nextBeacon = null;
+  function stepBeacon(now) {
+    if (PRM) return;
+    if (nextBeacon === null) nextBeacon = now + 6000;
+    if (now >= nextBeacon) {
+      ping(W * 0.82, H * 0.24, 0.5);
+      nextBeacon = now + 8000 + Math.random() * 5000;
     }
-
-    drawRings();
-    drawIris();
-    drawScout();
-    drawParticles();
-
-    if (shake > 0) ctx.restore();
   }
 
-  // ─── Loop ──────────────────────────────────────────────
-  function loop(now) {
-    requestAnimationFrame(loop);
-    step(now);
-    render(now);
+  // ══════════════════════════════════════════════════════════
+  // INPUT — tap pings, hold keeps sounding.
+  // ══════════════════════════════════════════════════════════
+  const hint = document.getElementById('hint');
+  let hintFaded = false;
+  function fadeHint() {
+    if (hintFaded) return;
+    hintFaded = true;
+    hint.classList.add('fade');
   }
 
-  // ─── Game over ─────────────────────────────────────────
-  function gameOver() {
-    if (state === STATE.OVER) return;
-    state = STATE.OVER;
-    if (score > best) {
-      best = score;
-      setBest(best);
-      result.classList.add('new-best');
-    } else {
-      result.classList.remove('new-best');
+  let pointer = null;
+
+  canvas.addEventListener('pointerdown', (e) => {
+    if (pointer) return;
+    pointer = { id: e.pointerId, x: e.clientX, y: e.clientY, t0: last, lastPing: 0 };
+    ping(e.clientX, e.clientY, 1);
+    pointer.lastPing = last;
+    fadeHint();
+  });
+  canvas.addEventListener('pointermove', (e) => {
+    if (!pointer || e.pointerId !== pointer.id) return;
+    pointer.x = e.clientX;
+    pointer.y = e.clientY;
+  });
+  function endPointer(e) {
+    if (!pointer || e.pointerId !== pointer.id) return;
+    pointer = null;
+  }
+  canvas.addEventListener('pointerup', endPointer);
+  canvas.addEventListener('pointercancel', endPointer);
+  window.addEventListener('pointerup', endPointer);
+
+  function stepHold(now) {
+    if (!pointer) return;
+    if (now - pointer.t0 > 500 && now - pointer.lastPing > 700) {
+      ping(pointer.x, pointer.y, 0.8);
+      pointer.lastPing = now;
     }
-    rScore.textContent = fmt3(score);
-    rBest.textContent  = fmt3(best);
-    rTitle.textContent = score === 0 ? 'Static' : (score >= best && score > 0 ? 'Resonance' : 'Pulse');
-    syncHUD();
-    result.classList.add('show');
   }
-  function restart() { reset(); }
 
-  // ─── Initialize ────────────────────────────────────────
-  document.querySelectorAll('.mode-btn').forEach(b => {
-    b.classList.toggle('active', b.dataset.mode === modeName);
+  // ── controls ──
+  document.getElementById('modes').addEventListener('click', (e) => {
+    const b = e.target.closest('.mode-btn');
+    if (!b || !b.dataset.mode) return;
+    modeName = b.dataset.mode;
+    document.querySelectorAll('.mode-btn[data-mode]').forEach(x => {
+      const on = x.dataset.mode === modeName;
+      x.classList.toggle('active', on);
+      x.setAttribute('aria-pressed', String(on));
+    });
+    buildWorld();
+    rings = [];
+    firstPing = last + 350;   // greet the new world with a ping
+  });
+  window.addEventListener('keydown', (e) => {
+    const byKey = { 1: 'ridge', 2: 'atoll', 3: 'blocks' };
+    if (byKey[e.key]) {
+      document.querySelector('.mode-btn[data-mode="' + byKey[e.key] + '"]').click();
+    } else if (e.key === ' ' && !e.repeat) {
+      e.preventDefault();
+      ping(W * (0.2 + Math.random() * 0.6), H * (0.2 + Math.random() * 0.6), 1);
+      fadeHint();
+    }
   });
 
-  if (reduceMotion) {
-    // For users with reduced-motion: simpler, no shake, slower spawns.
-    M = Object.assign({}, M, {
-      ringSpeed: M.ringSpeed * 0.65,
-      spawnMs: M.spawnMs * 1.4,
-      spawnMsMin: M.spawnMsMin * 1.4,
-      gapDeg: M.gapDeg + 10,
-      gapDegMin: M.gapDegMin + 6,
-    });
+  // ══════════════════════════════════════════════════════════
+  // LOOP
+  // ══════════════════════════════════════════════════════════
+  let last = performance.now();
+  let firstPing = null;   // the opening ping fires once, from the middle
+
+  function frameBody(now) {
+    if (canvas.width === 0 && window.innerWidth > 0) resize();   // 0-size load guard
+    const dt = Math.min(0.05, (now - last) / 1000);
+    last = now;
+
+    if (firstPing === null) firstPing = now + 500;
+    if (firstPing && now >= firstPing) {
+      ping(W * 0.42, H * 0.52, 1);
+      firstPing = 0;
+    }
+
+    stepHold(now);
+    stepBeacon(now);
+    stepRings(dt);
+    stepSegs(dt, now);
+
+    ctx.drawImage(paper, 0, 0, W, H);
+    drawSegs();
+    drawRings();
   }
 
-  reset();
+  function loop(now) {
+    requestAnimationFrame(loop);
+    frameBody(now);
+  }
+
+  resize();
   requestAnimationFrame(loop);
 
+  // ── QA hook: step the sim without rAF + read a small snapshot.
+  //    Occluded windows starve rAF; this keeps the piece testable. ──
+  if (location.hostname === 'localhost' || location.search.indexOf('qa') !== -1) {
+    window.__lab = {
+      tick(n, ms) {
+        n = n || 1; ms = ms || 16.7;
+        for (let i = 0; i < n; i++) frameBody(last + ms);
+      },
+      ping,
+      snap(w) {
+        w = w || 320;
+        const c = document.createElement('canvas');
+        c.width = w; c.height = Math.round(w * H / W);
+        c.getContext('2d').drawImage(canvas, 0, 0, c.width, c.height);
+        return c.toDataURL('image/jpeg', 0.82);
+      },
+      info: () => ({ segs: segs.length, rings: rings.length, mode: modeName }),
+    };
+  }
 })();
 </script>
 

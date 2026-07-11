@@ -3,26 +3,43 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <title>Field — Tres Carter</title>
+  <title>field — tres carter</title>
   <link rel="icon" href="../favicon/favicon.ico" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+
+  <!-- Umami analytics — data-domains scopes tracking to the real site so
+       previews/branch URLs don't pollute stats. Clarity below is guarded
+       to the production host for the same reason. -->
+  <script defer src="https://cloud.umami.is/script.js" data-website-id="96e73988-106a-415e-bf80-5e10ffaec0dc" data-domains="tres.studio"></script>
+  <script type="text/javascript">
+    if (location.hostname === 'tres.studio') {
+      (function(c,l,a,r,i,t,y){
+          c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+          t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+          y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+      })(window, document, "clarity", "script", "xang6oq7f9");
+    }
+  </script>
+
   <style>
-    /* ─────────── FIELD — matches tres.studio Lab aesthetic ─────────── */
+    /* ───────────────────────────────────────────────────────────
+       FIELD — wind through tall grass.
+       Lab family: Space Mono chrome, one yellow accent,
+       the scene is the page. The vector field, made visible.
+       ─────────────────────────────────────────────────────────── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
       --white:     #FFFFFF;
-      --black:     #0A0A0A;
+      --black:     #07080B;
       --yellow:    #F5CB5C;
-      --ink-faint: rgba(255, 255, 255, 0.35);
-      --ink-soft:  rgba(255, 255, 255, 0.55);
-      --line:      rgba(255, 255, 255, 0.12);
+      --ink-faint: rgba(255, 255, 255, 0.38);
+      --ink-soft:  rgba(255, 255, 255, 0.6);
+      --line:      rgba(255, 255, 255, 0.14);
 
-      --display: 'Bebas Neue', sans-serif;
-      --body:    'DM Sans', system-ui, sans-serif;
-
+      --mono: 'Space Mono', ui-monospace, monospace;
       --pad: clamp(1.5rem, 4vw, 3rem);
       --ease: cubic-bezier(.2, .8, .2, 1);
     }
@@ -30,8 +47,7 @@
     html, body {
       background: var(--black);
       color: var(--white);
-      font-family: var(--body);
-      font-weight: 300;
+      font-family: var(--mono);
       font-size: 15px;
       height: 100%;
       width: 100%;
@@ -39,556 +55,328 @@
       -webkit-font-smoothing: antialiased;
       touch-action: none;
       overscroll-behavior: none;
+      -webkit-user-select: none;
+      user-select: none;
     }
 
-    canvas#field {
+    a { color: inherit; text-decoration: none; }
+    button {
+      font: inherit; color: inherit; background: none; border: none;
+      cursor: pointer; -webkit-tap-highlight-color: transparent;
+    }
+    a:focus-visible, button:focus-visible {
+      outline: 1px solid var(--yellow);
+      outline-offset: 3px;
+    }
+
+    canvas#meadow {
       position: fixed;
       inset: 0;
       width: 100%;
       height: 100%;
-      display: block;
-      background: var(--black);
       z-index: 1;
+      touch-action: none;
+      display: block;
     }
 
-    /* Faint dot grid overlay — matches the rest of the site */
-    .dot-grid {
-      position: fixed;
-      inset: -40px;
-      z-index: 2;
-      pointer-events: none;
-      background-image: radial-gradient(circle, rgba(255,255,255,0.045) 1px, transparent 1.4px);
-      background-size: 36px 36px;
-      transition: opacity 0.4s var(--ease);
+    .fallback {
+      position: fixed; inset: 0;
+      display: grid; place-items: center;
     }
 
-    /* ─────────── NAV ─────────── */
+    /* ─── Chrome ─── */
     .nav {
       position: fixed;
       top: 0; left: 0; right: 0;
-      z-index: 10;
+      z-index: 100;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 1.5rem var(--pad);
+      padding: calc(1.2rem + env(safe-area-inset-top, 0px)) var(--pad) 1.2rem;
       pointer-events: none;
     }
     .nav > * { pointer-events: auto; }
     .nav .mark {
-      font-family: var(--display);
-      font-size: 0.95rem;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      color: var(--white);
-      text-decoration: none;
+      font-weight: 700;
+      font-size: 0.7rem;
+      letter-spacing: 0.14em;
+      transition: opacity 0.25s var(--ease);
     }
     .nav .mark .y { color: var(--yellow); }
-    .nav-links { display: flex; gap: 1.8rem; }
-    .nav-links a {
-      color: var(--white);
-      font-size: 0.6rem;
-      letter-spacing: 0.24em;
-      text-transform: uppercase;
-      font-weight: 400;
-      text-decoration: none;
-      transition: opacity 0.25s;
-    }
-    .nav-links a:hover { opacity: 0.55; }
-
-    /* ─────────── MODE SWITCHER (bottom-right) ─────────── */
-    .modes {
-      position: fixed;
-      bottom: 2rem;
-      right: var(--pad);
-      z-index: 10;
-      display: flex;
-      gap: 0.4rem;
-      padding: 0.4rem;
-      border: 1px solid var(--line);
-      border-radius: 999px;
-      background: rgba(10, 10, 10, 0.55);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-    }
-    .mode-btn {
-      font-family: var(--display);
-      font-size: 0.72rem;
-      letter-spacing: 0.22em;
-      text-transform: uppercase;
+    .nav .back {
+      font-size: 0.62rem;
+      letter-spacing: 0.14em;
       color: var(--ink-soft);
-      background: none;
-      border: none;
-      padding: 0.55rem 1.1rem;
-      border-radius: 999px;
-      cursor: pointer;
-      transition: color 0.35s var(--ease), background 0.35s var(--ease);
-    }
-    .mode-btn:hover { color: var(--white); }
-    .mode-btn.active {
-      color: var(--black);
-      background: var(--yellow);
+      padding: 0.5rem 0;
+      transition: color 0.25s var(--ease);
     }
 
-    /* ─────────── PULSE BUTTON (bottom-left, mirror of modes) ─────────── */
-    .pulse-wrap {
-      position: fixed;
-      bottom: 2rem;
-      left: var(--pad);
-      z-index: 10;
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-    }
-    .pulse-btn {
-      position: relative;
-      font-family: var(--display);
-      font-size: 0.72rem;
-      letter-spacing: 0.22em;
-      text-transform: uppercase;
-      color: var(--yellow);
-      background: rgba(10, 10, 10, 0.55);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      border: 1px solid var(--yellow);
-      padding: 0.7rem 1.4rem;
-      border-radius: 999px;
-      cursor: pointer;
-      overflow: hidden;
-      transition: color 0.3s var(--ease), background 0.3s var(--ease), transform 0.18s var(--ease);
-    }
-    .pulse-btn:hover {
-      color: var(--black);
-      background: var(--yellow);
-    }
-    .pulse-btn:active { transform: scale(0.94); }
-    /* Concentric ring that fires from the button when pulse is triggered */
-    .pulse-btn::after {
-      content: '';
-      position: absolute;
-      inset: -2px;
-      border-radius: 999px;
-      border: 1px solid var(--yellow);
-      opacity: 0;
-      transform: scale(1);
-      pointer-events: none;
-    }
-    .pulse-btn.firing::after {
-      animation: pulseRing 0.9s var(--ease) forwards;
-    }
-    @keyframes pulseRing {
-      0%   { opacity: 0.8; transform: scale(1); }
-      100% { opacity: 0;   transform: scale(2.6); }
-    }
     .mark-bottom {
-      font-family: var(--display);
-      font-size: 1rem;
-      letter-spacing: 0.24em;
-      color: var(--yellow);
+      position: fixed;
+      bottom: calc(1.6rem + env(safe-area-inset-bottom, 0px));
+      left: var(--pad);
+      font-weight: 700;
+      font-size: 0.85rem;
+      letter-spacing: 0.14em;
+      z-index: 5;
       pointer-events: none;
-      white-space: nowrap;
     }
+    .mark-bottom .y { color: var(--yellow); }
 
     .hint {
       position: fixed;
-      top: 5rem;
+      bottom: calc(1.7rem + env(safe-area-inset-bottom, 0px));
       right: var(--pad);
-      z-index: 10;
-      font-size: 0.55rem;
-      letter-spacing: 0.3em;
-      text-transform: uppercase;
+      font-size: 0.56rem;
+      letter-spacing: 0.16em;
       color: var(--ink-faint);
+      z-index: 5;
       pointer-events: none;
-      transition: opacity 0.6s var(--ease);
-      text-align: right;
-      line-height: 1.7;
+      transition: opacity 0.8s var(--ease);
     }
-    .hint .yellow { color: var(--yellow); }
+    .hint.fade { opacity: 0; }
 
-    /* ─────────── MOBILE ─────────── */
+    /* ─── Controls ─── */
+    .modes {
+      position: fixed;
+      top: 50%;
+      right: var(--pad);
+      transform: translateY(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 0.35rem;
+      z-index: 10;
+    }
+    .mode-btn {
+      font-size: 0.62rem;
+      letter-spacing: 0.1em;
+      color: var(--ink-faint);
+      padding: 0.55rem 0.2rem;
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+      transition: color 0.3s var(--ease);
+    }
+    .mode-btn.active { color: var(--yellow); }
+
+    @media (hover: hover) {
+      .nav .mark:hover { opacity: 0.65; }
+      .nav .back:hover { color: var(--white); }
+      .mode-btn:hover { color: var(--white); }
+      .mode-btn.active:hover { color: var(--yellow); }
+    }
+
+    /* ─── Mobile ─── */
     @media (max-width: 700px) {
       .modes {
-        bottom: 5.2rem;
-        right: 50%;
-        transform: translateX(50%);
-        gap: 0.2rem;
-        padding: 0.3rem;
-      }
-      .mode-btn {
-        padding: 0.5rem 0.7rem;
-        font-size: 0.6rem;
-        letter-spacing: 0.18em;
-      }
-      .pulse-wrap {
-        bottom: 1.6rem;
-        left: 50%;
-        transform: translateX(-50%);
+        top: auto;
+        bottom: calc(3.6rem + env(safe-area-inset-bottom, 0px));
+        right: 0;
+        left: 0;
+        transform: none;
         flex-direction: row;
         align-items: center;
-        gap: 0.8rem;
+        justify-content: center;
+        gap: 0.2rem;
       }
-      .pulse-btn {
-        padding: 0.5rem 1rem;
-        font-size: 0.6rem;
+      .mode-btn {
+        padding: 0.55rem 0.55rem;
+        font-size: 0.56rem;
       }
-      .mark-bottom {
-        font-size: 0.85rem;
-        letter-spacing: 0.22em;
-      }
-      .hint {
-        top: 4.5rem;
-        right: 50%;
-        transform: translateX(50%);
-        font-size: 0.5rem;
-        letter-spacing: 0.25em;
-        text-align: center;
-      }
+      .mark-bottom { font-size: 0.75rem; }
+      .hint { max-width: 40vw; text-align: right; }
+    }
+
+    /* ─── Reduced motion: chrome settles instantly; the wind itself
+           calms down in JS (no gust fronts, gentle sway floor). ─── */
+    @media (prefers-reduced-motion: reduce) {
+      .nav .mark, .nav .back, .mode-btn, .hint { transition: none; }
+    }
+
+    .sr {
+      position: absolute;
+      width: 1px; height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      white-space: nowrap;
     }
   </style>
 </head>
 <body>
 
-<canvas id="field"></canvas>
-<div class="dot-grid" id="dotGrid"></div>
+<canvas id="meadow" aria-hidden="true"></canvas>
+
+<p class="sr">A meadow of tall grass at dusk with a handful of fireflies.
+Move the pointer to part the grass, hold to gather the fireflies to your
+hand, tap to send a shock through the blades, and switch between lull,
+breeze, and squall winds. Gusts travel visibly across the field.</p>
+<noscript><p class="fallback">field needs JavaScript.</p></noscript>
 
 <nav class="nav">
-  <a class="mark" href="../index.html">Tres Carter<span class="y">.</span></a>
-  <div class="nav-links">
-    <a href="../lab.html">← Lab</a>
-  </div>
+  <a class="mark" href="/">tres carter<span class="y">.</span></a>
+  <a class="back" href="/lab">[ &larr; lab ]</a>
 </nav>
 
-<div class="modes" id="modes">
-  <button class="mode-btn active" data-mode="tide">Tide</button>
-  <button class="mode-btn" data-mode="squall">Squall</button>
-  <button class="mode-btn" data-mode="vortex">Vortex</button>
-  <button class="mode-btn" data-mode="still">Still</button>
+<div class="modes" id="modes" role="group" aria-label="winds">
+  <button class="mode-btn active" data-mode="lull" aria-pressed="true">[ lull ]</button>
+  <button class="mode-btn" data-mode="breeze" aria-pressed="false">[ breeze ]</button>
+  <button class="mode-btn" data-mode="squall" aria-pressed="false">[ squall ]</button>
 </div>
 
-<div class="pulse-wrap">
-  <button class="pulse-btn" id="pulseBtn">Pulse</button>
-  <div class="mark-bottom">Lab — Field</div>
-</div>
-
-<div class="hint" id="hint">
-  <span class="yellow">hold</span> &nbsp;to gather &nbsp;·&nbsp; <span class="yellow">release</span> to pulse
-</div>
+<div class="mark-bottom">field<span class="y">.</span></div>
+<div class="hint" id="hint">move to part &middot; hold to gather</div>
 
 <script>
 (function () {
   'use strict';
 
-  // ════════════════════════════════════════════════════════
-  // CANVAS + STATE
-  // ════════════════════════════════════════════════════════
-  const canvas = document.getElementById('field');
+  // ══════════════════════════════════════════════════════════
+  // SETUP
+  // ══════════════════════════════════════════════════════════
+  const canvas = document.getElementById('meadow');
   const ctx = canvas.getContext('2d', { alpha: false });
   if (!ctx) return;
 
-  const isCoarse = window.matchMedia('(pointer: coarse)').matches;
-  const isSmall  = window.innerWidth < 700;
-  const isMobile = isCoarse || isSmall;
+  const PRM = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   let W = window.innerWidth;
   let H = window.innerHeight;
   let DPR = Math.min(2, window.devicePixelRatio || 1);
 
-  // ════════════════════════════════════════════════════════
-  // MODE DEFINITIONS — each one is a complete vibe
-  // ════════════════════════════════════════════════════════
-  const P = {
-    count:        isMobile ? 700 : 1400,
-    fieldScale:   0.0022,
-    timeFlow:     0.00018,
-    bias:         [0.55, 0.0],
-    rotation:     0.0,
-    radial:       0.0,
-    speed:        0.95,
-    trailAlpha:   0.045,
-    tint:         [232, 232, 232],
-    accentMix:    0.0,
-    // How visible the background field-grid is (per-mode). Higher in stiller modes.
-    gridAlpha:    0.07,
-  };
-
+  // ══════════════════════════════════════════════════════════
+  // WINDS — each is a complete weather.
+  //   base      steady push (px of tip lean)
+  //   gust      roaming noise-gust strength
+  //   noiseSpd  how fast the gust pockets travel
+  //   frontGap  seconds between visible gust fronts (0 = none)
+  //   flutter   high-frequency tip tremble
+  // ══════════════════════════════════════════════════════════
   const MODES = {
-    tide: {
-      fieldScale: 0.0022, timeFlow: 0.00018, bias: [0.55, 0.0],
-      rotation: 0.0, radial: 0.0, speed: 0.95, trailAlpha: 0.045,
-      tint: [232, 232, 232], accentMix: 0.0, gridAlpha: 0.07,
-    },
-    squall: {
-      fieldScale: 0.0048, timeFlow: 0.00065, bias: [0.0, 0.0],
-      rotation: 0.0, radial: 0.0, speed: 1.6, trailAlpha: 0.085,
-      tint: [245, 203, 92], accentMix: 0.55, gridAlpha: 0.05,
-    },
-    vortex: {
-      fieldScale: 0.0028, timeFlow: 0.00012, bias: [0.0, 0.0],
-      rotation: 0.0, radial: 0.85, speed: 1.1, trailAlpha: 0.038,
-      tint: [220, 224, 232], accentMix: 0.2, gridAlpha: 0.08,
-    },
-    still: {
-      fieldScale: 0.0020, timeFlow: 0.0,    bias: [0.0, 0.0],
-      rotation: 0.0, radial: 0.0, speed: 0.55, trailAlpha: 0.018,
-      tint: [240, 240, 240], accentMix: 0.0, gridAlpha: 0.11,
-    },
+    lull:   { base: 5,  gust: 11, noiseSpd: 0.055, frontGap: 0,   flutter: 0.7 },
+    breeze: { base: 15, gust: 30, noiseSpd: 0.10,  frontGap: 6.5, flutter: 1.0 },
+    squall: { base: 44, gust: 62, noiseSpd: 0.19,  frontGap: 2.6, flutter: 1.9 },
   };
+  let P = MODES.lull;
 
-  let currentMode = 'tide';
-  let modeStart = 0;
-  const MODE_LERP_MS = 1400;
-  let modeFromSnap = null;
-  let modeTo = MODES.tide;
-
-  function snapshotP() {
-    return {
-      fieldScale: P.fieldScale, timeFlow: P.timeFlow,
-      bias: [P.bias[0], P.bias[1]],
-      rotation: P.rotation, radial: P.radial, speed: P.speed,
-      trailAlpha: P.trailAlpha,
-      tint: [P.tint[0], P.tint[1], P.tint[2]],
-      accentMix: P.accentMix,
-      gridAlpha: P.gridAlpha,
-    };
-  }
   function setMode(name) {
     if (!MODES[name]) return;
-    modeFromSnap = snapshotP();
-    modeTo = MODES[name];
-    modeStart = performance.now();
-    currentMode = name;
-    document.querySelectorAll('.mode-btn').forEach(b => {
-      b.classList.toggle('active', b.dataset.mode === name);
+    P = MODES[name];
+    document.querySelectorAll('.mode-btn[data-mode]').forEach(b => {
+      const on = b.dataset.mode === name;
+      b.classList.toggle('active', on);
+      b.setAttribute('aria-pressed', String(on));
     });
-    // Mode changes also fire a small pulse so the transition is unmistakable
-    pulseSpike(0.55);
-  }
-  function updateModeLerp(now) {
-    if (!modeFromSnap) return;
-    const t = Math.min(1, (now - modeStart) / MODE_LERP_MS);
-    const e = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-    const lerp = (a, b) => a + (b - a) * e;
-    P.fieldScale = lerp(modeFromSnap.fieldScale, modeTo.fieldScale);
-    P.timeFlow   = lerp(modeFromSnap.timeFlow,   modeTo.timeFlow);
-    P.bias[0]    = lerp(modeFromSnap.bias[0],    modeTo.bias[0]);
-    P.bias[1]    = lerp(modeFromSnap.bias[1],    modeTo.bias[1]);
-    P.rotation   = lerp(modeFromSnap.rotation,   modeTo.rotation);
-    P.radial     = lerp(modeFromSnap.radial,     modeTo.radial);
-    P.speed      = lerp(modeFromSnap.speed,      modeTo.speed);
-    P.trailAlpha = lerp(modeFromSnap.trailAlpha, modeTo.trailAlpha);
-    P.tint[0]    = lerp(modeFromSnap.tint[0],    modeTo.tint[0]);
-    P.tint[1]    = lerp(modeFromSnap.tint[1],    modeTo.tint[1]);
-    P.tint[2]    = lerp(modeFromSnap.tint[2],    modeTo.tint[2]);
-    P.accentMix  = lerp(modeFromSnap.accentMix,  modeTo.accentMix);
-    P.gridAlpha  = lerp(modeFromSnap.gridAlpha,  modeTo.gridAlpha);
-    if (t >= 1) modeFromSnap = null;
+    nextFront = null;
   }
 
-  // ════════════════════════════════════════════════════════
-  // PULSE STATE — the "shake" the user loved.
-  // pulseAmount decays from impulse to 0 over ~1s.
-  // While it's >0: field evolution accelerates, particles get jitter,
-  // grid lines flash brighter. The visible result is a field tremor.
-  // ════════════════════════════════════════════════════════
-  let pulseAmount = 0;
-  let fieldTime = 0; // independent of `now` so we can advance it faster during a pulse
-
-  function pulseSpike(amount) {
-    pulseAmount = Math.min(2.0, pulseAmount + amount);
-  }
-
-  // ════════════════════════════════════════════════════════
-  // GRADIENT NOISE — self-contained, no deps
-  // ════════════════════════════════════════════════════════
+  // ══════════════════════════════════════════════════════════
+  // VALUE NOISE — the wind. Smooth pockets that drift with time.
+  // ══════════════════════════════════════════════════════════
   const PERM = new Uint8Array(512);
   (function seedPerm() {
-    const p = new Uint8Array(256);
-    for (let i = 0; i < 256; i++) p[i] = i;
-    let s = 0x6d2b79f5;
+    let seed = 733;
+    const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+    for (let i = 0; i < 256; i++) PERM[i] = i;
     for (let i = 255; i > 0; i--) {
-      s = (s + 0x6D2B79F5) | 0;
-      let r = Math.imul(s ^ (s >>> 15), 1 | s);
-      r = (r + Math.imul(r ^ (r >>> 7), 61 | r)) ^ r;
-      const j = ((r >>> 0) % (i + 1));
-      const tmp = p[i]; p[i] = p[j]; p[j] = tmp;
+      const j = (rnd() * (i + 1)) | 0;
+      const t = PERM[i]; PERM[i] = PERM[j]; PERM[j] = t;
     }
-    for (let i = 0; i < 512; i++) PERM[i] = p[i & 255];
+    for (let i = 0; i < 256; i++) PERM[256 + i] = PERM[i];
   })();
-  function fade(t) { return t * t * t * (t * (t * 6 - 15) + 10); }
-  function hash3(x, y, z) {
-    return PERM[(PERM[(PERM[x & 255] + (y & 255)) & 255] + (z & 255)) & 255] / 255;
-  }
-  function noise3(x, y, z) {
-    const xi = Math.floor(x), yi = Math.floor(y), zi = Math.floor(z);
-    const xf = x - xi, yf = y - yi, zf = z - zi;
-    const u = fade(xf), v = fade(yf), w = fade(zf);
-    const c000 = hash3(xi,   yi,   zi  );
-    const c100 = hash3(xi+1, yi,   zi  );
-    const c010 = hash3(xi,   yi+1, zi  );
-    const c110 = hash3(xi+1, yi+1, zi  );
-    const c001 = hash3(xi,   yi,   zi+1);
-    const c101 = hash3(xi+1, yi,   zi+1);
-    const c011 = hash3(xi,   yi+1, zi+1);
-    const c111 = hash3(xi+1, yi+1, zi+1);
-    const x00 = c000 + (c100 - c000) * u;
-    const x10 = c010 + (c110 - c010) * u;
-    const x01 = c001 + (c101 - c001) * u;
-    const x11 = c011 + (c111 - c011) * u;
-    const y0 = x00 + (x10 - x00) * v;
-    const y1 = x01 + (x11 - x01) * v;
-    return y0 + (y1 - y0) * w;
+
+  function fade(t) { return t * t * (3 - 2 * t); }
+  function grid(ix, iy) { return PERM[(PERM[ix & 255] + iy) & 255] / 255; }
+  function noise2(x, y) {
+    const ix = Math.floor(x), iy = Math.floor(y);
+    const fx = x - ix, fy = y - iy;
+    const u = fade(fx), v = fade(fy);
+    const a = grid(ix, iy), b = grid(ix + 1, iy);
+    const c = grid(ix, iy + 1), d = grid(ix + 1, iy + 1);
+    return (a + (b - a) * u) * (1 - v) + (c + (d - c) * u) * v;   // 0..1
   }
 
-  // ════════════════════════════════════════════════════════
-  // CURSOR (mouse OR touch) — unified "press, hold, release" model
-  // press = attractor turns on (gathers particles)
-  // hold  = charge ring grows on screen, attractor strength ramps
-  // release = fires a pulse proportional to hold duration
-  // ════════════════════════════════════════════════════════
-  const cursor = {
-    active: false,
-    x: 0, y: 0,
-    startTime: 0,
-    // Smoothed render position (lags slightly behind raw input — feels good)
-    rx: 0, ry: 0,
-  };
+  // ══════════════════════════════════════════════════════════
+  // THE GRASS — three depth layers of spring-loaded blades.
+  // Each blade: base point, height, a tip that gets pushed by
+  // wind + hand and springs home. Drawn as quadratic curves,
+  // batched into one stroke per layer.
+  // ══════════════════════════════════════════════════════════
+  // layer: [alpha, lineWidth, hMin, hMax, yTop, yBot] (y as H fractions)
+  const LAYERS = [
+    [0.10, 1.0, 26, 46,  0.48, 0.72],
+    [0.17, 1.4, 44, 84,  0.58, 0.86],
+    [0.26, 1.9, 78, 132, 0.70, 1.04],
+  ];
+  // two ink buckets per layer keep batching while breaking uniformity
+  const BUCKET_A = 0.72, BUCKET_B = 1.18;
+  let blades = [];   // flat list, presorted far -> near
 
-  function cursorDown(x, y) {
-    cursor.active = true;
-    cursor.x = x; cursor.y = y;
-    cursor.rx = x; cursor.ry = y;
-    cursor.startTime = performance.now();
-    fadeHint();
-  }
-  function cursorMove(x, y) {
-    if (cursor.active) {
-      cursor.x = x; cursor.y = y;
-    }
-  }
-  function cursorUp() {
-    if (!cursor.active) return;
-    const held = performance.now() - cursor.startTime;
-    // Map hold duration to pulse strength.
-    // Short tap (<180ms) → small pulse at point.
-    // Long hold (~1500ms+) → big pulse + visible field shake.
-    const charge = Math.min(1, held / 1400);
-    const pulseStrength = 0.4 + charge * 1.4;
-    // Localized disturbance at release point (swirl that fades over ~1.8s)
-    disturbances.push({
-      x: cursor.x, y: cursor.y,
-      born: performance.now(),
-      strength: 1.6 + charge * 2.6,
-      sign: Math.random() < 0.5 ? -1 : 1,
-      ringRadius: 30 + charge * 80,
-    });
-    pulseSpike(pulseStrength * 0.55); // global shake scales with hold
-    cursor.active = false;
-  }
-
-  // ════════════════════════════════════════════════════════
-  // DISTURBANCES — released pulses leave a fading swirl behind
-  // ════════════════════════════════════════════════════════
-  const disturbances = [];
-  function pruneDisturbances(now) {
-    for (let i = disturbances.length - 1; i >= 0; i--) {
-      if (now - disturbances[i].born > 1900) disturbances.splice(i, 1);
-    }
-  }
-
-  // ════════════════════════════════════════════════════════
-  // FIELD QUERY — returns vector at (x, y, t)
-  // ════════════════════════════════════════════════════════
-  function fieldAt(x, y, t, out) {
-    const n = noise3(x * P.fieldScale, y * P.fieldScale, t * P.timeFlow);
-    const angle = n * Math.PI * 4;
-    let vx = Math.cos(angle);
-    let vy = Math.sin(angle);
-
-    // Radial rotation component (vortex mode)
-    if (P.radial > 0.001) {
-      const cx = W * 0.5, cy = H * 0.5;
-      const dx = x - cx, dy = y - cy;
-      const r = Math.hypot(dx, dy) + 1;
-      const falloff = 1 / (1 + r * 0.0009);
-      const tx = -dy / r;
-      const ty =  dx / r;
-      const inward = -0.18 * falloff;
-      vx = vx * (1 - P.radial) + (tx + (dx / r) * inward) * P.radial;
-      vy = vy * (1 - P.radial) + (ty + (dy / r) * inward) * P.radial;
-    }
-
-    // Global drift bias
-    vx += P.bias[0];
-    vy += P.bias[1];
-
-    // ACTIVE CURSOR — soft attractor that strengthens with hold duration
-    if (cursor.active) {
-      const dx = cursor.rx - x;
-      const dy = cursor.ry - y;
-      const r2 = dx * dx + dy * dy;
-      const RAD = 320;
-      if (r2 < RAD * RAD) {
-        const r = Math.sqrt(r2) + 1;
-        const fall = (1 - r / RAD);
-        const held = (t - cursor.startTime) / 1400;
-        const charge = Math.min(1.2, held);
-        const k = fall * fall * (0.4 + charge * 1.8);
-        vx += (dx / r) * k;
-        vy += (dy / r) * k;
+  function seedBlades() {
+    blades = [];
+    const target = Math.max(900, Math.min(4200, Math.round((W * H) / 300)));
+    const per = [0.32, 0.34, 0.34];
+    for (let L = 0; L < 3; L++) {
+      const [alpha, lw, hMin, hMax, yTop, yBot] = LAYERS[L];
+      const n = Math.round(target * per[L]);
+      for (let i = 0; i < n; i++) {
+        // pow-bias roots downward so the canopy thins out raggedly on top
+        const u = Math.pow(Math.random(), 0.62);
+        const straggler = Math.random() < 0.06;
+        blades.push({
+          k: L * 2 + (Math.random() < 0.5 ? 0 : 1),   // draw bucket
+          L,
+          bx: Math.random() * (W + 40) - 20,
+          by: H * (yTop + u * (yBot - yTop)),
+          h: (hMin + Math.random() * (hMax - hMin)) * (straggler ? 1.4 : 1),
+          lean: (Math.random() - 0.5) * 34,
+          ph: Math.random() * Math.PI * 2,
+          d: 0,     // tip displacement (px)
+          dv: 0,    // tip velocity
+        });
       }
     }
-
-    // RELEASED disturbances — local swirls that fade over time
-    for (let i = 0; i < disturbances.length; i++) {
-      const d = disturbances[i];
-      const dx = x - d.x;
-      const dy = y - d.y;
-      const r2 = dx * dx + dy * dy;
-      const RAD = 240;
-      if (r2 < RAD * RAD) {
-        const r = Math.sqrt(r2) + 1;
-        const fall = (1 - r / RAD);
-        const life = Math.max(0, 1 - (t - d.born) / 1800);
-        const k = fall * fall * life * d.strength * d.sign;
-        vx += (-dy / r) * k;
-        vy += ( dx / r) * k;
-      }
-    }
-
-    const m = Math.hypot(vx, vy);
-    if (m > 0.001) {
-      const s = Math.min(1.8, m) / m;
-      out[0] = vx * s;
-      out[1] = vy * s;
-    } else {
-      out[0] = 0; out[1] = 0;
-    }
+    // painter's order: far buckets first, higher roots first inside each
+    blades.sort((a, b) => a.k - b.k || a.by - b.by);
   }
 
-  // ════════════════════════════════════════════════════════
-  // PARTICLES
-  // ════════════════════════════════════════════════════════
-  const particles = [];
-  function makeParticle() {
-    return {
-      x: Math.random() * W,
-      y: Math.random() * H,
-      px: 0, py: 0,
-      age: Math.random() * 240,
-      maxAge: 180 + Math.random() * 220,
-    };
-  }
-  function seedParticles() {
-    particles.length = 0;
-    for (let i = 0; i < P.count; i++) {
-      const p = makeParticle();
-      p.px = p.x; p.py = p.y;
-      particles.push(p);
+  // ══════════════════════════════════════════════════════════
+  // BAKED DUSK — gradient + a breath of ground haze + grain.
+  // ══════════════════════════════════════════════════════════
+  const skyCanvas = document.createElement('canvas');
+
+  function bakeSky() {
+    skyCanvas.width  = Math.floor(W * DPR);
+    skyCanvas.height = Math.floor(H * DPR);
+    const s = skyCanvas.getContext('2d');
+    s.setTransform(DPR, 0, 0, DPR, 0, 0);
+
+    const g = s.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, '#06070A');
+    g.addColorStop(1, '#0D1016');
+    s.fillStyle = g;
+    s.fillRect(0, 0, W, H);
+
+    // where the grass roots — a soft band of ground haze
+    const hz = s.createLinearGradient(0, H * 0.42, 0, H);
+    hz.addColorStop(0, 'rgba(20, 24, 33, 0)');
+    hz.addColorStop(0.55, 'rgba(20, 24, 33, 0.22)');
+    hz.addColorStop(1, 'rgba(20, 24, 33, 0.55)');
+    s.fillStyle = hz;
+    s.fillRect(0, H * 0.42, W, H * 0.58);
+
+    let seed = 917;
+    const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+    const n = Math.floor((W * H) / 700);
+    for (let i = 0; i < n; i++) {
+      const x = rnd() * W, y = rnd() * H;
+      s.fillStyle = rnd() > 0.5
+        ? 'rgba(255,255,255,0.035)'
+        : 'rgba(0,0,0,0.05)';
+      s.fillRect(x, y, 1, 1);
     }
   }
 
-  // ════════════════════════════════════════════════════════
-  // CANVAS SIZING
-  // ════════════════════════════════════════════════════════
   function resize() {
     DPR = Math.min(2, window.devicePixelRatio || 1);
     W = window.innerWidth;
@@ -598,274 +386,347 @@
     canvas.style.width  = W + 'px';
     canvas.style.height = H + 'px';
     ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-    ctx.fillStyle = '#0A0A0A';
-    ctx.fillRect(0, 0, W, H);
+    bakeSky();
+    seedBlades();
+    seedFlies();
   }
-  resize();
-  window.addEventListener('resize', resize);
+  window.addEventListener('resize', resize, { passive: true });
   window.addEventListener('orientationchange', () => setTimeout(resize, 200));
 
-  seedParticles();
+  // ══════════════════════════════════════════════════════════
+  // GUST FRONTS — a visible wall of wind crossing the meadow.
+  // ══════════════════════════════════════════════════════════
+  let fronts = [];      // {x, v, band, str}
+  let nextFront = null;
 
-  // ════════════════════════════════════════════════════════
-  // INPUT — mouse + touch, unified through cursorDown/Move/Up
-  // ════════════════════════════════════════════════════════
-  const hintEl = document.getElementById('hint');
-  let hintFaded = false;
-  function fadeHint() {
-    if (hintFaded || !hintEl) return;
-    hintFaded = true;
-    hintEl.style.opacity = '0';
+  function frontGap() {
+    if (PRM || !P.frontGap) return Infinity;
+    return (P.frontGap * (0.7 + Math.random() * 0.6)) * 1000;
   }
 
-  // Mouse
-  window.addEventListener('mousedown', (e) => {
-    if (e.target.closest('.mode-btn, .pulse-btn, .nav-links a, .mark')) return;
-    cursorDown(e.clientX, e.clientY);
-  });
-  window.addEventListener('mousemove', (e) => {
-    cursorMove(e.clientX, e.clientY);
-  });
-  window.addEventListener('mouseup', () => {
-    cursorUp();
-  });
-  // Mouse leaves window = treat as release
-  window.addEventListener('mouseleave', () => { cursorUp(); });
-
-  // Touch
-  canvas.addEventListener('touchstart', (e) => {
-    if (e.target.closest('.mode-btn, .pulse-btn, .nav-links a, .mark')) return;
-    e.preventDefault();
-    const t = e.changedTouches[0];
-    cursorDown(t.clientX, t.clientY);
-  }, { passive: false });
-  canvas.addEventListener('touchmove', (e) => {
-    if (!cursor.active) return;
-    e.preventDefault();
-    const t = e.changedTouches[0];
-    cursorMove(t.clientX, t.clientY);
-  }, { passive: false });
-  canvas.addEventListener('touchend', (e) => {
-    e.preventDefault();
-    cursorUp();
-  }, { passive: false });
-  canvas.addEventListener('touchcancel', () => { cursorUp(); }, { passive: true });
-
-  // Mode buttons
-  document.querySelectorAll('.mode-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      setMode(btn.dataset.mode);
+  function spawnFront() {
+    fronts.push({
+      x: -W * 0.2,
+      v: W * (0.55 + Math.random() * 0.3),   // px/s across
+      band: W * 0.16,
+      str: P.gust * (1.6 + Math.random() * 0.8),
     });
-  });
-
-  // Pulse button — big global shake, no location
-  const pulseBtn = document.getElementById('pulseBtn');
-  pulseBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    pulseSpike(1.6);
-    pulseBtn.classList.remove('firing');
-    // Force reflow so the animation re-triggers
-    void pulseBtn.offsetWidth;
-    pulseBtn.classList.add('firing');
-    fadeHint();
-  });
-
-  // Keyboard
-  window.addEventListener('keydown', (e) => {
-    const k = e.key;
-    if (k === '1') setMode('tide');
-    else if (k === '2') setMode('squall');
-    else if (k === '3') setMode('vortex');
-    else if (k === '4') setMode('still');
-    else if (k === ' ') { e.preventDefault(); pulseBtn.click(); }
-  });
-
-  // ════════════════════════════════════════════════════════
-  // BACKGROUND FIELD GRID — short direction-lines showing the field
-  // Subtle but legible. Brightens during pulse so you can SEE the shake.
-  // ════════════════════════════════════════════════════════
-  const gridVec = [0, 0];
-  let gridStep = 0;
-  let gridCols = 0;
-  let gridRows = 0;
-  function computeGrid() {
-    gridStep = isMobile ? 64 : 72;
-    gridCols = Math.ceil(W / gridStep) + 2;
-    gridRows = Math.ceil(H / gridStep) + 2;
   }
-  computeGrid();
-  window.addEventListener('resize', computeGrid);
 
-  function drawFieldGrid(t) {
-    // Alpha rises with pulseAmount — that's how the user "sees" the field shake
-    const pulseBoost = Math.min(1, pulseAmount) * 0.18;
-    const a = P.gridAlpha + pulseBoost;
-    if (a < 0.01) return;
-    ctx.strokeStyle = `rgba(255, 255, 255, ${a})`;
-    ctx.lineWidth = 0.65;
-    ctx.lineCap = 'round';
-    ctx.beginPath();
-    const len = 11 + pulseAmount * 6;
-    for (let i = 0; i < gridCols; i++) {
-      for (let j = 0; j < gridRows; j++) {
-        const x = i * gridStep - gridStep * 0.5;
-        const y = j * gridStep - gridStep * 0.5;
-        fieldAt(x, y, t, gridVec);
-        ctx.moveTo(x - gridVec[0] * len * 0.5, y - gridVec[1] * len * 0.5);
-        ctx.lineTo(x + gridVec[0] * len * 0.5, y + gridVec[1] * len * 0.5);
+  function stepFronts(dt, now) {
+    if (nextFront === null) nextFront = now + frontGap();
+    if (now >= nextFront) {
+      spawnFront();
+      nextFront = now + frontGap();
+    }
+    for (let i = fronts.length - 1; i >= 0; i--) {
+      fronts[i].x += fronts[i].v * dt;
+      if (fronts[i].x > W * 1.4) fronts.splice(i, 1);
+    }
+  }
+
+  function frontPush(bx) {
+    let f = 0;
+    for (let i = 0; i < fronts.length; i++) {
+      const dx = (bx - fronts[i].x) / fronts[i].band;
+      if (dx > -1.4 && dx < 1.4) f += fronts[i].str * Math.exp(-dx * dx * 2.2);
+    }
+    return f;
+  }
+
+  // ══════════════════════════════════════════════════════════
+  // SHOCKS — a tap rings the meadow.
+  // ══════════════════════════════════════════════════════════
+  let shocks = [];   // {x, y, r, v, str}
+
+  function stepShocks(dt) {
+    for (let i = shocks.length - 1; i >= 0; i--) {
+      const s = shocks[i];
+      s.r += s.v * dt;
+      s.str *= Math.pow(0.25, dt);   // fades as it travels
+      if (s.r > Math.max(W, H) * 1.2 || s.str < 1) shocks.splice(i, 1);
+    }
+  }
+
+  function shockPush(bx, by) {
+    let fx = 0;
+    for (let i = 0; i < shocks.length; i++) {
+      const s = shocks[i];
+      const dx = bx - s.x, dy = by - s.y;
+      const d = Math.sqrt(dx * dx + dy * dy) || 1;
+      const band = Math.abs(d - s.r);
+      if (band < 70) {
+        fx += (dx / d) * s.str * (1 - band / 70);
       }
     }
-    ctx.stroke();
+    return fx;
   }
 
-  // ════════════════════════════════════════════════════════
-  // RENDER LOOP
-  // ════════════════════════════════════════════════════════
-  const vec = [0, 0];
-  let prev = performance.now();
+  // ══════════════════════════════════════════════════════════
+  // THE HAND — move parts the grass, hold presses it down.
+  // ══════════════════════════════════════════════════════════
+  const hand = { x: -9999, y: -9999, vx: 0, held: false, downT: 0 };
+
+  function handPush(bx, by) {
+    const dx = bx - hand.x, dy = by - hand.y;
+    const R = hand.held ? 150 : 110;
+    const d2 = dx * dx + dy * dy;
+    if (d2 > R * R) return 0;
+    const d = Math.sqrt(d2) || 1;
+    const fall = 1 - d / R;
+    if (hand.held) return (dx / d) * 120 * fall;          // pressed flat, radial
+    return (dx / d) * fall * 26 + hand.vx * 0.35 * fall;  // brushed aside
+  }
+
+  // ══════════════════════════════════════════════════════════
+  // FIREFLIES — seven yellow motes. The accent, and the life.
+  // ══════════════════════════════════════════════════════════
+  const FLY_N = 7;
+  let flies = [];
+
+  function seedFlies() {
+    flies = [];
+    for (let i = 0; i < FLY_N; i++) {
+      flies.push({
+        x: Math.random() * W,
+        y: H * (0.45 + Math.random() * 0.35),
+        vx: 0, vy: 0,
+        ph: Math.random() * Math.PI * 2,   // blink phase
+        wt: Math.random() * 100,           // wander time
+      });
+    }
+  }
+
+  function stepFlies(dt, now) {
+    const calm = PRM ? 0.35 : 1;
+    for (let i = 0; i < flies.length; i++) {
+      const f = flies[i];
+      f.wt += dt;
+      // wander: two slow sines make a lazy loop, noise varies it
+      const n = noise2(f.wt * 0.35, i * 7.3) - 0.5;
+      f.vx += (Math.sin(f.wt * 0.7 + i) * 9 + n * 26) * dt * calm;
+      f.vy += (Math.cos(f.wt * 0.53 + i * 2) * 7 + (noise2(i * 5.1, f.wt * 0.3) - 0.5) * 20) * dt * calm;
+      // gathered to a held hand
+      if (hand.held) {
+        const dx = hand.x - f.x, dy = (hand.y - 40) - f.y;
+        f.vx += dx * 1.4 * dt * calm;
+        f.vy += dy * 1.4 * dt * calm;
+      }
+      // home band: drift back toward the grass tops
+      const homeY = H * 0.62;
+      f.vy += (homeY - f.y) * 0.08 * dt;
+      f.vx *= Math.pow(0.6, dt);
+      f.vy *= Math.pow(0.6, dt);
+      f.x += f.vx * dt * 60 * 0.016;
+      f.y += f.vy * dt * 60 * 0.016;
+      // soft wrap
+      if (f.x < -20) f.x = W + 20;
+      if (f.x > W + 20) f.x = -20;
+      if (f.y < H * 0.2) f.y = H * 0.2;
+      if (f.y > H * 0.95) f.y = H * 0.95;
+    }
+  }
+
+  function scatterFlies(x, y) {
+    for (let i = 0; i < flies.length; i++) {
+      const f = flies[i];
+      const dx = f.x - x, dy = f.y - y;
+      const d = Math.sqrt(dx * dx + dy * dy) || 1;
+      const k = Math.max(0, 1 - d / 340) * (PRM ? 6 : 26);
+      f.vx += (dx / d) * k;
+      f.vy += (dy / d) * k;
+    }
+  }
+
+  function drawFlies(now) {
+    for (let i = 0; i < flies.length; i++) {
+      const f = flies[i];
+      const blink = 0.45 + 0.55 * (0.5 + 0.5 * Math.sin(now / 900 + f.ph * 7));
+      ctx.globalAlpha = blink * 0.28;
+      ctx.fillStyle = '#F5CB5C';
+      ctx.beginPath();
+      ctx.arc(f.x, f.y, 6.5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.globalAlpha = blink;
+      ctx.beginPath();
+      ctx.arc(f.x, f.y, 2.1, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  // ══════════════════════════════════════════════════════════
+  // BLADE PHYSICS + DRAW — batched, one stroke per layer.
+  // ══════════════════════════════════════════════════════════
+  const SPRING = 26;   // pull home
+  const DRAG = 5.2;    // settle
+
+  function stepAndDraw(dt, now) {
+    ctx.drawImage(skyCanvas, 0, 0, W, H);
+
+    const t = now / 1000;
+    const calm = PRM ? 0.4 : 1;
+    const ns = 0.0035;                    // noise spatial scale
+    const nt = t * P.noiseSpd * 60 * calm;
+
+    let curK = -1;
+    ctx.lineCap = 'round';
+    for (let i = 0; i < blades.length; i++) {
+      const b = blades[i];
+      if (b.k !== curK) {
+        if (curK !== -1) ctx.stroke();
+        curK = b.k;
+        const a = LAYERS[b.L][0] * (curK % 2 ? BUCKET_B : BUCKET_A);
+        ctx.beginPath();
+        ctx.strokeStyle = 'rgba(222, 229, 238, ' + a.toFixed(3) + ')';
+        ctx.lineWidth = LAYERS[b.L][1];
+      }
+      // wind at the base — pockets drift with time, deeper layers feel less
+      const depth = 0.55 + 0.45 * (b.L / 2);
+      const n = noise2(b.bx * ns + nt, b.by * ns) - 0.35;
+      let wind = (P.base + n * P.gust * 2) * depth * calm;
+      wind += frontPush(b.bx) * depth;
+      wind += shockPush(b.bx, b.by);
+      wind += handPush(b.bx, b.by);
+
+      // spring the tip toward the wind's lean
+      b.dv += ((wind + b.lean - b.d) * SPRING - b.dv * DRAG) * dt;
+      b.d += b.dv * dt;
+
+      // flutter grows toward the tip, faster in rough air
+      const fl = Math.sin(t * (5 + P.flutter * 3) + b.ph) * P.flutter * (PRM ? 0.3 : 1);
+
+      const tipX = b.bx + b.d + fl;
+      const tipY = b.by - b.h * (1 - Math.min(0.35, Math.abs(b.d) / (b.h * 2.6)));
+      ctx.moveTo(b.bx, b.by);
+      ctx.quadraticCurveTo(b.bx + b.d * 0.28, b.by - b.h * 0.55, tipX, tipY);
+    }
+    if (curK !== -1) ctx.stroke();
+  }
+
+  // ══════════════════════════════════════════════════════════
+  // INPUT
+  // ══════════════════════════════════════════════════════════
+  const hint = document.getElementById('hint');
+  let hintFaded = false;
+  function fadeHint() {
+    if (hintFaded) return;
+    hintFaded = true;
+    hint.classList.add('fade');
+  }
+
+  let pid = null;
+  let pMoved = false;
+
+  canvas.addEventListener('pointerdown', (e) => {
+    if (pid !== null) return;
+    pid = e.pointerId;
+    pMoved = false;
+    hand.x = e.clientX; hand.y = e.clientY;
+    hand.downT = last;
+    canvas.setPointerCapture(e.pointerId);
+  });
+
+  canvas.addEventListener('pointermove', (e) => {
+    if (pid !== null && e.pointerId !== pid) return;
+    const nx = e.clientX, ny = e.clientY;
+    hand.vx = (nx - hand.x) * 2.4;
+    if (pid !== null) {
+      const dx = nx - hand.x, dy = ny - hand.y;
+      if (dx * dx + dy * dy > 64) pMoved = true;
+    }
+    hand.x = nx; hand.y = ny;
+    if (Math.abs(hand.vx) > 6) fadeHint();
+  });
+
+  function endPointer(e) {
+    if (pid === null || e.pointerId !== pid) return;
+    const heldMs = last - hand.downT;
+    if (!pMoved && heldMs < 320) {
+      shocks.push({ x: hand.x, y: hand.y, r: 10, v: PRM ? 420 : 760, str: 150 });
+      scatterFlies(hand.x, hand.y);
+      fadeHint();
+    }
+    pid = null;
+    hand.held = false;
+  }
+  canvas.addEventListener('pointerup', endPointer);
+  canvas.addEventListener('pointercancel', endPointer);
+  window.addEventListener('pointerup', endPointer);
+
+  function stepHold(now) {
+    if (pid === null) { hand.held = false; return; }
+    hand.held = !pMoved && (now - hand.downT) >= 320;
+    if (hand.held) fadeHint();
+  }
+
+  // mouse leaves: the hand is gone
+  window.addEventListener('pointerout', (e) => {
+    if (!e.relatedTarget && pid === null) { hand.x = -9999; hand.y = -9999; hand.vx = 0; }
+  });
+
+  // ── controls ──
+  document.getElementById('modes').addEventListener('click', (e) => {
+    const b = e.target.closest('.mode-btn');
+    if (b && b.dataset.mode) setMode(b.dataset.mode);
+  });
+  window.addEventListener('keydown', (e) => {
+    if (e.key === '1') setMode('lull');
+    else if (e.key === '2') setMode('breeze');
+    else if (e.key === '3') setMode('squall');
+    else if (e.key === ' ' && !e.repeat) {
+      e.preventDefault();
+      const x = W * (0.2 + Math.random() * 0.6), y = H * (0.5 + Math.random() * 0.3);
+      shocks.push({ x, y, r: 10, v: PRM ? 420 : 760, str: 150 });
+      scatterFlies(x, y);
+      fadeHint();
+    }
+  });
+
+  // ══════════════════════════════════════════════════════════
+  // LOOP
+  // ══════════════════════════════════════════════════════════
+  let last = performance.now();
+
+  function frameBody(now) {
+    if (canvas.width === 0 && window.innerWidth > 0) resize();   // 0-size load guard
+    const dt = Math.min(0.05, (now - last) / 1000);
+    last = now;
+
+    stepHold(now);
+    stepFronts(dt, now);
+    stepShocks(dt);
+    stepFlies(dt, now);
+    stepAndDraw(dt, now);
+    drawFlies(now);
+  }
 
   function loop(now) {
     requestAnimationFrame(loop);
-    const dtRaw = Math.min(40, now - prev);
-    prev = now;
-    const dt = dtRaw / 16.667;
-
-    updateModeLerp(now);
-    pruneDisturbances(now);
-
-    // Pulse decay
-    if (pulseAmount > 0.001) {
-      pulseAmount = Math.max(0, pulseAmount - dt * 0.018);
-    }
-
-    // Field-time advances faster during pulses → the field appears to "shake"
-    fieldTime += dtRaw * (1 + pulseAmount * 12);
-
-    // Smooth cursor position so trail behavior feels analog
-    cursor.rx += (cursor.x - cursor.rx) * 0.25;
-    cursor.ry += (cursor.y - cursor.ry) * 0.25;
-
-    // Trail fade — translucent black overlay
-    ctx.fillStyle = `rgba(10, 10, 10, ${P.trailAlpha})`;
-    ctx.fillRect(0, 0, W, H);
-
-    // Background field grid (renders BEHIND the particles)
-    drawFieldGrid(fieldTime);
-
-    // Colors
-    const r = Math.round(P.tint[0]);
-    const g = Math.round(P.tint[1]);
-    const b = Math.round(P.tint[2]);
-    const baseColor = `rgba(${r}, ${g}, ${b}, 0.78)`;
-    const accent    = `rgba(245, 203, 92, 0.92)`;
-
-    ctx.lineWidth = 1.05;
-    ctx.lineCap = 'round';
-
-    // Jitter strength scales with pulseAmount
-    const jitter = pulseAmount * 1.5;
-
-    for (let i = 0; i < particles.length; i++) {
-      const p = particles[i];
-      p.px = p.x; p.py = p.y;
-
-      fieldAt(p.x, p.y, fieldTime, vec);
-      const sp = P.speed * (1.4 + 0.4 * Math.sin((p.age + i * 0.13) * 0.04));
-      p.x += vec[0] * sp * dt;
-      p.y += vec[1] * sp * dt;
-
-      // Pulse jitter — gives the shake real texture
-      if (jitter > 0.01) {
-        p.x += (Math.random() - 0.5) * jitter;
-        p.y += (Math.random() - 0.5) * jitter;
-      }
-
-      // Wrap edges softly
-      if (p.x < -20) p.x = W + 20;
-      else if (p.x > W + 20) p.x = -20;
-      if (p.y < -20) p.y = H + 20;
-      else if (p.y > H + 20) p.y = -20;
-
-      p.age += dt;
-      if (p.age > p.maxAge) {
-        p.x = Math.random() * W;
-        p.y = Math.random() * H;
-        p.px = p.x; p.py = p.y;
-        p.age = 0;
-        p.maxAge = 180 + Math.random() * 220;
-      }
-
-      if (Math.abs(p.x - p.px) < 50 && Math.abs(p.y - p.py) < 50) {
-        if (P.accentMix > 0.02 && (i % 7) < Math.floor(P.accentMix * 7 + 0.5)) {
-          ctx.strokeStyle = accent;
-        } else {
-          ctx.strokeStyle = baseColor;
-        }
-        ctx.beginPath();
-        ctx.moveTo(p.px, p.py);
-        ctx.lineTo(p.x, p.y);
-        ctx.stroke();
-      }
-    }
-
-    // CURSOR ring — visible feedback while holding (gathers + charges)
-    if (cursor.active) {
-      const held = now - cursor.startTime;
-      const charge = Math.min(1, held / 1400);
-      // Inner solid ring — grows with hold
-      const baseR = 18;
-      const ringR = baseR + charge * 70;
-      ctx.strokeStyle = `rgba(245, 203, 92, ${0.35 + charge * 0.5})`;
-      ctx.lineWidth = 1 + charge * 1.4;
-      ctx.beginPath();
-      ctx.arc(cursor.rx, cursor.ry, ringR, 0, Math.PI * 2);
-      ctx.stroke();
-      // Outer guide ring at max range
-      ctx.strokeStyle = `rgba(245, 203, 92, ${0.1 + charge * 0.18})`;
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.arc(cursor.rx, cursor.ry, 160 + charge * 60, 0, Math.PI * 2);
-      ctx.stroke();
-      // Centre dot
-      ctx.fillStyle = `rgba(245, 203, 92, ${0.6 + charge * 0.4})`;
-      ctx.beginPath();
-      ctx.arc(cursor.rx, cursor.ry, 2.5 + charge * 1.5, 0, Math.PI * 2);
-      ctx.fill();
-    }
-
-    // Disturbance rings — yellow ring that expands and fades after each release
-    for (let i = 0; i < disturbances.length; i++) {
-      const d = disturbances[i];
-      const t = (now - d.born) / 1800;
-      if (t > 1) continue;
-      const startR = d.ringRadius || 30;
-      const r = startR + t * 220;
-      const a = (1 - t) * 0.32;
-      ctx.strokeStyle = `rgba(245, 203, 92, ${a})`;
-      ctx.lineWidth = 1.2;
-      ctx.beginPath();
-      ctx.arc(d.x, d.y, r, 0, Math.PI * 2);
-      ctx.stroke();
-    }
+    frameBody(now);
   }
 
+  resize();
   requestAnimationFrame(loop);
 
-  // Auto-fade hint after 6s
-  setTimeout(fadeHint, 6000);
-
-  // Re-seed particles when crossing mobile/desktop breakpoint
-  let lastResizeKey = (isMobile ? 'm' : 'd');
-  window.addEventListener('resize', () => {
-    const key = (window.innerWidth < 700 ? 'm' : 'd');
-    if (key !== lastResizeKey) {
-      P.count = key === 'm' ? 700 : 1400;
-      seedParticles();
-      lastResizeKey = key;
-    }
-  });
-
+  // ── QA hook: step the sim without rAF + read a small snapshot.
+  //    Occluded windows starve rAF; this keeps the piece testable. ──
+  if (location.hostname === 'localhost' || location.search.indexOf('qa') !== -1) {
+    window.__lab = {
+      tick(n, ms) {
+        n = n || 1; ms = ms || 16.7;
+        for (let i = 0; i < n; i++) frameBody(last + ms);
+      },
+      snap(w) {
+        w = w || 320;
+        const c = document.createElement('canvas');
+        c.width = w; c.height = Math.round(w * H / W);
+        c.getContext('2d').drawImage(canvas, 0, 0, c.width, c.height);
+        return c.toDataURL('image/jpeg', 0.82);
+      },
+      info: () => ({ blades: blades.length, fronts: fronts.length, shocks: shocks.length, flies: flies.length }),
+    };
+  }
 })();
 </script>
 

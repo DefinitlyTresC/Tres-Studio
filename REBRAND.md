@@ -1,5 +1,76 @@
 # tres.studio — Brief V3: the Multiverse
 
+## ✅ LAB REBUILD COMPLETE (7/7): ECHO + FIELD + PLAN + PULSE + ALTERNATES — 2026-07-11
+
+**The remaining five lab experiments are rebuilt ground-up into the lab
+family language** (dusk-black paper, Space Mono chrome, bracketed controls,
+one yellow accent, scene-alive-on-its-own, PRM-honest, same URLs). The two
+arcade games (echo, pulse) lost their score/timer/lives chrome entirely —
+every piece is now a field study. The series reads as one album: birds =
+the sky, drift = the air, echo = the water, field = the grass, plan = the
+drafting table, pulse = the dark, alternates = the index. Design doc:
+`docs/specs/2026-07-11-lab-rebuild-3-7-design.md`.
+
+- **echo (was ring-crossing arcade):** rain on a still pool. Hugo Elias
+  two-buffer wave field (real interference, soft-absorb banks) rendered
+  per-pixel: height → shade, slope → refraction INTO a baked moon-
+  reflection mask + glint — the same moon birds hangs, read in the water
+  (gradient mirrored top-to-bottom). drag = wake, tap = drop, hold = rain
+  under the hand; [ still ] [ drizzle ] [ deluge ]; a single yellow leaf
+  falls, lands with a ring, rides the wave slopes, slips away.
+- **field (was flow-field particles):** wind through tall grass. ~3k
+  spring-loaded blades in 3 depth layers (quadratic curves, batched into
+  6 strokes; pow-biased roots so the canopy thins raggedly), advected
+  value-noise wind + visible gust FRONTS sweeping across; 7 fireflies
+  (the accent) — move = part, hold = press a circle flat + gather the
+  fireflies to your hand, tap = radial shock; [ lull ] [ breeze ]
+  [ squall ].
+- **plan (was Langton + rule-deck tool UI):** the unattended draftsman.
+  Langton core kept, engineering UI killed; the piece is watching: 7 sps
+  at first (each turn readable), doubling every 7s to 26k — a plan
+  drafting itself in time-lapse on graph-paper hairlines. Curated rules
+  as modes: [ highway ] RL, [ bloom ] LLRR, [ estate ] LRRRRRLLR (walled
+  square, corridors inside — verified against the turmite literature).
+  Torus wrap so highways come back around. tap = seed an ant (≤5),
+  [ again ] = fresh sheet. The ants are the yellow.
+- **pulse (was orbit-dodge game):** sounding the dark. A hidden terrain
+  (marching-squares contours over fbm, chopped into front-sized pieces)
+  lights up only where an expanding ping crosses it, then phosphor-
+  decays; the highest ground answers back in yellow ~0.5s later. A
+  beacon at (0.82, 0.24) pings ambiently. Worlds: [ ridge ] (anisotropic
+  ranges) [ atoll ] (sharpened noise breaks the rim into islands)
+  [ blocks ] (generated night city, tall blocks carry courts — the
+  architect's world). tap = ping, hold = ping train.
+- **alternates (was Oswald "SOON" stub):** the index of the multiverse —
+  the only page listing all six universes: swatch dots from the registry,
+  one-line characters, deep links /1/–/6/, [ roll the dice ] → /, and the
+  old Three.js particle experiment kept as "proto — an abandoned
+  universe". The one lab page that scrolls; entrance staggered, PRM-gated.
+- Portal tags updated (lab.astro): echo "rain on a still pool", field
+  "wind through tall grass", plan "langton's ant, drafting", pulse
+  "sounding the dark", alternates "six doors, one front door".
+- **Verified in the preview browser at desktop + 375px:** all modes on
+  all four sims, tap/drag/hold interactions, ambient events, mobile
+  chrome (44px targets, no overlaps, no x-overflow), zero console
+  errors, `astro build` green (149 pages). Frame cost measured: echo
+  2.6ms, field 0.7ms, pulse 0.4ms. NOT eyeballed in visible Chrome
+  (headless session) — pacing judgment is Tres's on the live site.
+- **VERIFICATION LESSON (new tooling):** this session's pane starved rAF
+  completely (occluded window), so every sim now ships a tiny QA hook —
+  localhost/?qa-gated `window.__lab = {tick, snap, info}` that steps
+  `frameBody(last+16.7)` synchronously and returns a downscaled JPEG
+  dataURL; a throwaway node receiver (scratchpad `snapd.js`, :4599) wrote
+  snaps to disk for visual judging. All ambient scheduling (rain, leaf,
+  fronts, beacon) runs off the FRAME clock, never `performance.now()`,
+  so synthetic stepping and real time behave identically. Keep execs
+  small — one snap per javascript_exec; a 3-snap mega-exec wedged the
+  pane renderer hard.
+- **Open flags for Tres:** motion pacing on all four sims (constants at
+  the top of each inline script); echo leaf cadence (~every 20-40s in
+  still/drizzle); pulse atoll re-rolls per world switch — if a roll looks
+  weak, switch away and back; alternates one-line characters are my copy,
+  edit freely.
+
 ## ✅ LAB REBUILD 1+2: BIRDS + DRIFT — 2026-07-04 (Tres: "go off" / "redo in totality")
 
 **The lab experiments are being rebuilt ground-up, one at a time, into a
@@ -45,6 +116,7 @@ decoration, gated hovers. Same URLs — the /lab portals didn't move.
   errors. NOT eyeballed in visible real Chrome (non-interactive
   session) — pacing judgment call is Tres's on the live site.
 - **Remaining 5 to rebuild:** echo, field, plan, pulse, alternates.
+  (✅ Done 2026-07-11 — see the section above.)
 
 ## 🚀 LIVE — CUTOVER SHIPPED 2026-07-03 (Tres's explicit go: "send it")
 
