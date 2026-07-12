@@ -43,6 +43,30 @@ Everything else (ring, refresh-roll, fallback) reads the registry.
 
 ---
 
+## Tracking (one bootstrap: `public/ts.js`)
+
+Umami + Clarity load from `public/ts.js` on every tracked page (the
+`/`-fallback and `/privacy` are tracker-free; `/me` loads ts.js for its
+window.TS API but injects no trackers) — never paste the snippets inline
+again. It also mints a stable pseudonymous visitor id
+(`ochre-heron-42` style, `localStorage ts_vid`) and sends it to Clarity
+(identify + the `visitor` custom tag — filterable in the dashboard).
+
+**Self-exclusion:** visit **`/me`** (noindex, linked nowhere) once per
+browser and hit [ exclude this browser ] — sets `localStorage ts_off`, which
+kills Umami, Clarity, AND the visit counter for that browser on any network
+(VPN irrelevant; that's why it's not IP-based). The optional friendly name
+on `/me` is what Clarity shows on recordings.
+
+**The visit counter** (`netlify/functions/pulse.mjs` → counter.js/ticker.js)
+ignores bot/blank User-Agents, `navigator.webdriver` clients, and excluded
+browsers (they still see the numbers). The total lives under Blobs key
+`total-2` — **epoch 2, reset to 0 on 2026-07-11**; epoch 1 (`total`) is
+frozen in the store as history. To reset again, bump the key suffix.
+Design: `docs/specs/2026-07-11-tracking-cleanup-design.md`.
+
+---
+
 ## Repo map
 
 ```
@@ -59,11 +83,13 @@ src/
     │                          project/[slug]) — each self-contained, links
     │                          only within itself + shared /lab /privacy
     ├── lab.astro           ← the shared lab (universe 0 — never rolls)
+    ├── me.astro            ← tracking control room (/me — exclude yourself)
     └── about/[cat]/project/privacy ← legacy-redirect targets (old brand)
 public/
 ├── mv/                     ← multiverse client: ring.js (six-dot map),
 │                              curtain.js (ink transition), + per-site fx
 ├── labs/                   ← the seven lab experiments (static HTML)
+├── ts.js                   ← THE tracking bootstrap (Umami+Clarity+visitor id)
 ├── brand.js · counter.js   ← LIVE — loaded by Base.astro (legacy-brand pages)
 ├── v2-tokens.css           ← LIVE — linked by all universe-1 pages
 ├── style.css               ← token-source twin of v2-tokens.css (not linked)

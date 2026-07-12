@@ -28,19 +28,8 @@ const pv = (p) => joinUrl(p.heroImage, 'w_900', 'image');
     <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600&family=Caveat:wght@500;600&family=Space+Mono&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/v2-tokens.css" />
     <script is:inline set:html={MV_CLIENT(1)} />
-    <!-- Umami analytics — data-domains scopes tracking to the real site so
-         previews/branch URLs don't pollute stats. Clarity below is guarded
-         to the production host for the same reason. -->
-    <script is:inline defer src="https://cloud.umami.is/script.js" data-website-id="96e73988-106a-415e-bf80-5e10ffaec0dc" data-domains="tres.studio"></script>
-    <script is:inline type="text/javascript">
-      if (location.hostname === 'tres.studio') {
-        (function(c,l,a,r,i,t,y){
-            c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
-            t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
-            y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
-        })(window, document, "clarity", "script", "xang6oq7f9");
-      }
-    </script>
+    <!-- tracking: one bootstrap for the whole site (Umami + Clarity + visitor id + self-exclusion) - public/ts.js -->
+    <script is:inline defer src="/ts.js"></script>
   </head>
   <body>
     <a class="back" id="back" href="/1/">← index</a>

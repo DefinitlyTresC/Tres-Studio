@@ -28,6 +28,10 @@
   var CONF = prop('--mvt-confetti', '#EDCDBB,#E3B7A0,#BF9270,#2B1F1A,#ffffff').split(',');
   var ACCENT = prop('--mvt-accent', '#BF9270');
 
+  /* epoch 2: forget the epoch-1 cached total so the stall/error fallback
+     can't flash a pre-reset number */
+  try { localStorage.removeItem('ts_v2_ticker'); } catch (e) {}
+
   var sid;
   try {
     sid = sessionStorage.getItem('ts_sid');
@@ -36,6 +40,12 @@
       sessionStorage.setItem('ts_sid', sid);
     }
   } catch (e) { sid = String(Math.random()).slice(2); }
+
+  /* self-exclusion (/me sets ts_off) + headless bots: still SHOW the ticker,
+     never count this browser — pulse skips all writes when x=1 */
+  var OFF = false;
+  try { OFF = localStorage.getItem('ts_off') === '1'; } catch (e) {}
+  if (navigator.webdriver) OFF = true;
 
   /* widget DOM — mounts inline into #mv-ticker-slot in the info footer
      (falls back to fixed bottom-right only if no slot exists) */
@@ -125,9 +135,9 @@
 
   function rollTo(target) {
     var from = 0;
-    try { from = parseInt(localStorage.getItem('ts_v2_ticker') || '0', 10) || 0; } catch (e) {}
+    try { from = parseInt(localStorage.getItem('ts_v3_ticker') || '0', 10) || 0; } catch (e) {}
     if (from > target) from = 0;
-    try { localStorage.setItem('ts_v2_ticker', String(target)); } catch (e) {}
+    try { localStorage.setItem('ts_v3_ticker', String(target)); } catch (e) {}
     if (reduce || target - from < 2) { show(target); return; }
     var steps = Math.min(9, target - from), i = 0;
     (function next() {
@@ -145,10 +155,10 @@
   var stallT = setTimeout(function () {
     if (revealed) return;
     var cached = 0;
-    try { cached = parseInt(localStorage.getItem('ts_v2_ticker') || '0', 10) || 0; } catch (e) {}
+    try { cached = parseInt(localStorage.getItem('ts_v3_ticker') || '0', 10) || 0; } catch (e) {}
     if (cached > 0) { real = cached; reveal(); show(cached); }
   }, 3500);
-  fetch(ENDPOINT + '?sid=' + encodeURIComponent(sid), { cache: 'no-store' })
+  fetch(ENDPOINT + '?sid=' + encodeURIComponent(sid) + (OFF ? '&x=1' : ''), { cache: 'no-store' })
     .then(function (r) { return r.ok ? r.json() : null; })
     .then(function (data) {
       if (!data || typeof data.total !== 'number') return;

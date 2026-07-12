@@ -1,5 +1,64 @@
 # tres.studio — Brief V3: the Multiverse
 
+## ✅ TRACKING CLEANUP — 2026-07-11 (Tres: "exclude me… user IDs in Clarity… reset the total, remove bots")
+
+**Analytics consolidated + self-exclusion + visitor IDs + counter reset.**
+Design: `docs/specs/2026-07-11-tracking-cleanup-design.md`.
+
+- **`public/ts.js` is now THE tracking bootstrap** — the Umami+Clarity
+  snippets that were pasted inline in 39 files (31 Astro pages + 7 static
+  lab pages + Base.astro) are gone; every page loads the one script. Same
+  guards as before (Umami data-domains, Clarity host-gated to tres.studio).
+- **Self-exclusion via `/me`** (noindex, linked nowhere): a per-BROWSER
+  kill-switch in `localStorage ts_off` — Tres visits it once on phone /
+  work / home and flips [ exclude this browser ]. Works on any network, so
+  the NordVPN case costs nothing (IP rules were the wrong axis). Excluding
+  also sets Umami's own `umami.disabled` bypass. Excluded browsers still
+  SEE the ticker; they just never count (`?x=1` → pulse skips all writes).
+- **Visitor IDs → Clarity:** every tracked browser mints a stable
+  pseudonymous id (`ts_vid`, e.g. "bone-kite-95" — palette word + coastal
+  bird + digits). Sent as Clarity custom user id + friendly name +
+  `visitor` custom tag → filter recordings by person in the dashboard.
+  `/me` has an optional friendly-name field (label a device before
+  excluding it, or a friend's browser). Privacy page updated honestly.
+- **Counter reset to 0 + bot filter:** `pulse.mjs` total moved to Blobs key
+  `total-2` (epoch 2 — deploy = fresh 0; epoch-1 `total` frozen as
+  history). Server-side UA bot filter (bot/crawl/headless/lighthouse/curl/
+  python/no-UA → never counted, still served numbers); client-side
+  `navigator.webdriver` sends x=1 too. 12-scenario Node harness green
+  (mocked Blobs): dedupe, exclusion, every bot UA class, epoch isolation.
+- **Verified in the browser (astro dev):** /me mints id + toggles state
+  (ts_off/umami.disabled/ts_name all correct across reloads), excluded
+  universe page injects NO trackers and ticker pings `&x=1`, re-included
+  page injects Umami (domain-guarded) and no Clarity off-host, vid stable
+  across pages, zero console errors. NOT testable locally: Clarity
+  identify on the production host, and the real Blobs epoch swap — check
+  Clarity's custom-id filter + the ticker showing a fresh low number after
+  deploy.
+- **Adversarial review round (18 agents, 14 raw → 11 confirmed, all
+  fixed):** the big one — the `/me` gate compared pathname to '/me' but
+  prod Netlify 301s to `/me/` (VERIFIED against the live site), so the
+  control page would have tracked Tres on every visit; gate now
+  slash-tolerant. Clarity kept recording one page deep after excluding
+  (bfcache restore self-restarts its recorder — verified against the live
+  clarity.js bundle; now a pageshow handler calls clarity('stop')).
+  BOT_RE's bare 'bot' matched CUBOT-brand Android phones → `(?<!cu)bot`
+  (35 real UAs battered, zero other false positives). counter.js now
+  re-reads ts_off on every 20s heartbeat (a tab open during the flip used
+  to keep counting). Ticker cache key bumped ts_v2→ts_v3_ticker so the
+  stall fallback can't flash an epoch-1 total. Privacy wording fixed (the
+  'VPN opts you out' claim was false — and now explicitly says nothing
+  keys off IP). Harness now 19 cases green (Cubot, GPTBot, gate paths).
+  REFUTED (no fix needed): private-mode vid churn (storage-hostile
+  browsers only), reload-replace double-count (exact parity with the old
+  inline snippets), ts-seen growth (strictly improved — bots no longer
+  write it).
+- **For Tres after deploy:** open `tres.studio/me` on each browser (phone,
+  work, home — VPN on/off doesn't matter), optionally name the device,
+  hit [ exclude this browser ]. Umami/Clarity DASHBOARD history can't be
+  retro-cleaned (their data); the fresh epoch + filters solve it going
+  forward. Clarity: filter by Custom tags → visitor, or User ID.
+
 ## ✅ REFRESH-ROLL + ROOT CLEANUP — 2026-07-11 (Tres: "randomized on any refresh, any page")
 
 **The dice now roll on refresh EVERYWHERE, not just at the front door.**

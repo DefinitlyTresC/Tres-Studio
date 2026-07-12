@@ -29,6 +29,16 @@
     sid = String(Math.random()).slice(2);
   }
 
+  // Self-exclusion (/me sets ts_off) + headless bots: still SHOW the widget,
+  // never count this browser — pulse skips all writes when x=1. Re-read the
+  // flag on every heartbeat: a tab that was open when Tres flipped the
+  // switch on /me must stop counting too, not just freshly-loaded ones.
+  var WEBDRIVER = !!navigator.webdriver; /* can't change after load */
+  function isOff() {
+    if (WEBDRIVER) return true;
+    try { return localStorage.getItem('ts_off') === '1'; } catch (e) { return false; }
+  }
+
   var els       = null;   // { root, liveNum, totalNum, totalBtn }
   var realTotal = 0;      // last known true total
   var clickCount = 0;
@@ -114,7 +124,7 @@
   }
 
   function pulse() {
-    fetch(ENDPOINT + '?sid=' + encodeURIComponent(sid), { cache: 'no-store' })
+    fetch(ENDPOINT + '?sid=' + encodeURIComponent(sid) + (isOff() ? '&x=1' : ''), { cache: 'no-store' })
       .then(function (r) { return r.ok ? r.json() : null; })
       .then(apply)
       .catch(function () { /* silent — widget just won't show / update */ });
