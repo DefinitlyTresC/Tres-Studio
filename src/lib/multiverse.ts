@@ -16,6 +16,9 @@ export const SITES: Site[] = [
   { id: 4, name: 'Four', paper: '#EC5B13', ink: '#141210', swatch: '#EC5B13' },
   { id: 5, name: 'Five', paper: '#FFFFFF', ink: '#0A0A0A', swatch: '#2431FF' },
   { id: 6, name: 'Six', paper: '#FAF8F3', ink: '#141310', swatch: '#1F8A70' },
+  // 7 is an open door — Tres named this one "site 8" and the brand says 08.
+  // Both rollers (below + roll.js) pick from the id LIST, never 1..COUNT.
+  { id: 8, name: 'Eight', paper: '#F6F4EE', ink: '#141310', swatch: '#D8341F' },
 ];
 
 // Serialized for the client scripts (ring, curtain) + the refresh-roll.
@@ -40,7 +43,8 @@ export const MV_CLIENT = (current: number) =>
   `window.MV=${JSON.stringify({ current, sites: SITES })};
 (function(){
   var MV=window.MV; if(!MV||!MV.current) return;
-  var N=MV.sites.length, cur=MV.current, path=location.pathname;
+  var cur=MV.current, path=location.pathname;
+  var ids=[]; for(var i=0;i<MV.sites.length;i++) ids.push(MV.sites[i].id);
   function put(n){ try{sessionStorage.setItem('mv:u',String(n));}catch(e){} }
   function last(n){ try{document.cookie='mv_last='+n+';path=/;max-age=2592000;samesite=lax';}catch(e){} }
   function swap(n){ return path.replace(/^\\/\\d+/,'/'+n)+location.search+location.hash; }
@@ -51,7 +55,7 @@ export const MV_CLIENT = (current: number) =>
     var pn=performance.navigation?performance.navigation.type:0;
     t=nav?nav.type:(pn===1?'reload':pn===2?'back_forward':'navigate');
   }catch(e){}
-  if(u>=1&&u<=N){
+  if(ids.indexOf(u)!==-1){
     put(u); last(u);
     if(u!==cur&&path!=='/'){ location.replace(swap(u)); return; }
     // Strip ?u at '/' ONLY when the back_forward restore below created it —
@@ -67,12 +71,13 @@ export const MV_CLIENT = (current: number) =>
     return;
   }
   if(t==='reload'&&path!=='/'){
-    var n=1+Math.floor(Math.random()*(N-1)); if(n>=cur)n++;
+    var o=[]; for(var j=0;j<ids.length;j++) if(ids[j]!==cur) o.push(ids[j]);
+    var n=o[Math.floor(Math.random()*o.length)];
     put(n); last(n); location.replace(swap(n)); return;
   }
   if(t==='back_forward'&&path==='/'){
     var s=0; try{s=parseInt(sessionStorage.getItem('mv:u'),10)||0;}catch(e){}
-    if(s>=1&&s<=N&&s!==cur){
+    if(ids.indexOf(s)!==-1&&s!==cur){
       try{sessionStorage.setItem('mv:restored','1');}catch(e){}
       var q2=new URLSearchParams(location.search); q2.set('u',String(s));
       location.replace('/?'+q2.toString()+location.hash); return;

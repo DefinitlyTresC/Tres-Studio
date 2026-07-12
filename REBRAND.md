@@ -1,5 +1,49 @@
 # tres.studio — Brief V3: the Multiverse
 
+## ✅ SITE 08 "THE DROP" HOOKED UP + SHIPPED — 2026-07-11 (Tres: "all chats done, wire it up and push live")
+
+**The seventh universe: /8/ — the stockroom.** Built in isolation at
+`E:\tres-08-staging` (its HOOKUP.md + docs/ = full design + QA record),
+hooked up tonight. Warm-white shelf wall (#F6F4EE), TRES letterforms rest
+GREEN (#00934D) + red period-dot + stamp red #D8341F accents, Hepta Slab
+900 + Space Mono. The letters DROP onto their shelf on load; everything is
+a gravity body (hand-rolled `public/mv8/grav.js`, zerog pointer canon +
+gravity/shelves/AABB stacking/contact shadows/sleep). A true click on loose
+stock drops it a LEVEL (links navigate instead); strays reshelve after 9s,
+one item at a time (1.4s gap — "the stockkeeper"). Round-2 feedback all in
+(click-drop, unhurried queued returns, two-arc stamp, green TRES).
+
+**NUMBERING: there is no site 7 — Tres named this one 8 and the brand says
+08.** Both rollers now pick from the registry ID LIST, never 1..COUNT:
+`roll.js` has `IDS = [1,2,3,4,5,6,8]`; the MV_CLIENT refresh-roll builds
+`ids` from `MV.sites` (validation, reload-roll, and back/forward restore
+all list-based). Slot 7 is an open door; alternates.html says so.
+
+**Hookup deltas beyond the registry line:** the 8-pages use the NEW `/ts.js`
+tracking bootstrap (not the old inline snippets); alternates.html gained the
+eighth door (+ "seven sites" lede, nth-child(7) stagger); lab.astro portal
+tag → "seven doors, one front door".
+
+**Verified in real Chrome against the integrated repo (:4321):** drop
+settles all-bodies-asleep at exact homes (desktop + 375 verified in staging;
+desktop re-verified integrated); reload-roll live-sampled 8→5, 8→6, 6→1 —
+never /7/, never a repeat; `?u=8` pin jumps from /5/ to /8/; sessionStorage
+mv:u + mv_last cookie track 8; window.TS boots on the 8-pages; dot map = 7
+dots (304px row, fits phones); alternates lists seven doors; `astro build`
+green — 171 pages. **Engine fixes found at hookup (in grav.js, synced to
+staging):** ResizeObserver's mandatory initial fire was snapping the
+entrance to seated 150ms after boot (now only real size changes re-measure,
+and a resize during WAIT re-spawns above the room — the identity moment
+can't be skipped); occluded-window rAF starvation is why QA uses the
+localhost `window.__g8.tick()` clock.
+
+**NOT humanly eyeballed: motion pacing** (drop rhythm/squash/reshelve
+glide) — both browser surfaces on this machine starved rAF this session
+(occluded windows). Physics is deterministic and fully verified on the
+synchronous clock; **Tres judges pacing on the live site** (constants at
+the top of grav.js; glyph seat = 0.135em in 8/index.astro). Also still
+open: real-touch feel on an actual phone.
+
 ## ✅ TRACKING CLEANUP — 2026-07-11 (Tres: "exclude me… user IDs in Clarity… reset the total, remove bots")
 
 **Analytics consolidated + self-exclusion + visitor IDs + counter reset.**

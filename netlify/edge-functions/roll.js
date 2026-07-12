@@ -5,28 +5,25 @@
 // mv_last cookie with this function so the two never roll the universe the
 // visitor is already in.
 // ?u=N forces a universe (testing / "start here" links) — honored here at
-// "/" and on every universe page (/1/../6/) by the client script; the
-// single-version pages (/lab, /labs/*, /privacy) ignore it.
-// COUNT must match src/lib/multiverse.ts.
-const COUNT = 6;
+// "/" and on every universe page by the client script; the single-version
+// pages (/lab, /labs/*, /privacy) ignore it.
+// IDS must match src/lib/multiverse.ts — an id LIST, not a count: the
+// universes are not contiguous (7 is an open door; Tres named the new one 8).
+const IDS = [1, 2, 3, 4, 5, 6, 8];
 
 export default async (request, context) => {
   const url = new URL(request.url);
   const forced = Number(url.searchParams.get('u'));
   let n;
-  if (forced >= 1 && forced <= COUNT) {
+  if (IDS.includes(forced)) {
     n = forced;
   } else {
     // never the same door twice in a row — a re-roll that repeats reads as
-    // "nothing happened". Roll among the other COUNT-1 and remember the pick
+    // "nothing happened". Roll among the other doors and remember the pick
     // in a small functional cookie (no tracking, just the last door).
     const last = Number(context.cookies.get('mv_last')) || 0;
-    if (last >= 1 && last <= COUNT) {
-      n = 1 + Math.floor(Math.random() * (COUNT - 1));
-      if (n >= last) n += 1;
-    } else {
-      n = 1 + Math.floor(Math.random() * COUNT);
-    }
+    const pool = IDS.includes(last) ? IDS.filter((id) => id !== last) : IDS;
+    n = pool[Math.floor(Math.random() * pool.length)];
   }
   try {
     context.cookies.set({

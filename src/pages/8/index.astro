@@ -1,0 +1,286 @@
+---
+// Site 8 — "the drop." The stockroom of the multiverse: a warm-white wall
+// of drawn shelves, and everything on the page is a physical object with
+// real weight. On load the letters DROP onto their shelf (google-gravity,
+// apple-clean); everything is grabbable/throwable; strays get reshelved by
+// the invisible stockkeeper. Engine: /public/mv8/grav.js (zerog canon —
+// one rAF loop, fixed timestep, transforms only) scanning [data-g8] bodies
+// over [data-g8-shelf] support lines. CSS owns the seated state, so no-JS
+// and reduced-motion are a settled room, not a blank one.
+import { MV_CLIENT } from '../../lib/multiverse';
+
+// Seated positions (percents of the room; CSS places, the engine measures).
+// Wide screens: letters on SHELF A, all four sections on SHELF B, the
+// stamp keeps SHELF C. Narrow (<=640px): sections split across B and C,
+// stamp rides the floor.
+const LETTERS = [
+  { g: 'T', x: 8,  xn: 4,  s: 1.0 },
+  { g: 'R', x: 25, xn: 26, s: 0.82 },
+  { g: 'E', x: 42, xn: 46, s: 0.94 },
+  { g: 'S', x: 60, xn: 66, s: 1.12 },
+];
+const MENU = [
+  { label: 'Work',    href: '/8/work',    x: 6,  xn: 8,  shelf: 'b' },
+  { label: 'Archive', href: '/8/archive', x: 28, xn: 47, shelf: 'b' },
+  { label: 'Lab',     href: '/lab',       x: 60, xn: 10, shelf: 'bc' },
+  { label: 'About',   href: '/8/about',   x: 74, xn: 42, shelf: 'bc' },
+];
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="robots" content="noindex" />
+    <meta name="theme-color" content="#F6F4EE" />
+    <title>T R E S — 08</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Hepta+Slab:wght@700;800;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+    <script is:inline>
+      /* the drop must never flash its seated state first: hide the stock
+         until the engine has spawned it above the room (.sim reveals).
+         Skipped under reduced motion; 1800ms failsafe so a JS stumble can
+         never leave an empty wall. */
+      (function () {
+        try {
+          if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+          var h = document.documentElement;
+          h.classList.add('g8-wait');
+          setTimeout(function () { h.classList.remove('g8-wait'); }, 1800);
+        } catch (e) {}
+      })();
+    </script>
+    <script is:inline set:html={MV_CLIENT(8)} />
+    <!-- tracking: one bootstrap for the whole site (Umami + Clarity + visitor id + self-exclusion) - public/ts.js -->
+    <script is:inline defer src="/ts.js"></script>
+  </head>
+  <body>
+    <header class="unit" data-g8-room aria-label="Tres — the drop">
+      <!-- the furniture: shelf lines (top edge = the support line) -->
+      <div class="shelf sa" data-g8-shelf aria-hidden="true"></div>
+      <div class="shelf sb" data-g8-shelf aria-hidden="true"></div>
+      <div class="shelf sc" data-g8-shelf aria-hidden="true"></div>
+      <div class="shelf floor" data-g8-shelf aria-hidden="true"></div>
+      <p class="slabel la" aria-hidden="true">shelf a — identity</p>
+      <p class="slabel lb" aria-hidden="true">shelf b — sections</p>
+      <p class="slabel lc" aria-hidden="true">shelf c — surplus</p>
+      <p class="slabel lf" aria-hidden="true">floor — mind the stock</p>
+
+      <!-- the stock -->
+      {LETTERS.map((l) => (
+        <span
+          class="obj glyph"
+          data-g8
+          data-g8-color
+          style={`--x:${l.x}; --xn:${l.xn}; --s:${l.s};`}
+          aria-hidden="true"
+        ><span class="in">{l.g}</span></span>
+      ))}
+      <span class="obj dot" data-g8 aria-hidden="true"><span class="in"></span></span>
+
+      {MENU.map((m) => (
+        <a
+          class={`obj mword ${m.shelf === 'bc' ? 'to-c' : ''}`}
+          href={m.href}
+          draggable="false"
+          data-g8
+          style={`--x:${m.x}; --xn:${m.xn};`}
+        ><span class="in">{m.label}</span></a>
+      ))}
+
+      <div class="obj stamp" data-g8 aria-hidden="true">
+        <span class="in">
+          <svg viewBox="0 0 100 100" width="100%" height="100%">
+            <circle cx="50" cy="50" r="47" fill="none" stroke="currentColor" stroke-width="3" />
+            <circle cx="50" cy="50" r="30.5" fill="none" stroke="currentColor" stroke-width="1.4" />
+            <path id="s8top" d="M 14.5 50 A 35.5 35.5 0 0 1 85.5 50" fill="none" />
+            <path id="s8bot" d="M 7.5 50 A 42.5 42.5 0 0 0 92.5 50" fill="none" />
+            <text font-family="'Space Mono', monospace" font-size="10" font-weight="700" letter-spacing="2.4" fill="currentColor">
+              <textPath href="#s8top" startOffset="50%" text-anchor="middle">TRES CARTER</textPath>
+            </text>
+            <text font-family="'Space Mono', monospace" font-size="10" font-weight="700" letter-spacing="2.4" fill="currentColor">
+              <textPath href="#s8bot" startOffset="50%" text-anchor="middle">THE DROP · 30A</textPath>
+            </text>
+            <circle cx="11" cy="50" r="1.6" fill="currentColor" />
+            <circle cx="89" cy="50" r="1.6" fill="currentColor" />
+            <text x="50" y="61" text-anchor="middle" font-size="32" font-weight="700" fill="currentColor" font-family="'Space Mono', monospace">08</text>
+          </svg>
+        </span>
+      </div>
+
+      <p class="cue" aria-hidden="true">scroll</p>
+    </header>
+
+    <footer id="mv-info" class="info">
+      <div class="i-cols">
+        <div class="i-col">
+          <span class="lbl">Location</span>
+          Seagrove · 30A<br />Florida, USA
+        </div>
+        <div class="i-col">
+          <span class="lbl">Contact</span>
+          <a href="mailto:tres@tres.studio">tres@tres.studio</a><br />
+          <a href="https://instagram.com/tres.studio" target="_blank" rel="noopener">IG</a><br />
+          <a href="https://www.linkedin.com/in/tres-carter" target="_blank" rel="noopener">LinkedIn</a>
+        </div>
+        <div class="i-col">
+          <span class="lbl">Sections</span>
+          <a href="/8/work">Work</a><br />
+          <a href="/8/archive">Archive</a><br />
+          <a href="/lab">Lab</a><br />
+          <a href="/8/about">About</a><br />
+          <a href="/resume.pdf">Resume</a><br />
+          <a href="/portfolio.pdf">Portfolio</a><br />
+          <span class="soon">Plugins — soon</span>
+        </div>
+      </div>
+      <div class="i-meta">
+        <span>© 2026 Tres Carter</span>
+        <span id="mv-ticker-slot"></span>
+        <a href="/privacy">Privacy</a>
+      </div>
+    </footer>
+
+    <style is:inline>
+      :root {
+        --paper: #F6F4EE; --ink: #141310; --red: #D8341F; --green: #00934D;
+        --line: rgba(20, 19, 16, 0.9); --faint: rgba(20, 19, 16, 0.45);
+        --mvt-card: #ffffff; --mvt-ink: #141310; --mvt-line: rgba(20,19,16,0.25);
+        --mvt-label: rgba(20,19,16,0.5); --mvt-accent: #D8341F; --mvt-confetti: #D8341F,#141310,#ffffff;
+      }
+      * { margin: 0; box-sizing: border-box; }
+      html, body { overflow-x: hidden; }
+      html { background: var(--paper); }
+      body { font-family: 'Hepta Slab', serif; color: var(--ink); -webkit-font-smoothing: antialiased; }
+      ::selection { background: var(--red); color: var(--paper); }
+      a { color: inherit; text-decoration: none; }
+
+      /* ── the shelf wall ─────────────────────────────────────────────── */
+      .unit { position: relative; height: 132svh; }
+
+      .shelf { position: absolute; border-top: 2px solid var(--line); }
+      /* bracket ticks at the shelf ends */
+      .shelf::before, .shelf::after {
+        content: ''; position: absolute; top: 0; width: 2px; height: 9px; background: var(--line);
+      }
+      .shelf::before { left: 0; }
+      .shelf::after { right: 0; }
+      .sa { top: 36svh; left: 6vw; right: 6vw; }
+      .sb { top: 70svh; left: 6vw; right: 6vw; }
+      .sc { top: 98svh; left: 6vw; right: 42vw; }
+      .floor { top: 126svh; left: 0; right: 0; border-top-width: 3px; }
+      .floor::before, .floor::after { display: none; }
+
+      .slabel {
+        position: absolute; font-family: 'Space Mono', monospace; font-size: 10px;
+        letter-spacing: 0.18em; text-transform: uppercase; color: var(--faint);
+      }
+      .la { top: calc(36svh + 8px); left: 6vw; }
+      .lb { top: calc(70svh + 8px); left: 6vw; }
+      .lc { top: calc(98svh + 8px); left: 6vw; }
+      .lf { top: calc(126svh + 9px); left: 6vw; }
+
+      /* ── the stock (bodies) ─────────────────────────────────────────── */
+      .obj { position: absolute; display: inline-block; line-height: 1; }
+      /* seated contact shadow — CSS owns it until the sim takes over */
+      .obj::after {
+        content: ''; position: absolute; left: 2%; right: 2%; bottom: -7px; height: 10px;
+        border-radius: 50%;
+        background: radial-gradient(closest-side, rgba(20,19,16,0.3), rgba(20,19,16,0));
+      }
+      .sim .obj::after { content: none; }
+      html.g8-wait [data-g8] { visibility: hidden; }
+      [data-g8-room].sim [data-g8] { visibility: visible; }
+
+      .glyph {
+        left: calc(var(--x) * 1vw); bottom: calc(132svh - 36svh);
+        font-weight: 900; font-size: calc(clamp(96px, 15vw, 210px) * var(--s));
+        color: var(--green); /* TRES rests green; clicks cycle the label colors */
+      }
+      /* seat the glyph foot on the line: with line-height 1 the Hepta Slab
+         baseline sits 0.135em above the box bottom (fontBox 190/50 per
+         192em, measured via canvas TextMetrics) — the inner span dips the
+         ink onto the line; the engine collides with the OUTER box */
+      .glyph .in { display: block; transform: translateY(0.135em); }
+
+      .dot { left: 79vw; bottom: calc(132svh - 36svh); }
+      .dot .in {
+        display: block; width: clamp(30px, 4.6vw, 64px); height: clamp(30px, 4.6vw, 64px);
+        background: var(--red); border-radius: 24%;
+      }
+
+      .mword {
+        bottom: calc(132svh - 70svh);
+        left: calc(var(--x) * 1vw);
+        font-weight: 800; font-size: clamp(32px, 5.4vw, 62px);
+        letter-spacing: 0.01em; text-transform: uppercase;
+      }
+      .mword .in { display: block; transform: translateY(0.135em); }
+
+      .stamp { left: 44vw; bottom: calc(132svh - 98svh); color: var(--red); }
+      .stamp .in { display: block; width: clamp(88px, 10vw, 132px); height: clamp(88px, 10vw, 132px); transform: rotate(-12deg); }
+
+      .cue {
+        position: absolute; top: 119svh; left: 50%; translate: -50% 0;
+        font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 0.24em;
+        text-transform: uppercase; color: var(--faint);
+      }
+
+      @media (hover: hover) and (pointer: fine) {
+        .sim .obj { cursor: grab; }
+        .sim .obj:active { cursor: grabbing; }
+      }
+
+      /* narrow: sections split across shelves B and C, stamp on the floor */
+      @media (max-width: 640px) {
+        .glyph { left: calc(var(--xn) * 1vw); font-size: calc(clamp(64px, 19vw, 110px) * var(--s)); }
+        .dot { left: 86vw; }
+        .dot .in { width: clamp(22px, 6vw, 34px); height: clamp(22px, 6vw, 34px); }
+        /* 44px touch targets: pad the box, dip the ink the extra 7px so the
+           word still stands on the line (engine collides with the box) */
+        .mword { left: calc(var(--xn) * 1vw); font-size: clamp(30px, 8.6vw, 42px); padding: 7px 8px; }
+        .mword .in { transform: translateY(calc(0.135em + 7px)); }
+        .mword.to-c { bottom: calc(132svh - 98svh); }
+        .sc { right: 6vw; }
+        .lc { display: none; }
+        .stamp { left: auto; right: 7vw; bottom: calc(132svh - 126svh); }
+        .stamp .in { width: 84px; height: 84px; }
+      }
+
+      /* ── the floor (info) ───────────────────────────────────────────── */
+      .info { padding: 6svh 6vw calc(4svh + env(safe-area-inset-bottom, 0px)); }
+      .i-cols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; max-width: 1100px; }
+      .i-col { font-family: 'Space Mono', monospace; font-size: 13px; line-height: 1.9; }
+      .lbl { display: block; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--faint); margin-bottom: 6px; }
+      .i-col a { text-decoration: none; border-bottom: 1px solid rgba(20,19,16,0.25); padding: 4px 0; }
+      @media (hover: hover) and (pointer: fine) { .i-col a:hover { border-bottom-color: var(--ink); } }
+      .i-col a:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+      .soon { color: var(--faint); }
+      .i-meta {
+        display: flex; justify-content: space-between; align-items: baseline; gap: 16px;
+        margin-top: 7svh; padding-top: 2.5svh; border-top: 1px solid rgba(20,19,16,0.2);
+        font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase;
+      }
+      .i-meta a { padding: 12px 0; }
+      @media (max-width: 640px) {
+        .i-cols { grid-template-columns: 1fr 1fr; }
+        .i-meta { flex-wrap: wrap; padding-bottom: 84px; } /* clear the dot map strip */
+      }
+    </style>
+
+    <style is:inline>
+      @media (prefers-reduced-motion: reduce) {
+        .cue { display: none; } /* nothing will move — don't ask them to */
+      }
+    </style>
+
+    <script is:inline type="module">
+      import { autoReveal } from '/mv/curtain.js';
+      autoReveal();
+      import('/mv/ring.js');
+    </script>
+    <script is:inline defer src="/mv8/grav.js"></script>
+    <script is:inline defer src="/mv/ticker.js"></script>
+  </body>
+</html>
