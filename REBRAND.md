@@ -44,6 +44,15 @@ synchronous clock; **Tres judges pacing on the live site** (constants at
 the top of grav.js; glyph seat = 0.135em in 8/index.astro). Also still
 open: real-touch feel on an actual phone.
 
+**FAVICON (same night, 71eacf4 — live-verified):** one mark for every
+universe — a die face **3** (tres = three; the front door is a dice roll)
+on the brand-orange #FF5A1F tile, two ink pips + a paper period-pip.
+`public/favicon.ico` (16/32/48 PNG-in-ICO) + `public/apple-touch-icon.png`
+(180) — both browser-AUTO-DISCOVERED paths, zero `<link>` tags anywhere
+(ts.js consolidation philosophy). Browsers cache favicons hard — if an old
+tab shows the globe, hard-refresh or new tab. Generator geometry recorded
+in the commit message.
+
 ## ✅ TRACKING CLEANUP — 2026-07-11 (Tres: "exclude me… user IDs in Clarity… reset the total, remove bots")
 
 **Analytics consolidated + self-exclusion + visitor IDs + counter reset.**
