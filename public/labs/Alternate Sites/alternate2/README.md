@@ -29,11 +29,11 @@ External libraries loaded from CDN:
 3. That's it — no build step. The site fetches projects from the published
    sheet on every page load, exactly like the main site.
 
-The internal navigation assumes this folder is exactly **two levels deep**
-from the main site root (so `../../category.html`, `../../lab.html`,
-`../../project.html?id=…`, `../../favicon/favicon.ico`,
-`../../index.html`). If you ever move it somewhere else, those paths in
-`index.html` and `landing.js` need to be updated.
+The escape links out of this lab were rewritten 2026-07-11 to root-absolute
+clean URLs (`/`, `/architecture`, `/personal`, `/lab`, `/project/<slug>`) —
+on the Astro multiverse site this folder serves from
+`/labs/Alternate Sites/alternate2/`, three levels deep, where the original
+relative `../../*.html` paths all 404'd. The links now work from any depth.
 
 ---
 

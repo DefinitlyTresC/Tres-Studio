@@ -22,8 +22,19 @@
       tools (Microsoft Clarity) sets cookies to do that.</p>
       <p>Don't love it? A VPN, an ad-blocker, or your browser's tracking
       protection all opt you out just fine.</p>
-      <p><a href="/">← back</a> · <a href="mailto:tres@tres.studio">questions</a></p>
+      <p><a id="back" href="/">← back</a> · <a href="mailto:tres@tres.studio">questions</a></p>
     </main>
+
+    <script is:inline>
+      /* '← back' returns to this tab's universe (mv:u — written by every
+         universe page) instead of '/', which the edge would re-roll. Falls
+         back to the front door for direct visitors. No upper bound on s:
+         mv:u only ever holds a valid universe id, so universe 7+ just works. */
+      try {
+        var s = parseInt(sessionStorage.getItem('mv:u'), 10);
+        if (s >= 1) document.getElementById('back').setAttribute('href', '/' + s + '/');
+      } catch (e) {}
+    </script>
 
     <style is:inline>
       * { margin: 0; box-sizing: border-box; }

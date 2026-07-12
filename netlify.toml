@@ -1,6 +1,6 @@
-# astro-migration branch: Astro static build. Netlify runs the build and
-# publishes dist/. (main still publishes static files from the repo root —
-# this file only takes effect where this branch is deployed.)
+# Astro static build. Netlify runs the build and publishes dist/.
+# (Since the 2026-07-03 cutover, main == astro-migration; the pre-Astro
+# root-published static site is gone — removed in the 2026-07-11 cleanup.)
 [build]
   command = "npm run build"
   publish = "dist"

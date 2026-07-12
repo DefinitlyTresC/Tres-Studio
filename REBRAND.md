@@ -1,5 +1,60 @@
 # tres.studio — Brief V3: the Multiverse
 
+## ✅ REFRESH-ROLL + ROOT CLEANUP — 2026-07-11 (Tres: "randomized on any refresh, any page")
+
+**The dice now roll on refresh EVERYWHERE, not just at the front door.**
+Spec + decision table: `docs/specs/2026-07-11-refresh-roll-design.md`.
+The contract: refresh any page → the SAME page in a DIFFERENT universe
+(never the one you're on); links/back/forward NEVER re-roll; ring dots and
+`/N/` deep links stay deliberate; `?u=N` now pins on ANY page (the dev/QA
+escape hatch — F5 with `?u` does not teleport you).
+
+- **How:** ~30 lines appended to `MV_CLIENT()` in `src/lib/multiverse.ts` —
+  the inline head bootstrap every universe page already injects. Navigation
+  Timing API type detection: `reload` on `/N/...` → `location.replace` same
+  path in another universe; `back_forward` never rolls (+ a correction for
+  back-to-`/` after a bfcache miss, via `/?u=` + replaceState). Syncs
+  `sessionStorage mv:u` (tab's universe) + the edge's `mv_last` cookie so
+  the front door never rolls the universe you're already in. Lab pages
+  inject `current=0` → no-op. Replace loads report `navigate` → loop-proof.
+- **`src/pages/index.astro` replaced:** the old pre-multiverse homepage port
+  (unreachable since cutover — the edge owns `/`) is now a minimal client
+  front-door fallback with roll.js-identical semantics, so `astro dev` /
+  `astro preview` / `/index.html` / edge-failure all roll too.
+- **Bug fixed in passing:** `lab.astro` back-link referrer regex was
+  `[1-5]` — universe 6 never got a back-link since the hang shipped.
+- **ROOT CLEANUP (the "messy in there" half):** the dead pre-Astro static
+  site is gone from the repo root — `index/about/category/lab/privacy/
+  project.html`, `style.css`, `brand.js`, `config.js`, `counter.js`,
+  `data.js`, stale root `labs/` (public/labs/ has the live rebuilt copies).
+  `projects.xlsx` → `_archive/`, `HANDOFF.md` → `docs/`. `README.md`
+  rewritten for the multiverse era (repo map, randomization contract,
+  content workflow — sheet edits need a REDEPLOY now, that's new-ish info).
+  All of it lives in git history.
+- **Adversarial review round (19 agents, 15 raw → 12 confirmed, all fixed):**
+  `?u`-strip at `/` was over-stripping (now surgical — only `u` goes, utm_*
+  + hash survive for Umami — and one-shot via `mv:restored`, so shared
+  `/?u=3` links STAY pinned across F5); legacy back/forward mapping
+  (`performance.navigation` type 2) now honored; **/privacy "← back" and
+  /lab "← back" no longer re-roll** — both consult `sessionStorage mv:u`
+  (privacy was a guaranteed universe-teleport on a link labeled "back");
+  lab back-link regex now registry-driven (`\d+` + MV.sites.length), so
+  the README's "adding universe 7" recipe is true; **alternate2 lab's
+  escape links all 404'd on prod since the cutover** (`../../*.html`
+  resolved to /labs/ — pre-existing) → now root-absolute clean URLs; dead
+  `../favicon/` links in all 8 lab pages → inline SVG icon; README/comment
+  truth fixes (public/ map shows the LIVE brand.js/counter.js/v2-tokens.css
+  copies; `?u` scope stated honestly — ignored on single-version pages).
+  REFUTED with empirical repros (no fix needed): analytics double-count on
+  reload-replace (instrumented Chromium test: nothing executes after the
+  replace) and tab-discard/duplicate "phantom re-roll" (real CDP-driven
+  discard reports `back_forward`, which never rolls).
+- **Verified (astro dev, browser):** reload chain `/1/work→/4→/5→/3` zero
+  repeats; project-in/back-out sticks; `?u` pins + jumps; `/lab` reload
+  no-ops; zero console errors; `astro build` green (149 pages). NOT
+  verified live: the edge + client interplay on tres.studio (edge doesn't
+  run locally) — spot-check `/` reload + inner-page reload after deploy.
+
 ## ✅ LAB REBUILD COMPLETE (7/7): ECHO + FIELD + PLAN + PULSE + ALTERNATES — 2026-07-11
 
 **The remaining five lab experiments are rebuilt ground-up into the lab

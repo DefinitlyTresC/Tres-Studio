@@ -1,37 +1,21 @@
 ---
-// HOMEPAGE — port of root index.html.
+// FRONT-DOOR FALLBACK — client-side dice roll.
 //
-// This page is DELIBERATELY standalone: it does NOT use Base.astro. index.html
-// ships its own self-contained <head>, its own inline <style> (whose token set
-// drifts slightly from style.css — e.g. --sage/--bone/--fh/--th here differ
-// from global.css), and its own inline behavior scripts. Porting it through
-// Base would fight that. So the full <html> shell lives here and the original
-// <style> is kept verbatim in a <style is:inline> block so Astro does NOT scope
-// or rewrite its selectors (the inline behavior scripts + counter.js depend on
-// those exact class names).
+// In production "/" never serves this file: the edge function
+// (netlify/edge-functions/roll.js) rewrites "/" to a random universe before
+// the request reaches the CDN. This page exists for everywhere the edge
+// doesn't run — `astro dev`, `astro preview`, direct hits on /index.html
+// (old bookmarks or hand-typed URLs), and as a graceful fallback if the
+// edge function ever fails in prod.
 //
-// WHAT CHANGED FROM index.html (the client fetch chain is GONE):
-//   index.html loaded PapaParse + config.js + data.js at runtime ONLY to fill
-//   the architecture/personal genre counts via DATA.getProjects(). That whole
-//   chain is removed. The counts are now computed HERE at build time from the
-//   baked 'projects' content collection and rendered into the .gcount spans.
-//   RESULT: the built page makes ZERO requests to Google Sheets and never loads
-//   PapaParse/config.js/data.js. The Lab count ("07 experiments") and Downloads
-//   ("Soon") were already static in index.html and stay static.
+// It mirrors roll.js semantics exactly: honors ?u=N, never repeats the
+// mv_last cookie's universe, writes mv_last back. Keep SITE COUNT in sync
+// with src/lib/multiverse.ts + roll.js.
 //
-// Genre-index links point at the clean category paths (/architecture,
-// /personal, /lab); Downloads stays the mailto it is today. The visitor counter
-// still loads /counter.js, which injects into .footer-base (kept on this page).
-import { getCollection } from 'astro:content';
-
-// Build-time genre counts — parity port of index.html's client-side counter:
-//   arch = projects.filter(p => p.category === 'architecture').length
-//   pers = projects.filter(p => p.category === 'personal').length
-// (category is already lowercased/trimmed by sheet.ts, matching data.js.)
-const projects = (await getCollection('projects')).map((e) => e.data);
-const pad2 = (n: number) => String(n).padStart(2, '0');
-const archCount = projects.filter((p) => p.category === 'architecture').length;
-const persCount = projects.filter((p) => p.category === 'personal').length;
+// The old pre-multiverse homepage that used to live here was unreachable
+// since the 2026-07-03 cutover; it lives on in git history (and REBRAND.md).
+import { SITES } from '../lib/multiverse';
+const COUNT = SITES.length;
 ---
 
 <!DOCTYPE html>
@@ -39,258 +23,42 @@ const persCount = projects.filter((p) => p.category === 'personal').length;
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tres. — Multidisciplinary designer · 30A</title>
+<title>Tres.</title>
 <meta name="description" content="Tres Carter — architecture, art, and code from 30A, Florida." />
+<meta name="robots" content="noindex" />
 <meta name="theme-color" content="#080808" />
-<link rel="canonical" href="https://tres.studio/" />
-
-<meta property="og:type" content="website" />
-<meta property="og:title" content="Tres. — Multidisciplinary designer · 30A" />
-<meta property="og:description" content="Architecture, art, and code from 30A, Florida." />
-<meta property="og:url" content="https://tres.studio/" />
-<meta property="og:site_name" content="Tres." />
-<meta name="twitter:card" content="summary_large_image" />
-
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23080808'/%3E%3Ccircle cx='16' cy='16' r='6' fill='%23ff5a1f'/%3E%3C/svg%3E" />
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preconnect" href="https://res.cloudinary.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
-
-<!-- Umami analytics (Tres Studio) — data-domains scopes tracking to the real
-     site so Netlify deploy-preview / branch URLs don't pollute stats. -->
-<script is:inline defer src="https://cloud.umami.is/script.js" data-website-id="96e73988-106a-415e-bf80-5e10ffaec0dc" data-domains="tres.studio"></script>
-
-<!-- Microsoft Clarity (heatmaps + session recordings) — guarded so it only
-     loads on the production host, keeping preview/branch traffic out of
-     recordings. Same as the original snippet, wrapped in a host check. -->
-<script is:inline type="text/javascript">
-  if (location.hostname === 'tres.studio') {
-    (function(c,l,a,r,i,t,y){
-        c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
-        t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
-        y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
-    })(window, document, "clarity", "script", "xang6oq7f9");
+<script is:inline define:vars={{ COUNT }}>
+(function(){
+  var u=0; try{u=parseInt(new URLSearchParams(location.search).get('u'),10)||0;}catch(e){}
+  var n=(u>=1&&u<=COUNT)?u:0;
+  if(!n){
+    // never the same door twice in a row (same rule as the edge function)
+    var m=document.cookie.match(/(?:^|;\s*)mv_last=(\d+)/), last=m?+m[1]:0;
+    if(last>=1&&last<=COUNT){ n=1+Math.floor(Math.random()*(COUNT-1)); if(n>=last)n++; }
+    else n=1+Math.floor(Math.random()*COUNT);
   }
+  try{document.cookie='mv_last='+n+';path=/;max-age=2592000;samesite=lax';}catch(e){}
+  // carry non-u params (utm_* etc.) + hash through to the universe page
+  var r=''; try{var q=new URLSearchParams(location.search);q.delete('u');r=q.toString();}catch(e){}
+  location.replace('/'+n+'/'+(r?'?'+r:'')+location.hash);
+})();
 </script>
-
-<!-- Visitor counter (live + total) -->
-<script is:inline defer src="/counter.js"></script>
-
-<style is:inline>
-  :root{
-    --d0:#080808; --d1:#101010; --d2:#181818; --d3:#252525;
-    --sage:#f4f4f2; --mist:#9a9a9a; --bone:#f4f4f3; --accent:#ff5a1f;
-    --line:rgba(255,255,255,.12); --line2:rgba(255,255,255,.30);
-    --mono:'Space Mono',ui-monospace,monospace; --disp:'Oswald',system-ui,sans-serif;
-    --mech:cubic-bezier(.16,1,.3,1); --snap:cubic-bezier(.62,0,.34,1);
-    --fh:540px; --th:100vh;
-  }
-  *{box-sizing:border-box;margin:0;padding:0}
-  html{-webkit-text-size-adjust:100%}
-  body{background:var(--d0);color:var(--bone);font-family:var(--disp);font-weight:300;line-height:1.5;overflow-x:hidden}
-  a{color:inherit;text-decoration:none}
-  ::selection{background:var(--accent);color:var(--d0)}
-  :focus-visible{outline:2px solid var(--accent);outline-offset:3px}
-  .skip{position:absolute;left:-9999px;top:0;background:var(--accent);color:var(--d0);font-family:var(--mono);font-size:12px;padding:10px 16px;z-index:300}
-  .skip:focus{left:8px;top:8px}
-
-  /* FOOTER — fixed behind the page; the sheet lifts off it at the bottom */
-  .footer{position:fixed;left:0;right:0;bottom:0;z-index:0;min-height:var(--fh);
-    background:linear-gradient(180deg,#ffffff,var(--sage));color:var(--d0);
-    display:flex;flex-direction:column;justify-content:space-between;gap:40px;padding:clamp(28px,4vw,60px)}
-  .footer a{color:var(--d0)}
-  .f-top{display:grid;grid-template-columns:1.6fr 1fr auto;gap:24px;border-bottom:1.5px solid rgba(11,21,18,.3);padding-bottom:34px}
-  .f-stmt{font-family:var(--disp);font-weight:500;font-size:clamp(26px,4vw,46px);line-height:1.04;max-width:16ch}
-  .f-stmt .pd{color:var(--accent)}
-  .f-talk{font-family:var(--disp);font-weight:300;font-size:clamp(15px,2vw,19px);line-height:1.25;color:#333}
-  .f-pill{justify-self:end;align-self:start;font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;
-    border:1.5px solid var(--d0);border-radius:30px;padding:10px 20px;transition:background .4s,color .4s}
-  .f-pill:hover{background:var(--d0);color:var(--sage)}
-  .f-bot{display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px;align-items:end;font-family:var(--mono);font-size:11px;letter-spacing:.05em;text-transform:uppercase;line-height:1.9}
-  .f-bot .lbl{opacity:.55;display:block;margin-bottom:6px}
-  .f-bot a{transition:opacity .3s}.f-bot a:hover{opacity:.55}
-  .f-social{display:flex;gap:16px;margin-top:4px}
-  .f-meta{grid-column:1/-1;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;
-    border-top:1.5px solid rgba(11,21,18,.3);padding-top:16px;font-size:10px;opacity:.85}
-  .f-meta a{border-bottom:1px solid rgba(11,21,18,.35);transition:border-color .3s}
-  .f-meta a:hover{border-color:var(--accent)}
-
-  /* visitor counter (counter.js injects into .footer-base) */
-  .visit-counter{display:inline-flex;align-items:center;gap:14px;font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;
-    opacity:0;transform:translateY(5px);transition:opacity .6s var(--mech),transform .6s var(--mech)}
-  .visit-counter.vc-in{opacity:1;transform:none}
-  .vc-live{display:inline-flex;align-items:center;gap:7px;white-space:nowrap}
-  .vc-dot{width:7px;height:7px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 0 rgba(255,90,31,.55);animation:vcpulse 2.4s var(--mech) infinite}
-  @keyframes vcpulse{0%{box-shadow:0 0 0 0 rgba(255,90,31,.5)}70%{box-shadow:0 0 0 7px rgba(255,90,31,0)}100%{box-shadow:0 0 0 0 rgba(255,90,31,0)}}
-  .vc-live-num{color:var(--accent);font-weight:700;font-variant-numeric:tabular-nums}
-  .vc-total{background:none;border:0;cursor:pointer;color:inherit;font:inherit;letter-spacing:inherit;text-transform:inherit;padding:0;white-space:nowrap;font-variant-numeric:tabular-nums}
-  .vc-total:hover{color:var(--accent)}
-  .vc-total-num{font-weight:700}
-  .visit-counter.vc-jackpot .vc-total-num{color:var(--accent)}
-
-  /* MASTHEAD — fixed; hides once the sheet has covered it so the footer can reveal */
-  .masthead{position:fixed;top:0;left:0;right:0;height:var(--th);z-index:0;overflow:hidden;
-    background:linear-gradient(180deg,var(--d0) 0%,var(--d1) 60%,var(--d2) 100%);
-    display:flex;flex-direction:column;padding:clamp(14px,2.6vw,42px);transition:opacity .35s ease}
-  body.past-hero .masthead{opacity:0;visibility:hidden;pointer-events:none}
-  .mast-wrap{max-width:1180px;width:100%;margin:0 auto;flex:1;display:flex;flex-direction:column}
-
-  .frame{position:fixed;inset:0;pointer-events:none;z-index:60}
-
-  /* MIDDLE SHEET */
-  .site{position:relative;z-index:1;margin-top:var(--th);margin-bottom:var(--fh);min-height:100vh;
-    background:#0a0a0a;border-top:1px solid var(--line2);
-    box-shadow:0 -34px 64px -14px rgba(0,0,0,.75);padding:clamp(14px,2.6vw,42px);
-    display:flex;align-items:center}
-
-  .reg{position:absolute;width:18px;height:18px;pointer-events:none;z-index:5}
-  .reg::before,.reg::after{content:"";position:absolute;background:var(--line2)}
-  .reg::before{width:18px;height:1.5px}.reg::after{width:1.5px;height:18px}
-  .reg.tl{top:18px;left:18px}.reg.tr{top:18px;right:18px}.reg.tr::before,.reg.tr::after{right:0}
-  .reg.bl{bottom:18px;left:18px}.reg.bl::before,.reg.bl::after{bottom:0}
-  .reg.br{bottom:18px;right:18px}.reg.br::before,.reg.br::after{bottom:0;right:0}
-  .js .reg::before{animation:dX .7s var(--mech) both}.js .reg::after{animation:dY .7s var(--mech) both}
-  .js .reg.tl::before,.js .reg.tl::after{animation-delay:.1s}
-  .js .reg.tr::before,.js .reg.tr::after{animation-delay:.22s}
-  .js .reg.bl::before,.js .reg.bl::after{animation-delay:.34s}
-  .js .reg.br::before,.js .reg.br::after{animation-delay:.46s}
-  @keyframes dX{from{transform:scaleX(0)}to{transform:scaleX(1)}}
-  @keyframes dY{from{transform:scaleY(0)}to{transform:scaleY(1)}}
-
-  .wrap{max-width:1180px;margin:0 auto;width:100%}
-  .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:6px 4px 0;
-    font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--mist)}
-
-  .js .reveal{opacity:0;transform:translateY(20px);transition:opacity 1s var(--mech),transform 1s var(--mech)}
-  .js .reveal.in{opacity:1;transform:none}
-
-  /* HERO — calm, single column */
-  .hero{margin:auto 0;padding:clamp(40px,9vh,120px) 4px}
-  .wm{font-family:var(--disp);font-weight:700;font-size:clamp(86px,18vw,200px);line-height:.76;letter-spacing:-.015em}
-  .wm .pd{color:var(--accent)}
-  .lede{font-family:var(--disp);font-weight:300;font-size:clamp(18px,2.7vw,27px);color:var(--mist);margin-top:22px;max-width:30ch;line-height:1.35}
-
-  /* GENRES */
-  .gintro{font-family:var(--disp);font-weight:300;font-size:clamp(17px,2.4vw,24px);color:var(--mist);margin:0 4px clamp(16px,2.4vh,28px)}
-  .gintro b{color:var(--bone);font-weight:400}
-  .gindex{border-top:1.5px solid var(--line);margin:0 4px;width:100%}
-  .gx{position:relative;display:flex;align-items:baseline;gap:18px;padding:clamp(20px,3.4vh,34px) 0;border-bottom:1px solid var(--line);cursor:pointer;color:inherit}
-  .gx::after{content:"";position:absolute;left:0;bottom:-1px;height:1.5px;width:100%;background:var(--accent);transform:scaleX(0);transform-origin:left;transition:transform .55s var(--snap)}
-  .gx:hover::after{transform:scaleX(1)}
-  .gsec{font-family:var(--mono);font-size:12px;letter-spacing:.1em;color:var(--mist);transition:color .4s}
-  .gx:hover .gsec{color:var(--accent)}
-  .gname{font-family:var(--disp);font-weight:500;font-size:clamp(28px,5vw,46px);text-transform:uppercase;letter-spacing:.005em;line-height:1;transition:transform .5s var(--mech)}
-  .gx:hover .gname{transform:translateX(10px)}
-  .gcount{margin-left:auto;font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--mist);white-space:nowrap}
-  .gcount b{color:var(--bone);font-weight:400}
-  .garrow{font-family:var(--mono);font-size:15px;color:var(--accent);transform:translateX(-6px);opacity:.4;transition:transform .45s var(--snap),opacity .45s}
-  .gx:hover .garrow{transform:translateX(0);opacity:1}
-  .scrollcue{font-family:var(--mono);font-size:15px;color:var(--mist);opacity:.4;margin-top:clamp(20px,4vh,40px);padding-left:4px}
-
-  @media(max-width:600px){
-    .f-top{grid-template-columns:1fr}.f-pill{justify-self:start}
-    .f-bot{grid-template-columns:1fr 1fr}
-    .gcount{display:none}
-    :root{--fh:660px}
-  }
-  @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+<style>
+  body{background:#080808;color:#f4f4f3;font:14px/1.6 'Space Mono',ui-monospace,monospace;
+    display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0}
+  a{color:#ff5a1f}
+  ul{list-style:none;padding:0;display:flex;gap:1.5em}
 </style>
 </head>
 <body>
-<a class="skip" href="#work">Skip to content</a>
-
-<!-- FOOTER (fixed behind the page) -->
-<footer class="footer">
-  <div class="f-top">
-    <div class="f-stmt">Designing across architecture, art, and code<span class="pd">.</span></div>
-    <div class="f-talk">Based on 30A.<br>Open to the right work.</div>
-    <a class="f-pill" href="mailto:tres@tres.studio">Get in touch</a>
+<noscript>
+  <div>
+    <p>tres. — six doors, pick one:</p>
+    <ul>
+      {SITES.map((s) => <li><a href={`/${s.id}/`}>{String(s.id).padStart(2, '0')}</a></li>)}
+    </ul>
   </div>
-  <div class="f-bot">
-    <div><span class="lbl">Location</span>Seagrove · 30A<br>Florida, USA</div>
-    <div><span class="lbl">Contact</span><a href="mailto:tres@tres.studio">tres@tres.studio</a>
-      <div class="f-social"><a href="https://instagram.com/trescarter" target="_blank" rel="noopener">IG</a><a href="/lab">Lab</a><a href="/about">About</a></div></div>
-    <div><span class="lbl">Genres</span><a href="/architecture">01 Architecture</a><br><a href="/personal">02 Personal</a><br><a href="/lab">03 Lab</a><br><a href="mailto:tres@tres.studio?subject=Downloads">04 Downloads</a></div>
-    <div class="f-meta footer-base"><span>© 2026 Tres Carter</span><a href="/privacy">Privacy</a></div>
-  </div>
-</footer>
-
-<!-- PERSISTENT FRAME -->
-<div class="frame" aria-hidden="true"><span class="reg tl"></span><span class="reg tr"></span><span class="reg bl"></span><span class="reg br"></span></div>
-
-<!-- MASTHEAD (fixed) -->
-<section class="masthead" id="masthead">
-  <div class="wrap mast-wrap">
-    <div class="topbar">
-      <span>Tres Studio</span>
-      <span>Seagrove · 30A · Florida</span>
-    </div>
-    <section class="hero">
-      <h1 class="wm reveal">Tres<span class="pd">.</span></h1>
-      <p class="lede reveal">Multidisciplinary designer on 30A — architecture, art, and code.</p>
-    </section>
-  </div>
-</section>
-
-<!-- MIDDLE SHEET -->
-<div class="site" id="work">
-  <div class="wrap">
-    <p class="gintro reveal">I do <b>a lot</b>. Browse by genre —</p>
-    <nav class="gindex" aria-label="Work by genre">
-      <a class="gx reveal" href="/architecture">
-        <span class="gsec">01</span>
-        <span class="gname">Architecture</span>
-        <span class="gcount" data-count="architecture">{archCount ? (<><b>{pad2(archCount)}</b> projects</>) : 'Soon'}</span>
-        <span class="garrow">→</span>
-      </a>
-      <a class="gx reveal" href="/personal">
-        <span class="gsec">02</span>
-        <span class="gname">Personal</span>
-        <span class="gcount" data-count="personal">{persCount ? (<><b>{pad2(persCount)}</b> projects</>) : 'Soon'}</span>
-        <span class="garrow">→</span>
-      </a>
-      <a class="gx reveal" href="/lab">
-        <span class="gsec">03</span>
-        <span class="gname">Lab</span>
-        <span class="gcount" data-count="lab"><b>07</b> experiments</span>
-        <span class="garrow">→</span>
-      </a>
-      <a class="gx reveal" href="mailto:tres@tres.studio?subject=Tres%20Downloads">
-        <span class="gsec">04</span>
-        <span class="gname">Downloads</span>
-        <span class="gcount" data-count="downloads">Soon</span>
-        <span class="garrow">→</span>
-      </a>
-    </nav>
-    <div class="scrollcue reveal" aria-hidden="true">↓ scroll</div>
-  </div>
-</div>
-
-<script is:inline>
-(function(){
-  document.documentElement.classList.add('js');
-  var reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-  /* hide the masthead once the sheet has covered it, so the footer reveals */
-  var pastHero=false;
-  function onScroll(){
-    var should=window.scrollY > window.innerHeight*0.9;
-    if(should!==pastHero){ pastHero=should; document.body.classList.toggle('past-hero',should); }
-  }
-  window.addEventListener('scroll',onScroll,{passive:true});
-  window.addEventListener('resize',onScroll); onScroll();
-
-  /* smooth fade-up reveal (no glitch) */
-  if(reduce){
-    document.querySelectorAll('.reveal').forEach(function(e){e.classList.add('in');});
-  } else {
-    var io=new IntersectionObserver(function(es){
-      es.forEach(function(en){ if(en.isIntersecting){ en.target.classList.add('in'); io.unobserve(en.target); } });
-    },{threshold:.15,rootMargin:'0px 0px -6% 0px'});
-    document.querySelectorAll('.reveal').forEach(function(e){io.observe(e);});
-  }
-})();
-</script>
+</noscript>
 </body>
 </html>

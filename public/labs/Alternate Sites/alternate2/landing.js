@@ -403,7 +403,7 @@ function populateDOM() {
   document.querySelectorAll('.sect-row').forEach(row => {
     row.addEventListener('click', (e) => {
       const slug = row.dataset.slug;
-      if (slug) window.location.href = `../../project.html?id=${slug}`;
+      if (slug) window.location.href = `/project/${slug}`;
     });
   });
 }
@@ -656,14 +656,13 @@ function updateScrollHUD() {
 let holdStart = null;
 let holdTimeout = null;
 
-// URLs that the dive transition navigates to (relative — assumes
-// the universe site lives in a subfolder of the main site).
-// Deploy target: Tres Studio v1.2/labs/Alternate Sites/ — so the main
-// site root is two levels up.
+// URLs that the dive transition navigates to. Root-absolute clean URLs:
+// this lab now serves from /labs/Alternate Sites/alternate2/ on the Astro
+// multiverse site, where the old relative ../../*.html paths 404'd.
 const DIVE_URLS = {
-  architecture: '../../category.html?cat=architecture',
-  personal:     '../../category.html?cat=personal',
-  lab:          '../../lab.html',
+  architecture: '/architecture',
+  personal:     '/personal',
+  lab:          '/lab',
 };
 const DIVE_LABELS = {
   architecture: { title: 'ARCHITECTURE', meta: 'ENTERING / CATEGORY / ARCHITECTURE' },

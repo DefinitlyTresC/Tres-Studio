@@ -1,16 +1,17 @@
 ---
 // THE LAB — the shared portals room of the multiverse. Every universe's Lab
 // link gets swallowed by the ink curtain and lands HERE. One page, five
-// skins: on each load an inline head script rolls one of the five universes'
+// skins: on each load an inline head script rolls one of universes 1-5's
 // identities (palette + type + flavor) onto :root BEFORE paint — "all lab
-// pages are the same. the branding is just randomized."
+// pages are the same. the branding is just randomized." (Universe 6 has no
+// lab skin; the skin pool is a separate 5-deep concept.)
 //
 // The 7 experiments are presented as tall DOORWAYS, each with a living
 // pattern inside (pure CSS transform/opacity animation on inline SVG).
 // Clicking a door floods the screen with the rolled skin's ink (curtain)
 // and steps through to the static experiment at /labs/<name>.html.
 //
-// Map: MV_CLIENT(0) — no universe highlighted; all five dots are exits.
+// Map: MV_CLIENT(0) — no universe highlighted; all six dots are exits.
 import { MV_CLIENT } from '../lib/multiverse';
 ---
 
@@ -540,15 +541,24 @@ import { MV_CLIENT } from '../lib/multiverse';
         for (var i = 0; i < unis.length; i++) {
           unis[i].setAttribute('href', unis[i].getAttribute('href').replace('/1/', '/' + L.id + '/'));
         }
-        /* back: to the universe that sent you, else the front door */
+        /* back: to the universe that sent you (referrer), else this tab's
+           universe (mv:u — covers arriving from '/', where the referrer path
+           carries no number), else the front door. Registry-driven so a
+           future universe 7 works without touching this. */
         var back = document.getElementById('back');
         try {
-          if (back && document.referrer) {
-            var u = new URL(document.referrer);
-            if (u.origin === location.origin) {
-              var m = u.pathname.match(/^\/([1-5])(\/|$)/);
-              if (m) back.setAttribute('href', '/' + m[1] + '/');
+          if (back) {
+            var b = 0;
+            if (document.referrer) {
+              var u = new URL(document.referrer);
+              if (u.origin === location.origin) {
+                var m = u.pathname.match(/^\/(\d+)(\/|$)/);
+                if (m) b = +m[1];
+              }
             }
+            if (!b) b = parseInt(sessionStorage.getItem('mv:u'), 10) || 0;
+            var NU = (window.MV && window.MV.sites) ? window.MV.sites.length : 6;
+            if (b >= 1 && b <= NU) back.setAttribute('href', '/' + b + '/');
           }
         } catch (e) {}
       })();

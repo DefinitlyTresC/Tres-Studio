@@ -1,7 +1,12 @@
 // The front door dice roll: tres.studio/ serves one universe at random.
-// URL stays "/" — this is a rewrite, not a redirect. Refreshing / re-rolls;
-// inner paths (/1/, /2/…) are deterministic and untouched.
-// ?u=N forces a universe (testing / "start here" links).
+// URL stays "/" — this is a rewrite, not a redirect. Refreshing / re-rolls.
+// Inner paths (/1/, /2/…) re-roll on refresh too, but CLIENT-side — see the
+// refresh-roll block in src/lib/multiverse.ts (MV_CLIENT), which shares the
+// mv_last cookie with this function so the two never roll the universe the
+// visitor is already in.
+// ?u=N forces a universe (testing / "start here" links) — honored here at
+// "/" and on every universe page (/1/../6/) by the client script; the
+// single-version pages (/lab, /labs/*, /privacy) ignore it.
 // COUNT must match src/lib/multiverse.ts.
 const COUNT = 6;
 
