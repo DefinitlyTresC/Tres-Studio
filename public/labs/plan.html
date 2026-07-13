@@ -4,39 +4,43 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>plan — tres carter</title>
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23080808'/%3E%3Ccircle cx='16' cy='16' r='6' fill='%23ff5a1f'/%3E%3C/svg%3E" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600&family=Caveat:wght@500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
 
   <!-- tracking: one bootstrap for the whole site (Umami + Clarity + visitor id + self-exclusion) - public/ts.js -->
   <script defer src="/ts.js"></script>
 
   <style>
     /* ───────────────────────────────────────────────────────────
-       PLAN — the unattended draftsman.
-       Langton's ant drafts on dusk graph paper; it starts slow
-       enough to follow one decision at a time, then time-lapses.
-       Lab family: Space Mono chrome, one yellow accent.
+       PLAN — the night shift.
+       Universe 01 keeps this piece: an unattended draftsman
+       pencils small house plans on cream paper, signs each
+       sheet, slides it away, begins again. Your pointer is a
+       pencil too — sketch on the same sheet while it works.
        ─────────────────────────────────────────────────────────── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --white:     #FFFFFF;
-      --black:     #07080B;
-      --yellow:    #F5CB5C;
-      --ink-faint: rgba(255, 255, 255, 0.38);
-      --ink-soft:  rgba(255, 255, 255, 0.6);
-      --line:      rgba(255, 255, 255, 0.14);
+      --paper:     #FFEDDB;
+      --ink:       #2B1F1A;
+      --ink-soft:  rgba(43, 31, 26, 0.62);
+      --ink-faint: rgba(43, 31, 26, 0.4);
+      --line:      rgba(43, 31, 26, 0.16);
+      --sanguine:  #B4543B;
+      --blueprint: #35608A;
+      --umber:     #BF9270;
 
+      --disp: 'Archivo', system-ui, sans-serif;
+      --hand: 'Caveat', cursive;
       --mono: 'Space Mono', ui-monospace, monospace;
       --pad: clamp(1.5rem, 4vw, 3rem);
       --ease: cubic-bezier(.2, .8, .2, 1);
     }
 
     html, body {
-      background: var(--black);
-      color: var(--white);
+      background: var(--paper);
+      color: var(--ink);
       font-family: var(--mono);
       font-size: 15px;
       height: 100%;
@@ -49,13 +53,15 @@
       user-select: none;
     }
 
+    ::selection { background: var(--umber); color: var(--paper); }
+
     a { color: inherit; text-decoration: none; }
     button {
       font: inherit; color: inherit; background: none; border: none;
       cursor: pointer; -webkit-tap-highlight-color: transparent;
     }
     a:focus-visible, button:focus-visible {
-      outline: 1px solid var(--yellow);
+      outline: 1px solid var(--umber);
       outline-offset: 3px;
     }
 
@@ -67,6 +73,7 @@
       z-index: 1;
       touch-action: none;
       display: block;
+      cursor: crosshair;
     }
 
     .fallback {
@@ -74,7 +81,7 @@
       display: grid; place-items: center;
     }
 
-    /* ─── Chrome ─── */
+    /* ─── Chrome — universe 1: Archivo 600 marks, mono spec, umber dot ─── */
     .nav {
       position: fixed;
       top: 0; left: 0; right: 0;
@@ -87,12 +94,14 @@
     }
     .nav > * { pointer-events: auto; }
     .nav .mark {
-      font-weight: 700;
-      font-size: 0.7rem;
-      letter-spacing: 0.14em;
+      font-family: var(--disp);
+      font-weight: 600;
+      font-size: 0.8rem;
+      letter-spacing: 0.05em;
+      text-transform: lowercase;
       transition: opacity 0.25s var(--ease);
     }
-    .nav .mark .y { color: var(--yellow); }
+    .nav .mark .y { color: var(--umber); }
     .nav .back {
       font-size: 0.62rem;
       letter-spacing: 0.14em;
@@ -105,13 +114,28 @@
       position: fixed;
       bottom: calc(1.6rem + env(safe-area-inset-bottom, 0px));
       left: var(--pad);
-      font-weight: 700;
-      font-size: 0.85rem;
-      letter-spacing: 0.14em;
+      font-family: var(--disp);
+      font-weight: 600;
+      font-size: 0.95rem;
+      letter-spacing: 0.05em;
+      text-transform: lowercase;
       z-index: 5;
       pointer-events: none;
+      line-height: 1.5;
     }
-    .mark-bottom .y { color: var(--yellow); }
+    .mark-bottom .y { color: var(--umber); }
+    .mark-bottom .uni {
+      display: block;
+      pointer-events: auto;
+      font-family: var(--mono);
+      font-weight: 400;
+      font-size: 0.52rem;
+      letter-spacing: 0.16em;
+      text-transform: none;
+      color: var(--ink-faint);
+      padding: 0.3rem 0;
+      transition: color 0.25s var(--ease);
+    }
 
     .hint {
       position: fixed;
@@ -148,20 +172,21 @@
       align-items: center;
       transition: color 0.3s var(--ease);
     }
-    .mode-btn.active { color: var(--yellow); }
+    .mode-btn.active { color: var(--umber); font-weight: 700; }
+    .mode-btn.act { margin-top: 0.9rem; }
 
     @media (hover: hover) {
       .nav .mark:hover { opacity: 0.65; }
-      .nav .back:hover { color: var(--white); }
-      .mode-btn:hover { color: var(--white); }
-      .mode-btn.active:hover { color: var(--yellow); }
+      .nav .back:hover { color: var(--ink); }
+      .mark-bottom .uni:hover { color: var(--ink); }
+      .mode-btn:hover { color: var(--ink); }
     }
 
     /* ─── Mobile ─── */
     @media (max-width: 700px) {
       .modes {
         top: auto;
-        bottom: calc(3.6rem + env(safe-area-inset-bottom, 0px));
+        bottom: calc(5.4rem + env(safe-area-inset-bottom, 0px));
         right: 0;
         left: 0;
         transform: none;
@@ -174,14 +199,16 @@
         padding: 0.55rem 0.55rem;
         font-size: 0.56rem;
       }
-      .mark-bottom { font-size: 0.75rem; }
+      .mode-btn.act { margin-top: 0; margin-left: 0.5rem; }
+      .mark-bottom { font-size: 0.8rem; }
       .hint { max-width: 40vw; text-align: right; }
     }
 
-    /* ─── Reduced motion: chrome settles instantly; the draft itself
-           holds a fixed contemplative pace in JS (no time-lapse ramp). ─── */
+    /* ─── Reduced motion: chrome settles instantly; the draftsman
+           itself calms in JS (steady pencil, crossfade sheets, no halo). ─── */
     @media (prefers-reduced-motion: reduce) {
-      .nav .mark, .nav .back, .mode-btn, .hint { transition: none; }
+      .nav .mark, .nav .back, .mode-btn, .hint,
+      .mark-bottom .uni { transition: none; }
     }
 
     .sr {
@@ -197,10 +224,13 @@
 
 <canvas id="sheet" aria-hidden="true"></canvas>
 
-<p class="sr">Langton's ant drafting on dark graph paper. A single automaton
-follows one rule — turn, mark, step — slowly at first, then in time-lapse,
-until corridors and rooms emerge. Tap to seed another ant, and choose between
-the highway, bloom, and estate rules. Again restarts the sheet.</p>
+<p class="sr">An unattended draftsman pencils small house plans on cream
+paper, stroke by stroke — walls with solid poché, door swings, windows,
+one dimension string per side, room names in a quick hand — then signs
+the sheet, rests, slides it away and begins the next commission. Your
+pointer is a graphite pencil too: drag anywhere to sketch on the same
+sheet. Typologies: cottage, courtyard, longhouse; next starts a fresh
+commission.</p>
 <noscript><p class="fallback">plan needs JavaScript.</p></noscript>
 
 <nav class="nav">
@@ -208,15 +238,16 @@ the highway, bloom, and estate rules. Again restarts the sheet.</p>
   <a class="back" href="/lab">[ &larr; lab ]</a>
 </nav>
 
-<div class="modes" id="modes" role="group" aria-label="rules">
-  <button class="mode-btn active" data-mode="highway" aria-pressed="true">[ highway ]</button>
-  <button class="mode-btn" data-mode="bloom" aria-pressed="false">[ bloom ]</button>
-  <button class="mode-btn" data-mode="estate" aria-pressed="false">[ estate ]</button>
-  <button class="mode-btn" id="againBtn">[ again ]</button>
+<div class="modes" id="modes" role="group" aria-label="typologies">
+  <button class="mode-btn active" data-mode="cottage" aria-pressed="true">[ cottage ]</button>
+  <button class="mode-btn" data-mode="courtyard" aria-pressed="false">[ courtyard ]</button>
+  <button class="mode-btn" data-mode="longhouse" aria-pressed="false">[ longhouse ]</button>
+  <button class="mode-btn act" id="nextBtn">[ next ]</button>
 </div>
 
-<div class="mark-bottom">plan<span class="y">.</span></div>
-<div class="hint" id="hint">watch it draft &middot; tap to add an ant</div>
+<div class="mark-bottom">plan<span class="y">.</span><a
+  class="uni" href="/1/">from universe 01</a></div>
+<div class="hint" id="hint">watch it draft &middot; draw with it</div>
 
 <script>
 (function () {
@@ -235,199 +266,907 @@ the highway, bloom, and estate rules. Again restarts the sheet.</p>
   let H = window.innerHeight;
   let DPR = Math.min(2, window.devicePixelRatio || 1);
 
-  // ══════════════════════════════════════════════════════════
-  // RULES — curated turmite rules, each a different draft.
-  //   highway  RL         chaos for ~10k steps, then the diagonal road
-  //   bloom    LLRR       a symmetric organism, drawn outward
-  //   estate   LRRRRRLLR  walls itself a square estate, corridors inside
-  // ══════════════════════════════════════════════════════════
-  const MODES = {
-    highway: 'RL',
-    bloom:   'LLRR',
-    estate:  'LRRRRRLLR',
-  };
-  let modeName = 'highway';
-  let rule = MODES.highway;
-  let K = rule.length;
+  const INK = '43,31,26';
+  const SANG = '180,84,59';
+  const PAPER = '#FFEDDB';
+  function ink(a) { return 'rgba(' + INK + ',' + a + ')'; }
+  function sang(a) { return 'rgba(' + SANG + ',' + a + ')'; }
 
   // ══════════════════════════════════════════════════════════
-  // THE SHEET — a cell grid drawn into ImageData, composited
-  // over baked graph paper. State 0 = bare paper (transparent);
-  // deeper states = heavier ink.
+  // TUNING — pacing lives here. Speeds are css px/s, times in s.
   // ══════════════════════════════════════════════════════════
-  let CS = 4;              // css px per cell
-  let LW = 0, LH = 0;      // grid dims
-  let cells = null;        // Uint8Array of states
+  const PENCIL_V   = PRM ? 300 : 460;   // pencil travel speed
+  const PAUSE_MIN  = 0.09;              // breath between strokes
+  const PAUSE_MAX  = 0.22;
+  const PAUSE_ODDS = 0.7;               // else a 30ms pen-lift
+  const REST_MIN   = 7;                 // signed sheet lingers
+  const REST_MAX   = 10;
+  const SLIDE_S    = PRM ? 0.6 : 0.9;   // sheet exit (PRM: crossfade)
+  const POCHE_S    = 0.38;              // per-wall fill fade
+  const LABEL_S    = 0.3;               // room name fade+scale
+  const SIG_S      = 0.7;               // signature reveal
+  const FIT        = 0.62;              // footprint vs min(W,H)
+  const MIN_FT     = 8;                 // min room dimension, feet
+  const USER_W     = 1.4;               // visitor graphite width
 
-  const world = document.createElement('canvas');
-  let wctx = null, img = null, px32 = null;
-  let inkRGBA = null;      // per-state pixel value (premade, little-endian)
+  // ══════════════════════════════════════════════════════════
+  // SEEDED PRNG — texture must never shimmer, jitter must hold
+  // ══════════════════════════════════════════════════════════
+  function mulberry32(a) {
+    return function () {
+      a |= 0; a = a + 0x6D2B79F5 | 0;
+      let t = Math.imul(a ^ a >>> 15, 1 | a);
+      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+  }
+  function ri(R, a, b) { return a + Math.floor(R() * (b - a + 1)); }
+  function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
 
-  const paper = document.createElement('canvas');   // baked grid + grain
+  // ══════════════════════════════════════════════════════════
+  // LAYERS — paper texture, settled plan strokes, visitor graphite.
+  // Completed work lives offscreen; frames only re-blit.
+  // ══════════════════════════════════════════════════════════
+  const paperC = document.createElement('canvas');
+  const planC  = document.createElement('canvas');
+  const userC  = document.createElement('canvas');
+  const snapC  = document.createElement('canvas');
+  const paperX = paperC.getContext('2d');
+  const planX  = planC.getContext('2d');
+  const userX  = userC.getContext('2d');
+  const snapX  = snapC.getContext('2d');
 
-  function bakeInk() {
-    // state 0 stays transparent; ink deepens with state
-    inkRGBA = new Uint32Array(K);
-    inkRGBA[0] = 0;
-    for (let s = 1; s < K; s++) {
-      const a = Math.round(255 * (0.10 + 0.30 * (s / (K - 1))));
-      // ABGR little-endian: pale-slate ink 222,229,238
-      inkRGBA[s] = (a << 24) | (238 << 16) | (229 << 8) | 222;
-    }
+  function sizeLayer(c, x) {
+    c.width = Math.max(1, Math.floor(W * DPR));
+    c.height = Math.max(1, Math.floor(H * DPR));
+    x.setTransform(DPR, 0, 0, DPR, 0, 0);
   }
 
+  // bake once per resize: cream, a whisper of vertical warmth,
+  // two scales of seeded speckle. fixed seed = zero shimmer.
   function bakePaper() {
-    paper.width  = Math.floor(W * DPR);
-    paper.height = Math.floor(H * DPR);
-    const s = paper.getContext('2d');
-    s.setTransform(DPR, 0, 0, DPR, 0, 0);
-
-    const g = s.createLinearGradient(0, 0, 0, H);
-    g.addColorStop(0, '#06070A');
-    g.addColorStop(1, '#0D1016');
-    s.fillStyle = g;
-    s.fillRect(0, 0, W, H);
-
-    // graph hairlines, one per 8 cells
-    s.strokeStyle = 'rgba(255,255,255,0.045)';
-    s.lineWidth = 1;
-    const step = CS * 8;
-    s.beginPath();
-    for (let x = 0.5; x <= W; x += step) { s.moveTo(x, 0); s.lineTo(x, H); }
-    for (let y = 0.5; y <= H; y += step) { s.moveTo(0, y); s.lineTo(W, y); }
-    s.stroke();
-
-    let seed = 2659;
-    const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
-    const n = Math.floor((W * H) / 700);
-    for (let i = 0; i < n; i++) {
-      const x = rnd() * W, y = rnd() * H;
-      s.fillStyle = rnd() > 0.5
-        ? 'rgba(255,255,255,0.035)'
-        : 'rgba(0,0,0,0.05)';
-      s.fillRect(x, y, 1, 1);
+    sizeLayer(paperC, paperX);
+    paperX.fillStyle = PAPER;
+    paperX.fillRect(0, 0, W, H);
+    const g = paperX.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, 'rgba(255,255,255,0.05)');
+    g.addColorStop(1, 'rgba(43,31,26,0.03)');
+    paperX.fillStyle = g;
+    paperX.fillRect(0, 0, W, H);
+    const R = mulberry32(190711);
+    const fine = Math.floor((W * H) / 900);
+    for (let i = 0; i < fine; i++) {
+      paperX.fillStyle = ink(0.03 + R() * 0.015);
+      paperX.fillRect(R() * W, R() * H, 1, 1);
+    }
+    const coarse = Math.floor((W * H) / 16000);
+    for (let i = 0; i < coarse; i++) {
+      const r = 6 + R() * 16;
+      paperX.fillStyle = R() < 0.5 ? ink(0.02) : 'rgba(255,255,255,0.03)';
+      paperX.beginPath();
+      paperX.ellipse(R() * W, R() * H, r, r * (0.5 + R() * 0.5), R() * Math.PI, 0, Math.PI * 2);
+      paperX.fill();
     }
   }
 
-  function resize() {
-    DPR = Math.min(2, window.devicePixelRatio || 1);
-    W = window.innerWidth;
-    H = window.innerHeight;
-    canvas.width  = Math.floor(W * DPR);
-    canvas.height = Math.floor(H * DPR);
-    canvas.style.width  = W + 'px';
-    canvas.style.height = H + 'px';
-    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-    ctx.imageSmoothingEnabled = false;   // cells stay crisp
-
-    CS = Math.min(W, H) < 700 ? 3 : 4;
-    LW = Math.max(60, Math.ceil(W / CS));
-    LH = Math.max(60, Math.ceil(H / CS));
-    world.width = LW;
-    world.height = LH;
-    wctx = world.getContext('2d');
-    img = wctx.createImageData(LW, LH);
-    px32 = new Uint32Array(img.data.buffer);
-    bakeInk();
-    bakePaper();
-    freshSheet();
-  }
-  window.addEventListener('resize', resize, { passive: true });
-  window.addEventListener('orientationchange', () => setTimeout(resize, 200));
-
   // ══════════════════════════════════════════════════════════
-  // THE ANTS
+  // THE COMMISSION — a real small-house plan on a 1ft module.
+  // Weighted BSP rooms, poché exterior walls, swings, windows,
+  // one dimension string per side. Everything snaps to the grid.
   // ══════════════════════════════════════════════════════════
-  const DX = [0, 1, 0, -1];   // up, right, down, left
-  const DY = [-1, 0, 1, 0];
-  const MAX_ANTS = 5;
-  let ants = [];              // {x, y, dir}
-  let stepsDone = 0;
-  let rampT = 0;              // seconds since sheet started
-  let acc = 0;                // fractional steps carryover
+  const EPS = 0.01;
+  const EXT = 0.75;    // exterior wall thickness, ft
+  const INT = 0.4;     // interior wall thickness, ft
 
-  function freshSheet() {
-    cells = new Uint8Array(LW * LH);
-    px32.fill(0);
-    ants = [{ x: LW >> 1, y: LH >> 1, dir: 0 }];
-    stepsDone = 0;
-    rampT = 0;
-    acc = 0;
+  // rooms carry {n:name, wt:weight}; leaf rects get {x,y,w,h,name}
+  function aspectOK(count, w, h) {
+    if (count > 1) return true;                 // groups get their own cuts
+    return Math.max(w, h) / Math.min(w, h) <= 2.5;
   }
 
-  function addAnt(cx, cy) {
-    if (ants.length >= MAX_ANTS) return false;
-    if (cx < 0 || cx >= LW || cy < 0 || cy >= LH) return false;
-    ants.push({ x: cx, y: cy, dir: (Math.random() * 4) | 0 });
+  // grid capacity: a w×h rect can guillotine-tile k rooms of ≥8ft dims
+  function canFit(w, h, k) {
+    return w >= MIN_FT - EPS && h >= MIN_FT - EPS &&
+      Math.floor(w / MIN_FT + EPS) * Math.floor(h / MIN_FT + EPS) >= k;
+  }
+
+  function bsp(rc, list, out, R) {
+    if (list.length === 1) {
+      out.push({ x: rc.x, y: rc.y, w: rc.w, h: rc.h, name: list[0].n });
+      return;
+    }
+    const s = list.slice().sort((a, b) => b.wt - a.wt);
+
+    function feas(horiz, c, A, B) {
+      const w1 = horiz ? c : rc.w, h1 = horiz ? rc.h : c;
+      const w2 = horiz ? rc.w - c : rc.w, h2 = horiz ? rc.h : rc.h - c;
+      return canFit(w1, h1, A.length) && canFit(w2, h2, B.length);
+    }
+    function asp(horiz, c, A, B) {
+      const w1 = horiz ? c : rc.w, h1 = horiz ? rc.h : c;
+      const w2 = horiz ? rc.w - c : rc.w, h2 = horiz ? rc.h : rc.h - c;
+      return aspectOK(A.length, w1, h1) && aspectOK(B.length, w2, h2);
+    }
+    function findCut(A, B, share) {
+      // spec first: jittered weight-share cuts across the long side
+      const horiz0 = rc.w >= rc.h;
+      for (let i = 0; i < 6; i++) {
+        const t = clamp(share + (R() - 0.5) * 0.06, 0.35, 0.65);
+        const c = Math.round((horiz0 ? rc.w : rc.h) * t);
+        if (feas(horiz0, c, A, B) && asp(horiz0, c, A, B)) return { horiz: horiz0, c };
+      }
+      // then any module cut that still fits everyone, nearest the share
+      for (const horiz of [horiz0, !horiz0]) {
+        const L = horiz ? rc.w : rc.h;
+        const want = L * share;
+        let best = null;
+        for (let c = MIN_FT; c <= L - MIN_FT; c++) {
+          if (!feas(horiz, c, A, B)) continue;
+          if (!best || Math.abs(c - want) < Math.abs(best.c - want)) best = { horiz, c };
+        }
+        if (best) return best;
+      }
+      return null;
+    }
+
+    // greedy balance into two groups by weight
+    let A = [], B = [];
+    let wa = 0, wb = 0;
+    for (const r of s) {
+      if (wa <= wb) { A.push(r); wa += r.wt; } else { B.push(r); wb += r.wt; }
+    }
+    let cand = findCut(A, B, wa / (wa + wb));
+    if (!cand) {
+      // weights lost the argument — regroup by count and retry
+      A = []; B = []; wa = 0;
+      for (let i = 0; i < s.length; i++) {
+        if (i % 2) B.push(s[i]); else { A.push(s[i]); wa += s[i].wt; }
+      }
+      cand = findCut(A, B, A.length / s.length);
+    }
+    if (!cand) {
+      const horiz = rc.w >= rc.h;
+      cand = { horiz, c: Math.round((horiz ? rc.w : rc.h) / 2) };
+    }
+    if (cand.horiz) {
+      bsp({ x: rc.x, y: rc.y, w: cand.c, h: rc.h }, A, out, R);
+      bsp({ x: rc.x + cand.c, y: rc.y, w: rc.w - cand.c, h: rc.h }, B, out, R);
+    } else {
+      bsp({ x: rc.x, y: rc.y, w: rc.w, h: cand.c }, A, out, R);
+      bsp({ x: rc.x, y: rc.y + cand.c, w: rc.w, h: rc.h - cand.c }, B, out, R);
+    }
+  }
+
+  function genCottage(p, R) {
+    p.fw = ri(R, 28, 36);
+    p.fh = ri(R, 22, 28);
+    const pool = [
+      { n: 'living', wt: 1.8 }, { n: 'kitchen', wt: 1.0 }, { n: 'dining', wt: 0.9 },
+      { n: 'bed', wt: 1.3 }, { n: 'bed', wt: 1.0 }, { n: 'bath', wt: 0.5 },
+      { n: 'entry', wt: 0.4 },
+    ];
+    // 5-7 rooms: dining / entry / second bed are the negotiable ones
+    const cand = [2, 6, 4];
+    let drops = (R() < 0.45 ? 1 : 0) + (R() < 0.35 ? 1 : 0);
+    const dead = {};
+    while (drops-- > 0) dead[cand.splice(Math.floor(R() * cand.length), 1)[0]] = 1;
+    let list = pool.filter((_, i) => !dead[i]);
+    // a 28×22 sheet honestly holds six 8ft rooms, not seven
+    while (!canFit(p.fw, p.fh, list.length)) {
+      let low = 0;
+      for (let i = 1; i < list.length; i++) if (list[i].wt < list[low].wt) low = i;
+      list.splice(low, 1);
+    }
+    bsp({ x: 0, y: 0, w: p.fw, h: p.fh }, list, p.rooms, R);
+  }
+
+  function genCourtyard(p, R) {
+    p.fw = ri(R, 36, 44);
+    p.fh = clamp(p.fw + ri(R, -3, 3), 36, 44);
+    const cw = ri(R, 10, 14), ch = ri(R, 10, 14);
+    const cx = Math.round((p.fw - cw) / 2), cy = Math.round((p.fh - ch) / 2);
+    p.court = { x: cx, y: cy, w: cw, h: ch };
+    let list = [
+      { n: 'living', wt: 1.8 }, { n: 'kitchen', wt: 1.0 }, { n: 'dining', wt: 0.9 },
+      { n: 'bed', wt: 1.3 }, { n: 'bed', wt: 1.0 }, { n: 'bath', wt: 0.5 },
+      { n: 'porch', wt: 0.4 },
+    ];
+    if (R() < 0.4) list = list.filter(r => r.n !== 'dining');
+    // ring = four bands; top/bottom span full width and own the corners
+    const bands = [
+      { rc: { x: 0, y: 0, w: p.fw, h: cy } },
+      { rc: { x: 0, y: cy + ch, w: p.fw, h: p.fh - cy - ch } },
+      { rc: { x: 0, y: cy, w: cx, h: ch } },
+      { rc: { x: cx + cw, y: cy, w: p.fw - cx - cw, h: ch } },
+    ];
+    let totalA = 0, totalW = 0;
+    for (const b of bands) { b.area = b.rc.w * b.rc.h; b.rooms = []; b.wt = 0; totalA += b.area; }
+    for (const r of list) totalW += r.wt;
+    for (const b of bands) b.target = totalW * b.area / totalA;
+    const sorted = list.slice().sort((a, b) => b.wt - a.wt);
+    const byArea = bands.slice().sort((a, b) => b.area - a.area);
+    // seed every band so no ring segment goes roomless, then fill by deficit
+    for (let k = 0; k < 4; k++) { byArea[k].rooms.push(sorted[k]); byArea[k].wt += sorted[k].wt; }
+    for (let k = 4; k < sorted.length; k++) {
+      let best = null;
+      for (const b of bands) {
+        if (!canFit(b.rc.w, b.rc.h, b.rooms.length + 1)) continue;   // band is full
+        if (!best || b.target - b.wt > best.target - best.wt) best = b;
+      }
+      if (!best) best = byArea[0];   // never happens with these ranges — safety
+      best.rooms.push(sorted[k]);
+      best.wt += sorted[k].wt;
+    }
+    for (const b of bands) bsp(b.rc, b.rooms, p.rooms, R);
+  }
+
+  function genLonghouse(p, R) {
+    const L = ri(R, 48, 60), D = ri(R, 16, 20);
+    p.fw = L; p.fh = D;
+    const hallTop = R() < 0.5;
+    p.hall = { x: 0, y: hallTop ? 0 : D - 3.5, w: L, h: 3.5 };
+    const roomY = hallTop ? 3.5 : 0, roomH = D - 3.5;
+    let list = [
+      { n: 'kitchen', wt: 1.0 }, { n: 'dining', wt: 0.9 }, { n: 'living', wt: 1.8 },
+      { n: 'bed', wt: 1.3 }, { n: 'bath', wt: 0.5 }, { n: 'bed', wt: 1.0 },
+    ];
+    if (R() < 0.5) list = list.filter(r => r.n !== 'dining');
+    // one row off the hall — water-fill widths by weight, floor 8ft
+    let sum = 0;
+    for (const r of list) sum += r.wt;
+    const ws = list.map(r => r.wt * L / sum);
+    for (let pass = 0; pass < 4; pass++) {
+      let deficit = 0, freeW = 0;
+      for (let i = 0; i < ws.length; i++) {
+        if (ws[i] < MIN_FT) { deficit += MIN_FT - ws[i]; ws[i] = MIN_FT; }
+        else freeW += ws[i] - MIN_FT;
+      }
+      if (deficit <= 0 || freeW <= 0) break;
+      for (let i = 0; i < ws.length; i++) {
+        if (ws[i] > MIN_FT) ws[i] -= deficit * (ws[i] - MIN_FT) / freeW;
+      }
+    }
+    // snap to the module, hand rounding drift to the widest room
+    let acc = 0;
+    const snapped = ws.map(w => { const v = Math.max(MIN_FT, Math.round(w)); acc += v; return v; });
+    let widest = 0;
+    for (let i = 1; i < snapped.length; i++) if (snapped[i] > snapped[widest]) widest = i;
+    snapped[widest] += L - acc;
+    let x = 0;
+    for (let i = 0; i < list.length; i++) {
+      p.rooms.push({ x, y: roomY, w: snapped[i], h: roomH, name: list[i].n });
+      x += snapped[i];
+    }
+    p.rooms.push({ x: 0, y: p.hall.y, w: L, h: 3.5, name: 'hall' });
+  }
+
+  // mirror across the diagonal so the long axis follows the viewport
+  function transpose(p) {
+    const t = p.fw; p.fw = p.fh; p.fh = t;
+    const flip = r => { const v = r.x; r.x = r.y; r.y = v; const s = r.w; r.w = r.h; r.h = s; };
+    for (const r of p.rooms) flip(r);
+    if (p.court) flip(p.court);
+    if (p.hall) flip(p.hall);
+  }
+
+  // ─── walls: faces + poché bands, openings cut both faces ───
+  function addWall(p, w) { w.openings = []; p.walls.push(w); return w; }
+
+  function buildWalls(p) {
+    p.walls = [];
+    const fw = p.fw, fh = p.fh;
+    // footprint: top/bottom own the corners; sides tuck between
+    p.wTop = addWall(p, { axis: 'h', cA: 0, sA: [0, fw], cB: EXT, sB: [0, fw],
+      poche: [0, fw], lo: 0, hi: EXT, ext: true, inw: 1 });
+    p.wBot = addWall(p, { axis: 'h', cA: fh, sA: [0, fw], cB: fh - EXT, sB: [0, fw],
+      poche: [0, fw], lo: fh - EXT, hi: fh, ext: true, inw: -1 });
+    p.wLeft = addWall(p, { axis: 'v', cA: 0, sA: [0, fh], cB: EXT, sB: [EXT, fh - EXT],
+      poche: [EXT, fh - EXT], lo: 0, hi: EXT, ext: true, inw: 1 });
+    p.wRight = addWall(p, { axis: 'v', cA: fw, sA: [0, fh], cB: fw - EXT, sB: [EXT, fh - EXT],
+      poche: [EXT, fh - EXT], lo: fw - EXT, hi: fw, ext: true, inw: -1 });
+    if (p.court) {
+      const c = p.court, x1 = c.x + c.w, y1 = c.y + c.h;
+      p.wCourtT = addWall(p, { axis: 'h', cA: c.y - EXT, sA: [c.x - EXT, x1 + EXT], cB: c.y,
+        sB: [c.x, x1], poche: [c.x - EXT, x1 + EXT], lo: c.y - EXT, hi: c.y, ext: true, inw: -1 });
+      p.wCourtB = addWall(p, { axis: 'h', cA: y1 + EXT, sA: [c.x - EXT, x1 + EXT], cB: y1,
+        sB: [c.x, x1], poche: [c.x - EXT, x1 + EXT], lo: y1, hi: y1 + EXT, ext: true, inw: 1 });
+      p.wCourtL = addWall(p, { axis: 'v', cA: c.x - EXT, sA: [c.y, y1], cB: c.x,
+        sB: [c.y, y1], poche: [c.y, y1], lo: c.x - EXT, hi: c.x, ext: true, inw: -1 });
+      p.wCourtR = addWall(p, { axis: 'v', cA: x1 + EXT, sA: [c.y, y1], cB: x1,
+        sB: [c.y, y1], poche: [c.y, y1], lo: x1, hi: x1 + EXT, ext: true, inw: 1 });
+    }
+    // interior walls from shared room edges (adjacency drives doors too)
+    p.adj = [];
+    const rooms = p.rooms;
+    for (let i = 0; i < rooms.length; i++) {
+      for (let j = i + 1; j < rooms.length; j++) {
+        const a = rooms[i], b = rooms[j];
+        let axis = null, c = 0, o0 = 0, o1 = 0;
+        if (Math.abs(a.x + a.w - b.x) < EPS || Math.abs(b.x + b.w - a.x) < EPS) {
+          c = Math.abs(a.x + a.w - b.x) < EPS ? b.x : a.x;
+          o0 = Math.max(a.y, b.y); o1 = Math.min(a.y + a.h, b.y + b.h);
+          if (o1 - o0 > 1) axis = 'v';
+        }
+        if (!axis && (Math.abs(a.y + a.h - b.y) < EPS || Math.abs(b.y + b.h - a.y) < EPS)) {
+          c = Math.abs(a.y + a.h - b.y) < EPS ? b.y : a.y;
+          o0 = Math.max(a.x, b.x); o1 = Math.min(a.x + a.w, b.x + b.w);
+          if (o1 - o0 > 1) axis = 'h';
+        }
+        if (!axis) continue;
+        const span = clampInterior(p, axis, c, o0, o1);
+        if (span[1] - span[0] < 0.8) continue;
+        const w = addWall(p, { axis, cA: c - INT / 2, sA: span.slice(), cB: c + INT / 2,
+          sB: span.slice(), poche: null, lo: c - INT / 2, hi: c + INT / 2, ext: false });
+        p.adj.push({ i, j, wall: w, ov: [o0, o1], axis, c });
+      }
+    }
+  }
+
+  // trim interior walls out of the exterior + court poché bands
+  function clampInterior(p, axis, c, s0, s1) {
+    const lim = axis === 'v' ? p.fh : p.fw;
+    s0 = Math.max(s0, EXT);
+    s1 = Math.min(s1, lim - EXT);
+    if (p.court) {
+      const ct = p.court;
+      const inBand = axis === 'v'
+        ? (c > ct.x - EPS && c < ct.x + ct.w + EPS)
+        : (c > ct.y - EPS && c < ct.y + ct.h + EPS);
+      if (inBand) {
+        const c0 = axis === 'v' ? ct.y : ct.x;
+        const c1 = axis === 'v' ? ct.y + ct.h : ct.x + ct.w;
+        if (s1 > c0 - EXT && s0 < c0) s1 = Math.min(s1, c0 - EXT);
+        if (s0 < c1 + EXT && s1 > c1) s0 = Math.max(s0, c1 + EXT);
+      }
+    }
+    return [s0, s1];
+  }
+
+  // openings collide with a 0.6ft courtesy margin; must sit inside both faces
+  function addOpening(w, u0, u1, type) {
+    for (const o of w.openings) {
+      if (u0 < o.u1 + 0.6 && u1 > o.u0 - 0.6) return false;
+    }
+    for (const s of [w.sA, w.sB]) {
+      if (u0 < s[0] + 0.3 || u1 > s[1] - 0.3) return false;
+    }
+    w.openings.push({ u0, u1, type });
+    w.openings.sort((a, b) => a.u0 - b.u0);
     return true;
   }
 
-  function stepAnts(n) {
-    for (let s = 0; s < n; s++) {
-      for (let a = 0; a < ants.length; a++) {
-        const ant = ants[a];
-        const i = ant.y * LW + ant.x;
-        const st = cells[i];
-        ant.dir = (ant.dir + (rule.charCodeAt(st) === 82 ? 1 : 3)) & 3;   // R : L
-        const ns = (st + 1) % K;
-        cells[i] = ns;
-        px32[i] = inkRGBA[ns];
-        ant.x += DX[ant.dir];
-        ant.y += DY[ant.dir];
-        // the sheet is a torus — highways come back around
-        if (ant.x < 0) ant.x = LW - 1; else if (ant.x >= LW) ant.x = 0;
-        if (ant.y < 0) ant.y = LH - 1; else if (ant.y >= LH) ant.y = 0;
+  // door geometry: gap + jambs + leaf + quarter swing into the room
+  function makeDoor(p, wall, u0, u1, side, R) {
+    const dw = u1 - u0;
+    const face = side > 0 ? wall.hi : wall.lo;
+    const hingeEnd = R() < 0.5 ? 0 : 1;
+    const hy = hingeEnd ? u1 : u0, oy = hingeEnd ? u0 : u1;
+    const d = { wall, u0, u1, face, side, hy, oy, dw };
+    p.doors.push(d);
+    return d;
+  }
+
+  function placeDoors(p, R) {
+    p.doors = [];
+    const rooms = p.rooms;
+    let hub = rooms.findIndex(r => r.name === 'hall');
+    if (hub < 0) hub = rooms.findIndex(r => r.name === 'living');
+    if (hub < 0) hub = 0;
+    // prim over shared-edge overlaps: every room doors to the tree,
+    // living (or the hall) ends up the natural hub
+    const seen = new Array(rooms.length).fill(false);
+    seen[hub] = true;
+    let left = rooms.length - 1;
+    while (left > 0) {
+      let best = null, bestLen = -1;
+      for (const e of p.adj) {
+        if (seen[e.i] === seen[e.j]) continue;
+        const span = e.wall.sA;
+        const len = Math.min(e.ov[1], span[1]) - Math.max(e.ov[0], span[0]);
+        if (len > bestLen) { bestLen = len; best = e; }
+      }
+      if (!best || bestLen < 1.8) break;   // degenerate tiling — leave the rest doorless
+      const child = seen[best.i] ? best.j : best.i;
+      seen[child] = true;
+      left--;
+      const span = best.wall.sA;
+      const lo = Math.max(best.ov[0], span[0]) + 0.5;
+      const hi = Math.min(best.ov[1], span[1]) - 0.5;
+      let dw = Math.min(2.5 + R() * 0.5, hi - lo);
+      if (dw < 1.6) continue;
+      const u0 = lo + R() * (hi - lo - dw);
+      if (!addOpening(best.wall, u0, u0 + dw, 'door')) continue;
+      const cr = rooms[child];
+      const side = best.axis === 'v'
+        ? (cr.x + cr.w / 2 >= best.c ? 1 : -1)
+        : (cr.y + cr.h / 2 >= best.c ? 1 : -1);
+      makeDoor(p, best.wall, u0, u0 + dw, side, R);
+    }
+  }
+
+  // exterior runs a room owns on the footprint (and court, if asked)
+  function exteriorRuns(p, r, withCourt) {
+    const runs = [];
+    const push = (wall, a, b) => { if (b - a > 2) runs.push({ wall, a, b }); };
+    if (r.y < EPS) push(p.wTop, r.x, r.x + r.w);
+    if (r.y + r.h > p.fh - EPS) push(p.wBot, r.x, r.x + r.w);
+    if (r.x < EPS) push(p.wLeft, r.y, r.y + r.h);
+    if (r.x + r.w > p.fw - EPS) push(p.wRight, r.y, r.y + r.h);
+    if (withCourt && p.court) {
+      const c = p.court, x1 = c.x + c.w, y1 = c.y + c.h;
+      if (Math.abs(r.y + r.h - c.y) < EPS) push(p.wCourtT, Math.max(r.x, c.x), Math.min(r.x + r.w, x1));
+      if (Math.abs(r.y - y1) < EPS) push(p.wCourtB, Math.max(r.x, c.x), Math.min(r.x + r.w, x1));
+      if (Math.abs(r.x + r.w - c.x) < EPS) push(p.wCourtL, Math.max(r.y, c.y), Math.min(r.y + r.h, y1));
+      if (Math.abs(r.x - x1) < EPS) push(p.wCourtR, Math.max(r.y, c.y), Math.min(r.y + r.h, y1));
+    }
+    return runs;
+  }
+
+  function placeEntry(p, R) {
+    const order = ['entry', 'porch', 'hall', 'living'];
+    let room = null;
+    for (const n of order) { room = p.rooms.find(r => r.name === n); if (room) break; }
+    if (!room) return;
+    const runs = exteriorRuns(p, room, false).sort((a, b) => (b.b - b.a) - (a.b - a.a));
+    for (const run of runs) {
+      const mid = (run.a + run.b) / 2;
+      const u0 = clamp(mid - 1.5, run.a + 1, run.b - 4);
+      if (u0 < run.a + 0.9) continue;
+      if (addOpening(run.wall, u0, u0 + 3, 'entry')) {
+        makeDoor(p, run.wall, u0, u0 + 3, run.wall.inw, R);
+        return;
       }
     }
-    stepsDone += n;
   }
 
-  // The time-lapse: readable turns first, then the centuries pass.
-  // sps doubles every RAMP_2X seconds up to CAP.
-  const SPS0 = 7, RAMP_2X = 7, CAP = 26000;
-  function currentSPS() {
-    if (PRM) return 12;
-    return Math.min(CAP, SPS0 * Math.pow(2, rampT / RAMP_2X));
-  }
-
-  // ══════════════════════════════════════════════════════════
-  // MODES
-  // ══════════════════════════════════════════════════════════
-  function setMode(name) {
-    if (!MODES[name]) return;
-    modeName = name;
-    rule = MODES[name];
-    K = rule.length;
-    document.querySelectorAll('.mode-btn[data-mode]').forEach(b => {
-      const on = b.dataset.mode === name;
-      b.classList.toggle('active', on);
-      b.setAttribute('aria-pressed', String(on));
-    });
-    bakeInk();
-    freshSheet();
-  }
-
-  document.getElementById('modes').addEventListener('click', (e) => {
-    const b = e.target.closest('.mode-btn');
-    if (!b) return;
-    if (b.dataset.mode) setMode(b.dataset.mode);
-    else if (b.id === 'againBtn') freshSheet();
-  });
-
-  window.addEventListener('keydown', (e) => {
-    if (e.key === '1') setMode('highway');
-    else if (e.key === '2') setMode('bloom');
-    else if (e.key === '3') setMode('estate');
-    else if (e.key === 'r' || e.key === 'R') freshSheet();
-    else if (e.key === ' ' && !e.repeat) {
-      e.preventDefault();
-      addAnt((Math.random() * LW) | 0, (Math.random() * LH) | 0);
-      fadeHint();
+  function placeWindows(p, R) {
+    p.wins = [];
+    const lit = { living: 1, kitchen: 1, dining: 1, bed: 1, porch: 1 };
+    for (const r of p.rooms) {
+      if (!lit[r.name] && !(r.name === 'bath' && R() < 0.5)) continue;
+      const runs = exteriorRuns(p, r, true)
+        .filter(run => run.b - run.a >= 6)
+        .sort((a, b) => (b.b - b.a) - (a.b - a.a))
+        .slice(0, 2);
+      for (const run of runs) {
+        const len = run.b - run.a;
+        const ww = clamp(4 + R() * 2, 4, len - 2);
+        const u0 = (run.a + run.b) / 2 - ww / 2;
+        if (addOpening(run.wall, u0, u0 + ww, 'win')) {
+          p.wins.push({ wall: run.wall, u0, u1: u0 + ww });
+        }
+      }
     }
-  });
+  }
+
+  function generate(mode) {
+    const R = mulberry32((Math.random() * 1e9) | 0);
+    const p = { mode, rooms: [], court: null, hall: null, R };
+    if (mode === 'cottage') genCottage(p, R);
+    else if (mode === 'courtyard') genCourtyard(p, R);
+    else genLonghouse(p, R);
+    if (mode !== 'courtyard' && ((H > W) !== (p.fh > p.fw))) transpose(p);
+    p.S = (Math.min(W, H) * FIT) / Math.max(p.fw, p.fh);
+    p.ox = Math.round((W - p.fw * p.S) / 2) + 8;   // nudge — dims live top/left
+    p.oy = Math.round((H - p.fh * p.S) / 2) + 8;
+    buildWalls(p);
+    placeDoors(p, R);
+    placeEntry(p, R);
+    placeWindows(p, R);
+    return p;
+  }
 
   // ══════════════════════════════════════════════════════════
-  // INPUT — tap seeds an ant.
+  // COMPILE — the plan becomes an ordered stroke queue.
+  // Envelope → partitions → poché → doors → windows → dims →
+  // labels → north → signature. Jitter is seeded per commission.
+  // ══════════════════════════════════════════════════════════
+  let plan = null;
+  let queue = [];
+
+  function P(x, y) { return { x: plan.ox + x * plan.S, y: plan.oy + y * plan.S }; }
+
+  // drop a point every ~13px so wobble and width variance can
+  // live along the stroke, not just at its ends
+  function resampleJitter(pts, R, jit) {
+    const out = [];
+    for (let i = 0; i < pts.length - 1; i++) {
+      const a = pts[i], b = pts[i + 1];
+      const n = Math.max(1, Math.round(Math.hypot(b.x - a.x, b.y - a.y) / 13));
+      for (let k = 0; k < n; k++) {
+        const t = k / n;
+        out.push({ x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t });
+      }
+    }
+    out.push({ x: pts[pts.length - 1].x, y: pts[pts.length - 1].y });
+    for (let i = 0; i < out.length; i++) {
+      const j = (i === 0 || i === out.length - 1) ? jit * 0.4 : jit;
+      out[i].x += (R() - 0.5) * 2 * j;
+      out[i].y += (R() - 0.5) * 2 * j;
+      out[i].k = 1 + (R() - 0.5) * 0.24;   // ±12% width along the stroke
+    }
+    return out;
+  }
+
+  function pushStroke(pts, w, col, jit) {
+    const p = resampleJitter(pts, plan.R, jit === undefined ? 0.35 : jit);
+    const segs = [];
+    let total = 0;
+    for (let i = 1; i < p.length; i++) {
+      const d = Math.hypot(p[i].x - p[i - 1].x, p[i].y - p[i - 1].y);
+      segs.push(d);
+      total += d;
+    }
+    queue.push({ kind: 'stroke', pts: p, segs, total: Math.max(total, 0.001), w, col });
+  }
+
+  function lineFt(axis, c, a, b, w, col) {
+    const p0 = axis === 'h' ? P(a, c) : P(c, a);
+    const p1 = axis === 'h' ? P(b, c) : P(c, b);
+    pushStroke([p0, p1], w, col);
+  }
+
+  function linePx(x0, y0, x1, y1, w, col, jit) {
+    pushStroke([{ x: x0, y: y0 }, { x: x1, y: y1 }], w, col, jit);
+  }
+
+  function arcFt(cx, cy, r, a0, a1, w, col) {
+    const pts = [];
+    for (let i = 0; i <= 14; i++) {
+      const a = a0 + (a1 - a0) * i / 14;
+      pts.push(P(cx + Math.cos(a) * r, cy + Math.sin(a) * r));
+    }
+    pushStroke(pts, w, col, 0.2);
+  }
+
+  // a wall face minus its openings
+  function subsegs(s0, s1, ops) {
+    const out = [];
+    let c = s0;
+    for (const o of ops) {
+      const a = Math.max(s0, o.u0), b = Math.min(s1, o.u1);
+      if (b <= c) continue;
+      if (a > c + 0.05) out.push([c, a]);
+      c = Math.max(c, b);
+    }
+    if (c < s1 - 0.05) out.push([c, s1]);
+    return out;
+  }
+
+  function compile() {
+    queue = [];
+    const p = plan, S = p.S, ox = p.ox, oy = p.oy;
+    const ext = p.walls.filter(w => w.ext);
+    const inr = p.walls.filter(w => !w.ext);
+    const cut = ink(0.9);
+
+    // 1 — envelope: trace every outer face, then close the pair
+    for (const w of ext) for (const s of subsegs(w.sA[0], w.sA[1], w.openings))
+      lineFt(w.axis, w.cA, s[0], s[1], 2.25, cut);
+    for (const w of ext) for (const s of subsegs(w.sB[0], w.sB[1], w.openings))
+      lineFt(w.axis, w.cB, s[0], s[1], 2.25, cut);
+
+    // 2 — interior partitions, double line, no fill
+    for (const w of inr) {
+      for (const s of subsegs(w.sA[0], w.sA[1], w.openings)) lineFt(w.axis, w.cA, s[0], s[1], 1.6, cut);
+      for (const s of subsegs(w.sB[0], w.sB[1], w.openings)) lineFt(w.axis, w.cB, s[0], s[1], 1.6, cut);
+    }
+
+    // 3 — poché: solid graphite between the envelope pair
+    for (const w of ext) {
+      const rects = [];
+      for (const s of subsegs(w.poche[0], w.poche[1], w.openings)) {
+        rects.push(w.axis === 'h'
+          ? [ox + s[0] * S, oy + w.lo * S, (s[1] - s[0]) * S, (w.hi - w.lo) * S]
+          : [ox + w.lo * S, oy + s[0] * S, (w.hi - w.lo) * S, (s[1] - s[0]) * S]);
+      }
+      if (rects.length) queue.push({ kind: 'fill', rects, a: 0.9, total: POCHE_S });
+    }
+
+    // 4 — doors: jambs, leaf, quarter swing (lightest touch)
+    for (const d of p.doors) {
+      const w = d.wall;
+      const tickAxis = w.axis === 'h' ? 'v' : 'h';
+      lineFt(tickAxis, d.u0, w.lo, w.hi, 1.25, cut);
+      lineFt(tickAxis, d.u1, w.lo, w.hi, 1.25, cut);
+      let a0, a1;
+      if (w.axis === 'v') {
+        pushStroke([P(d.face, d.hy), P(d.face + d.side * d.dw, d.hy)], 1.25, cut);
+        a0 = d.side > 0 ? 0 : Math.PI;
+        a1 = d.oy > d.hy ? Math.PI / 2 : -Math.PI / 2;
+      } else {
+        pushStroke([P(d.hy, d.face), P(d.hy, d.face + d.side * d.dw)], 1.25, cut);
+        a0 = d.side > 0 ? Math.PI / 2 : -Math.PI / 2;
+        a1 = d.oy > d.hy ? 0 : Math.PI;
+      }
+      let da = a1 - a0;
+      while (da > Math.PI) da -= Math.PI * 2;
+      while (da < -Math.PI) da += Math.PI * 2;
+      if (w.axis === 'v') arcFt(d.face, d.hy, d.dw, a0, a0 + da, 0.75, ink(0.5));
+      else arcFt(d.hy, d.face, d.dw, a0, a0 + da, 0.75, ink(0.5));
+    }
+
+    // 5 — windows: jambs + three lines within the thickness
+    for (const win of p.wins) {
+      const w = win.wall;
+      const tickAxis = w.axis === 'h' ? 'v' : 'h';
+      lineFt(tickAxis, win.u0, w.lo, w.hi, 1.25, cut);
+      lineFt(tickAxis, win.u1, w.lo, w.hi, 1.25, cut);
+      for (const q of [0.28, 0.5, 0.72])
+        lineFt(w.axis, w.lo + (w.hi - w.lo) * q, win.u0, win.u1, 0.75, cut);
+    }
+
+    // 6 — one overall string per side: extensions, line, red slashes
+    const dcol = ink(0.55);
+    const monoDim = '9.5px "Space Mono", monospace';
+    const x0 = ox, x1 = ox + p.fw * S, y0 = oy, y1 = oy + p.fh * S;
+    const dty = y0 - 26, dlx = x0 - 26;
+    linePx(x0, y0 - 2, x0, dty - 3, 0.5, dcol, 0.15);
+    linePx(x1, y0 - 2, x1, dty - 3, 0.5, dcol, 0.15);
+    linePx(x0, dty, x1, dty, 0.5, dcol, 0.15);
+    linePx(x0 - 3.5, dty + 3.5, x0 + 3.5, dty - 3.5, 1.25, sang(0.9), 0.15);
+    linePx(x1 - 3.5, dty + 3.5, x1 + 3.5, dty - 3.5, 1.25, sang(0.9), 0.15);
+    queue.push({ kind: 'label', text: p.fw + "'-0\"", x: (x0 + x1) / 2, y: dty - 4,
+      font: monoDim, col: ink(0.62), align: 'center', base: 'alphabetic', rot: 0, total: LABEL_S });
+    linePx(x0 - 2, y0, dlx - 3, y0, 0.5, dcol, 0.15);
+    linePx(x0 - 2, y1, dlx - 3, y1, 0.5, dcol, 0.15);
+    linePx(dlx, y0, dlx, y1, 0.5, dcol, 0.15);
+    linePx(dlx - 3.5, y0 + 3.5, dlx + 3.5, y0 - 3.5, 1.25, sang(0.9), 0.15);
+    linePx(dlx - 3.5, y1 + 3.5, dlx + 3.5, y1 - 3.5, 1.25, sang(0.9), 0.15);
+    queue.push({ kind: 'label', text: p.fh + "'-0\"", x: dlx - 4, y: (y0 + y1) / 2,
+      font: monoDim, col: ink(0.62), align: 'center', base: 'alphabetic', rot: -Math.PI / 2, total: LABEL_S });
+
+    // 7 — room names in a quick hand
+    for (const r of p.rooms) {
+      const c = P(r.x + r.w / 2, r.y + r.h / 2);
+      const size = clamp(Math.min(r.w, r.h) * S * 0.24, 15, 18);
+      queue.push({ kind: 'label', text: r.name + '.', x: c.x, y: c.y,
+        font: '500 ' + size.toFixed(1) + 'px Caveat, cursive', col: ink(0.9),
+        align: 'center', base: 'middle', rot: 0, total: LABEL_S });
+    }
+    if (p.court) {
+      const c = P(p.court.x + p.court.w / 2, p.court.y + p.court.h / 2);
+      queue.push({ kind: 'label', text: 'court.', x: c.x, y: c.y,
+        font: '500 18px Caveat, cursive', col: ink(0.9),
+        align: 'center', base: 'middle', rot: 0, total: LABEL_S });
+    }
+
+    // 8 — north: hand circle, sanguine needle (the only red besides slashes)
+    const nx = Math.min(x1 + 24, W - 16), ny = y0 + 4;
+    const cir = [];
+    for (let i = 0; i <= 20; i++) {
+      const a = i / 20 * Math.PI * 2;
+      cir.push({ x: nx + Math.cos(a) * 8, y: ny + Math.sin(a) * 8 });
+    }
+    pushStroke(cir, 0.75, ink(0.9), 0.2);
+    linePx(nx, ny + 6, nx, ny - 14, 1.25, sang(0.9), 0.15);
+    linePx(nx, ny - 14, nx - 2.5, ny - 9.5, 1.25, sang(0.9), 0.1);
+    linePx(nx, ny - 14, nx + 2.5, ny - 9.5, 1.25, sang(0.9), 0.1);
+    queue.push({ kind: 'label', text: 'N', x: nx, y: ny - 17,
+      font: '700 8.5px "Space Mono", monospace', col: ink(0.9),
+      align: 'center', base: 'alphabetic', rot: 0, total: LABEL_S });
+
+    // 9 — the signature, always last
+    ctx.font = '600 20px Caveat, cursive';
+    const sw = ctx.measureText('tres.').width;
+    queue.push({ kind: 'sig', text: 'tres.', x: x1 - 2, y: y1 + 24, wpx: sw,
+      font: '600 20px Caveat, cursive', col: ink(0.9), total: SIG_S });
+  }
+
+  // ══════════════════════════════════════════════════════════
+  // RENDER — completed work is committed to the plan layer once;
+  // frames re-blit layers and animate only the active item.
+  // ══════════════════════════════════════════════════════════
+  function renderStroke(g, s, dist) {
+    g.lineCap = 'round';
+    g.lineJoin = 'round';
+    g.strokeStyle = s.col;
+    let rem = dist;
+    let tip = s.pts[0];
+    for (let i = 1; i < s.pts.length; i++) {
+      const a = s.pts[i - 1], b = s.pts[i], d = s.segs[i - 1];
+      if (d <= 0) continue;
+      g.lineWidth = s.w * a.k;
+      g.beginPath();
+      g.moveTo(a.x, a.y);
+      if (rem >= d) {
+        g.lineTo(b.x, b.y);
+        g.stroke();
+        rem -= d;
+        tip = b;
+      } else {
+        const f = Math.max(0, rem / d);
+        tip = { x: a.x + (b.x - a.x) * f, y: a.y + (b.y - a.y) * f };
+        if (f > 0) { g.lineTo(tip.x, tip.y); g.stroke(); }
+        return tip;
+      }
+    }
+    return tip;
+  }
+
+  function renderItem(g, it, k) {
+    if (it.kind === 'fill') {
+      g.fillStyle = ink(it.a * k);
+      for (const r of it.rects) g.fillRect(r[0], r[1], r[2], r[3]);
+      return null;
+    }
+    if (it.kind === 'label') {
+      g.save();
+      g.globalAlpha = k;
+      g.translate(it.x, it.y);
+      if (it.rot) g.rotate(it.rot);
+      const sc = 0.92 + 0.08 * k;
+      g.scale(sc, sc);
+      g.font = it.font;
+      g.textAlign = it.align;
+      g.textBaseline = it.base;
+      g.fillStyle = it.col;
+      g.fillText(it.text, 0, 0);
+      g.restore();
+      return null;
+    }
+    if (it.kind === 'sig') {
+      const sx = it.x - it.wpx - 4;
+      g.save();
+      g.beginPath();
+      g.rect(sx, it.y - 24, (it.wpx + 8) * k, 34);
+      g.clip();
+      g.font = it.font;
+      g.textAlign = 'right';
+      g.textBaseline = 'alphabetic';
+      g.fillStyle = it.col;
+      g.fillText(it.text, it.x, it.y);
+      g.restore();
+      return k < 1 ? { x: sx + (it.wpx + 8) * k, y: it.y - 4 } : null;
+    }
+    return null;
+  }
+
+  function commitItem(it) {
+    if (it.kind === 'stroke') renderStroke(planX, it, it.total + 1);
+    else renderItem(planX, it, 1);
+  }
+
+  function pencil(g, pt) {
+    if (!PRM) {
+      g.fillStyle = ink(0.08);
+      g.beginPath();
+      g.arc(pt.x, pt.y, 6, 0, Math.PI * 2);
+      g.fill();
+    }
+    g.fillStyle = ink(0.95);
+    g.beginPath();
+    g.arc(pt.x, pt.y, 1.1, 0, Math.PI * 2);
+    g.fill();
+  }
+
+  // ══════════════════════════════════════════════════════════
+  // THE SHIFT — boot → drafting → resting → sliding → drafting.
+  // Everything schedules off the frame clock (accumulated dt).
+  // ══════════════════════════════════════════════════════════
+  let stage = 'boot';
+  let modeName = 'cottage';
+  let qi = 0, active = null, prog = 0, pauseT = 0;
+  let restT = 0, restDur = 0, slideT = 0;
+
+  let fontsReady = false;
+  document.fonts.ready.then(() => { fontsReady = true; }).catch(() => {});
+  setTimeout(() => { fontsReady = true; }, 2000);   // failsafe — draft with fallbacks
+
+  function pausePick() {
+    if (PRM) return 0.15;
+    return Math.random() < PAUSE_ODDS
+      ? PAUSE_MIN + Math.random() * (PAUSE_MAX - PAUSE_MIN)
+      : 0.03;
+  }
+
+  function startCommission() {
+    plan = generate(modeName);
+    compile();
+    qi = 0; active = null; prog = 0;
+    pauseT = 0.5;
+    stage = 'drafting';
+  }
+
+  function beginSlide() {
+    if (stage === 'sliding') return;
+    sizeLayer(snapC, snapX);
+    snapX.drawImage(paperC, 0, 0, W, H);
+    snapX.drawImage(planC, 0, 0, W, H);
+    // the half-drawn stroke leaves WITH the sheet — mid-flight work is
+    // frozen into the snapshot at its exact progress, not vanished
+    if (active) {
+      if (active.kind === 'stroke') renderStroke(snapX, active, Math.min(prog, active.total));
+      else renderItem(snapX, active, clamp(prog / active.total, 0, 1));
+    }
+    snapX.drawImage(userC, 0, 0, W, H);
+    planX.clearRect(0, 0, W, H);
+    userX.clearRect(0, 0, W, H);
+    uActive = false;
+    plan = generate(modeName);              // next commission waits underneath
+    compile();
+    qi = 0; active = null; prog = 0;
+    slideT = 0;
+    stage = 'sliding';
+  }
+
+  let needsRedraw = true;   // pauses and the rest stage cost nothing
+
+  function frameBody(now) {
+    if (canvas.width === 0 && window.innerWidth > 0) resize();
+    const dt = Math.max(0, Math.min(0.05, (now - last) / 1000));
+    last = now;
+
+    if (stage === 'boot') {
+      if (fontsReady) { startCommission(); needsRedraw = true; }   // Caveat must measure before ink
+    } else if (stage === 'drafting') {
+      if (pauseT > 0) {
+        pauseT -= dt;
+      } else if (active) {
+        prog += (active.kind === 'stroke' ? PENCIL_V : 1) * dt;
+        if (prog >= active.total) {
+          commitItem(active);
+          active = null;
+          pauseT = pausePick();
+          needsRedraw = true;               // one clean frame without the tip
+        }
+      } else if (qi < queue.length) {
+        active = queue[qi++];
+        prog = 0;
+      } else {
+        stage = 'resting';                  // signed — let the sheet breathe
+        restT = 0;
+        restDur = REST_MIN + Math.random() * (REST_MAX - REST_MIN);
+      }
+    } else if (stage === 'resting') {
+      restT += dt;
+      if (restT >= restDur) beginSlide();
+    } else if (stage === 'sliding') {
+      slideT += dt;
+      if (slideT >= SLIDE_S) {
+        stage = 'drafting';
+        pauseT = 0.5;
+        needsRedraw = true;
+        snapC.width = snapC.height = 0;     // the departed sheet frees its buffer
+      }
+    }
+
+    const animating = stage === 'sliding' || (stage === 'drafting' && active && pauseT <= 0);
+    if (animating || needsRedraw) {
+      draw();
+      needsRedraw = false;
+    }
+  }
+
+  function draw() {
+    ctx.drawImage(paperC, 0, 0, W, H);
+    ctx.drawImage(planC, 0, 0, W, H);
+    let tip = null;
+    if (stage === 'drafting' && active) {
+      tip = active.kind === 'stroke'
+        ? renderStroke(ctx, active, Math.min(prog, active.total))
+        : renderItem(ctx, active, clamp(prog / active.total, 0, 1));
+    }
+    ctx.drawImage(userC, 0, 0, W, H);
+    if (tip) pencil(ctx, tip);
+    if (stage === 'sliding') {
+      const t = clamp(slideT / SLIDE_S, 0, 1);
+      const e = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+      if (PRM) {
+        ctx.save();
+        ctx.globalAlpha = 1 - e;            // crossfade, no lateral motion
+        ctx.drawImage(snapC, 0, 0, W, H);
+        ctx.restore();
+      } else {
+        ctx.drawImage(snapC, -e * (W + 60), 0, W, H);
+      }
+    }
+  }
+
+  // ══════════════════════════════════════════════════════════
+  // THE VISITOR'S PENCIL — freehand graphite on its own layer,
+  // appended incrementally. Never blocks the draftsman.
+  // Sheet mid-slide: pencil stays up (ignored, consistently).
   // ══════════════════════════════════════════════════════════
   const hint = document.getElementById('hint');
   let hintFaded = false;
@@ -437,59 +1176,136 @@ the highway, bloom, and estate rules. Again restarts the sheet.</p>
     hint.classList.add('fade');
   }
 
-  let downAt = null;
+  let uActive = false, uId = -1, ux = 0, uy = 0;
 
   canvas.addEventListener('pointerdown', (e) => {
-    downAt = { id: e.pointerId, x: e.clientX, y: e.clientY };
+    if (stage === 'sliding') return;
+    if (uActive) return;                     // one pencil at a time
+    if (e.button !== undefined && e.button > 0) return;
+    try { canvas.setPointerCapture(e.pointerId); } catch (err) { /* stale pointer — capture is a nicety */ }
+    uActive = true;
+    uId = e.pointerId;
+    ux = e.clientX; uy = e.clientY;
+    userX.fillStyle = ink(0.85);            // a tap leaves a dot
+    userX.beginPath();
+    userX.arc(ux, uy, USER_W * 0.55, 0, Math.PI * 2);
+    userX.fill();
+    needsRedraw = true;
+    fadeHint();
   });
-  canvas.addEventListener('pointerup', (e) => {
-    if (!downAt || e.pointerId !== downAt.id) return;
-    const dx = e.clientX - downAt.x, dy = e.clientY - downAt.y;
-    if (dx * dx + dy * dy < 100) {
-      if (addAnt((e.clientX / CS) | 0, (e.clientY / CS) | 0)) fadeHint();
-    }
-    downAt = null;
+  canvas.addEventListener('pointermove', (e) => {
+    if (!uActive || e.pointerId !== uId) return;
+    const x = e.clientX, y = e.clientY;
+    if (Math.hypot(x - ux, y - uy) < 1.5) return;
+    const jx = (Math.random() - 0.5) * 0.4;  // ±0.2 graphite wobble
+    const jy = (Math.random() - 0.5) * 0.4;
+    userX.strokeStyle = ink(0.85);
+    userX.lineWidth = USER_W;
+    userX.lineCap = 'round';
+    userX.beginPath();
+    userX.moveTo(ux, uy);
+    userX.lineTo(x + jx, y + jy);
+    userX.stroke();
+    ux = x + jx; uy = y + jy;
+    needsRedraw = true;
   });
-  canvas.addEventListener('pointercancel', () => { downAt = null; });
+  const endUser = (e) => { if (e.pointerId === uId) { uActive = false; uId = -1; } };
+  canvas.addEventListener('pointerup', endUser);
+  canvas.addEventListener('pointercancel', endUser);
 
   // ══════════════════════════════════════════════════════════
-  // LOOP
+  // MODES — a switch or [ next ] slides the sheet and
+  // re-commissions; mid-slide it just swaps the pending plan.
+  // ══════════════════════════════════════════════════════════
+  function setMode(name) {
+    if (name === modeName) return;
+    modeName = name;
+    document.querySelectorAll('.mode-btn[data-mode]').forEach(btn => {
+      const on = btn.dataset.mode === name;
+      btn.classList.toggle('active', on);
+      btn.setAttribute('aria-pressed', String(on));
+    });
+    fadeHint();
+    if (stage === 'boot') return;           // first commission picks it up
+    if (stage === 'sliding') {
+      plan = generate(modeName);
+      compile();
+      qi = 0; active = null; prog = 0;
+      return;
+    }
+    beginSlide();
+  }
+
+  function nextCommission() {
+    fadeHint();
+    if (stage === 'boot' || stage === 'sliding') return;
+    beginSlide();
+  }
+
+  document.getElementById('modes').addEventListener('click', (e) => {
+    const b = e.target.closest('.mode-btn');
+    if (!b) return;
+    if (b.dataset.mode) setMode(b.dataset.mode);
+    else if (b.id === 'nextBtn') nextCommission();
+  });
+
+  window.addEventListener('keydown', (e) => {
+    if (e.target && e.target.closest && e.target.closest('button, a, input, select, textarea')) return;
+    if (e.key === '1') setMode('cottage');
+    else if (e.key === '2') setMode('courtyard');
+    else if (e.key === '3') setMode('longhouse');
+    else if (e.key === 'n' || e.key === 'N') nextCommission();
+  });
+
+  // ══════════════════════════════════════════════════════════
+  // LOOP + RESIZE — a resized sheet is a new sheet: fresh paper,
+  // fresh commission, visitor graphite cleared.
   // ══════════════════════════════════════════════════════════
   let last = performance.now();
-
-  function frameBody(now) {
-    if (canvas.width === 0 && window.innerWidth > 0) resize();   // 0-size load guard
-    const dt = Math.min(0.05, (now - last) / 1000);
-    last = now;
-    rampT += dt;
-
-    acc += currentSPS() * dt;
-    let n = acc | 0;
-    acc -= n;
-    if (n > 0) stepAnts(n);
-
-    wctx.putImageData(img, 0, 0);
-    ctx.drawImage(paper, 0, 0, W, H);
-    ctx.drawImage(world, 0, 0, W, H);
-
-    // the draftsmen — yellow, a hair larger than a cell so they read
-    ctx.fillStyle = '#F5CB5C';
-    for (let a = 0; a < ants.length; a++) {
-      ctx.fillRect(ants[a].x * CS - 1, ants[a].y * CS - 1, CS + 2, CS + 2);
-    }
-  }
 
   function loop(now) {
     requestAnimationFrame(loop);
     frameBody(now);
   }
 
+  function resize() {
+    DPR = Math.min(2, window.devicePixelRatio || 1);
+    W = window.innerWidth;
+    H = window.innerHeight;
+    canvas.width = Math.floor(W * DPR);
+    canvas.height = Math.floor(H * DPR);
+    canvas.style.width = W + 'px';
+    canvas.style.height = H + 'px';
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    bakePaper();
+    sizeLayer(planC, planX);
+    sizeLayer(userC, userX);
+    uActive = false;
+    if (stage !== 'boot') {
+      plan = generate(modeName);
+      compile();
+      qi = 0; active = null; prog = 0;
+      pauseT = 0.3;
+      stage = 'drafting';
+    }
+    needsRedraw = true;
+  }
+  let rsT = 0;
+  window.addEventListener('resize', () => {
+    clearTimeout(rsT);
+    rsT = setTimeout(resize, 150);   // a resize storm re-commissions once
+  }, { passive: true });
+  window.addEventListener('orientationchange', () => {
+    clearTimeout(rsT);                 // rotation fires resize too — one rebuild
+    rsT = setTimeout(resize, 200);
+  });
+
   resize();
   requestAnimationFrame(loop);
 
   // ── QA hook: step the sim without rAF + read a small snapshot.
   //    Occluded windows starve rAF; this keeps the piece testable. ──
-  if (location.hostname === 'localhost' || location.search.indexOf('qa') !== -1) {
+  if (location.hostname === 'localhost' || new URLSearchParams(location.search).has('qa')) {
     window.__lab = {
       tick(n, ms) {
         n = n || 1; ms = ms || 16.7;
@@ -502,7 +1318,18 @@ the highway, bloom, and estate rules. Again restarts the sheet.</p>
         c.getContext('2d').drawImage(canvas, 0, 0, c.width, c.height);
         return c.toDataURL('image/jpeg', 0.82);
       },
-      info: () => ({ LW, LH, CS, ants: ants.length, steps: stepsDone, sps: Math.round(currentSPS()), mode: modeName }),
+      skip() {
+        if (stage === 'boot') { fontsReady = true; startCommission(); }
+        if (stage !== 'drafting') return;
+        if (active) { commitItem(active); active = null; }
+        while (qi < queue.length) commitItem(queue[qi++]);
+        pauseT = 0;
+        stage = 'resting';
+        restT = 0;
+        restDur = REST_MIN + Math.random() * (REST_MAX - REST_MIN);
+        draw();
+      },
+      info: () => ({ rooms: plan ? plan.rooms.length : 0, strokes: queue.length, stage, mode: modeName }),
     };
   }
 })();

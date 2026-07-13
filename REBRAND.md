@@ -1,5 +1,103 @@
 # tres.studio — Brief V3: the Multiverse
 
+## 🔶 LAB, MULTIVERSE EDITION — BUILT + REVIEWED, **NOT PUSHED** — 2026-07-12 (Tres: "rebuild it all from scratch… theme align with the site it is associated with… make me proud")
+
+**Every lab experiment is now ADOPTED by one universe and rebuilt ground-up
+in that universe's full brand.** This supersedes the one-album dusk-black
+family look (which survives only on alternates — the index, the space
+between). Same URLs; one NEW page. Design doc:
+`docs/specs/2026-07-11-lab-multiverse-design.md`. Committed on
+`astro-migration`; **deploy needs Tres's explicit go (push = live).**
+
+- **plan. → 01 (the sketchbook):** "the night shift" — a REAL house plan
+  drafts itself in pencil on cream watercolor paper: weighted-BSP rooms on
+  a 1ft module, poché walls, door leaves + quarter swings, triple-line
+  windows, one dimension string per side with 45° slashes, Caveat room
+  labels, north arrow, "tres." signature — then the sheet slides away and
+  the next commission begins. Your pointer is a graphite pencil on the
+  same sheet. [ cottage ] [ courtyard ] [ longhouse ] + [ next ].
+  Builder ran a 3000-commission invariant harness (tiling, min dims,
+  door tree, entry 100%).
+- **birds. → 02 (zero gravity):** a murmuration loose in the white void —
+  grab a bird and THROW it (jello spring), click one to cycle the zerog
+  palette (the wordmark period takes the last color), tap scatters, hold
+  gathers. Now and then the flock condenses into "TRES." (adaptive
+  letterform sampling — seats ≈ flock size, column-ordered so it pours in
+  clean); your colored birds claim the period. [ drift ] [ spell ]
+  [ frenzy ].
+- **pulse. → 03 (ascii):** sounding the blank sheet — ink glyphs print on
+  white where ping rings cross a hidden terrain (JetBrains Mono atlas,
+  density ramp + Sobel edge glyphs `|/-\`, scramble-boil ring, inverted
+  answer-back on the summits ~0.5s later). [ ridge ] [ atoll ] [ blocks ]
+  (a generated night city — the architect's world).
+- **field. → 04 (the print sheet):** the halftone raster IS the field —
+  wind rolls tone waves through a 45° screen of ink dots on hot-orange
+  stock (r = Rmax·√darkness, dot gain ^0.85, seeded jitter); crop marks,
+  film grain, FIG. 04 marginalia, warning-strip provenance. Move = dot-gain
+  lens, drag = gust, tap = ink drop, hold = burnish. [ coarse ] [ fine ]
+  [ overprint ] — a beige plate at 75° beats against the ink screen as
+  LIVE MOIRÉ, misregistered per print run.
+- **echo. → 05 (chromatic plates):** the registration pool — the wave
+  field renders as marching-squares contour line art stroked TWICE (blue
+  #2431FF + red #E82929, multiply → ink-dark overlap); plate offsets ride
+  local water velocity, so a still pool is one crisp registered drawing
+  and every ripple tears it into color. The blue registration crosshair
+  trembles with global misregistration. [ still ] [ drizzle ] [ deluge ].
+- **drift. → 06 (the hang):** suminagashi, hung by chance — Jaffer
+  mathematical marbling (closed-form drop injection + tine combing on
+  polygon drops, flat hard-edge pigment ONLY), chance-colored per visit
+  from the exhibition HUES with the orange rationed like the period-dot;
+  the wall label carries the visit's no. NNN seed. Drag = comb (feathered
+  streaks are real marbling math), hold = alternating ink/paper rings.
+  [ stone ] [ rings ] [ combed ] + [ rehang ] + [ save ].
+- **stock. → 08 (the drop) — NEW PAGE `/labs/stock.html`:** midnight in
+  the stockroom — kraft parcels drop onto drawn shelves (G=2600 canon,
+  squash, contact shadows, sleep), grab/throw anything, a true click
+  STAMPS it (red two-arc 08) and knocks it down a level; floor strays get
+  reshelved by the unhurried stockkeeper (9s, 1.4s gaps). [ receiving ]
+  [ inventory ] (full re-sort by size) [ rush ]. Boots with 7 seated.
+- **Portal (/lab):** door plates now carry the keeper's swatch + № tag;
+  doors ordered by universe; skin roll extended to ALL SEVEN universes
+  (IDS list [1,2,3,4,5,6,8] — never a count); new stock door + new field
+  halftone door pattern; reroll copy "skin 0X · reload to reroll".
+- **alternates.:** stays dusk-black on purpose (it's the index); each
+  universe door gained "keeps plan." etc; lede notes the adoption.
+- **Contracts preserved:** same URLs; `/ts.js` the only tracking; nav
+  contract (mark → /, [ ← lab ] → /lab, provenance link → /N/); PRM
+  two-layer everywhere; QA hook `window.__lab` (tick/snap/info + per-sim
+  extras) now UNIVERSAL — birds/drift's old gap closed; all ambience on
+  the frame clock; die-3 favicon auto-discovers (per-page icon links
+  dropped).
+- **Adversarial review: 78-agent workflow round** (8 files × 3 lenses,
+  every finding refutation-verified): 47 confirmed / 54 raw → ALL FIXED.
+  Highlights: the /lab back-link was COUNT-based and silently broke for
+  universe 8 (now ID-LIST membership — the "never 1..COUNT" rule bit us
+  AGAIN); marbling refine() ran per-op instead of per-frame (now flagged
+  + fixed-capacity vertex buffers, zero per-op allocation); birds
+  multi-touch could permanently orphan a held bird; house patterns now
+  binding on all lab pages: dt clamped [0, 0.05] (QA tick pushes `last`
+  past wall-clock), pointercancel clears state ONLY (never commits taps),
+  one gesture at a time + non-primary buttons rejected, capture in
+  try/catch, QA gate via URLSearchParams (substring 'qa' false-matched),
+  resize debounced 150ms, keydown ignores button/link targets, idle
+  early-outs (echo/pulse skip full repaints at rest), mobile modes row
+  at 5.4rem (the two-line wordmark+provenance block needs the clearance).
+  Then a second 3-lens round on plan.html (built later) — see below.
+- **Verified (astro dev, browser, QA hooks + snapd visual judging):** all
+  seven sims boot console-clean, all modes exercised, gestures traced
+  (stamp-drop-level, stockkeeper reshelve 2→0, marbling comb streaks,
+  TRES. formation legible, city-world sonar, moiré breathing, plate
+  tear/re-register), desktop + 375px zero collisions/overflow (button
+  row measured), `window.TS` boots everywhere, `astro build` green
+  (172 pages incl. stock). **NOT humanly eyeballed: motion pacing on all
+  seven** (constants at the top of each inline script) — Tres judges on
+  the live site, per canon.
+- **Open flags for Tres:** (1) push = deploy — your go; (2) stock. is a
+  new URL — bless the name; (3) alternates stays dusk-black by design —
+  flag if you want it re-skinned; (4) pacing constants everywhere are
+  yours to tune; (5) the old WebGL fluid drift is fully replaced —
+  it lives in git history if you ever miss the smoke.
+
 ## ✅ SITE 08 "THE DROP" HOOKED UP + SHIPPED — 2026-07-11 (Tres: "all chats done, wire it up and push live")
 
 **The seventh universe: /8/ — the stockroom.** Built in isolation at

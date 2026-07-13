@@ -1,0 +1,1364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>stock — tres carter</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Hepta+Slab:wght@700;800;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+
+  <!-- tracking: one bootstrap for the whole site (Umami + Clarity + visitor id + self-exclusion) - public/ts.js -->
+  <script defer src="/ts.js"></script>
+
+  <style>
+    /* ───────────────────────────────────────────────────────────
+       STOCK — midnight in the stockroom.
+       Universe 08 keeps this piece: real gravity, drawn shelves,
+       everything grabbable. Parcels drop in, thud, squash, sleep.
+       Click one to stamp it — the red 08 knocks it down a level.
+       An invisible stockkeeper reshelves the strays, unhurried.
+       ─────────────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --paper: #F6F4EE;
+      --ink:   #141310;
+      --red:   #D8341F;
+      --green: #00934D;
+      --shelf: rgba(20, 19, 16, 0.9);
+      --faint: rgba(20, 19, 16, 0.45);
+
+      --disp: 'Hepta Slab', Georgia, serif;
+      --mono: 'Space Mono', ui-monospace, monospace;
+      --pad: clamp(1.5rem, 4vw, 3rem);
+      --ease: cubic-bezier(.2, .8, .2, 1);
+    }
+
+    html, body {
+      background: var(--paper);
+      color: var(--ink);
+      font-family: var(--mono);
+      font-size: 15px;
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+      touch-action: none;
+      overscroll-behavior: none;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    ::selection { background: var(--red); color: var(--paper); }
+
+    a { color: inherit; text-decoration: none; }
+    button {
+      font: inherit; color: inherit; background: none; border: none;
+      cursor: pointer; -webkit-tap-highlight-color: transparent;
+    }
+    a:focus-visible, button:focus-visible {
+      outline: 1px solid var(--red);
+      outline-offset: 3px;
+    }
+
+    canvas#room {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      touch-action: none;
+      display: block;
+      cursor: default;
+    }
+    canvas#room.near { cursor: grab; }
+    canvas#room.held { cursor: grabbing; }
+
+    .fallback {
+      position: fixed; inset: 0;
+      display: grid; place-items: center;
+    }
+
+    /* ─── Chrome — universe 8: Hepta Slab 900 marks, mono spec, red period ─── */
+    .nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: calc(1.2rem + env(safe-area-inset-top, 0px)) var(--pad) 1.2rem;
+      pointer-events: none;
+    }
+    .nav > * { pointer-events: auto; }
+    .nav .mark {
+      font-family: var(--disp);
+      font-weight: 900;
+      font-size: 0.8rem;
+      letter-spacing: 0.04em;
+      transition: opacity 0.25s var(--ease);
+    }
+    .y { color: var(--red); }
+    .nav .back {
+      font-size: 0.62rem;
+      letter-spacing: 0.14em;
+      color: var(--faint);
+      padding: 0.5rem 0;
+      transition: color 0.25s var(--ease);
+    }
+
+    .mark-bottom {
+      position: fixed;
+      bottom: calc(1.6rem + env(safe-area-inset-bottom, 0px));
+      left: var(--pad);
+      font-family: var(--disp);
+      font-weight: 900;
+      font-size: 0.95rem;
+      letter-spacing: 0.04em;
+      z-index: 5;
+      pointer-events: none;
+      line-height: 1.5;
+    }
+    .mark-bottom .uni {
+      display: block;
+      pointer-events: auto;
+      font-family: var(--mono);
+      font-weight: 400;
+      font-size: 0.52rem;
+      letter-spacing: 0.16em;
+      color: var(--faint);
+      padding: 0.3rem 0;
+      transition: color 0.25s var(--ease);
+    }
+
+    .hint {
+      position: fixed;
+      bottom: calc(1.7rem + env(safe-area-inset-bottom, 0px));
+      right: var(--pad);
+      font-size: 0.56rem;
+      letter-spacing: 0.16em;
+      color: var(--faint);
+      z-index: 5;
+      pointer-events: none;
+      transition: opacity 0.8s var(--ease);
+    }
+    .hint.fade { opacity: 0; }
+
+    /* ─── Controls — the shifts ─── */
+    .modes {
+      position: fixed;
+      top: 50%;
+      right: var(--pad);
+      transform: translateY(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 0.35rem;
+      z-index: 10;
+    }
+    .mode-btn {
+      font-size: 0.62rem;
+      letter-spacing: 0.1em;
+      color: var(--faint);
+      padding: 0.55rem 0.2rem;
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+      transition: color 0.3s var(--ease);
+    }
+    .mode-btn.active { color: var(--red); font-weight: 700; }
+
+    @media (hover: hover) {
+      .nav .mark:hover { opacity: 0.65; }
+      .nav .back:hover { color: var(--ink); }
+      .mark-bottom .uni:hover { color: var(--ink); }
+      .mode-btn:hover { color: var(--ink); }
+      .mode-btn.active:hover { color: var(--red); }
+    }
+
+    /* ─── Mobile ─── */
+    @media (max-width: 700px) {
+      .modes {
+        top: auto;
+        bottom: calc(5.4rem + env(safe-area-inset-bottom, 0px));
+        right: 0;
+        left: 0;
+        transform: none;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        gap: 0.2rem;
+      }
+      .mode-btn {
+        padding: 0.55rem 0.55rem;
+        font-size: 0.56rem;
+      }
+      .mark-bottom { font-size: 0.8rem; }
+      .hint { max-width: 40vw; text-align: right; }
+    }
+
+    /* ─── Reduced motion: chrome settles instantly; in JS arrivals
+           appear seated, stamps skip the squash, the stockkeeper
+           takes a shorter straighter path. throws stay yours. ─── */
+    @media (prefers-reduced-motion: reduce) {
+      .nav .mark, .nav .back, .mode-btn, .hint,
+      .mark-bottom .uni { transition: none; }
+    }
+
+    .sr {
+      position: absolute;
+      width: 1px; height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      white-space: nowrap;
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="room" aria-hidden="true"></canvas>
+
+<p class="sr">A stockroom at night, receiving. Kraft-paper parcels drop in
+from above, thud onto two drawn shelves and the floor, squash, and settle
+to sleep. Grab a parcel and throw it; a plain click stamps it with a red
+08 and knocks it down a level. Strays left on the floor are quietly
+reshelved by an unseen stockkeeper, one at a time. Shifts: receiving,
+inventory, rush.</p>
+<noscript><p class="fallback">stock needs JavaScript.</p></noscript>
+
+<nav class="nav">
+  <a class="mark" href="/">tres carter<span class="y">.</span></a>
+  <a class="back" href="/lab">[ &larr; lab ]</a>
+</nav>
+
+<div class="modes" id="modes" role="group" aria-label="shifts">
+  <button class="mode-btn active" data-mode="receiving" aria-pressed="true">[ receiving ]</button>
+  <button class="mode-btn" data-mode="inventory" aria-pressed="false">[ inventory ]</button>
+  <button class="mode-btn" data-mode="rush" aria-pressed="false">[ rush ]</button>
+</div>
+
+<div class="mark-bottom">stock<span class="y">.</span><a
+  class="uni" href="/8/">from universe 08</a></div>
+<div class="hint" id="hint">throw the stock &middot; click to stamp</div>
+
+<script>
+(function () {
+  'use strict';
+
+  // ══════════════════════════════════════════════════════════
+  // SETUP
+  // ══════════════════════════════════════════════════════════
+  const canvas = document.getElementById('room');
+  const ctx = canvas.getContext('2d', { alpha: false });
+  if (!ctx) return;
+
+  const PRM = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  let W = window.innerWidth;
+  let H = window.innerHeight;
+  let DPR = Math.min(2, window.devicePixelRatio || 1);
+  let prevW = 0, prevH = 0;
+  let booted = false;
+
+  const PAPER = '#F6F4EE';
+  const INK = '#141310';
+  const RED = '#D8341F';
+  const GREEN = '#00934D';
+  const SHELF = 'rgba(20,19,16,0.9)';
+  const FAINT = 'rgba(20,19,16,0.45)';
+  // kraft tints — the four papers the supplier actually sends
+  const KRAFT = ['#EFE9DC', '#E9E2D2', '#F2EDE1', '#EDE5D4'];
+  const TAU = Math.PI * 2;
+
+  // ══════════════════════════════════════════════════════════
+  // TUNING — physics + pacing. speeds px/s, times seconds.
+  // ══════════════════════════════════════════════════════════
+  const G = 2600;                 // gravity, grav.js lineage
+  const STEP = 1 / 120;           // fixed sub-step (2 per frame at 60fps)
+  const REST = 0.12;              // vy kept on landing (thud, then rest)
+  const LAND_FRIC = 0.86;         // vx kept per real landing
+  const GROUND_FRIC = 6;          // exp slide decay while supported
+  const VMAX = 2400;              // absolute speed safety clamp
+  const SLEEP_V = 8;              // below this on both axes => drowsy
+  const SLEEP_T = 0.6;            // drowsy this long => asleep
+  const WAKE_V = 40;              // relative impact that wakes a sleeper
+  const GRAB_K = 180, GRAB_C = 13; // hand spring — underdamped jello
+  const THROW_MAX = 1400;         // fling speed clamp
+  const CLICK_PX2 = 64;           // click-vs-drag threshold, px^2
+  const CLICK_MS = 400;
+  const SQ_K = 300, SQ_C = 24;    // squash spring back (~180ms)
+  const SQ_DIP_MAX = 0.18;        // deepest scaleY dip => ~0.82
+  const STAMP_S = 0.12;           // stamp scale-in 1.15 -> 1.0
+  const RESHELVE_AFTER = 9;       // floor seconds before the keeper cares
+  const RESHELVE_GAP = 1.4;       // breather between returns
+  const RESHELVE_RETRY = 6;       // no gap anywhere => try again later
+  const TWEEN_S = PRM ? 0.9 : 1.6; // keeper carry duration
+  const CAP = 26;                 // over this, the oldest sleeper ships
+  const SHIP_S = 0.9;             // slide-off duration
+  const SHIFTS = {
+    receiving: { every: [8, 13] },
+    rush:      { every: [2.5, 4] },
+    inventory: { every: null },   // arrivals paused — the keeper re-sorts
+  };
+  let mode = 'receiving';
+
+  // ══════════════════════════════════════════════════════════
+  // THE SCENE — two shelves and a floor, baked once per resize
+  // ══════════════════════════════════════════════════════════
+  let SX0 = 0, SX1 = 0;
+  let PLATS = [];
+  const FLOOR_I = 2;
+  let bd = null;                  // backdrop offscreen
+
+  function computeGeom() {
+    SX0 = W * 0.08;
+    SX1 = W * 0.92;
+    PLATS = [
+      { y: H * 0.34, label: 'shelf a — inbound' },
+      { y: H * 0.58, label: 'shelf b — oversize' },
+      { y: H * 0.86, label: 'floor — mind the stock' },
+    ];
+  }
+
+  function bakeBackdrop() {
+    bd = document.createElement('canvas');
+    bd.width = Math.max(1, Math.floor(W * DPR));
+    bd.height = Math.max(1, Math.floor(H * DPR));
+    const g = bd.getContext('2d');
+    g.setTransform(DPR, 0, 0, DPR, 0, 0);
+    g.fillStyle = PAPER;
+    g.fillRect(0, 0, W, H);
+    g.strokeStyle = SHELF;
+    g.lineWidth = 2;
+    g.fillStyle = FAINT;
+    g.font = '400 9.5px "Space Mono", ui-monospace, monospace';
+    g.textAlign = 'left';
+    g.textBaseline = 'alphabetic';
+    for (const p of PLATS) {
+      const y = Math.round(p.y);
+      g.beginPath();
+      g.moveTo(SX0, y);
+      g.lineTo(SX1, y);
+      // bracket ticks — the shelf admits it has ends
+      g.moveTo(SX0 + 1, y);
+      g.lineTo(SX0 + 1, y + 8);
+      g.moveTo(SX1 - 1, y);
+      g.lineTo(SX1 - 1, y + 8);
+      g.stroke();
+      g.fillText(p.label, SX0, y - 8);
+    }
+  }
+
+  // ══════════════════════════════════════════════════════════
+  // PARCELS — faces baked to tiny offscreens at spawn
+  // ══════════════════════════════════════════════════════════
+  let bodies = [];
+  let nextId = 0;
+
+  function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
+
+  function rr(g, x, y, w, h, r) {
+    g.beginPath();
+    g.moveTo(x + r, y);
+    g.arcTo(x + w, y, x + w, y + h, r);
+    g.arcTo(x + w, y + h, x, y + h, r);
+    g.arcTo(x, y + h, x, y, r);
+    g.arcTo(x, y, x + w, y, r);
+    g.closePath();
+  }
+
+  // the red one — two open arcs, tilted, "08" dead center
+  function drawRedStamp(g, cx, cy, r, s) {
+    g.save();
+    g.translate(cx, cy);
+    g.rotate(-12 * Math.PI / 180);
+    g.scale(s, s);
+    g.globalAlpha *= 0.82;
+    g.strokeStyle = RED;
+    g.fillStyle = RED;
+    g.lineWidth = 1.8;
+    g.beginPath(); g.arc(0, 0, r, -1.95, 0.85); g.stroke();
+    g.beginPath(); g.arc(0, 0, r, 1.25, 3.85); g.stroke();
+    g.font = '900 ' + (r * 1.05).toFixed(1) + 'px "Hepta Slab", Georgia, serif';
+    g.textAlign = 'center';
+    g.textBaseline = 'middle';
+    g.fillText('08', 0, r * 0.06);
+    g.restore();
+  }
+
+  // the green one — already checked in upstream, rougher, smaller
+  function drawGreenStamp(g, cx, cy, rot) {
+    const r = 8.5;
+    g.save();
+    g.translate(cx, cy);
+    g.rotate(rot);
+    g.globalAlpha *= 0.75;
+    g.strokeStyle = GREEN;
+    g.fillStyle = GREEN;
+    g.lineWidth = 1.4;
+    g.beginPath(); g.arc(0, 0, r, 0.25, 6.05); g.stroke();
+    g.font = '700 7.5px "Space Mono", ui-monospace, monospace';
+    g.textAlign = 'center';
+    g.textBaseline = 'middle';
+    g.fillText('08', 0, 0.5);
+    g.restore();
+  }
+
+  function bakeFace(b) {
+    const c = b.face || document.createElement('canvas');
+    c.width = Math.max(1, Math.ceil(b.w * DPR));
+    c.height = Math.max(1, Math.ceil(b.h * DPR));
+    const g = c.getContext('2d');
+    g.setTransform(DPR, 0, 0, DPR, 0, 0);
+    rr(g, 0.75, 0.75, b.w - 1.5, b.h - 1.5, 3);
+    g.fillStyle = b.tint;
+    g.fill();
+    g.strokeStyle = INK;
+    g.lineWidth = 1.5;
+    g.stroke();
+    // stencil code — shrink to fit the narrow ones
+    const dim = b.codeRot ? b.h : b.w;
+    const fs = clamp((dim - 4) / 4.2, 5, 8.5);
+    g.fillStyle = FAINT;
+    g.font = '400 ' + fs.toFixed(1) + 'px "Space Mono", ui-monospace, monospace';
+    g.textAlign = 'center';
+    g.textBaseline = 'middle';
+    if (b.codeRot) {
+      g.save();
+      g.translate(b.w / 2, b.h / 2);
+      g.rotate(-Math.PI / 2);
+      g.fillText(b.code, 0, 0);
+      g.restore();
+    } else {
+      g.fillText(b.code, b.w / 2, b.h / 2);
+    }
+    if (b.green) drawGreenStamp(g, b.greenX, b.greenY, b.greenRot);
+    if (b.stamped && b.stampAnim < 0) {
+      drawRedStamp(g, b.w / 2 + b.stampX, b.h / 2 + b.stampY, b.stampR, 1);
+    }
+    b.face = c;
+  }
+
+  function makeBody() {
+    const SC = Math.min(W, H) < 700 ? 0.8 : 1;
+    const w = (36 + Math.random() * 52) * SC;
+    const h = (30 + Math.random() * 32) * SC;
+    const b = {
+      id: nextId++,
+      x: 0, y: 0, w, h, vx: 0, vy: 0,
+      prevY: 0,
+      sq: 1, sqv: 0,
+      alpha: 1,
+      asleep: false, sleepT: 0,
+      supported: false, supportPlat: -1, supportY: 0,
+      grabbed: false, offX: 0, offY: 0,
+      tween: false, tweenPlat: -1, tweenX: 0,
+      shipping: false, shipT: 0, shipX: 0, dead: false,
+      dropPlat: -1,
+      floorT: 0, retryT: 0,
+      stamped: false, stampAnim: -1, stampX: 0, stampY: 0, stampR: 12,
+      green: Math.random() < 0.35,
+      greenX: 0, greenY: 0, greenRot: 0,
+      tint: KRAFT[(Math.random() * KRAFT.length) | 0],
+      code: '', codeRot: false,
+      face: null,
+    };
+    b.code = 'TRS-' + ('00' + ((b.id * 73 + 137) % 1000)).slice(-3);
+    b.codeRot = h > w && Math.random() < 0.35;
+    if (b.green) {
+      b.greenX = clamp(w * 0.68 + (Math.random() - 0.5) * w * 0.1, 11, w - 11);
+      b.greenY = clamp(h * 0.32 + (Math.random() - 0.5) * h * 0.15, 10, h - 10);
+      b.greenRot = (-10 + Math.random() * 20) * Math.PI / 180;
+    }
+    bakeFace(b);
+    return b;
+  }
+
+  function seatBody(b, p, x) {
+    b.x = x;
+    b.y = PLATS[p].y - b.h / 2;
+    b.vx = 0; b.vy = 0;
+    b.asleep = true;
+    b.supported = true;
+    b.supportPlat = p;
+    b.supportY = PLATS[p].y;
+    b.sq = 1; b.sqv = 0;
+  }
+
+  function wake(b) {
+    b.asleep = false;
+    b.sleepT = 0;
+  }
+
+  function squashTo(b, s) {
+    if (PRM) return;
+    if (s < b.sq) { b.sq = s; b.sqv = 0; }
+  }
+
+  function squashHit(b, impact) {
+    if (PRM || impact < 80) return;
+    squashTo(b, 1 - Math.min(SQ_DIP_MAX, impact * 0.00016));
+  }
+
+  // ══════════════════════════════════════════════════════════
+  // ARRIVALS + SHIPPING — the dock door
+  // ══════════════════════════════════════════════════════════
+  let arriveClock = 1.2;   // the first truck is already backing in
+
+  function pickSpawnX(w) {
+    const lo = SX0 + w / 2 + 8, hi = SX1 - w / 2 - 8;
+    for (let t = 0; t < 10; t++) {
+      const x = lo + Math.random() * Math.max(1, hi - lo);
+      let ok = true;
+      for (const b of bodies) {
+        // avoid dropping straight onto something still falling in
+        if (b.y + b.h / 2 < PLATS[0].y && Math.abs(b.x - x) < (b.w + w) / 2 + 10) { ok = false; break; }
+      }
+      if (ok) return x;
+    }
+    return lo + Math.random() * Math.max(1, hi - lo);
+  }
+
+  function shipOldest() {
+    let cand = null;
+    for (const b of bodies) {
+      if (b.asleep && !b.stamped && !b.grabbed && !b.tween && !b.shipping) {
+        if (!cand || b.id < cand.id) cand = b;
+      }
+    }
+    if (!cand) return;
+    cand.shipping = true;
+    cand.asleep = false;
+    cand.shipT = 0;
+    cand.shipX = cand.x;
+    // paint it over the wall line on its way out
+    bodies.splice(bodies.indexOf(cand), 1);
+    bodies.push(cand);
+  }
+
+  function arrive() {
+    if (bodies.length >= CAP + 4) return;   // hard stop — the room is full
+    if (bodies.length >= CAP) shipOldest();
+    const b = makeBody();
+    if (PRM) {
+      // no drop — the parcel is simply there, fading in
+      for (const p of [0, 1, 2]) {
+        const tx = findGap(p, b.w, null);
+        if (tx != null) {
+          seatBody(b, p, tx);
+          b.alpha = 0;
+          bodies.push(b);
+          return;
+        }
+      }
+      return;   // full house — skip this truck
+    }
+    b.x = pickSpawnX(b.w);
+    b.y = -b.h / 2 - 12 - Math.random() * 40;
+    if (mode === 'rush') {
+      b.vy = 120 + Math.random() * 180;
+      b.vx = (Math.random() - 0.5) * 90;
+    }
+    bodies.push(b);
+  }
+
+  function shipStep(b, h) {
+    b.shipT += h;
+    if (PRM) {
+      b.alpha = Math.max(0, 1 - b.shipT / 0.5);
+      if (b.shipT >= 0.5) b.dead = true;
+    } else {
+      const u = Math.min(1, b.shipT / SHIP_S);
+      b.x = b.shipX + (W + b.w - b.shipX) * u * u;
+      if (u >= 1) b.dead = true;
+    }
+  }
+
+  // ══════════════════════════════════════════════════════════
+  // THE STOCKKEEPER — one parcel at a time, never hurried
+  // ══════════════════════════════════════════════════════════
+  const keeper = { state: 'idle', t: 0, body: null, fx: 0, fy: 0, cx: 0, cy: 0, tx: 0, ty: 0 };
+  const sortQueue = [];
+
+  function findGap(platIdx, w, exclude) {
+    const iv = [];
+    for (const o of bodies) {
+      if (o === exclude || o.shipping) continue;
+      let ox = null, ow = o.w;
+      if (o.tween && o.tweenPlat === platIdx) ox = o.tweenX;       // in-flight seat is reserved
+      else if (!o.tween && o.supportPlat === platIdx) ox = o.x;
+      if (ox === null) continue;
+      iv.push([ox - ow / 2 - 6, ox + ow / 2 + 6]);
+    }
+    iv.sort((p, q) => p[0] - q[0]);
+    let cur = SX0 + 4;
+    for (const seg of iv) {
+      if (seg[0] - cur >= w + 8) return cur + 4 + w / 2;
+      if (seg[1] > cur) cur = seg[1];
+    }
+    if (SX1 - 4 - cur >= w + 8) return cur + 4 + w / 2;
+    return null;
+  }
+
+  function startCarry(b, platIdx, tx) {
+    wake(b);
+    b.tween = true;
+    b.vx = 0; b.vy = 0;
+    b.dropPlat = -1;
+    b.floorT = 0;
+    b.tweenPlat = platIdx;
+    b.tweenX = tx;
+    keeper.body = b;
+    keeper.state = 'carry';
+    keeper.t = 0;
+    keeper.fx = b.x;
+    keeper.fy = b.y;
+    keeper.tx = tx;
+    keeper.ty = PLATS[platIdx].y - b.h / 2;
+    keeper.cx = (b.x + tx) / 2;
+    keeper.cy = Math.min(b.y, keeper.ty) - (PRM ? 60 : 140);   // floats up, then over
+    // ride above the room while carried
+    bodies.splice(bodies.indexOf(b), 1);
+    bodies.push(b);
+  }
+
+  function cancelCarry(cool) {
+    if (keeper.body) { keeper.body.tween = false; wake(keeper.body); }
+    keeper.body = null;
+    keeper.state = 'cool';
+    keeper.t = cool;
+  }
+
+  function seatFree(b) {
+    for (const o of bodies) {
+      if (o === b || o.tween || o.shipping) continue;
+      if (Math.abs(o.x - b.x) < (o.w + b.w) / 2 - 2 &&
+          Math.abs(o.y - b.y) < (o.h + b.h) / 2 - 2) return false;
+    }
+    return true;
+  }
+
+  function bez(a, c, b, t) { const u = 1 - t; return u * u * a + 2 * u * t * c + t * t * b; }
+
+  function keeperStep(h) {
+    if (keeper.state === 'carry') {
+      const b = keeper.body;
+      if (!b || !b.tween || bodies.indexOf(b) < 0) { cancelCarry(RESHELVE_GAP); return; }
+      keeper.t += h;
+      const u = Math.min(1, keeper.t / TWEEN_S);
+      const e = PRM ? u : (u < 0.5 ? 2 * u * u : 1 - Math.pow(-2 * u + 2, 2) / 2);
+      b.x = bez(keeper.fx, keeper.cx, keeper.tx, e);
+      b.y = bez(keeper.fy, keeper.cy, keeper.ty, e);
+      b.prevY = b.y;
+      if (u >= 1) {
+        b.tween = false;
+        b.x = keeper.tx;
+        b.y = keeper.ty;
+        b.vx = 0; b.vy = 0;
+        b.floorT = 0;
+        if (seatFree(b)) {
+          seatBody(b, b.tweenPlat, keeper.tx);
+        }
+        keeper.body = null;
+        keeper.state = 'cool';
+        keeper.t = RESHELVE_GAP;
+      }
+      return;
+    }
+    if (keeper.state === 'cool') {
+      keeper.t -= h;
+      if (keeper.t <= 0) keeper.state = 'idle';
+      return;
+    }
+    // idle — the sort plan outranks stray duty
+    while (sortQueue.length) {
+      const job = sortQueue.shift();
+      if (bodies.indexOf(job.b) < 0 || job.b.grabbed || job.b.shipping) continue;
+      if (!job.b.tween && Math.abs(job.b.x - job.x) < 6 && job.b.supportPlat === job.plat) {
+        // already where it belongs — a glance, not a carry
+        keeper.state = 'cool';
+        keeper.t = 0.25;
+        return;
+      }
+      startCarry(job.b, job.plat, job.x);
+      return;
+    }
+    // stray duty — the floor is not storage
+    let cand = null;
+    for (const b of bodies) {
+      if (b.grabbed || b.tween || b.shipping || b.retryT > 0) continue;
+      if (b.floorT > RESHELVE_AFTER && (!cand || b.floorT > cand.floorT)) cand = b;
+    }
+    if (!cand) return;
+    let plat = 0;
+    let tx = findGap(0, cand.w, cand);
+    if (tx == null) { plat = 1; tx = findGap(1, cand.w, cand); }
+    if (tx == null) { cand.retryT = RESHELVE_RETRY; return; }
+    startCarry(cand, plat, tx);
+  }
+
+  function planInventory() {
+    sortQueue.length = 0;
+    const list = bodies.filter(b => !b.shipping).sort((a, b) => b.w - a.w);
+    const cur = [SX0 + 10, SX0 + 10, SX0 + 10];   // cursor per level
+    const LEVELS = [1, 0, 2];                     // widest to oversize, then inbound, then the floor edge
+    for (const b of list) {
+      for (const li of LEVELS) {
+        if (cur[li] + b.w + 10 <= SX1) {
+          sortQueue.push({ b, plat: li, x: cur[li] + b.w / 2 });
+          cur[li] += b.w + 12;
+          break;
+        }
+      }
+      // no room anywhere: it stays where it is
+    }
+  }
+
+  // ══════════════════════════════════════════════════════════
+  // MODES — the shifts
+  // ══════════════════════════════════════════════════════════
+  function setMode(name) {
+    if (!SHIFTS[name] || name === mode) return;
+    mode = name;
+    document.querySelectorAll('.mode-btn[data-mode]').forEach(btn => {
+      const on = btn.dataset.mode === name;
+      btn.classList.toggle('active', on);
+      btn.setAttribute('aria-pressed', String(on));
+    });
+    sortQueue.length = 0;
+    if (name === 'inventory') {
+      planInventory();
+    } else {
+      const r = SHIFTS[name].every;
+      arriveClock = r[0] + Math.random() * (r[1] - r[0]);
+    }
+    fadeHint();
+  }
+
+  document.getElementById('modes').addEventListener('click', (e) => {
+    const btn = e.target.closest('.mode-btn');
+    if (btn && btn.dataset.mode) setMode(btn.dataset.mode);
+  });
+
+  window.addEventListener('keydown', (e) => {
+    if (e.key === '1') setMode('receiving');
+    else if (e.key === '2') setMode('inventory');
+    else if (e.key === '3') setMode('rush');
+  });
+
+  // ══════════════════════════════════════════════════════════
+  // INPUT — grab, throw, and the stamp
+  // ══════════════════════════════════════════════════════════
+  const hint = document.getElementById('hint');
+  let hintFaded = false;
+  function fadeHint() {
+    if (hintFaded) return;
+    hintFaded = true;
+    hint.classList.add('fade');
+  }
+
+  const pointer = { x: -1e4, y: -1e4 };
+  let held = null;
+  let down = null;                 // {id, x, y, t, moved}
+  let pvx = 0, pvy = 0;            // smoothed pointer velocity
+  let prevPx = -1e4, prevPy = -1e4;
+
+  function hitBody(x, y) {
+    // topmost by paint order
+    for (let i = bodies.length - 1; i >= 0; i--) {
+      const b = bodies[i];
+      if (b.shipping) continue;
+      if (Math.abs(x - b.x) <= b.w / 2 + 4 && Math.abs(y - b.y) <= b.h / 2 + 4) return b;
+    }
+    return null;
+  }
+
+  function grab(b, px, py) {
+    if (b.tween) {
+      // the hand wins over the stockkeeper
+      b.tween = false;
+      if (keeper.body === b) cancelCarry(0.8);
+    }
+    held = b;
+    b.grabbed = true;
+    wake(b);
+    b.dropPlat = -1;
+    b.floorT = 0;
+    b.offX = b.x - px;
+    b.offY = b.y - py;
+    pvx = 0; pvy = 0;
+    prevPx = px; prevPy = py;
+    bodies.splice(bodies.indexOf(b), 1);
+    bodies.push(b);
+    canvas.classList.add('held');
+    canvas.classList.remove('near');
+  }
+
+  // support probe at click time — grabbed bodies carry no live support flag,
+  // but a true click barely moved, so the seat under it is still honest
+  function probePlat(b) {
+    const bot = b.y + b.h / 2;
+    for (let p = 0; p < PLATS.length; p++) {
+      if (Math.abs(bot - PLATS[p].y) < 6 &&
+          b.x + b.w / 2 > SX0 && b.x - b.w / 2 < SX1) return p;
+    }
+    return -1;
+  }
+
+  function clickBody(b) {
+    wake(b);
+    squashTo(b, 0.88);   // the thunk (PRM: skipped)
+    if (!b.stamped) {
+      b.stamped = true;
+      b.stampAnim = 0;
+      b.stampR = clamp(Math.min(b.w, b.h) * 0.34, 10, 16);
+      b.stampX = (Math.random() * 2 - 1) * b.w * 0.06;
+      b.stampY = (Math.random() * 2 - 1) * b.h * 0.06;
+      const p = probePlat(b);
+      if (p === 0 || p === 1) {
+        // the canon gesture — down a level it goes
+        b.dropPlat = p;
+        b.supported = false;
+        b.supportPlat = -1;
+        b.vy = Math.max(b.vy, 60);
+      }
+    }
+    // already stamped: the re-thunk is the whole answer
+  }
+
+  canvas.addEventListener('pointerdown', (e) => {
+    if (e.button !== undefined && e.button > 0) return;   // primary button only — no right-click grabs
+    if (down) return;   // one hand runs this room
+    try { canvas.setPointerCapture(e.pointerId); } catch (err) { /* stale pointer — capture is a nicety */ }
+    down = { id: e.pointerId, x: e.clientX, y: e.clientY, t: performance.now(), moved: false };
+    pointer.x = e.clientX;
+    pointer.y = e.clientY;
+    const b = hitBody(e.clientX, e.clientY);
+    if (b) grab(b, e.clientX, e.clientY);
+    fadeHint();
+  });
+
+  canvas.addEventListener('pointermove', (e) => {
+    if (down && e.pointerId !== down.id) return;   // the second hand doesn't steer
+    pointer.x = e.clientX;
+    pointer.y = e.clientY;
+    if (down && e.pointerId === down.id) {
+      const dx = e.clientX - down.x, dy = e.clientY - down.y;
+      if (dx * dx + dy * dy > CLICK_PX2) down.moved = true;
+    }
+    if (!down) {
+      canvas.classList.toggle('near', !!hitBody(e.clientX, e.clientY));
+    }
+  });
+
+  function endPointer(e) {
+    if (!down || e.pointerId !== down.id) return;
+    const dt = performance.now() - down.t;
+    if (held) {
+      held.grabbed = false;
+      if (!down.moved && dt < CLICK_MS) {
+        held.vx = 0;
+        held.vy = 0;
+        clickBody(held);
+      } else {
+        const sp = Math.hypot(pvx, pvy);
+        const f = sp > THROW_MAX ? THROW_MAX / sp : 1;
+        held.vx = pvx * f;
+        held.vy = pvy * f;
+      }
+      held = null;
+      canvas.classList.remove('held');
+    }
+    down = null;
+  }
+  canvas.addEventListener('pointerup', endPointer);
+  canvas.addEventListener('pointercancel', endPointer);
+  canvas.addEventListener('contextmenu', (e) => e.preventDefault());   // no long-press menu stranding a held parcel
+
+  // ══════════════════════════════════════════════════════════
+  // SIM — honest AABB, one-way platforms, real weight
+  // ══════════════════════════════════════════════════════════
+  function platformCollide(b) {
+    const bot = b.y + b.h / 2;
+    const prevBot = b.prevY + b.h / 2;
+    for (let p = 0; p < PLATS.length; p++) {
+      if (b.dropPlat === p) {
+        // ignored until the top clears the line — then the shelf is real again
+        if (b.y - b.h / 2 > PLATS[p].y + 2) b.dropPlat = -1;
+        continue;
+      }
+      const pl = PLATS[p];
+      if (b.vy > 0 && prevBot <= pl.y + 0.01 && bot >= pl.y &&
+          b.x + b.w / 2 > SX0 && b.x - b.w / 2 < SX1) {
+        const impact = b.vy;
+        b.y = pl.y - b.h / 2;
+        b.vy = -b.vy * REST;
+        if (Math.abs(b.vy) < 20) b.vy = 0;
+        if (impact > 40) b.vx *= LAND_FRIC;
+        squashHit(b, impact);
+        return;
+      }
+    }
+  }
+
+  function resolvePairs() {
+    for (let it = 0; it < 3; it++) {
+      for (let i = 0; i < bodies.length; i++) {
+        const a = bodies[i];
+        if (a.tween || a.shipping) continue;
+        for (let j = i + 1; j < bodies.length; j++) {
+          const b = bodies[j];
+          if (b.tween || b.shipping) continue;
+          const px = (a.w + b.w) / 2 - Math.abs(b.x - a.x);
+          if (px <= 0) continue;
+          const py = (a.h + b.h) / 2 - Math.abs(b.y - a.y);
+          if (py <= 0) continue;
+          if (a.asleep && b.asleep) continue;   // settled stacks don't grind
+
+          if (py <= px) {
+            // vertical — seat, absorb, transfer squash
+            const top = a.y <= b.y ? a : b;
+            const bot = top === a ? b : a;
+            const relVy = top.vy - bot.vy;
+            if (bot.asleep && (top.grabbed || relVy > WAKE_V)) wake(bot);
+            if (top.asleep && (bot.grabbed || -relVy > WAKE_V)) wake(top);
+            const botStatic = bot.asleep || bot.grabbed || bot.supported;
+            const topStatic = top.asleep || top.grabbed;
+            if (topStatic && botStatic) {
+              if (top.grabbed) top.y -= py;   // held parcel rides the stack
+            } else if (botStatic) {
+              top.y -= py;
+            } else if (topStatic) {
+              bot.y += py;
+            } else {
+              top.y -= py / 2;
+              bot.y += py / 2;
+            }
+            if (relVy > 0) {
+              if (relVy > 80) { squashHit(top, relVy); squashHit(bot, relVy * 0.5); }
+              if (!top.asleep && !top.grabbed) {
+                top.vy = bot.vy;
+                if (relVy > 40) top.vx = bot.vx + (top.vx - bot.vx) * LAND_FRIC;
+              } else if (top.grabbed) {
+                if (top.vy > 0) top.vy = 0;   // pressed onto a stack: it holds
+              } else if (!bot.asleep && !bot.grabbed) {
+                bot.vy = top.vy;              // rising into a sleeper's belly
+              }
+            }
+          } else {
+            // horizontal — shoulder to shoulder
+            const l = a.x <= b.x ? a : b;
+            const r = l === a ? b : a;
+            const relVx = r.vx - l.vx;
+            if (l.asleep && (r.grabbed || -relVx > WAKE_V)) wake(l);
+            if (r.asleep && (l.grabbed || relVx > WAKE_V)) wake(r);
+            const lStatic = l.asleep || l.grabbed;
+            const rStatic = r.asleep || r.grabbed;
+            if (lStatic && rStatic) continue;
+            if (lStatic) r.x += px;
+            else if (rStatic) l.x -= px;
+            else { l.x -= px / 2; r.x += px / 2; }
+            if (relVx < 0) {
+              // approaching — kill most of it, no elastic chatter
+              if (lStatic && !rStatic) r.vx = -relVx * 0.25 + l.vx;
+              else if (rStatic && !lStatic) l.vx = relVx * 0.25 + r.vx;
+              else {
+                const m = (l.vx + r.vx) / 2;
+                l.vx = m + (l.vx - m) * 0.2;
+                r.vx = m + (r.vx - m) * 0.2;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  function wallClamp(b) {
+    if (b.grabbed || b.tween || b.shipping) return;
+    const hw = b.w / 2;
+    if (b.x - hw < SX0) {
+      b.x = SX0 + hw;
+      if (b.vx < 0) b.vx *= -0.3;
+    } else if (b.x + hw > SX1) {
+      b.x = SX1 - hw;
+      if (b.vx > 0) b.vx *= -0.3;
+    }
+  }
+
+  function floorSafety(b) {
+    // nothing lives below the floor — hand-released strays get put back
+    if (b.grabbed || b.tween || b.shipping) return;
+    if (b.y + b.h / 2 > PLATS[FLOOR_I].y) {
+      b.y = PLATS[FLOOR_I].y - b.h / 2;
+      if (b.vy > 0) b.vy = 0;
+    }
+  }
+
+  function computeSupport() {
+    for (const b of bodies) {
+      b.supported = false;
+      b.supportPlat = -1;
+      if (b.tween || b.shipping || b.grabbed) continue;
+      const bot = b.y + b.h / 2;
+      if (b.vy > 1) continue;
+      for (let p = 0; p < PLATS.length; p++) {
+        if (b.dropPlat === p) continue;
+        if (Math.abs(bot - PLATS[p].y) <= 3 &&
+            b.x + b.w / 2 > SX0 && b.x - b.w / 2 < SX1) {
+          b.supported = true;
+          b.supportPlat = p;
+          b.supportY = PLATS[p].y;
+          break;
+        }
+      }
+    }
+    // stacks — resolve lowest first so support flows upward
+    const order = bodies.slice().sort((a, b) => (b.y + b.h / 2) - (a.y + a.h / 2));
+    for (let pass = 0; pass < 2; pass++) {
+      for (const b of order) {
+        if (b.supported || b.grabbed || b.tween || b.shipping) continue;
+        if (b.vy > 1) continue;
+        const bot = b.y + b.h / 2;
+        for (const o of bodies) {
+          if (o === b || o.tween || o.shipping || o.grabbed) continue;
+          if (!(o.supported || o.asleep)) continue;
+          const top = o.y - o.h / 2;
+          if (Math.abs(bot - top) <= 3) {
+            const ov = Math.min(b.x + b.w / 2, o.x + o.w / 2) - Math.max(b.x - b.w / 2, o.x - o.w / 2);
+            if (ov >= 8) {
+              b.supported = true;
+              b.supportY = top;
+              break;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  function sleepPass(h) {
+    for (const b of bodies) {
+      if (b.grabbed || b.tween || b.shipping) { b.sleepT = 0; continue; }
+      if (b.supportPlat === FLOOR_I) b.floorT += h;
+      else b.floorT = 0;
+      if (b.asleep) {
+        if (!b.supported) wake(b);   // the shelf under it left
+        continue;
+      }
+      if (b.supported && Math.abs(b.vx) < SLEEP_V && Math.abs(b.vy) < SLEEP_V) {
+        b.y = b.supportY - b.h / 2;   // seat snap — stacks must not jitter
+        b.vy = 0;
+        b.sleepT += h;
+        if (b.sleepT >= SLEEP_T) {
+          b.asleep = true;
+          b.vx = 0; b.vy = 0;
+          b.sq = 1; b.sqv = 0;
+        }
+      } else {
+        b.sleepT = 0;
+      }
+    }
+  }
+
+  function stepSim(h) {
+    // clocks — everything schedules off the frame clock
+    if (mode !== 'inventory') {
+      arriveClock -= h;
+      if (arriveClock <= 0) {
+        arrive();
+        const r = SHIFTS[mode].every;
+        arriveClock = r[0] + Math.random() * (r[1] - r[0]);
+      }
+    }
+    keeperStep(h);
+
+    let anyDead = false;
+    for (const b of bodies) {
+      if (b.alpha < 1 && !b.shipping) b.alpha = Math.min(1, b.alpha + h * 2.2);
+      if (b.retryT > 0) b.retryT -= h;
+      if (b.stampAnim >= 0) {
+        b.stampAnim += h;
+        if (b.stampAnim >= STAMP_S) {
+          b.stampAnim = -1;
+          bakeFace(b);   // the ink is dry — bake it in
+        }
+      }
+      if (b.shipping) { shipStep(b, h); anyDead = anyDead || b.dead; continue; }
+      if (b.tween) continue;
+      if (!b.asleep) {
+        b.sqv += ((1 - b.sq) * SQ_K - b.sqv * SQ_C) * h;
+        b.sq = clamp(b.sq + b.sqv * h, 0.8, 1.12);
+      }
+      b.prevY = b.y;
+      if (b.grabbed) {
+        b.vx += (GRAB_K * (pointer.x + b.offX - b.x) - GRAB_C * b.vx) * h;
+        b.vy += (GRAB_K * (pointer.y + b.offY - b.y) - GRAB_C * b.vy) * h;
+        b.x += b.vx * h;
+        b.y += b.vy * h;
+        continue;   // the hand skips shelves — it still pushes parcels
+      }
+      if (b.asleep) continue;
+      b.vy += G * h;
+      if (b.supported) b.vx *= Math.exp(-GROUND_FRIC * h);
+      b.vx = clamp(b.vx, -VMAX, VMAX);
+      b.vy = clamp(b.vy, -VMAX, VMAX);
+      b.x += b.vx * h;
+      b.y += b.vy * h;
+      platformCollide(b);
+    }
+    if (anyDead) {
+      for (let i = bodies.length - 1; i >= 0; i--) {
+        if (bodies[i].dead) bodies.splice(i, 1);
+      }
+    }
+
+    resolvePairs();
+    for (const b of bodies) wallClamp(b);
+    for (const b of bodies) floorSafety(b);
+    computeSupport();
+    sleepPass(h);
+  }
+
+  // ══════════════════════════════════════════════════════════
+  // DRAW — backdrop blit, contact shadows, baked faces
+  // ══════════════════════════════════════════════════════════
+  function drawShadows() {
+    for (const b of bodies) {
+      if (b.alpha <= 0) continue;
+      const bot = b.y + b.h / 2;
+      let sy = Infinity;
+      for (let p = 0; p < PLATS.length; p++) {
+        if (b.dropPlat === p) continue;
+        const pl = PLATS[p];
+        if (pl.y >= bot - 2 && pl.y < sy &&
+            b.x + b.w / 2 > SX0 && b.x - b.w / 2 < SX1) sy = pl.y;
+      }
+      for (const o of bodies) {
+        if (o === b || o.shipping || o.tween) continue;
+        const top = o.y - o.h / 2;
+        if (top >= bot - 2 && top < sy) {
+          const ov = Math.min(b.x + b.w / 2, o.x + o.w / 2) - Math.max(b.x - b.w / 2, o.x - o.w / 2);
+          if (ov > 8) sy = top;
+        }
+      }
+      if (sy === Infinity) continue;
+      const d = sy - bot;
+      if (d > 140) continue;
+      const a = 0.15 * (1 - d / 140) * b.alpha;
+      if (a <= 0.01) continue;
+      ctx.fillStyle = 'rgba(20,19,16,' + a.toFixed(3) + ')';
+      ctx.beginPath();
+      ctx.ellipse(b.x, sy + 2.5, b.w * 0.5 + d * 0.05, 3.2 + d * 0.015, 0, 0, TAU);
+      ctx.fill();
+    }
+  }
+
+  function drawBodies() {
+    for (const b of bodies) {
+      ctx.save();
+      ctx.globalAlpha = clamp(b.alpha, 0, 1);
+      const sx = 1 + (1 - b.sq) * 0.6;   // what it loses in height it keeps in width
+      ctx.translate(b.x, b.y + b.h / 2);
+      ctx.scale(sx, b.sq);
+      ctx.drawImage(b.face, -b.w / 2, -b.h, b.w, b.h);
+      if (b.stamped && b.stampAnim >= 0) {
+        const u = Math.min(1, b.stampAnim / STAMP_S);
+        drawRedStamp(ctx, b.stampX, -b.h / 2 + b.stampY, b.stampR, 1.15 - 0.15 * u);
+      }
+      ctx.restore();
+    }
+  }
+
+  function draw() {
+    ctx.drawImage(bd, 0, 0, W, H);
+    drawShadows();
+    drawBodies();
+  }
+
+  // ══════════════════════════════════════════════════════════
+  // FONTS — Hepta Slab must land before the stamps read right
+  // ══════════════════════════════════════════════════════════
+  function rebakeAll() {
+    if (!booted) return;
+    bakeBackdrop();
+    for (const b of bodies) bakeFace(b);
+  }
+  let fontsLanded = false;
+  document.fonts.ready.then(() => { fontsLanded = true; rebakeAll(); }).catch(() => {});
+  setTimeout(() => { if (!fontsLanded) rebakeAll(); }, 2000);   // failsafe — worst case: fallback glyphs
+
+  // ══════════════════════════════════════════════════════════
+  // LOOP
+  // ══════════════════════════════════════════════════════════
+  let last = performance.now();
+  let acc = 0;
+
+  function frameBody(now) {
+    if (canvas.width === 0 && window.innerWidth > 0) resize();
+    const dt = Math.max(0, Math.min(0.05, (now - last) / 1000));
+    last = now;
+    // pointer velocity, smoothed over roughly four frames
+    if (held && dt > 0) {
+      const k = Math.min(1, dt * 15);
+      pvx += ((pointer.x - prevPx) / dt - pvx) * k;
+      pvy += ((pointer.y - prevPy) / dt - pvy) * k;
+    }
+    prevPx = pointer.x;
+    prevPy = pointer.y;
+    acc += dt;
+    let guard = 8;
+    while (acc >= STEP && guard-- > 0) {
+      stepSim(STEP);
+      acc -= STEP;
+    }
+    if (guard <= 0) acc = 0;
+    draw();
+  }
+
+  function loop(now) {
+    requestAnimationFrame(loop);
+    frameBody(now);
+  }
+
+  // ══════════════════════════════════════════════════════════
+  // BOOT + RESIZE
+  // ══════════════════════════════════════════════════════════
+  function boot() {
+    bodies.length = 0;
+    const plan = [[0, 3], [1, 2], [2, 2]];   // shelf a / shelf b / floor
+    for (const seat of plan) {
+      const p = seat[0], n = seat[1];
+      const xs = [];
+      for (let i = 0; i < n; i++) {
+        const b = makeBody();
+        const frac = (i + 0.5 + (Math.random() - 0.5) * 0.5) / n;
+        let x = SX0 + frac * (SX1 - SX0);
+        x = clamp(x, SX0 + b.w / 2 + 6, SX1 - b.w / 2 - 6);
+        // shoulder room — nudge right if the last one is too close
+        if (xs.length) {
+          const prev = xs[xs.length - 1];
+          const need = (prev.w + b.w) / 2 + 8;
+          if (x - prev.x < need) x = Math.min(prev.x + need, SX1 - b.w / 2 - 6);
+        }
+        xs.push({ x, w: b.w });
+        seatBody(b, p, x);
+        bodies.push(b);
+      }
+    }
+    arriveClock = 1.2;   // one more is already on the truck
+  }
+
+  function snapOrWake(b) {
+    // asleep through a resize: re-seat on the nearest line, or get up
+    const bot = b.y + b.h / 2;
+    for (let p = 0; p < PLATS.length; p++) {
+      if (Math.abs(bot - PLATS[p].y) < 14 &&
+          b.x + b.w / 2 > SX0 && b.x - b.w / 2 < SX1) {
+        b.y = PLATS[p].y - b.h / 2;
+        b.supported = true;
+        b.supportPlat = p;
+        b.supportY = PLATS[p].y;
+        return;
+      }
+    }
+    for (const o of bodies) {
+      if (o === b || o.tween || o.shipping || !o.asleep) continue;
+      const top = o.y - o.h / 2;
+      if (Math.abs(bot - top) < 14) {
+        const ov = Math.min(b.x + b.w / 2, o.x + o.w / 2) - Math.max(b.x - b.w / 2, o.x - o.w / 2);
+        if (ov >= 8) {
+          b.y = top - b.h / 2;
+          b.supported = true;
+          b.supportY = top;
+          return;
+        }
+      }
+    }
+    wake(b);
+  }
+
+  function resize() {
+    DPR = Math.min(2, window.devicePixelRatio || 1);
+    W = window.innerWidth;
+    H = window.innerHeight;
+    canvas.width = Math.floor(W * DPR);
+    canvas.height = Math.floor(H * DPR);
+    canvas.style.width = W + 'px';
+    canvas.style.height = H + 'px';
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    computeGeom();
+    bakeBackdrop();
+    if (!booted) {
+      if (W > 0 && H > 0) {
+        boot();
+        booted = true;
+        prevW = W;
+        prevH = H;
+      }
+      return;
+    }
+    // reseat — clamp every body into the new room
+    const fx = prevW > 0 ? W / prevW : 1;
+    const fy = prevH > 0 ? H / prevH : 1;
+    if (keeper.state === 'carry') cancelCarry(0.6);   // the arc was drawn for the old room
+    for (const b of bodies) {
+      b.tween = false;
+      b.x *= fx;
+      b.y *= fy;
+      if (b.shipping) continue;
+      b.x = clamp(b.x, SX0 + b.w / 2, SX1 - b.w / 2);
+      if (b.y + b.h / 2 > PLATS[FLOOR_I].y) {
+        b.y = PLATS[FLOOR_I].y - b.h / 2;
+        b.vy = 0;
+      }
+      if (b.asleep) snapOrWake(b);
+    }
+    for (const b of bodies) bakeFace(b);   // DPR may have changed under us
+    if (mode === 'inventory' && sortQueue.length) {
+      sortQueue.length = 0;
+      planInventory();   // the plan was measured against the old shelves
+    }
+    prevW = W;
+    prevH = H;
+  }
+  let rsT;
+  window.addEventListener('resize', () => { clearTimeout(rsT); rsT = setTimeout(resize, 150); }, { passive: true });   // one rebake per drag, not per tick
+  window.addEventListener('orientationchange', () => { clearTimeout(rsT); rsT = setTimeout(resize, 200); });
+
+  resize();
+  requestAnimationFrame(loop);
+
+  // ── QA hook: step the sim without rAF + read a small snapshot.
+  //    Occluded windows starve rAF; this keeps the piece testable. ──
+  if (location.hostname === 'localhost' || new URLSearchParams(location.search).has('qa')) {
+    window.__lab = {
+      tick(n, ms) {
+        n = n || 1; ms = ms || 16.7;
+        for (let i = 0; i < n; i++) frameBody(last + ms);
+      },
+      snap(w) {
+        w = w || 320;
+        const c = document.createElement('canvas');
+        c.width = w; c.height = Math.round(w * H / W);
+        c.getContext('2d').drawImage(canvas, 0, 0, c.width, c.height);
+        return c.toDataURL('image/jpeg', 0.82);
+      },
+      bodies: () => bodies.map((b) => ({
+        x: Math.round(b.x), y: Math.round(b.y),
+        w: Math.round(b.w), h: Math.round(b.h),
+        stamped: !!b.stamped, asleep: !!b.asleep,
+      })),
+      info: () => ({
+        bodies: bodies.length,
+        asleep: bodies.reduce((n, b) => n + (b.asleep ? 1 : 0), 0),
+        mode,
+      }),
+    };
+  }
+})();
+</script>
+
+</body>
+</html>

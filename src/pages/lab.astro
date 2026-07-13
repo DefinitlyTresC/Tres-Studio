@@ -1,17 +1,18 @@
 ---
 // THE LAB — the shared portals room of the multiverse. Every universe's Lab
-// link gets swallowed by the ink curtain and lands HERE. One page, five
-// skins: on each load an inline head script rolls one of universes 1-5's
+// link gets swallowed by the ink curtain and lands HERE. One page, seven
+// skins: on each load an inline head script rolls one of the universes'
 // identities (palette + type + flavor) onto :root BEFORE paint — "all lab
-// pages are the same. the branding is just randomized." (Universe 6 has no
-// lab skin; the skin pool is a separate 5-deep concept.)
+// pages are the same. the branding is just randomized."
 //
-// The 7 experiments are presented as tall DOORWAYS, each with a living
-// pattern inside (pure CSS transform/opacity animation on inline SVG).
-// Clicking a door floods the screen with the rolled skin's ink (curtain)
-// and steps through to the static experiment at /labs/<name>.html.
+// Since the multiverse edition (2026-07-11) each experiment is ADOPTED by
+// one universe and wears its full brand — the door plates carry the keeper's
+// swatch + number. The doors are tall DOORWAYS, each with a living pattern
+// inside (pure CSS transform/opacity animation on inline SVG). Clicking one
+// floods the screen with the rolled skin's ink (curtain) and steps through
+// to the static experiment at /labs/<name>.html.
 //
-// Map: MV_CLIENT(0) — no universe highlighted; all six dots are exits.
+// Map: MV_CLIENT(0) — no universe highlighted; all dots are exits.
 import { MV_CLIENT } from '../lib/multiverse';
 ---
 
@@ -28,7 +29,7 @@ import { MV_CLIENT } from '../lib/multiverse';
     <!-- tracking: one bootstrap for the whole site (Umami + Clarity + visitor id + self-exclusion) - public/ts.js -->
     <script is:inline defer src="/ts.js"></script>
     <script is:inline>
-      /* THE SKIN ROLL — runs before paint. Picks one of the five universes'
+      /* THE SKIN ROLL — runs before paint. Picks one of the seven universes'
          identities, never the same one twice in a row (per tab). */
       (function () {
         'use strict';
@@ -36,19 +37,19 @@ import { MV_CLIENT } from '../lib/multiverse';
           1: { paper: '#FFEDDB', ink: '#2B1F1A', ac: '#BF9270',
                soft: 'rgba(43,31,26,0.55)', hair: 'rgba(43,31,26,0.22)',
                disp: "'Archivo', system-ui, sans-serif", mono: "'Space Mono', ui-monospace, monospace",
-               gf: 'Archivo:wght@500;600;700', spec: 'sheet L·07 — seven live studies',
+               gf: 'Archivo:wght@500;600;700', spec: 'sheet L·08 — seven live studies',
                card: '#ffffff', line: 'rgba(43,31,26,0.3)', mac: '#BF9270',
                conf: '#EDCDBB,#E3B7A0,#BF9270,#2B1F1A,#ffffff' },
           2: { paper: '#FAFAF7', ink: '#101010', ac: '#9A9A9A',
                soft: 'rgba(16,16,16,0.5)', hair: 'rgba(16,16,16,0.16)',
                disp: "'Hanken Grotesk', system-ui, sans-serif", mono: "'Space Mono', ui-monospace, monospace",
-               gf: 'Hanken+Grotesk:wght@400;700;800', spec: 'seven doors, one quiet room',
+               gf: 'Hanken+Grotesk:wght@400;700;800', spec: 'eight doors, one quiet room',
                card: '#ffffff', line: 'rgba(0,0,0,0.25)', mac: '#101010',
                conf: '#101010,#9A9A9A,#ffffff' },
           3: { paper: '#FFFFFF', ink: '#141414', ac: '#141414',
                soft: 'rgba(20,20,20,0.45)', hair: 'rgba(20,20,20,0.28)',
                disp: "'IBM Plex Mono', ui-monospace, monospace", mono: "'IBM Plex Mono', ui-monospace, monospace",
-               gf: 'IBM+Plex+Mono:wght@400;600;700', spec: '/lab · seven doors, shared by every universe',
+               gf: 'IBM+Plex+Mono:wght@400;600;700', spec: '/lab · eight doors, shared by every universe',
                card: '#ffffff', line: 'rgba(0,0,0,0.3)', mac: '#141414',
                conf: '#141414,#4A4A4A,#ffffff' },
           4: { paper: '#EC5B13', ink: '#141210', ac: '#E8DCC6',
@@ -62,11 +63,24 @@ import { MV_CLIENT } from '../lib/multiverse';
                disp: "'Anton', system-ui, sans-serif", mono: "'Space Mono', ui-monospace, monospace",
                gf: 'Anton', spec: 'one room — every universe',
                card: '#ffffff', line: 'rgba(0,0,0,0.3)', mac: '#2431FF',
-               conf: '#2431FF,#0A0A0A,#ffffff' }
+               conf: '#2431FF,#0A0A0A,#ffffff' },
+          6: { paper: '#FAF8F3', ink: '#141310', ac: '#FF5A1F',
+               soft: 'rgba(20,19,16,0.5)', hair: 'rgba(20,19,16,0.18)',
+               disp: "'Schibsted Grotesk', system-ui, sans-serif", mono: "'Space Mono', ui-monospace, monospace",
+               gf: 'Schibsted+Grotesk:wght@400;500;700', spec: 'group show — eight rooms',
+               card: '#ffffff', line: 'rgba(20,19,16,0.3)', mac: '#FF5A1F',
+               conf: '#E8442E,#2E5EA8,#1F8A70,#E3B71F,#FF5A1F' },
+          8: { paper: '#F6F4EE', ink: '#141310', ac: '#D8341F',
+               soft: 'rgba(20,19,16,0.5)', hair: 'rgba(20,19,16,0.2)',
+               disp: "'Hepta Slab', serif", mono: "'Space Mono', ui-monospace, monospace",
+               gf: 'Hepta+Slab:wght@800;900', spec: 'stockroom — eight bays, mind the stock',
+               card: '#ffffff', line: 'rgba(20,19,16,0.3)', mac: '#D8341F',
+               conf: '#D8341F,#00934D,#141310,#ffffff' }
         };
+        var IDS = [1, 2, 3, 4, 5, 6, 8]; /* id LIST, never 1..count — there is no 7 */
         var last = 0;
         try { last = parseInt(sessionStorage.getItem('mv:lab-skin') || '0', 10) || 0; } catch (e) {}
-        var pool = [1, 2, 3, 4, 5].filter(function (n) { return n !== last; });
+        var pool = IDS.filter(function (n) { return n !== last; });
         var id = pool[Math.floor(Math.random() * pool.length)];
         try { sessionStorage.setItem('mv:lab-skin', String(id)); } catch (e) {}
         var k = SKINS[id];
@@ -100,30 +114,14 @@ import { MV_CLIENT } from '../lib/multiverse';
 
     <main id="content">
       <header class="hero">
-        <p class="spec" id="specline">seven doors, one shared room</p>
+        <p class="spec" id="specline">eight doors, one shared room</p>
         <h1 class="mark">LAB<span class="dot">.</span></h1>
-        <button class="reroll" id="reroll" type="button">skin —/05 — reload to reroll</button>
+        <button class="reroll" id="reroll" type="button">skin — · reload to reroll</button>
       </header>
 
       <nav class="hall" aria-label="Experiments">
 
-        <a class="door" href="/labs/drift.html" style="--i:0">
-          <span class="win" aria-hidden="true">
-            <svg viewBox="0 0 200 340" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
-              <g fill="none" stroke-width="1.6" stroke-linecap="round">
-                <path class="w1" stroke="var(--ink)" d="M-50 90 q12.5 -16 25 0 t25 0 t25 0 t25 0 t25 0 t25 0 t25 0 t25 0 t25 0 t25 0 t25 0 t25 0" />
-                <path class="w2" stroke="var(--accent)" d="M-50 170 q12.5 -16 25 0 t25 0 t25 0 t25 0 t25 0 t25 0 t25 0 t25 0 t25 0 t25 0 t25 0 t25 0" />
-                <path class="w3" stroke="var(--ink)" d="M-50 250 q12.5 -16 25 0 t25 0 t25 0 t25 0 t25 0 t25 0 t25 0 t25 0 t25 0 t25 0 t25 0 t25 0" />
-              </g>
-            </svg>
-          </span>
-          <span class="plate">
-            <span class="name">Drift</span>
-            <span class="tag">smoke, ember, gale</span>
-          </span>
-        </a>
-
-        <a class="door" href="/labs/plan.html" style="--i:1">
+        <a class="door" href="/labs/plan.html" style="--i:0">
           <span class="win" aria-hidden="true">
             <svg viewBox="0 0 200 340" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
               <path stroke="var(--hair)" stroke-width="1" fill="none" d="M28 0V340M56 0V340M84 0V340M112 0V340M140 0V340M168 0V340M0 28H200M0 56H200M0 84H200M0 112H200M0 140H200M0 168H200M0 196H200M0 224H200M0 252H200M0 280H200M0 308H200" />
@@ -137,11 +135,12 @@ import { MV_CLIENT } from '../lib/multiverse';
           </span>
           <span class="plate">
             <span class="name">Plan</span>
-            <span class="tag">langton's ant, drafting</span>
+            <span class="tag">a plan drafts itself</span>
+            <span class="keeper"><i class="sw" style="--sw:#BF9270"></i>№ 01</span>
           </span>
         </a>
 
-        <a class="door" href="/labs/birds.html" style="--i:2">
+        <a class="door" href="/labs/birds.html" style="--i:1">
           <span class="win" aria-hidden="true">
             <svg viewBox="0 0 200 340" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
               <g class="f1" fill="var(--ink)" transform="translate(40 0)">
@@ -161,25 +160,46 @@ import { MV_CLIENT } from '../lib/multiverse';
           </span>
           <span class="plate">
             <span class="name">Birds</span>
-            <span class="tag">starlings, a wire, a hawk</span>
+            <span class="tag">a murmuration, loose in the void</span>
+            <span class="keeper"><i class="sw" style="--sw:#9A9A9A"></i>№ 02</span>
+          </span>
+        </a>
+
+        <a class="door" href="/labs/pulse.html" style="--i:2">
+          <span class="win" aria-hidden="true">
+            <svg viewBox="0 0 200 340" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+              <g fill="none">
+                <circle class="pulse-c" cx="100" cy="170" r="18" stroke="var(--accent)" stroke-width="7" />
+                <circle class="pulse-c" cx="100" cy="170" r="36" stroke="var(--ink)" stroke-width="5" style="animation-delay:-0.85s" />
+                <circle class="pulse-c" cx="100" cy="170" r="54" stroke="var(--accent)" stroke-width="4" style="animation-delay:-1.7s" />
+                <circle class="pulse-c" cx="100" cy="170" r="72" stroke="var(--ink)" stroke-width="3" style="animation-delay:-2.55s" />
+              </g>
+              <circle class="dot-p" cx="100" cy="170" r="6" fill="var(--ink)" />
+            </svg>
+          </span>
+          <span class="plate">
+            <span class="name">Pulse</span>
+            <span class="tag">sounding the blank sheet</span>
+            <span class="keeper"><i class="sw" style="--sw:#4A4A4A"></i>№ 03</span>
           </span>
         </a>
 
         <a class="door" href="/labs/field.html" style="--i:3">
           <span class="win" aria-hidden="true">
             <svg viewBox="0 0 200 340" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
-              <g class="rotor" stroke="var(--ink)" stroke-width="2" stroke-linecap="round">
-                <line x1="32" y1="93" x2="48" y2="87" /><line x1="72" y1="87" x2="88" y2="93" /><line x1="112" y1="93" x2="128" y2="87" /><line x1="152" y1="87" x2="168" y2="93" />
-                <line x1="32" y1="140" x2="48" y2="146" /><line x1="72" y1="146" x2="88" y2="140" /><line x1="112" y1="140" x2="128" y2="146" /><line x1="152" y1="146" x2="168" y2="140" />
-                <line x1="32" y1="199" x2="48" y2="193" /><line x1="72" y1="193" x2="88" y2="199" /><line x1="112" y1="199" x2="128" y2="193" /><line x1="152" y1="193" x2="168" y2="199" />
-                <line x1="32" y1="250" x2="48" y2="256" /><line x1="72" y1="256" x2="88" y2="250" /><line x1="112" y1="250" x2="128" y2="256" /><line x1="152" y1="256" x2="168" y2="250" />
+              <g fill="var(--ink)">
+                <circle class="ht1" cx="40" cy="90" r="5" /><circle class="ht2" cx="80" cy="90" r="7" /><circle class="ht3" cx="120" cy="90" r="9" /><circle class="ht1" cx="160" cy="90" r="7" style="animation-delay:-1.9s" />
+                <circle class="ht2" cx="40" cy="140" r="8" style="animation-delay:-0.7s" /><circle class="ht3" cx="80" cy="140" r="10" /><circle class="ht1" cx="120" cy="140" r="8" /><circle class="ht2" cx="160" cy="140" r="6" style="animation-delay:-2.5s" />
+                <circle class="ht3" cx="40" cy="190" r="9" style="animation-delay:-1.2s" /><circle class="ht1" cx="80" cy="190" r="11" /><circle class="ht2" cx="120" cy="190" r="9" style="animation-delay:-1.6s" /><circle class="ht3" cx="160" cy="190" r="7" />
+                <circle class="ht1" cx="40" cy="240" r="6" /><circle class="ht2" cx="80" cy="240" r="8" style="animation-delay:-2.1s" /><circle class="ht3" cx="120" cy="240" r="10" style="animation-delay:-0.4s" /><circle class="ht1" cx="160" cy="240" r="8" />
               </g>
-              <circle class="dot-p" cx="100" cy="170" r="6" fill="var(--accent)" />
+              <circle class="dot-p" cx="100" cy="165" r="6" fill="var(--accent)" />
             </svg>
           </span>
           <span class="plate">
             <span class="name">Field</span>
-            <span class="tag">wind through tall grass</span>
+            <span class="tag">wind through the raster</span>
+            <span class="keeper"><i class="sw" style="--sw:#EC5B13"></i>№ 04</span>
           </span>
         </a>
 
@@ -187,37 +207,59 @@ import { MV_CLIENT } from '../lib/multiverse';
           <span class="win" aria-hidden="true">
             <svg viewBox="0 0 200 340" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
               <g fill="none" stroke-width="1.6">
-                <circle class="echo-c" cx="62" cy="110" r="30" stroke="var(--ink)" vector-effect="non-scaling-stroke" />
-                <circle class="echo-c" cx="138" cy="96" r="30" stroke="var(--accent)" vector-effect="non-scaling-stroke" style="animation-delay:-1.4s" />
-                <circle class="echo-c" cx="100" cy="225" r="30" stroke="var(--ink)" vector-effect="non-scaling-stroke" style="animation-delay:-2.8s" />
+                <circle class="echo-c" cx="62" cy="110" r="30" stroke="var(--ink)" />
+                <circle class="echo-c" cx="138" cy="96" r="30" stroke="var(--accent)" style="animation-delay:-1.4s" />
+                <circle class="echo-c" cx="100" cy="225" r="30" stroke="var(--ink)" style="animation-delay:-2.8s" />
               </g>
             </svg>
           </span>
           <span class="plate">
             <span class="name">Echo</span>
-            <span class="tag">rain on a still pool</span>
+            <span class="tag">water, out of register</span>
+            <span class="keeper"><i class="sw" style="--sw:#2431FF"></i>№ 05</span>
           </span>
         </a>
 
-        <a class="door" href="/labs/pulse.html" style="--i:5">
+        <a class="door" href="/labs/drift.html" style="--i:5">
           <span class="win" aria-hidden="true">
             <svg viewBox="0 0 200 340" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
-              <g fill="none">
-                <circle class="pulse-c" cx="100" cy="170" r="18" stroke="var(--accent)" stroke-width="7" vector-effect="non-scaling-stroke" />
-                <circle class="pulse-c" cx="100" cy="170" r="36" stroke="var(--ink)" stroke-width="5" vector-effect="non-scaling-stroke" style="animation-delay:-0.85s" />
-                <circle class="pulse-c" cx="100" cy="170" r="54" stroke="var(--accent)" stroke-width="4" vector-effect="non-scaling-stroke" style="animation-delay:-1.7s" />
-                <circle class="pulse-c" cx="100" cy="170" r="72" stroke="var(--ink)" stroke-width="3" vector-effect="non-scaling-stroke" style="animation-delay:-2.55s" />
+              <g fill="none" stroke-width="1.6" stroke-linecap="round">
+                <path class="w1" stroke="var(--ink)" d="M-50 90 q12.5 -16 25 0 t25 0 t25 0 t25 0 t25 0 t25 0 t25 0 t25 0 t25 0 t25 0 t25 0 t25 0" />
+                <path class="w2" stroke="var(--accent)" d="M-50 170 q12.5 -16 25 0 t25 0 t25 0 t25 0 t25 0 t25 0 t25 0 t25 0 t25 0 t25 0 t25 0 t25 0" />
+                <path class="w3" stroke="var(--ink)" d="M-50 250 q12.5 -16 25 0 t25 0 t25 0 t25 0 t25 0 t25 0 t25 0 t25 0 t25 0 t25 0 t25 0 t25 0" />
               </g>
-              <circle class="dot-p" cx="100" cy="170" r="6" fill="var(--ink)" />
             </svg>
           </span>
           <span class="plate">
-            <span class="name">Pulse</span>
-            <span class="tag">sounding the dark</span>
+            <span class="name">Drift</span>
+            <span class="tag">ink on water, hung by chance</span>
+            <span class="keeper"><i class="sw" style="--sw:#1F8A70"></i>№ 06</span>
           </span>
         </a>
 
-        <a class="door" href="/labs/alternates.html" style="--i:6">
+        <a class="door" href="/labs/stock.html" style="--i:6">
+          <span class="win" aria-hidden="true">
+            <svg viewBox="0 0 200 340" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+              <g stroke="var(--ink)" stroke-width="2">
+                <path d="M24 130 H176 M24 124 V130 M176 124 V130" fill="none" />
+                <path d="M24 230 H176 M24 224 V230 M176 224 V230" fill="none" />
+              </g>
+              <g fill="none" stroke="var(--ink)" stroke-width="2">
+                <rect x="36" y="100" width="34" height="28" />
+                <rect x="120" y="196" width="42" height="32" />
+                <rect x="76" y="202" width="30" height="26" />
+              </g>
+              <rect class="parcel" x="92" y="94" width="36" height="30" fill="none" stroke="var(--accent)" stroke-width="2" />
+            </svg>
+          </span>
+          <span class="plate">
+            <span class="name">Stock</span>
+            <span class="tag">midnight in the stockroom</span>
+            <span class="keeper"><i class="sw" style="--sw:#D8341F"></i>№ 08</span>
+          </span>
+        </a>
+
+        <a class="door" href="/labs/alternates.html" style="--i:7">
           <span class="win" aria-hidden="true">
             <svg viewBox="0 0 200 340" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
               <g class="orbit" fill="var(--ink)">
@@ -243,6 +285,7 @@ import { MV_CLIENT } from '../lib/multiverse';
           <span class="plate">
             <span class="name">Alternates</span>
             <span class="tag">seven doors, one front door</span>
+            <span class="keeper">the space between</span>
           </span>
         </a>
 
@@ -299,6 +342,8 @@ import { MV_CLIENT } from '../lib/multiverse';
       html[data-skin="3"] { --rule: dashed; --wt: 600; --tt-name: lowercase; --tt-mono: lowercase; --mark-ls: 0; }
       html[data-skin="4"] { --bw: 2px; --wt: 900; --tt-name: uppercase; --door-bg: #E8DCC6; --mark-ls: -0.04em; }
       html[data-skin="5"] { --bw: 3px; --wt: 400; --tt-name: uppercase; --mark-ls: 0.01em; }
+      html[data-skin="6"] { --wt: 500; --mark-ls: -0.01em; }
+      html[data-skin="8"] { --bw: 2px; --wt: 900; --mark-ls: -0.02em; }
 
       * { margin: 0; box-sizing: border-box; }
       html { background: var(--paper); }
@@ -388,6 +433,16 @@ import { MV_CLIENT } from '../lib/multiverse';
         font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em; line-height: 1.5;
         text-transform: var(--tt-mono); color: var(--soft);
       }
+      /* the keeper row — which universe holds this piece */
+      .keeper {
+        display: flex; align-items: center; justify-content: center; gap: 6px;
+        font-family: var(--mono); font-size: 9px; letter-spacing: 0.14em;
+        text-transform: var(--tt-mono); color: var(--soft);
+      }
+      .sw {
+        width: 7px; height: 7px; border-radius: 50%;
+        background: var(--sw, var(--soft)); display: inline-block;
+      }
       @media (hover: hover) and (pointer: fine) {
         .door:hover { transform: scale(1.035); }
         .door:hover .win svg { opacity: 1; }
@@ -458,6 +513,27 @@ import { MV_CLIENT } from '../lib/multiverse';
         50% { transform: scale(1.7); opacity: 0.45; }
       }
 
+      .ht1 { animation: htbreathe 3.8s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+      .ht2 { animation: htbreathe 3.8s ease-in-out infinite; animation-delay: -1.3s; transform-box: fill-box; transform-origin: center; }
+      .ht3 { animation: htbreathe 3.8s ease-in-out infinite; animation-delay: -2.6s; transform-box: fill-box; transform-origin: center; }
+      @keyframes htbreathe {
+        0%, 100% { transform: scale(0.55); }
+        50% { transform: scale(1.15); }
+      }
+
+      .parcel {
+        animation: parceldrop 5.2s cubic-bezier(0.23,1,0.32,1) infinite;
+        transform-box: fill-box; transform-origin: 50% 100%;
+      }
+      @keyframes parceldrop {
+        0%, 8%   { transform: translateY(-90px); opacity: 0; }
+        14%      { opacity: 1; }
+        30%      { transform: translateY(0) scaleY(1); }
+        36%      { transform: translateY(0) scaleY(0.86); }
+        44%, 86% { transform: translateY(0) scaleY(1); opacity: 1; }
+        94%, 100% { transform: translateY(0); opacity: 0; }
+      }
+
       /* ── info footer ───────────────────────────────────────────────────── */
       .info {
         min-height: 78svh; display: grid; align-content: end; gap: 7svh;
@@ -522,7 +598,7 @@ import { MV_CLIENT } from '../lib/multiverse';
         if (s && L.spec) s.textContent = L.spec;
         var rr = document.getElementById('reroll');
         if (rr) {
-          rr.textContent = 'skin 0' + L.id + '/05 — reload to reroll';
+          rr.textContent = 'skin 0' + L.id + ' · reload to reroll';
           rr.addEventListener('click', function () { location.reload(); });
         }
         /* footer sections point into the rolled skin's universe */
@@ -532,8 +608,8 @@ import { MV_CLIENT } from '../lib/multiverse';
         }
         /* back: to the universe that sent you (referrer), else this tab's
            universe (mv:u — covers arriving from '/', where the referrer path
-           carries no number), else the front door. Registry-driven so a
-           future universe 7 works without touching this. */
+           carries no number), else the front door. Validated against the
+           registry's id LIST, never a count — there is no 7. */
         var back = document.getElementById('back');
         try {
           if (back) {
@@ -546,8 +622,10 @@ import { MV_CLIENT } from '../lib/multiverse';
               }
             }
             if (!b) b = parseInt(sessionStorage.getItem('mv:u'), 10) || 0;
-            var NU = (window.MV && window.MV.sites) ? window.MV.sites.length : 6;
-            if (b >= 1 && b <= NU) back.setAttribute('href', '/' + b + '/');
+            var ids = [];
+            if (window.MV && window.MV.sites) for (var j = 0; j < window.MV.sites.length; j++) ids.push(window.MV.sites[j].id);
+            if (!ids.length) ids = [1, 2, 3, 4, 5, 6, 8];
+            if (ids.indexOf(b) !== -1) back.setAttribute('href', '/' + b + '/');
           }
         } catch (e) {}
       })();
@@ -567,7 +645,11 @@ import { MV_CLIENT } from '../lib/multiverse';
       });
       document.querySelectorAll('a.door').forEach((a) => {
         a.addEventListener('click', async (e) => {
-          if (reduce || leaving) return;
+          /* modified/aux clicks keep their native meaning (new tab etc.) */
+          if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button > 0) return;
+          if (reduce) return;
+          /* mid-cover: swallow repeat clicks so they can't navigate natively */
+          if (leaving) { e.preventDefault(); return; }
           e.preventDefault();
           leaving = true;
           const r = a.getBoundingClientRect();

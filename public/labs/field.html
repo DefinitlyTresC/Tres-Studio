@@ -4,38 +4,41 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>field — tres carter</title>
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23080808'/%3E%3Ccircle cx='16' cy='16' r='6' fill='%23ff5a1f'/%3E%3C/svg%3E" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
 
   <!-- tracking: one bootstrap for the whole site (Umami + Clarity + visitor id + self-exclusion) - public/ts.js -->
   <script defer src="/ts.js"></script>
 
   <style>
     /* ───────────────────────────────────────────────────────────
-       FIELD — wind through tall grass.
-       Lab family: Space Mono chrome, one yellow accent,
-       the scene is the page. The vector field, made visible.
+       FIELD — the living raster.
+       Universe 04 keeps this piece: the halftone screen IS the
+       field. Wind rolls waves of tone through a lattice of ink
+       dots on hot-orange stock. Overprint pulls a second beige
+       plate at a near angle and lets the two screens beat.
+       Gestures are press-room gestures: drag a gust, hold to
+       burnish, tap an ink drop.
        ─────────────────────────────────────────────────────────── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --white:     #FFFFFF;
-      --black:     #07080B;
-      --yellow:    #F5CB5C;
-      --ink-faint: rgba(255, 255, 255, 0.38);
-      --ink-soft:  rgba(255, 255, 255, 0.6);
-      --line:      rgba(255, 255, 255, 0.14);
+      --stock: #EC5B13;                 /* the sheet */
+      --ink:   #141210;                 /* plate one, always 45° */
+      --plate: #E8DCC6;                 /* plate two, 75°, overprint only */
+      --label: #3A2113;                 /* deep label — AA-solid on orange */
+      --line:  rgba(20, 18, 16, 0.25);  /* hairline */
 
+      --disp: 'Inter Tight', system-ui, sans-serif;
       --mono: 'Space Mono', ui-monospace, monospace;
       --pad: clamp(1.5rem, 4vw, 3rem);
       --ease: cubic-bezier(.2, .8, .2, 1);
     }
 
     html, body {
-      background: var(--black);
-      color: var(--white);
+      background: var(--stock);
+      color: var(--ink);
       font-family: var(--mono);
       font-size: 15px;
       height: 100%;
@@ -48,17 +51,19 @@
       user-select: none;
     }
 
+    ::selection { background: var(--ink); color: var(--stock); }
+
     a { color: inherit; text-decoration: none; }
     button {
       font: inherit; color: inherit; background: none; border: none;
       cursor: pointer; -webkit-tap-highlight-color: transparent;
     }
     a:focus-visible, button:focus-visible {
-      outline: 1px solid var(--yellow);
+      outline: 1px solid var(--ink);
       outline-offset: 3px;
     }
 
-    canvas#meadow {
+    canvas#press {
       position: fixed;
       inset: 0;
       width: 100%;
@@ -66,6 +71,7 @@
       z-index: 1;
       touch-action: none;
       display: block;
+      cursor: default;
     }
 
     .fallback {
@@ -73,7 +79,7 @@
       display: grid; place-items: center;
     }
 
-    /* ─── Chrome ─── */
+    /* ─── Chrome — universe 4: Inter Tight 900 marks, mono spec in deep label ─── */
     .nav {
       position: fixed;
       top: 0; left: 0; right: 0;
@@ -86,17 +92,32 @@
     }
     .nav > * { pointer-events: auto; }
     .nav .mark {
-      font-weight: 700;
-      font-size: 0.7rem;
-      letter-spacing: 0.14em;
+      font-family: var(--disp);
+      font-weight: 900;
+      font-size: 0.8rem;
+      letter-spacing: 0.02em;
       transition: opacity 0.25s var(--ease);
     }
-    .nav .mark .y { color: var(--yellow); }
+    .nav .mark .y, .mark-bottom .y { color: var(--plate); }
     .nav .back {
       font-size: 0.62rem;
       letter-spacing: 0.14em;
-      color: var(--ink-soft);
+      color: var(--label);
       padding: 0.5rem 0;
+      transition: color 0.25s var(--ease);
+    }
+
+    /* the provenance strip — reads like a proof slug, desktop only */
+    .strip {
+      position: fixed;
+      top: calc(1.7rem + env(safe-area-inset-top, 0px));
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 100;
+      font-size: 0.55rem;
+      letter-spacing: 0.18em;
+      color: var(--label);
+      white-space: nowrap;
       transition: color 0.25s var(--ease);
     }
 
@@ -104,13 +125,25 @@
       position: fixed;
       bottom: calc(1.6rem + env(safe-area-inset-bottom, 0px));
       left: var(--pad);
-      font-weight: 700;
-      font-size: 0.85rem;
-      letter-spacing: 0.14em;
+      font-family: var(--disp);
+      font-weight: 900;
+      font-size: 0.95rem;
+      letter-spacing: 0.02em;
       z-index: 5;
       pointer-events: none;
+      line-height: 1.5;
     }
-    .mark-bottom .y { color: var(--yellow); }
+    .mark-bottom .uni {
+      display: block;
+      pointer-events: auto;
+      font-family: var(--mono);
+      font-weight: 400;
+      font-size: 0.52rem;
+      letter-spacing: 0.16em;
+      color: var(--label);
+      padding: 0.3rem 0;
+      transition: color 0.25s var(--ease);
+    }
 
     .hint {
       position: fixed;
@@ -118,7 +151,7 @@
       right: var(--pad);
       font-size: 0.56rem;
       letter-spacing: 0.16em;
-      color: var(--ink-faint);
+      color: var(--label);
       z-index: 5;
       pointer-events: none;
       transition: opacity 0.8s var(--ease);
@@ -140,27 +173,69 @@
     .mode-btn {
       font-size: 0.62rem;
       letter-spacing: 0.1em;
-      color: var(--ink-faint);
+      color: var(--label);
       padding: 0.55rem 0.2rem;
       min-height: 44px;
       display: inline-flex;
       align-items: center;
       transition: color 0.3s var(--ease);
     }
-    .mode-btn.active { color: var(--yellow); }
+    .mode-btn.active { color: var(--plate); font-weight: 700; }
 
     @media (hover: hover) {
       .nav .mark:hover { opacity: 0.65; }
-      .nav .back:hover { color: var(--white); }
-      .mode-btn:hover { color: var(--white); }
-      .mode-btn.active:hover { color: var(--yellow); }
+      .nav .back:hover { color: var(--ink); }
+      .strip:hover { color: var(--ink); }
+      .mark-bottom .uni:hover { color: var(--ink); }
+      .mode-btn:hover { color: var(--ink); }
+    }
+
+    /* ─── Print furniture — crop marks, marginalia, grain. All inert. ─── */
+    .crop {
+      position: fixed;
+      width: 14px; height: 14px;
+      z-index: 3;
+      pointer-events: none;
+    }
+    .crop::before, .crop::after { content: ''; position: absolute; background: var(--line); }
+    .crop::before { left: 50%; top: 0; width: 1px; height: 100%; }
+    .crop::after  { top: 50%; left: 0; height: 1px; width: 100%; }
+    .crop.tl { top: 12px; left: 12px; }
+    .crop.tr { top: 12px; right: 12px; }
+    .crop.bl { bottom: 12px; left: 12px; }
+    .crop.br { bottom: 12px; right: 12px; }
+
+    .marg {
+      position: fixed;
+      top: 50%;
+      z-index: 3;
+      pointer-events: none;
+      font-family: var(--mono);
+      font-size: 0.5rem;
+      letter-spacing: 0.2em;
+      color: var(--label);
+      white-space: nowrap;
+    }
+    .marg.l { left: 1.05rem;  transform: translate(-50%, -50%) rotate(-90deg); }
+    .marg.r { right: 1.05rem; transform: translate(50%, -50%) rotate(-90deg); }
+
+    /* film grain over the whole sheet — the site-4 recipe */
+    .grain {
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      pointer-events: none;
+      opacity: 0.11;
+      mix-blend-mode: soft-light;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23g)'/%3E%3C/svg%3E");
     }
 
     /* ─── Mobile ─── */
     @media (max-width: 700px) {
+      .strip { display: none; }
       .modes {
         top: auto;
-        bottom: calc(3.6rem + env(safe-area-inset-bottom, 0px));
+        bottom: calc(5.4rem + env(safe-area-inset-bottom, 0px));
         right: 0;
         left: 0;
         transform: none;
@@ -173,14 +248,15 @@
         padding: 0.55rem 0.55rem;
         font-size: 0.56rem;
       }
-      .mark-bottom { font-size: 0.75rem; }
+      .mark-bottom { font-size: 0.8rem; }
       .hint { max-width: 40vw; text-align: right; }
     }
 
-    /* ─── Reduced motion: chrome settles instantly; the wind itself
-           calms down in JS (no gust fronts, gentle sway floor). ─── */
+    /* ─── Reduced motion: chrome settles instantly; the raster itself
+           calms down in JS (half wind, no fronts, no rings). ─── */
     @media (prefers-reduced-motion: reduce) {
-      .nav .mark, .nav .back, .mode-btn, .hint { transition: none; }
+      .nav .mark, .nav .back, .strip, .mode-btn, .hint,
+      .mark-bottom .uni { transition: none; }
     }
 
     .sr {
@@ -194,12 +270,14 @@
 </head>
 <body>
 
-<canvas id="meadow" aria-hidden="true"></canvas>
+<canvas id="press" aria-hidden="true"></canvas>
 
-<p class="sr">A meadow of tall grass at dusk with a handful of fireflies.
-Move the pointer to part the grass, hold to gather the fireflies to your
-hand, tap to send a shock through the blades, and switch between lull,
-breeze, and squall winds. Gusts travel visibly across the field.</p>
+<p class="sr">A live halftone print. A screen of dark ink dots covers a sheet
+of hot orange stock, and wind rolls slow waves of tone through the raster like
+wind through grass. Drag to push a gust across the sheet, press and hold to
+burnish tone in, tap to drop an expanding ring of ink. The overprint screen
+adds a second beige plate at a near angle whose lattice beats against the ink
+screen as a slowly crawling moire. Screens: coarse, fine, overprint.</p>
 <noscript><p class="fallback">field needs JavaScript.</p></noscript>
 
 <nav class="nav">
@@ -207,14 +285,25 @@ breeze, and squall winds. Gusts travel visibly across the field.</p>
   <a class="back" href="/lab">[ &larr; lab ]</a>
 </nav>
 
-<div class="modes" id="modes" role="group" aria-label="winds">
-  <button class="mode-btn active" data-mode="lull" aria-pressed="true">[ lull ]</button>
-  <button class="mode-btn" data-mode="breeze" aria-pressed="false">[ breeze ]</button>
-  <button class="mode-btn" data-mode="squall" aria-pressed="false">[ squall ]</button>
+<a class="strip" href="/4/">&#9888; FIELD &mdash; LIVE RASTER &middot; FROM UNIVERSE 04</a>
+
+<div class="modes" id="modes" role="group" aria-label="screens">
+  <button class="mode-btn active" data-mode="coarse" aria-pressed="true">[ coarse ]</button>
+  <button class="mode-btn" data-mode="fine" aria-pressed="false">[ fine ]</button>
+  <button class="mode-btn" data-mode="overprint" aria-pressed="false">[ overprint ]</button>
 </div>
 
-<div class="mark-bottom">field<span class="y">.</span></div>
-<div class="hint" id="hint">move to part &middot; hold to gather</div>
+<div class="mark-bottom">field<span class="y">.</span><a
+  class="uni" href="/4/">from universe 04</a></div>
+<div class="hint" id="hint">drag the wind &middot; hold to burnish</div>
+
+<div class="crop tl" aria-hidden="true"></div>
+<div class="crop tr" aria-hidden="true"></div>
+<div class="crop bl" aria-hidden="true"></div>
+<div class="crop br" aria-hidden="true"></div>
+<div class="marg l" aria-hidden="true">FIG. 04 &mdash; LIVE RASTER</div>
+<div class="marg r" aria-hidden="true">PROPRIETARY</div>
+<div class="grain" aria-hidden="true"></div>
 
 <script>
 (function () {
@@ -223,7 +312,7 @@ breeze, and squall winds. Gusts travel visibly across the field.</p>
   // ══════════════════════════════════════════════════════════
   // SETUP
   // ══════════════════════════════════════════════════════════
-  const canvas = document.getElementById('meadow');
+  const canvas = document.getElementById('press');
   const ctx = canvas.getContext('2d', { alpha: false });
   if (!ctx) return;
 
@@ -231,370 +320,276 @@ breeze, and squall winds. Gusts travel visibly across the field.</p>
 
   let W = window.innerWidth;
   let H = window.innerHeight;
-  let DPR = Math.min(2, window.devicePixelRatio || 1);
+  // DPR capped at 1.5 — halftone dots are soft geometry; past 1.5
+  // you pay fill-rate for detail the eye reads as tone anyway.
+  let DPR = Math.min(1.5, window.devicePixelRatio || 1);
+
+  const TAU = Math.PI * 2;
+  const RAD = Math.PI / 180;
+
+  const STOCK = '#EC5B13';
+  const INK   = '#141210';
+  const PLATE = '#E8DCC6';
 
   // ══════════════════════════════════════════════════════════
-  // WINDS — each is a complete weather.
-  //   base      steady push (px of tip lean)
-  //   gust      roaming noise-gust strength
-  //   noiseSpd  how fast the gust pockets travel
-  //   frontGap  seconds between visible gust fronts (0 = none)
-  //   flutter   high-frequency tip tremble
+  // TUNING — pressroom dials. px and seconds unless noted.
   // ══════════════════════════════════════════════════════════
-  const MODES = {
-    lull:   { base: 5,  gust: 11, noiseSpd: 0.055, frontGap: 0,   flutter: 0.7 },
-    breeze: { base: 15, gust: 30, noiseSpd: 0.10,  frontGap: 6.5, flutter: 1.0 },
-    squall: { base: 44, gust: 62, noiseSpd: 0.19,  frontGap: 2.6, flutter: 1.9 },
+  const BASE       = 0.38;                 // resting tone of the sheet
+  const WIND_AMP   = PRM ? 0.11 : 0.22;    // ± tone carried on the wind
+  const NOISE_K    = 1 / 230;              // wave size — ~230px features
+  const WIND_U     = 0.34;                 // advection, noise units/s
+  const WIND_V     = 0.13;
+  const GAIN       = 0.85;                 // dot gain exponent
+  const RMAX_F     = 0.65;                 // max dot radius, × cell
+  const MIN_R      = 0.4;                  // below this a dot is dust — skip
+  const HOLD_S     = 0.34;                 // press-and-hold => burnish
+  const SLOP2      = 64;                   // tap-vs-drag threshold, px²
+
+  const LENS_R     = PRM ? 110 : 170;      // loupe under the hand
+  const LENS_AMP   = 0.25;
+  const LENS_K     = 7.2;                  // follower rate/s (~k 0.12 per frame at 60)
+
+  const FRONT_HALF = 90;                   // gust front half-width (180 band)
+  const FRONT_AMP  = 0.18;
+  const FRONT_SPD  = 140;                  // sweep speed
+  const FRONT_WAIT = [6, 12];              // respawn window per slot
+
+  const GUST_SPD   = PRM ? 80 : 260;       // dragged impulse travel speed
+  const GUST_R     = 130;                  // impulse blob radius
+  const GUST_R2    = GUST_R * GUST_R;
+  const GUST_AMP   = 0.22;
+  const GUST_LIFE  = 1.8;
+  const GUST_DRAG  = 1.1;                  // velocity decay rate/s
+  const GUST_STEP  = 22;                   // px of drag between impulses
+  const GUST_MAX   = 16;
+
+  const DROP_SPD   = 260;                  // ring growth px/s
+  const DROP_BAND  = 60;                   // ring band width
+  const DROP_AMP   = 0.3;
+  const DROP_LIFE  = 1.6;
+  const DROP_MAX   = 8;
+  const DROP_PRM_R = 90;                   // PRM: static bump instead of a ring
+
+  const BURN_CELL  = 24;                   // burnish grid pitch
+  const BURN_R     = 62;                   // splat radius under the pointer
+  const BURN_RATE  = 0.5;                  // tone/s while holding
+  const BURN_CAP   = 0.5;                  // per-cell ceiling
+  const BURN_RELAX = 0.06;                 // tone/s relaxing back
+
+  const INK_A      = 45 * RAD;             // darkest color owns 45° — riso convention
+  const PLATE_A    = 75 * RAD;
+  const DRIFT_MAX  = 1.2 * RAD;            // beige plate angle drift, wind-driven
+  const REG_ROT    = 0.5 * RAD;            // misregistration per print run
+  const REG_MIN    = 1;                    // misregistration translate, px
+  const REG_SPAN   = 2;
+
+  // screen pitch per mode; mobile coarsens so dots stay finger-sized
+  const SCREENS = {
+    coarse:    { cell: 14, cellM: 16, plates: 1 },
+    fine:      { cell:  9, cellM: 11, plates: 1 },
+    overprint: { cell: 13, cellM: 15, plates: 2 },
   };
-  let P = MODES.lull;
+  let modeName = 'coarse';
 
-  function setMode(name) {
-    if (!MODES[name]) return;
-    P = MODES[name];
-    document.querySelectorAll('.mode-btn[data-mode]').forEach(b => {
-      const on = b.dataset.mode === name;
-      b.classList.toggle('active', on);
-      b.setAttribute('aria-pressed', String(on));
-    });
-    nextFront = null;
+  // ══════════════════════════════════════════════════════════
+  // RANDOM — mulberry32 for anything seeded, an imul lattice
+  // hash for anything positional. never reshuffled per frame.
+  // ══════════════════════════════════════════════════════════
+  function mulberry32(seed) {
+    let a = seed >>> 0;
+    return function () {
+      a |= 0; a = (a + 0x6D2B79F5) | 0;
+      let t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
   }
 
+  function latt32(ix, iy) {
+    let h = (Math.imul(ix, 374761393) + Math.imul(iy, 668265263)) | 0;
+    h = Math.imul(h ^ (h >>> 13), 1274126177);
+    h ^= h >>> 16;
+    return h >>> 0;
+  }
+  function latt01(ix, iy) { return latt32(ix, iy) * 2.3283064365386963e-10; }
+
+  // value noise, two octaves — smooth enough to read as rolling tone
+  function vnoise(x, y) {
+    const xi = Math.floor(x), yi = Math.floor(y);
+    const xf = x - xi, yf = y - yi;
+    const u = xf * xf * (3 - 2 * xf);
+    const v = yf * yf * (3 - 2 * yf);
+    const a = latt01(xi, yi),     b = latt01(xi + 1, yi);
+    const c = latt01(xi, yi + 1), e = latt01(xi + 1, yi + 1);
+    return a + (b - a) * u + (c - a) * v + (a - b - c + e) * u * v;
+  }
+  function wind2(x, y) {
+    return vnoise(x, y) * 0.72 + vnoise(x * 2.31 + 19.7, y * 2.31 + 7.3) * 0.28;
+  }
+
+  // dot gain + area-correct radius in one lookup:
+  // r = rmax · sqrt(pow(d, GAIN)) — the sqrt is what makes it read as print
+  const RLUT = new Float32Array(512);
+  for (let i = 0; i < 512; i++) RLUT[i] = Math.sqrt(Math.pow(i / 511, GAIN));
+
   // ══════════════════════════════════════════════════════════
-  // VALUE NOISE — the wind. Smooth pockets that drift with time.
+  // PLATES — a square lattice at pitch `cell`, rotated θ about
+  // canvas center. we store grid-space coords (gx, gy) + radius
+  // jitter; draw positions come from the live rotation so the
+  // beige plate can drift without a rebuild. sample coords for
+  // the wind field are exactly (gx, gy) — the unrotated point.
+  // jitter is hashed from lattice indices, so the dot pattern
+  // survives resizes intact.
   // ══════════════════════════════════════════════════════════
-  const PERM = new Uint8Array(512);
-  (function seedPerm() {
-    let seed = 733;
-    const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
-    for (let i = 0; i < 256; i++) PERM[i] = i;
-    for (let i = 255; i > 0; i--) {
-      const j = (rnd() * (i + 1)) | 0;
-      const t = PERM[i]; PERM[i] = PERM[j]; PERM[j] = t;
+  let inkPlate = null;
+  let beigePlate = null;
+
+  function buildPlate(theta, cell, seed) {
+    const cs = Math.cos(theta), sn = Math.sin(theta);
+    const hw = W * 0.5, hh = H * 0.5;
+    // margin covers jitter + dot radius + misregistration + the
+    // worst corner swing of ±1.2° drift (chord ≈ 0.016·diagonal)
+    const m = cell * 2 + 4 + Math.hypot(W, H) * 0.016;
+    // inverse-rotate padded viewport corners into grid space
+    let gxMin = Infinity, gxMax = -Infinity, gyMin = Infinity, gyMax = -Infinity;
+    const pxs = [-hw - m, hw + m], pys = [-hh - m, hh + m];
+    for (let a = 0; a < 2; a++) {
+      for (let b = 0; b < 2; b++) {
+        const gx = pxs[a] * cs + pys[b] * sn;
+        const gy = -pxs[a] * sn + pys[b] * cs;
+        if (gx < gxMin) gxMin = gx;
+        if (gx > gxMax) gxMax = gx;
+        if (gy < gyMin) gyMin = gy;
+        if (gy > gyMax) gyMax = gy;
+      }
     }
-    for (let i = 0; i < 256; i++) PERM[256 + i] = PERM[i];
-  })();
-
-  function fade(t) { return t * t * (3 - 2 * t); }
-  function grid(ix, iy) { return PERM[(PERM[ix & 255] + iy) & 255] / 255; }
-  function noise2(x, y) {
-    const ix = Math.floor(x), iy = Math.floor(y);
-    const fx = x - ix, fy = y - iy;
-    const u = fade(fx), v = fade(fy);
-    const a = grid(ix, iy), b = grid(ix + 1, iy);
-    const c = grid(ix, iy + 1), d = grid(ix + 1, iy + 1);
-    return (a + (b - a) * u) * (1 - v) + (c + (d - c) * u) * v;   // 0..1
+    const i0 = Math.floor(gxMin / cell), i1 = Math.ceil(gxMax / cell);
+    const j0 = Math.floor(gyMin / cell), j1 = Math.ceil(gyMax / cell);
+    const out = [];
+    const xk = hw + m, yk = hh + m;
+    for (let j = j0; j <= j1; j++) {
+      for (let i = i0; i <= i1; i++) {
+        const rng = mulberry32(latt32(i, j) ^ seed);
+        const gx = (i + (rng() - 0.5) * 0.2) * cell;   // ±0.1·cell
+        const gy = (j + (rng() - 0.5) * 0.2) * cell;
+        // cull to the viewport at base rotation — the margin absorbs drift
+        const x = gx * cs - gy * sn;
+        const y = gx * sn + gy * cs;
+        if (x < -xk || x > xk || y < -yk || y > yk) continue;
+        out.push(gx, gy, 1 + (rng() - 0.5) * 0.14);    // radius 1 ± 0.07
+      }
+    }
+    return { data: Float32Array.from(out), count: out.length / 3, rmax: RMAX_F * cell };
   }
 
+  function rebuild() {
+    const S = SCREENS[modeName];
+    const cell = Math.min(W, H) < 700 ? S.cellM : S.cell;
+    inkPlate = buildPlate(INK_A, cell, 0x1A2B3C);
+    beigePlate = S.plates === 2 ? buildPlate(PLATE_A, cell, 0x4D5E6F) : null;
+  }
+
+  // each print run registers differently — re-rolled on mode switch
+  const printRng = mulberry32(0x5EED04);
+  let regX = 0, regY = 0, regRot = 0;
+  function rollRegistration() {
+    const a = printRng() * TAU;
+    const mag = REG_MIN + printRng() * REG_SPAN;
+    regX = Math.cos(a) * mag;
+    regY = Math.sin(a) * mag;
+    regRot = (printRng() * 2 - 1) * REG_ROT;
+  }
+  let drift = 0;   // beige plate angle drift, radians — chases the wind mean
+
   // ══════════════════════════════════════════════════════════
-  // THE GRASS — three depth layers of spring-loaded blades.
-  // Each blade: base point, height, a tip that gets pushed by
-  // wind + hand and springs home. Drawn as quadratic curves,
-  // batched into one stroke per layer.
+  // INTERACTIONS — all screen-space, all on the frame clock
   // ══════════════════════════════════════════════════════════
-  // layer: [alpha, lineWidth, hMin, hMax, yTop, yBot] (y as H fractions)
-  const LAYERS = [
-    [0.10, 1.0, 26, 46,  0.48, 0.72],
-    [0.17, 1.4, 44, 84,  0.58, 0.86],
-    [0.26, 1.9, 78, 132, 0.70, 1.04],
+  const lens = { x: W * 0.5, y: H * 0.5, tx: W * 0.5, ty: H * 0.5, pow: 0 };
+  let pointerOn = false;
+
+  const rng = mulberry32(0xF1E1D);
+  const fronts = [
+    { on: false, timer: 1.6, fx: 1, fy: 0, p: 0, end: 0, spd: FRONT_SPD },
+    { on: false, timer: 7.4, fx: 1, fy: 0, p: 0, end: 0, spd: FRONT_SPD },
   ];
-  // two ink buckets per layer keep batching while breaking uniformity
-  const BUCKET_A = 0.72, BUCKET_B = 1.18;
-  let blades = [];   // flat list, presorted far -> near
-
-  function seedBlades() {
-    blades = [];
-    const target = Math.max(900, Math.min(4200, Math.round((W * H) / 300)));
-    const per = [0.32, 0.34, 0.34];
-    for (let L = 0; L < 3; L++) {
-      const [alpha, lw, hMin, hMax, yTop, yBot] = LAYERS[L];
-      const n = Math.round(target * per[L]);
-      for (let i = 0; i < n; i++) {
-        // pow-bias roots downward so the canopy thins out raggedly on top
-        const u = Math.pow(Math.random(), 0.62);
-        const straggler = Math.random() < 0.06;
-        blades.push({
-          k: L * 2 + (Math.random() < 0.5 ? 0 : 1),   // draw bucket
-          L,
-          bx: Math.random() * (W + 40) - 20,
-          by: H * (yTop + u * (yBot - yTop)),
-          h: (hMin + Math.random() * (hMax - hMin)) * (straggler ? 1.4 : 1),
-          lean: (Math.random() - 0.5) * 34,
-          ph: Math.random() * Math.PI * 2,
-          d: 0,     // tip displacement (px)
-          dv: 0,    // tip velocity
-        });
+  function spawnFront(f) {
+    const ang = (-18 + (rng() * 2 - 1) * 32) * RAD;
+    f.fx = Math.cos(ang);
+    f.fy = Math.sin(ang);
+    let lo = Infinity, hi = -Infinity;
+    for (let a = 0; a < 2; a++) {
+      for (let b = 0; b < 2; b++) {
+        const s = a * W * f.fx + b * H * f.fy;
+        if (s < lo) lo = s;
+        if (s > hi) hi = s;
       }
     }
-    // painter's order: far buckets first, higher roots first inside each
-    blades.sort((a, b) => a.k - b.k || a.by - b.by);
+    f.p = lo - FRONT_HALF;
+    f.end = hi + FRONT_HALF;
+    f.spd = FRONT_SPD * (0.85 + rng() * 0.4);
+    f.on = true;
   }
 
-  // ══════════════════════════════════════════════════════════
-  // BAKED DUSK — gradient + a breath of ground haze + grain.
-  // ══════════════════════════════════════════════════════════
-  const skyCanvas = document.createElement('canvas');
+  const drops = [];   // ink drops: expanding rings (PRM: static bumps)
+  const gusts = [];   // drag impulses: blobs coasting along the drag vector
 
-  function bakeSky() {
-    skyCanvas.width  = Math.floor(W * DPR);
-    skyCanvas.height = Math.floor(H * DPR);
-    const s = skyCanvas.getContext('2d');
-    s.setTransform(DPR, 0, 0, DPR, 0, 0);
+  // per-drop constants hoisted out of the dot loop each frame:
+  // fade + a squared ring band so the loop rejects on d2 before
+  // paying for the sqrt — same trick as the gust test
+  const dropFade = new Float32Array(DROP_MAX);
+  const dropLo = new Float32Array(DROP_MAX);
+  const dropHi = new Float32Array(DROP_MAX);
 
-    const g = s.createLinearGradient(0, 0, 0, H);
-    g.addColorStop(0, '#06070A');
-    g.addColorStop(1, '#0D1016');
-    s.fillStyle = g;
-    s.fillRect(0, 0, W, H);
-
-    // where the grass roots — a soft band of ground haze
-    const hz = s.createLinearGradient(0, H * 0.42, 0, H);
-    hz.addColorStop(0, 'rgba(20, 24, 33, 0)');
-    hz.addColorStop(0.55, 'rgba(20, 24, 33, 0.22)');
-    hz.addColorStop(1, 'rgba(20, 24, 33, 0.55)');
-    s.fillStyle = hz;
-    s.fillRect(0, H * 0.42, W, H * 0.58);
-
-    let seed = 917;
-    const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
-    const n = Math.floor((W * H) / 700);
-    for (let i = 0; i < n; i++) {
-      const x = rnd() * W, y = rnd() * H;
-      s.fillStyle = rnd() > 0.5
-        ? 'rgba(255,255,255,0.035)'
-        : 'rgba(0,0,0,0.05)';
-      s.fillRect(x, y, 1, 1);
-    }
+  function spawnDrop(x, y) {
+    drops.push({ x: x, y: y, r: 0, age: 0 });
+    if (drops.length > DROP_MAX) drops.shift();
+  }
+  function spawnGust(x, y, ux, uy) {
+    gusts.push({ x: x, y: y, vx: ux * GUST_SPD, vy: uy * GUST_SPD, age: 0 });
+    if (gusts.length > GUST_MAX) gusts.shift();
   }
 
-  function resize() {
-    DPR = Math.min(2, window.devicePixelRatio || 1);
-    W = window.innerWidth;
-    H = window.innerHeight;
-    canvas.width  = Math.floor(W * DPR);
-    canvas.height = Math.floor(H * DPR);
-    canvas.style.width  = W + 'px';
-    canvas.style.height = H + 'px';
-    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-    bakeSky();
-    seedBlades();
-    seedFlies();
+  // burnish — a persistent coarse grid the hold rubs tone into,
+  // bilinearly sampled, relaxing back on its own
+  let bw = 0, bh = 0, burn = null, burnOn = false;
+  function buildBurn() {
+    bw = Math.ceil(W / BURN_CELL) + 2;
+    bh = Math.ceil(H / BURN_CELL) + 2;
+    burn = new Float32Array(bw * bh);
+    burnOn = false;
   }
-  window.addEventListener('resize', resize, { passive: true });
-  window.addEventListener('orientationchange', () => setTimeout(resize, 200));
-
-  // ══════════════════════════════════════════════════════════
-  // GUST FRONTS — a visible wall of wind crossing the meadow.
-  // ══════════════════════════════════════════════════════════
-  let fronts = [];      // {x, v, band, str}
-  let nextFront = null;
-
-  function frontGap() {
-    if (PRM || !P.frontGap) return Infinity;
-    return (P.frontGap * (0.7 + Math.random() * 0.6)) * 1000;
-  }
-
-  function spawnFront() {
-    fronts.push({
-      x: -W * 0.2,
-      v: W * (0.55 + Math.random() * 0.3),   // px/s across
-      band: W * 0.16,
-      str: P.gust * (1.6 + Math.random() * 0.8),
-    });
-  }
-
-  function stepFronts(dt, now) {
-    if (nextFront === null) nextFront = now + frontGap();
-    if (now >= nextFront) {
-      spawnFront();
-      nextFront = now + frontGap();
-    }
-    for (let i = fronts.length - 1; i >= 0; i--) {
-      fronts[i].x += fronts[i].v * dt;
-      if (fronts[i].x > W * 1.4) fronts.splice(i, 1);
-    }
-  }
-
-  function frontPush(bx) {
-    let f = 0;
-    for (let i = 0; i < fronts.length; i++) {
-      const dx = (bx - fronts[i].x) / fronts[i].band;
-      if (dx > -1.4 && dx < 1.4) f += fronts[i].str * Math.exp(-dx * dx * 2.2);
-    }
-    return f;
-  }
-
-  // ══════════════════════════════════════════════════════════
-  // SHOCKS — a tap rings the meadow.
-  // ══════════════════════════════════════════════════════════
-  let shocks = [];   // {x, y, r, v, str}
-
-  function stepShocks(dt) {
-    for (let i = shocks.length - 1; i >= 0; i--) {
-      const s = shocks[i];
-      s.r += s.v * dt;
-      s.str *= Math.pow(0.25, dt);   // fades as it travels
-      if (s.r > Math.max(W, H) * 1.2 || s.str < 1) shocks.splice(i, 1);
-    }
-  }
-
-  function shockPush(bx, by) {
-    let fx = 0;
-    for (let i = 0; i < shocks.length; i++) {
-      const s = shocks[i];
-      const dx = bx - s.x, dy = by - s.y;
-      const d = Math.sqrt(dx * dx + dy * dy) || 1;
-      const band = Math.abs(d - s.r);
-      if (band < 70) {
-        fx += (dx / d) * s.str * (1 - band / 70);
+  function splatBurn(px, py, dt) {
+    const i0 = Math.max(0, Math.floor((px - BURN_R) / BURN_CELL));
+    const i1 = Math.min(bw - 1, Math.ceil((px + BURN_R) / BURN_CELL));
+    const j0 = Math.max(0, Math.floor((py - BURN_R) / BURN_CELL));
+    const j1 = Math.min(bh - 1, Math.ceil((py + BURN_R) / BURN_CELL));
+    const add = dt * BURN_RATE;
+    for (let j = j0; j <= j1; j++) {
+      for (let i = i0; i <= i1; i++) {
+        const dx = i * BURN_CELL - px, dy = j * BURN_CELL - py;
+        const q = 1 - Math.sqrt(dx * dx + dy * dy) / BURN_R;
+        if (q <= 0) continue;
+        const k = j * bw + i;
+        const v = burn[k] + add * q * q * (3 - 2 * q);
+        burn[k] = v > BURN_CAP ? BURN_CAP : v;
       }
     }
-    return fx;
+    burnOn = true;
+  }
+  function burnAt(x, y) {
+    let u = x / BURN_CELL;
+    let v = y / BURN_CELL;
+    if (u < 0) u = 0; else if (u > bw - 1.001) u = bw - 1.001;
+    if (v < 0) v = 0; else if (v > bh - 1.001) v = bh - 1.001;
+    const i = u | 0, j = v | 0;
+    const fx = u - i, fy = v - j;
+    const k = j * bw + i;
+    const a = burn[k], b = burn[k + 1], c = burn[k + bw], d = burn[k + bw + 1];
+    return a + (b - a) * fx + (c - a) * fy + (a - b - c + d) * fx * fy;
   }
 
   // ══════════════════════════════════════════════════════════
-  // THE HAND — move parts the grass, hold presses it down.
-  // ══════════════════════════════════════════════════════════
-  const hand = { x: -9999, y: -9999, vx: 0, held: false, downT: 0 };
-
-  function handPush(bx, by) {
-    const dx = bx - hand.x, dy = by - hand.y;
-    const R = hand.held ? 150 : 110;
-    const d2 = dx * dx + dy * dy;
-    if (d2 > R * R) return 0;
-    const d = Math.sqrt(d2) || 1;
-    const fall = 1 - d / R;
-    if (hand.held) return (dx / d) * 120 * fall;          // pressed flat, radial
-    return (dx / d) * fall * 26 + hand.vx * 0.35 * fall;  // brushed aside
-  }
-
-  // ══════════════════════════════════════════════════════════
-  // FIREFLIES — seven yellow motes. The accent, and the life.
-  // ══════════════════════════════════════════════════════════
-  const FLY_N = 7;
-  let flies = [];
-
-  function seedFlies() {
-    flies = [];
-    for (let i = 0; i < FLY_N; i++) {
-      flies.push({
-        x: Math.random() * W,
-        y: H * (0.45 + Math.random() * 0.35),
-        vx: 0, vy: 0,
-        ph: Math.random() * Math.PI * 2,   // blink phase
-        wt: Math.random() * 100,           // wander time
-      });
-    }
-  }
-
-  function stepFlies(dt, now) {
-    const calm = PRM ? 0.35 : 1;
-    for (let i = 0; i < flies.length; i++) {
-      const f = flies[i];
-      f.wt += dt;
-      // wander: two slow sines make a lazy loop, noise varies it
-      const n = noise2(f.wt * 0.35, i * 7.3) - 0.5;
-      f.vx += (Math.sin(f.wt * 0.7 + i) * 9 + n * 26) * dt * calm;
-      f.vy += (Math.cos(f.wt * 0.53 + i * 2) * 7 + (noise2(i * 5.1, f.wt * 0.3) - 0.5) * 20) * dt * calm;
-      // gathered to a held hand
-      if (hand.held) {
-        const dx = hand.x - f.x, dy = (hand.y - 40) - f.y;
-        f.vx += dx * 1.4 * dt * calm;
-        f.vy += dy * 1.4 * dt * calm;
-      }
-      // home band: drift back toward the grass tops
-      const homeY = H * 0.62;
-      f.vy += (homeY - f.y) * 0.08 * dt;
-      f.vx *= Math.pow(0.6, dt);
-      f.vy *= Math.pow(0.6, dt);
-      f.x += f.vx * dt * 60 * 0.016;
-      f.y += f.vy * dt * 60 * 0.016;
-      // soft wrap
-      if (f.x < -20) f.x = W + 20;
-      if (f.x > W + 20) f.x = -20;
-      if (f.y < H * 0.2) f.y = H * 0.2;
-      if (f.y > H * 0.95) f.y = H * 0.95;
-    }
-  }
-
-  function scatterFlies(x, y) {
-    for (let i = 0; i < flies.length; i++) {
-      const f = flies[i];
-      const dx = f.x - x, dy = f.y - y;
-      const d = Math.sqrt(dx * dx + dy * dy) || 1;
-      const k = Math.max(0, 1 - d / 340) * (PRM ? 6 : 26);
-      f.vx += (dx / d) * k;
-      f.vy += (dy / d) * k;
-    }
-  }
-
-  function drawFlies(now) {
-    for (let i = 0; i < flies.length; i++) {
-      const f = flies[i];
-      const blink = 0.45 + 0.55 * (0.5 + 0.5 * Math.sin(now / 900 + f.ph * 7));
-      ctx.globalAlpha = blink * 0.28;
-      ctx.fillStyle = '#F5CB5C';
-      ctx.beginPath();
-      ctx.arc(f.x, f.y, 6.5, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.globalAlpha = blink;
-      ctx.beginPath();
-      ctx.arc(f.x, f.y, 2.1, 0, Math.PI * 2);
-      ctx.fill();
-    }
-    ctx.globalAlpha = 1;
-  }
-
-  // ══════════════════════════════════════════════════════════
-  // BLADE PHYSICS + DRAW — batched, one stroke per layer.
-  // ══════════════════════════════════════════════════════════
-  const SPRING = 26;   // pull home
-  const DRAG = 5.2;    // settle
-
-  function stepAndDraw(dt, now) {
-    ctx.drawImage(skyCanvas, 0, 0, W, H);
-
-    const t = now / 1000;
-    const calm = PRM ? 0.4 : 1;
-    const ns = 0.0035;                    // noise spatial scale
-    const nt = t * P.noiseSpd * 60 * calm;
-
-    let curK = -1;
-    ctx.lineCap = 'round';
-    for (let i = 0; i < blades.length; i++) {
-      const b = blades[i];
-      if (b.k !== curK) {
-        if (curK !== -1) ctx.stroke();
-        curK = b.k;
-        const a = LAYERS[b.L][0] * (curK % 2 ? BUCKET_B : BUCKET_A);
-        ctx.beginPath();
-        ctx.strokeStyle = 'rgba(222, 229, 238, ' + a.toFixed(3) + ')';
-        ctx.lineWidth = LAYERS[b.L][1];
-      }
-      // wind at the base — pockets drift with time, deeper layers feel less
-      const depth = 0.55 + 0.45 * (b.L / 2);
-      const n = noise2(b.bx * ns + nt, b.by * ns) - 0.35;
-      let wind = (P.base + n * P.gust * 2) * depth * calm;
-      wind += frontPush(b.bx) * depth;
-      wind += shockPush(b.bx, b.by);
-      wind += handPush(b.bx, b.by);
-
-      // spring the tip toward the wind's lean
-      b.dv += ((wind + b.lean - b.d) * SPRING - b.dv * DRAG) * dt;
-      b.d += b.dv * dt;
-
-      // flutter grows toward the tip, faster in rough air
-      const fl = Math.sin(t * (5 + P.flutter * 3) + b.ph) * P.flutter * (PRM ? 0.3 : 1);
-
-      const tipX = b.bx + b.d + fl;
-      const tipY = b.by - b.h * (1 - Math.min(0.35, Math.abs(b.d) / (b.h * 2.6)));
-      ctx.moveTo(b.bx, b.by);
-      ctx.quadraticCurveTo(b.bx + b.d * 0.28, b.by - b.h * 0.55, tipX, tipY);
-    }
-    if (curK !== -1) ctx.stroke();
-  }
-
-  // ══════════════════════════════════════════════════════════
-  // INPUT
+  // INPUT — drag a gust, hold to burnish, tap an ink drop
   // ══════════════════════════════════════════════════════════
   const hint = document.getElementById('hint');
   let hintFaded = false;
@@ -604,90 +599,305 @@ breeze, and squall winds. Gusts travel visibly across the field.</p>
     hint.classList.add('fade');
   }
 
-  let pid = null;
-  let pMoved = false;
+  let down = null;   // { id, x0, y0, x, y, age, moved, burnishing, trail }
 
   canvas.addEventListener('pointerdown', (e) => {
-    if (pid !== null) return;
-    pid = e.pointerId;
-    pMoved = false;
-    hand.x = e.clientX; hand.y = e.clientY;
-    hand.downT = last;
-    canvas.setPointerCapture(e.pointerId);
+    try { canvas.setPointerCapture(e.pointerId); } catch (err) { /* stale pointer — capture is a nicety */ }
+    down = {
+      id: e.pointerId,
+      x0: e.clientX, y0: e.clientY,
+      x: e.clientX, y: e.clientY,
+      age: 0, moved: false, burnishing: false, trail: 0,
+    };
+    lens.tx = e.clientX; lens.ty = e.clientY;
+    pointerOn = true;
+    fadeHint();
   });
 
   canvas.addEventListener('pointermove', (e) => {
-    if (pid !== null && e.pointerId !== pid) return;
-    const nx = e.clientX, ny = e.clientY;
-    hand.vx = (nx - hand.x) * 2.4;
-    if (pid !== null) {
-      const dx = nx - hand.x, dy = ny - hand.y;
-      if (dx * dx + dy * dy > 64) pMoved = true;
+    pointerOn = true;
+    lens.tx = e.clientX; lens.ty = e.clientY;
+    if (!down || e.pointerId !== down.id) return;
+    const dx = e.clientX - down.x, dy = e.clientY - down.y;
+    if (!down.moved && !down.burnishing) {
+      const ox = e.clientX - down.x0, oy = e.clientY - down.y0;
+      if (ox * ox + oy * oy > SLOP2) down.moved = true;
     }
-    hand.x = nx; hand.y = ny;
-    if (Math.abs(hand.vx) > 6) fadeHint();
+    if (down.moved && !down.burnishing) {
+      // drag = inject gust impulses along the drag vector
+      const step = Math.sqrt(dx * dx + dy * dy);
+      down.trail += step;
+      if (down.trail >= GUST_STEP && step > 0.001) {
+        down.trail = 0;
+        spawnGust(e.clientX, e.clientY, dx / step, dy / step);
+      }
+    }
+    down.x = e.clientX;
+    down.y = e.clientY;
   });
 
   function endPointer(e) {
-    if (pid === null || e.pointerId !== pid) return;
-    const heldMs = last - hand.downT;
-    if (!pMoved && heldMs < 320) {
-      shocks.push({ x: hand.x, y: hand.y, r: 10, v: PRM ? 420 : 760, str: 150 });
-      scatterFlies(hand.x, hand.y);
-      fadeHint();
+    if (down && e.pointerId === down.id) {
+      // a clean tap — under the hold threshold, never dragged — drops ink
+      if (!down.moved && !down.burnishing && down.age < HOLD_S) {
+        spawnDrop(down.x, down.y);
+      }
+      down = null;
     }
-    pid = null;
-    hand.held = false;
+    // no hover after a touch lifts — let the lens breathe out
+    if (e.pointerType !== 'mouse') pointerOn = false;
   }
   canvas.addEventListener('pointerup', endPointer);
-  canvas.addEventListener('pointercancel', endPointer);
-  window.addEventListener('pointerup', endPointer);
+  // a cancelled pointer is not a tap — the OS took the gesture
+  // away, so just discard the state; no ink from a ghost touch
+  canvas.addEventListener('pointercancel', (e) => {
+    if (down && e.pointerId === down.id) down = null;
+    if (e.pointerType !== 'mouse') pointerOn = false;
+  });
+  canvas.addEventListener('pointerleave', () => { if (!down) pointerOn = false; });
 
-  function stepHold(now) {
-    if (pid === null) { hand.held = false; return; }
-    hand.held = !pMoved && (now - hand.downT) >= 320;
-    if (hand.held) fadeHint();
-  }
-
-  // mouse leaves: the hand is gone
-  window.addEventListener('pointerout', (e) => {
-    if (!e.relatedTarget && pid === null) { hand.x = -9999; hand.y = -9999; hand.vx = 0; }
+  window.addEventListener('keydown', (e) => {
+    if (e.key === '1') setMode('coarse');
+    else if (e.key === '2') setMode('fine');
+    else if (e.key === '3') setMode('overprint');
+    else return;
+    fadeHint();
   });
 
-  // ── controls ──
+  // ══════════════════════════════════════════════════════════
+  // MODES
+  // ══════════════════════════════════════════════════════════
+  function setMode(name) {
+    if (!SCREENS[name]) return;
+    modeName = name;
+    rollRegistration();
+    rebuild();
+    document.querySelectorAll('.mode-btn[data-mode]').forEach(btn => {
+      const on = btn.dataset.mode === name;
+      btn.classList.toggle('active', on);
+      btn.setAttribute('aria-pressed', String(on));
+    });
+  }
+
   document.getElementById('modes').addEventListener('click', (e) => {
     const b = e.target.closest('.mode-btn');
     if (b && b.dataset.mode) setMode(b.dataset.mode);
   });
-  window.addEventListener('keydown', (e) => {
-    if (e.key === '1') setMode('lull');
-    else if (e.key === '2') setMode('breeze');
-    else if (e.key === '3') setMode('squall');
-    else if (e.key === ' ' && !e.repeat) {
-      e.preventDefault();
-      const x = W * (0.2 + Math.random() * 0.6), y = H * (0.5 + Math.random() * 0.3);
-      shocks.push({ x, y, r: 10, v: PRM ? 420 : 760, str: 150 });
-      scatterFlies(x, y);
-      fadeHint();
-    }
-  });
 
   // ══════════════════════════════════════════════════════════
-  // LOOP
+  // RENDER — per plate: one Path2D, one fill, multiply over
+  // the stock. beige first at 0.85, ink last at 0.9.
+  // ══════════════════════════════════════════════════════════
+  function platePath(P, theta, ox, oy, t) {
+    const path = new Path2D();
+    const cs = Math.cos(theta), sn = Math.sin(theta);
+    const cx = W * 0.5 + ox, cy = H * 0.5 + oy;
+    const data = P.data, n = P.count, rmax = P.rmax;
+    const tu = t * WIND_U, tv = t * WIND_V;
+
+    // hoist interaction state out of the dot loop
+    const lp = lens.pow > 0.02 ? lens.pow : 0;
+    const lx = lens.x, ly = lens.y;
+    const lr2 = LENS_R * LENS_R;
+    const useBurn = burnOn;
+    const nd = drops.length, ng = gusts.length;
+    let nf = 0;
+    let fA = null, fB = null;
+    for (let k = 0; k < fronts.length; k++) {
+      if (!fronts[k].on) continue;
+      if (nf === 0) fA = fronts[k]; else fB = fronts[k];
+      nf++;
+    }
+    // ring band bounds, squared (PRM's still bump has its own d2 reject)
+    if (nd && !PRM) {
+      for (let k = 0; k < nd; k++) {
+        const dr = drops[k];
+        dropFade[k] = 1 - dr.age / DROP_LIFE;
+        const lo = dr.r - DROP_BAND, hi = dr.r + DROP_BAND;
+        dropLo[k] = lo > 0 ? lo * lo : 0;
+        dropHi[k] = hi * hi;
+      }
+    }
+
+    for (let i = 0, p = 0; i < n; i++, p += 3) {
+      const gx = data[p], gy = data[p + 1];
+      const x = cx + gx * cs - gy * sn;
+      const y = cy + gx * sn + gy * cs;
+
+      // base tone + advected wind, sampled at the unrotated point
+      let d = BASE + WIND_AMP * (wind2(gx * NOISE_K + tu, gy * NOISE_K + tv) * 2 - 1);
+
+      if (nf) {
+        let a = x * fA.fx + y * fA.fy - fA.p;
+        if (a < 0) a = -a;
+        if (a < FRONT_HALF) {
+          const q = 1 - a / FRONT_HALF;
+          d += FRONT_AMP * q * q * (3 - 2 * q);
+        }
+        if (fB) {
+          let b = x * fB.fx + y * fB.fy - fB.p;
+          if (b < 0) b = -b;
+          if (b < FRONT_HALF) {
+            const q = 1 - b / FRONT_HALF;
+            d += FRONT_AMP * q * q * (3 - 2 * q);
+          }
+        }
+      }
+
+      if (lp) {
+        const dx = x - lx, dy = y - ly;
+        const d2 = dx * dx + dy * dy;
+        if (d2 < lr2) {
+          const q = 1 - Math.sqrt(d2) / LENS_R;
+          d += LENS_AMP * lp * q * q * (3 - 2 * q);
+        }
+      }
+
+      for (let k = 0; k < ng; k++) {
+        const g = gusts[k];
+        const dx = x - g.x, dy = y - g.y;
+        const d2 = dx * dx + dy * dy;
+        if (d2 < GUST_R2) {
+          const q = 1 - Math.sqrt(d2) / GUST_R;
+          const lifeQ = 1 - g.age / GUST_LIFE;
+          d += GUST_AMP * lifeQ * lifeQ * q * q * (3 - 2 * q);
+        }
+      }
+
+      for (let k = 0; k < nd; k++) {
+        const dr = drops[k];
+        const dx = x - dr.x, dy = y - dr.y;
+        const d2 = dx * dx + dy * dy;
+        if (PRM) {
+          // reduced motion: the drop is a still bump, only fading
+          if (d2 < DROP_PRM_R * DROP_PRM_R) {
+            const q = 1 - Math.sqrt(d2) / DROP_PRM_R;
+            d += DROP_AMP * (1 - dr.age / DROP_LIFE) * q * q * (3 - 2 * q);
+          }
+        } else if (d2 >= dropLo[k] && d2 <= dropHi[k]) {
+          // inside the squared band — only now is the sqrt earned
+          let a = Math.sqrt(d2) - dr.r;
+          if (a < 0) a = -a;
+          if (a < DROP_BAND) {
+            const q = 1 - a / DROP_BAND;
+            d += DROP_AMP * dropFade[k] * q * q * (3 - 2 * q);
+          }
+        }
+      }
+
+      if (useBurn) d += burnAt(x, y);
+
+      if (d <= 0.003) continue;
+      if (d > 1) d = 1;
+      const r = rmax * RLUT[(d * 511) | 0] * data[p + 2];
+      if (r > MIN_R) {
+        path.moveTo(x + r, y);
+        path.arc(x, y, r, 0, TAU);
+      }
+    }
+    return path;
+  }
+
+  function draw(t) {
+    ctx.fillStyle = STOCK;
+    ctx.fillRect(0, 0, W, H);
+    ctx.globalCompositeOperation = 'multiply';
+    if (beigePlate) {
+      ctx.globalAlpha = 0.85;
+      ctx.fillStyle = PLATE;
+      ctx.fill(platePath(beigePlate, PLATE_A + regRot + drift, regX, regY, t));
+    }
+    ctx.globalAlpha = 0.9;
+    ctx.fillStyle = INK;
+    ctx.fill(platePath(inkPlate, INK_A, 0, 0, t));
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.globalAlpha = 1;
+  }
+
+  // ══════════════════════════════════════════════════════════
+  // LOOP — everything schedules off the frame clock
   // ══════════════════════════════════════════════════════════
   let last = performance.now();
+  let simT = 0;
 
   function frameBody(now) {
-    if (canvas.width === 0 && window.innerWidth > 0) resize();   // 0-size load guard
-    const dt = Math.min(0.05, (now - last) / 1000);
+    if (canvas.width === 0 && window.innerWidth > 0) resize();
+    const dt = Math.max(0, Math.min(0.05, (now - last) / 1000));
     last = now;
+    simT += dt;
 
-    stepHold(now);
-    stepFronts(dt, now);
-    stepShocks(dt);
-    stepFlies(dt, now);
-    stepAndDraw(dt, now);
-    drawFlies(now);
+    // hold matures into burnish; burnish rubs wherever the hand goes
+    if (down) {
+      down.age += dt;
+      if (!down.moved && !down.burnishing && down.age >= HOLD_S) down.burnishing = true;
+      if (down.burnishing) splatBurn(down.x, down.y, dt);
+    }
+
+    // the loupe trails the hand on a damped follower
+    const ease = 1 - Math.exp(-dt * LENS_K);
+    lens.x += (lens.tx - lens.x) * ease;
+    lens.y += (lens.ty - lens.y) * ease;
+    lens.pow += ((pointerOn ? 1 : 0) - lens.pow) * Math.min(1, dt * 5);
+
+    // gust fronts sweep, die at the far edge, respawn on a rolled wait
+    if (!PRM) {
+      for (let k = 0; k < fronts.length; k++) {
+        const f = fronts[k];
+        if (f.on) {
+          f.p += f.spd * dt;
+          if (f.p > f.end) {
+            f.on = false;
+            f.timer = FRONT_WAIT[0] + rng() * (FRONT_WAIT[1] - FRONT_WAIT[0]);
+          }
+        } else {
+          f.timer -= dt;
+          if (f.timer <= 0) spawnFront(f);
+        }
+      }
+    }
+
+    for (let k = drops.length - 1; k >= 0; k--) {
+      const dr = drops[k];
+      dr.age += dt;
+      if (!PRM) dr.r += DROP_SPD * dt;
+      if (dr.age >= DROP_LIFE) drops.splice(k, 1);
+    }
+
+    for (let k = gusts.length - 1; k >= 0; k--) {
+      const g = gusts[k];
+      g.age += dt;
+      g.x += g.vx * dt;
+      g.y += g.vy * dt;
+      const f = Math.exp(-dt * GUST_DRAG);
+      g.vx *= f;
+      g.vy *= f;
+      if (g.age >= GUST_LIFE) gusts.splice(k, 1);
+    }
+
+    // burnish relaxes back; the flag drops once the grid is spent
+    if (burnOn) {
+      const dec = BURN_RELAX * dt;
+      let live = 0;
+      for (let i = 0; i < burn.length; i++) {
+        let v = burn[i];
+        if (v > 0) {
+          v -= dec;
+          if (v < 0) v = 0;
+          burn[i] = v;
+          if (v > live) live = v;
+        }
+      }
+      if (live < 0.002 && !(down && down.burnishing)) burnOn = false;
+    }
+
+    // the beige plate chases the wind mean — two screens beating
+    const tu = simT * WIND_U, tv = simT * WIND_V;
+    const qx = W * 0.25 * NOISE_K, qy = H * 0.25 * NOISE_K;
+    const mean = (wind2(qx + tu, qy + tv) + wind2(-qx + tu, qy + tv)
+                + wind2(qx + tu, -qy + tv) + wind2(-qx + tu, -qy + tv)) * 0.5 - 1;
+    drift += (mean * DRIFT_MAX - drift) * Math.min(1, dt * 0.6);
+
+    draw(simT);
   }
 
   function loop(now) {
@@ -695,12 +905,31 @@ breeze, and squall winds. Gusts travel visibly across the field.</p>
     frameBody(now);
   }
 
+  function resize() {
+    DPR = Math.min(1.5, window.devicePixelRatio || 1);
+    W = window.innerWidth;
+    H = window.innerHeight;
+    canvas.width = Math.floor(W * DPR);
+    canvas.height = Math.floor(H * DPR);
+    canvas.style.width = W + 'px';
+    canvas.style.height = H + 'px';
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    buildBurn();      // burnish is viewport-mapped — a resize re-stretches the sheet
+    rebuild();
+  }
+  // a drag-resize fires per frame; the plate rebuild is a full
+  // lattice pass, so coalesce to one trailing rebuild
+  let rsT;
+  window.addEventListener('resize', () => { clearTimeout(rsT); rsT = setTimeout(resize, 150); }, { passive: true });
+  window.addEventListener('orientationchange', () => { clearTimeout(rsT); rsT = setTimeout(resize, 200); });
+
+  rollRegistration();
   resize();
   requestAnimationFrame(loop);
 
   // ── QA hook: step the sim without rAF + read a small snapshot.
   //    Occluded windows starve rAF; this keeps the piece testable. ──
-  if (location.hostname === 'localhost' || location.search.indexOf('qa') !== -1) {
+  if (location.hostname === 'localhost' || new URLSearchParams(location.search).has('qa')) {
     window.__lab = {
       tick(n, ms) {
         n = n || 1; ms = ms || 16.7;
@@ -713,7 +942,7 @@ breeze, and squall winds. Gusts travel visibly across the field.</p>
         c.getContext('2d').drawImage(canvas, 0, 0, c.width, c.height);
         return c.toDataURL('image/jpeg', 0.82);
       },
-      info: () => ({ blades: blades.length, fronts: fronts.length, shocks: shocks.length, flies: flies.length }),
+      info: () => ({ cells: inkPlate.count, plates: beigePlate ? 2 : 1, mode: modeName }),
     };
   }
 })();

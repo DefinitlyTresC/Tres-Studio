@@ -4,39 +4,40 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>pulse — tres carter</title>
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23080808'/%3E%3Ccircle cx='16' cy='16' r='6' fill='%23ff5a1f'/%3E%3C/svg%3E" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Anybody:wdth,wght@150,900&family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet" />
 
   <!-- tracking: one bootstrap for the whole site (Umami + Clarity + visitor id + self-exclusion) - public/ts.js -->
   <script defer src="/ts.js"></script>
 
   <style>
     /* ───────────────────────────────────────────────────────────
-       PULSE — sounding the dark.
-       A hidden terrain, pitch black until a ping crosses it;
-       contours light where the wavefront passes, then fade.
-       Lab family: Space Mono chrome, one yellow accent.
+       PULSE — sounding the blank sheet.
+       Universe 03 keeps this piece: a white page over a hidden
+       terrain. Tap to ping; a ring of boiling junk type crosses
+       the sheet and wherever it finds ground, the teletype prints
+       sonar returns in an ink ramp. The paper forgets. The
+       highest ground answers back in inverted blocks.
        ─────────────────────────────────────────────────────────── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --white:     #FFFFFF;
-      --black:     #07080B;
-      --yellow:    #F5CB5C;
-      --ink-faint: rgba(255, 255, 255, 0.38);
-      --ink-soft:  rgba(255, 255, 255, 0.6);
-      --line:      rgba(255, 255, 255, 0.14);
+      --paper:     #FFFFFF;
+      --ink:       #141414;
+      --ink-soft:  rgba(0, 0, 0, 0.6);
+      --ink-faint: rgba(0, 0, 0, 0.38);
+      --hairline:  rgba(0, 0, 0, 0.14);
 
-      --mono: 'Space Mono', ui-monospace, monospace;
+      --disp: 'Anybody', 'JetBrains Mono', system-ui, sans-serif;
+      --mono: 'JetBrains Mono', ui-monospace, monospace;
       --pad: clamp(1.5rem, 4vw, 3rem);
       --ease: cubic-bezier(.2, .8, .2, 1);
     }
 
     html, body {
-      background: var(--black);
-      color: var(--white);
+      background: var(--paper);
+      color: var(--ink);
       font-family: var(--mono);
       font-size: 15px;
       height: 100%;
@@ -49,13 +50,15 @@
       user-select: none;
     }
 
+    ::selection { background: var(--ink); color: var(--paper); }
+
     a { color: inherit; text-decoration: none; }
     button {
       font: inherit; color: inherit; background: none; border: none;
       cursor: pointer; -webkit-tap-highlight-color: transparent;
     }
     a:focus-visible, button:focus-visible {
-      outline: 1px solid var(--yellow);
+      outline: 1px solid var(--ink);
       outline-offset: 3px;
     }
 
@@ -67,6 +70,7 @@
       z-index: 1;
       touch-action: none;
       display: block;
+      cursor: crosshair;
     }
 
     .fallback {
@@ -74,7 +78,7 @@
       display: grid; place-items: center;
     }
 
-    /* ─── Chrome ─── */
+    /* ─── Chrome — universe 3: mono everything, the wide mark below ─── */
     .nav {
       position: fixed;
       top: 0; left: 0; right: 0;
@@ -87,12 +91,14 @@
     }
     .nav > * { pointer-events: auto; }
     .nav .mark {
-      font-weight: 700;
-      font-size: 0.7rem;
-      letter-spacing: 0.14em;
+      font-family: var(--mono);
+      font-weight: 800;
+      font-size: 0.8rem;
+      letter-spacing: 0.05em;
+      text-transform: lowercase;
       transition: opacity 0.25s var(--ease);
     }
-    .nav .mark .y { color: var(--yellow); }
+    .nav .mark .y { color: var(--ink); }
     .nav .back {
       font-size: 0.62rem;
       letter-spacing: 0.14em;
@@ -105,13 +111,28 @@
       position: fixed;
       bottom: calc(1.6rem + env(safe-area-inset-bottom, 0px));
       left: var(--pad);
-      font-weight: 700;
-      font-size: 0.85rem;
-      letter-spacing: 0.14em;
+      font-family: var(--disp);
+      font-weight: 900;
+      font-stretch: 150%;
+      font-size: 0.95rem;
+      letter-spacing: 0.02em;
       z-index: 5;
       pointer-events: none;
+      line-height: 1.5;
     }
-    .mark-bottom .y { color: var(--yellow); }
+    .mark-bottom .y { color: var(--ink); }   /* stays ink — this universe has no color */
+    .mark-bottom .uni {
+      display: block;
+      pointer-events: auto;
+      font-family: var(--mono);
+      font-weight: 400;
+      font-stretch: 100%;
+      font-size: 0.52rem;
+      letter-spacing: 0.16em;
+      color: var(--ink-faint);
+      padding: 0.3rem 0;
+      transition: color 0.25s var(--ease);
+    }
 
     .hint {
       position: fixed;
@@ -122,6 +143,8 @@
       color: var(--ink-faint);
       z-index: 5;
       pointer-events: none;
+      padding-top: 0.5rem;
+      border-top: 1px dashed rgba(0, 0, 0, 0.25);   /* the drafting hairline */
       transition: opacity 0.8s var(--ease);
     }
     .hint.fade { opacity: 0; }
@@ -148,20 +171,20 @@
       align-items: center;
       transition: color 0.3s var(--ease);
     }
-    .mode-btn.active { color: var(--yellow); }
+    .mode-btn.active { color: var(--ink); font-weight: 700; }
 
     @media (hover: hover) {
       .nav .mark:hover { opacity: 0.65; }
-      .nav .back:hover { color: var(--white); }
-      .mode-btn:hover { color: var(--white); }
-      .mode-btn.active:hover { color: var(--yellow); }
+      .nav .back:hover { color: var(--ink); }
+      .mark-bottom .uni:hover { color: var(--ink); }
+      .mode-btn:hover { color: var(--ink); }
     }
 
     /* ─── Mobile ─── */
     @media (max-width: 700px) {
       .modes {
         top: auto;
-        bottom: calc(3.6rem + env(safe-area-inset-bottom, 0px));
+        bottom: calc(5.4rem + env(safe-area-inset-bottom, 0px));
         right: 0;
         left: 0;
         transform: none;
@@ -174,14 +197,15 @@
         padding: 0.55rem 0.55rem;
         font-size: 0.56rem;
       }
-      .mark-bottom { font-size: 0.75rem; }
+      .mark-bottom { font-size: 0.8rem; }
       .hint { max-width: 40vw; text-align: right; }
     }
 
-    /* ─── Reduced motion: chrome settles instantly; pings travel
-           slower and fade longer in JS, and the beacon stays quiet. ─── */
+    /* ─── Reduced motion: chrome settles instantly; the sim itself
+           slows the ring, drops the boil, prints without scramble. ─── */
     @media (prefers-reduced-motion: reduce) {
-      .nav .mark, .nav .back, .mode-btn, .hint { transition: none; }
+      .nav .mark, .nav .back, .mode-btn, .hint,
+      .mark-bottom .uni { transition: none; }
     }
 
     .sr {
@@ -197,10 +221,12 @@
 
 <canvas id="chart" aria-hidden="true"></canvas>
 
-<p class="sr">A sonar chart of a hidden landscape. Tap to send a ping; as the
-ring travels, contour lines light up where it passes and fade behind it. The
-highest ground answers back in yellow. Hold to keep sounding, and switch
-between ridge, atoll, and blocks worlds.</p>
+<p class="sr">A blank white sheet concealing a terrain. Tap anywhere to sound
+it: an expanding sonar ring of scrambled type crosses the page, and wherever
+it finds ground the cells resolve into a density ramp of ink characters, like
+a teletype printing returns, before fading back to blank. The highest ground
+answers back a moment later as inverted blocks. Hold for a ping train; drag
+to leave a faint wake. Worlds: ridge, atoll, blocks.</p>
 <noscript><p class="fallback">pulse needs JavaScript.</p></noscript>
 
 <nav class="nav">
@@ -214,8 +240,9 @@ between ridge, atoll, and blocks worlds.</p>
   <button class="mode-btn" data-mode="blocks" aria-pressed="false">[ blocks ]</button>
 </div>
 
-<div class="mark-bottom">pulse<span class="y">.</span></div>
-<div class="hint" id="hint">tap to sound the dark</div>
+<div class="mark-bottom">pulse<span class="y">.</span><a
+  class="uni" href="/3/">from universe 03</a></div>
+<div class="hint" id="hint">tap to sound the sheet</div>
 
 <script>
 (function () {
@@ -232,341 +259,341 @@ between ridge, atoll, and blocks worlds.</p>
 
   let W = window.innerWidth;
   let H = window.innerHeight;
+  // dpr capped at 2, not 1.5 — the atlas is a 33-glyph strip x3 rows,
+  // so memory is nothing and the ink deserves the pixels.
   let DPR = Math.min(2, window.devicePixelRatio || 1);
 
-  const K = 7;                 // contour levels; the top one answers in yellow
-  const RING_V = PRM ? 230 : 430;     // ping speed, px/s
-  const BAND = 30;             // wavefront thickness
-  const DECAY = PRM ? 0.55 : 0.30;    // lit-per-second retention
-
-  let modeName = 'ridge';
+  const PAPER = '#FFFFFF';
+  const INK = '#141414';
 
   // ══════════════════════════════════════════════════════════
-  // VALUE NOISE — the hidden ground.
+  // TUNING — pacing lives here. Speeds are css px/s; the sim
+  // itself runs in device px (everything integer for the atlas).
   // ══════════════════════════════════════════════════════════
-  const PERM = new Uint8Array(512);
-  let noiseSeed = 991;
-  function reseedNoise() {
-    let seed = noiseSeed;
-    const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
-    for (let i = 0; i < 256; i++) PERM[i] = i;
-    for (let i = 255; i > 0; i--) {
-      const j = (rnd() * (i + 1)) | 0;
-      const t = PERM[i]; PERM[i] = PERM[j]; PERM[j] = t;
-    }
-    for (let i = 0; i < 256; i++) PERM[256 + i] = PERM[i];
+  const FONT_DESK = 15;                    // glyph grid font, css px
+  const FONT_MOB  = 13;                    // <700px min side
+  const RING_V    = PRM ? 230 : 430;       // wavefront speed, css px/s
+  const BAND_C    = 1.4;                   // ring band halfwidth, cells
+  const DECAY     = PRM ? 0.97 : 0.955;    // per-frame intensity decay at 60fps
+  const SEA       = 0.42;                  // below this, void — never prints
+  const PEAK      = 0.93;                  // above this, the ground answers back
+  const ANS_DELAY = 0.5;                   // s after the front before the answer
+  const ANS_LEN   = 0.8;                   // s the inversion holds
+  const MAX_RINGS = 6;                     // oldest culled beyond this
+  const HOLD_S    = 0.55;                  // ping train period while held
+  const WAKE_ADD  = 0.06, WAKE_CAP = 0.35; // pointer heat wake
+  const WAKE_R    = 2;                     // wake radius, cells (row units)
+  const BEACON    = PRM ? [14, 20] : [8, 11]; // ambient self-ping, s
+  const DUST_F    = 0.012;                 // fraction of cells carrying paper dust
+  const EDGE_T    = 0.32;                  // edge glyph gate, fraction of world max
+
+  // ══════════════════════════════════════════════════════════
+  // GRID + FIELD STATE — one flat index per cell, everywhere
+  // ══════════════════════════════════════════════════════════
+  let cols = 0, rows = 0, total = 0;
+  let cwD = 9, chD = 17, fontD = 30;      // device-px cell metrics
+  let aspect = 1.9;                        // chD/cwD — x correction for round rings
+
+  let hF = null;                           // heightfield, normalized [0,1]
+  let edgeBin = null;                      // 255 none · 0..3 direction · 4 junction
+  let dustM = null;                        // static paper dust mask
+  let I = null;                            // reveal intensity, decays to blank
+  let resolveAt = null;                    // frame when a cell stops scrambling
+  let answerAt = null;                     // simT when a peak cell inverts
+  let bandStamp = null;                    // frame the wavefront last covered a cell
+
+  const WORLDS = ['ridge', 'atoll', 'blocks'];
+  let world = 'ridge';
+  let seed = (Math.random() * 0x7fffffff) | 0;
+
+  const rings = [];                        // { x, y, r, maxR } in device px
+  let beaconX = 0, beaconY = 0, beaconT = 2.0;
+
+  let frame = 0;
+  let simT = 0;
+
+  // idle bookkeeping — cheap counters so a fully-forgotten sheet
+  // doesn't get repainted 60 times a second for nothing
+  let litCount = 0;        // cells still fading, kept by the decay loop
+  let pendingAnswers = 0;  // peak cells scheduled or mid-inversion
+  let lastBt = -1;         // dust blink clock at last paint
+  let needsPaint = true;   // resize / world change forces one repaint
+
+  // ══════════════════════════════════════════════════════════
+  // NOISE — mulberry32 for the seeds, hashed lattice for the land
+  // ══════════════════════════════════════════════════════════
+  function mulberry(s) {
+    let a = s >>> 0;
+    return function () {
+      a |= 0; a = a + 0x6D2B79F5 | 0;
+      let t = Math.imul(a ^ a >>> 15, 1 | a);
+      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
   }
-  function fade(t) { return t * t * (3 - 2 * t); }
-  function gridN(ix, iy) { return PERM[(PERM[ix & 255] + iy) & 255] / 255; }
-  function noise2(x, y) {
+  function lat(ix, iy, sd) {
+    let h = (Math.imul(ix, 374761393) + Math.imul(iy, 668265263)) ^ sd;
+    h = Math.imul(h ^ h >>> 13, 1274126177);
+    return ((h ^ h >>> 16) >>> 0) / 4294967296;
+  }
+  function vnoise(x, y, sd) {
     const ix = Math.floor(x), iy = Math.floor(y);
-    const fx = x - ix, fy = y - iy;
-    const u = fade(fx), v = fade(fy);
-    const a = gridN(ix, iy), b = gridN(ix + 1, iy);
-    const c = gridN(ix, iy + 1), d = gridN(ix + 1, iy + 1);
-    return (a + (b - a) * u) * (1 - v) + (c + (d - c) * u) * v;
+    let fx = x - ix, fy = y - iy;
+    fx = fx * fx * (3 - 2 * fx);
+    fy = fy * fy * (3 - 2 * fy);
+    const a = lat(ix, iy, sd), b = lat(ix + 1, iy, sd);
+    const c = lat(ix, iy + 1, sd), d = lat(ix + 1, iy + 1, sd);
+    return a + (b - a) * fx + (c - a) * fy + (a - b - c + d) * fx * fy;
   }
-  function fbm(x, y) {
-    return noise2(x, y) * 0.52
-         + noise2(x * 2.03, y * 2.03) * 0.26
-         + noise2(x * 4.01, y * 4.01) * 0.14
-         + noise2(x * 8.11, y * 8.11) * 0.08;
+  function fbm(x, y, sd) {
+    let s = 0, amp = 0.5, f = 1;
+    for (let o = 0; o < 4; o++) {
+      s += amp * vnoise(x * f, y * f, sd + o * 101);
+      f *= 2; amp *= 0.5;
+    }
+    return s;
   }
 
   // ══════════════════════════════════════════════════════════
-  // THE WORLDS — each builds a segment list once. A segment:
-  // short piece of contour {x1,y1,x2,y2, lvl, lit, echoAt}.
-  // Short pieces matter: the front lights them one by one.
+  // TERRAIN — three worlds. All sampling is aspect-corrected
+  // (x in row-height units) so nothing comes out egg-shaped.
   // ══════════════════════════════════════════════════════════
-  let segs = [];
+  function genTerrain() {
+    const rng = mulberry(seed);
+    hF = new Float32Array(total);
+    edgeBin = new Uint8Array(total).fill(255);
+    dustM = new Uint8Array(total);
+    const uW = cols / aspect;              // grid width in row units
 
-  // marching squares over a heightmap fn, K levels
-  function buildContours(hAt, cell) {
-    const gw = Math.ceil(W / cell) + 1;
-    const gh = Math.ceil(H / cell) + 1;
-    const h = new Float32Array(gw * gh);
-    let mn = 1e9, mx = -1e9;
-    for (let y = 0; y < gh; y++) {
-      for (let x = 0; x < gw; x++) {
-        const v = hAt(x * cell, y * cell);
-        h[y * gw + x] = v;
-        if (v < mn) mn = v;
-        if (v > mx) mx = v;
+    if (world === 'ridge') {
+      // ranges: fbm stretched ~2:1 along a random strike axis
+      const th = rng() * Math.PI, ct = Math.cos(th), st = Math.sin(th);
+      const sd = (rng() * 0x7fffffff) | 0;
+      const f = 3.2 / Math.min(uW, rows);
+      let i = 0;
+      for (let y = 0; y < rows; y++) {
+        for (let x = 0; x < cols; x++, i++) {
+          const u = x / aspect, v = y;
+          const ru = u * ct + v * st, rv = -u * st + v * ct;
+          hF[i] = fbm(ru * f * 1.8, rv * f * 0.9, sd);
+        }
       }
+    } else if (world === 'atoll') {
+      // one rim, one lagoon; the noise decides where the passes are
+      const sd = (rng() * 0x7fffffff) | 0;
+      const cx = uW * (0.5 + (rng() - 0.5) * 0.24);
+      const cy = rows * (0.5 + (rng() - 0.5) * 0.24);
+      const r0 = 0.34 * Math.min(uW, rows), w = 0.45 * r0;
+      const f = 5 / Math.min(uW, rows);
+      let i = 0;
+      for (let y = 0; y < rows; y++) {
+        for (let x = 0; x < cols; x++, i++) {
+          const u = x / aspect, v = y;
+          const d = Math.hypot(u - cx, v - cy);
+          const t = Math.abs(d - r0) / w;
+          const m = t >= 1 ? 0 : 1 - t * t * (3 - 2 * t);
+          hF[i] = Math.pow(m * (0.5 + 0.5 * fbm(u * f, v * f, sd)), 1.6);
+        }
+      }
+    } else {
+      // blocks: a night city in plan — orthogonal grid, streets at zero,
+      // a couple of courts so the city can breathe. the architect's world.
+      const sd = (rng() * 0x7fffffff) | 0;
+      const colB = new Int16Array(cols).fill(-1);
+      const rowB = new Int16Array(rows).fill(-1);
+      const sx = Math.max(1, Math.round(aspect));   // street widths, aspect-true
+      let nbx = 0;
+      for (let x = 0; x < cols;) {
+        const w = Math.max(3, Math.round((3.5 + rng() * 7) * aspect));
+        for (let k = 0; k < w && x < cols; k++, x++) colB[x] = nbx;
+        nbx++; x += sx;
+      }
+      let nby = 0;
+      for (let y = 0; y < rows;) {
+        const hgt = Math.max(2, Math.round(3.5 + rng() * 6));
+        for (let k = 0; k < hgt && y < rows; k++, y++) rowB[y] = nby;
+        nby++; y += 1;
+      }
+      const bh = new Float32Array(nbx * nby);
+      for (let b = 0; b < bh.length; b++) bh[b] = 0.45 + rng() * 0.55;
+      const courts = 2 + ((rng() * 2) | 0);
+      for (let c = 0; c < courts; c++) bh[(rng() * bh.length) | 0] = 0;
+      let i = 0;
+      for (let y = 0; y < rows; y++) {
+        for (let x = 0; x < cols; x++, i++) {
+          const cb = colB[x], rb = rowB[y];
+          const v = (cb < 0 || rb < 0) ? 0 : bh[rb * nbx + cb];
+          hF[i] = v === 0 ? 0 : Math.max(0, v + (lat(x, y, sd) - 0.5) * 0.06);
+        }
+      }
+    }
+
+    // normalize to [0,1] and remember the summit
+    let mn = Infinity, mx = -Infinity;
+    for (let i = 0; i < total; i++) {
+      if (hF[i] < mn) mn = hF[i];
+      if (hF[i] > mx) mx = hF[i];
     }
     const span = (mx - mn) || 1;
-    for (let lvl = 0; lvl < K; lvl++) {
-      const T = mn + span * ((lvl + 0.72) / (K + 0.4));
-      for (let y = 0; y < gh - 1; y++) {
-        for (let x = 0; x < gw - 1; x++) {
-          const a = h[y * gw + x],       b = h[y * gw + x + 1];
-          const c = h[(y + 1) * gw + x + 1], d = h[(y + 1) * gw + x];
-          let idx = 0;
-          if (a > T) idx |= 8;
-          if (b > T) idx |= 4;
-          if (c > T) idx |= 2;
-          if (d > T) idx |= 1;
-          if (idx === 0 || idx === 15) continue;
-          const px = x * cell, py = y * cell;
-          // edge interpolators: top, right, bottom, left
-          const tX = px + cell * ((T - a) / ((b - a) || 1e-9)), tY = py;
-          const rX = px + cell, rY = py + cell * ((T - b) / ((c - b) || 1e-9));
-          const bX = px + cell * ((T - d) / ((c - d) || 1e-9)), bY = py + cell;
-          const lX = px, lY = py + cell * ((T - a) / ((d - a) || 1e-9));
-          const put = (x1, y1, x2, y2) => segs.push({ x1, y1, x2, y2, lvl, lit: 0, echoAt: 0, eLit: 0 });
-          switch (idx) {
-            case 1:  put(lX, lY, bX, bY); break;
-            case 2:  put(bX, bY, rX, rY); break;
-            case 3:  put(lX, lY, rX, rY); break;
-            case 4:  put(tX, tY, rX, rY); break;
-            case 5:  put(tX, tY, lX, lY); put(bX, bY, rX, rY); break;
-            case 6:  put(tX, tY, bX, bY); break;
-            case 7:  put(tX, tY, lX, lY); break;
-            case 8:  put(tX, tY, lX, lY); break;
-            case 9:  put(tX, tY, bX, bY); break;
-            case 10: put(tX, tY, rX, rY); put(lX, lY, bX, bY); break;
-            case 11: put(tX, tY, rX, rY); break;
-            case 12: put(lX, lY, rX, rY); break;
-            case 13: put(bX, bY, rX, rY); break;
-            case 14: put(lX, lY, bX, bY); break;
+    let maxI = 0, maxV = -1;
+    for (let i = 0; i < total; i++) {
+      const v = (hF[i] - mn) / span;
+      hF[i] = v;
+      if (v > maxV) { maxV = v; maxI = i; }
+    }
+
+    // slight blur, then sobel at cell resolution — the contour pen
+    const hB = new Float32Array(total);
+    for (let y = 0; y < rows; y++) {
+      for (let x = 0; x < cols; x++) {
+        let s = 0;
+        for (let dy = -1; dy <= 1; dy++) {
+          const yy = Math.min(rows - 1, Math.max(0, y + dy)) * cols;
+          for (let dx = -1; dx <= 1; dx++) {
+            s += hF[yy + Math.min(cols - 1, Math.max(0, x + dx))];
           }
         }
+        hB[y * cols + x] = s / 9;
+      }
+    }
+    const mag = new Float32Array(total);
+    const ang = new Float32Array(total);
+    let mMax = 0;
+    const id = (x, y) =>
+      Math.min(rows - 1, Math.max(0, y)) * cols + Math.min(cols - 1, Math.max(0, x));
+    for (let y = 0; y < rows; y++) {
+      for (let x = 0; x < cols; x++) {
+        // gx scaled by aspect so the gradient is isotropic in row units
+        const gx = (hB[id(x + 1, y - 1)] + 2 * hB[id(x + 1, y)] + hB[id(x + 1, y + 1)]
+                  - hB[id(x - 1, y - 1)] - 2 * hB[id(x - 1, y)] - hB[id(x - 1, y + 1)]) * aspect;
+        const gy = (hB[id(x - 1, y + 1)] + 2 * hB[id(x, y + 1)] + hB[id(x + 1, y + 1)]
+                  - hB[id(x - 1, y - 1)] - 2 * hB[id(x, y - 1)] - hB[id(x + 1, y - 1)]);
+        const i = y * cols + x;
+        const m = Math.sqrt(gx * gx + gy * gy);
+        mag[i] = m; ang[i] = Math.atan2(gy, gx);
+        if (m > mMax) mMax = m;
+      }
+    }
+    const thr = EDGE_T * (mMax || 1);
+    for (let i = 0; i < total; i++) {
+      if (mag[i] > thr && hF[i] > SEA) {
+        let a = ang[i];
+        if (a < 0) a += Math.PI;
+        // gradient bin → the glyph that runs along the edge: | / - \
+        edgeBin[i] = Math.round(a / (Math.PI / 4)) % 4;
+      }
+    }
+    // junctions: an edge cell with three-plus edged neighbours prints '+'
+    const plus = [];
+    for (let y = 0; y < rows; y++) {
+      for (let x = 0; x < cols; x++) {
+        const i = y * cols + x;
+        if (edgeBin[i] > 3) continue;
+        let n = 0;
+        if (x > 0 && edgeBin[i - 1] !== 255) n++;
+        if (x < cols - 1 && edgeBin[i + 1] !== 255) n++;
+        if (y > 0 && edgeBin[i - cols] !== 255) n++;
+        if (y < rows - 1 && edgeBin[i + cols] !== 255) n++;
+        if (n >= 3) plus.push(i);
+      }
+    }
+    for (let k = 0; k < plus.length; k++) edgeBin[plus[k]] = 4;
+
+    // static paper dust — seeded, so the sheet has a grain of its own
+    const dseed = seed ^ 0xD05D;
+    let i2 = 0;
+    for (let y = 0; y < rows; y++) {
+      for (let x = 0; x < cols; x++, i2++) {
+        dustM[i2] = lat(x, y, dseed) < DUST_F ? 1 : 0;
+      }
+    }
+
+    // the beacon — one fixed spot that sounds itself now and then.
+    // prefer high ground; fall back to the summit.
+    let bx = maxI % cols, by = (maxI / cols) | 0;
+    for (let t = 0; t < 60; t++) {
+      const x = (rng() * cols) | 0, y = (rng() * rows) | 0;
+      if (hF[y * cols + x] > 0.6) { bx = x; by = y; break; }
+    }
+    beaconX = (bx + 0.5) * cwD;
+    beaconY = (by + 0.5) * chD;
+  }
+
+  // ══════════════════════════════════════════════════════════
+  // REVEAL — rings stamp the field; the field decays; peaks answer
+  // ══════════════════════════════════════════════════════════
+  function ping(px, py) {
+    if (rings.length >= MAX_RINGS) rings.shift();   // oldest ring yields
+    const dx = Math.max(px, canvas.width - px);
+    const dy = Math.max(py, canvas.height - py);
+    rings.push({ x: px, y: py, r: 0, maxR: Math.hypot(dx, dy) });
+  }
+
+  function stampSpan(ox, pxa, pxb, y, dy2, rI2, rO2) {
+    const x0 = Math.max(0, Math.floor(pxa / cwD));
+    const x1 = Math.min(cols - 1, Math.floor(pxb / cwD) + 1);
+    const row = y * cols;
+    for (let x = x0; x <= x1; x++) {
+      const dx = (x + 0.5) * cwD - ox;
+      const d2 = dx * dx + dy2;
+      if (d2 < rI2 || d2 > rO2) continue;
+      const i = row + x;
+      const prev = bandStamp[i];
+      bandStamp[i] = frame;                // the front is here — junk shows even over void
+      if (prev >= frame - 1) continue;     // still under the same band; stamped already
+      const h = hF[i];
+      if (h <= SEA) continue;              // void never prints
+      const t = 0.25 + h * 0.75;
+      if (I[i] < t) I[i] = t;
+      if (!PRM) resolveAt[i] = frame + 3 + ((Math.random() * 8) | 0);
+      if (h > PEAK && answerAt[i] < simT) {
+        if (answerAt[i] === 0) pendingAnswers++;   // re-pings only reschedule
+        answerAt[i] = simT + ANS_DELAY;
       }
     }
   }
 
-  // chop a straight run into front-sized pieces
-  function putRun(x1, y1, x2, y2, lvl) {
-    const dx = x2 - x1, dy = y2 - y1;
-    const len = Math.sqrt(dx * dx + dy * dy);
-    const n = Math.max(1, Math.round(len / 15));
-    for (let i = 0; i < n; i++) {
-      segs.push({
-        x1: x1 + dx * (i / n),     y1: y1 + dy * (i / n),
-        x2: x1 + dx * ((i + 1) / n), y2: y1 + dy * ((i + 1) / n),
-        lvl, lit: 0, echoAt: 0, eLit: 0,
-      });
-    }
-  }
-
-  function buildWorld() {
-    segs = [];
-    noiseSeed = 100 + ((Math.random() * 100000) | 0);
-    reseedNoise();
-    const cell = Math.min(W, H) < 700 ? 7 : 9;
-    if (modeName === 'ridge') {
-      // long ranges: anisotropic fbm
-      const s = 0.0021;
-      buildContours((x, y) => fbm(x * s * 1.7, y * s), cell);
-    } else if (modeName === 'atoll') {
-      // islands strung on a broken ring
-      const cx = W * 0.5, cy = H * 0.5;
-      const R0 = Math.min(W, H) * 0.33;
-      const s = 0.0038;
-      buildContours((x, y) => {
-        const dx = x - cx, dy = y - cy;
-        const d = Math.sqrt(dx * dx + dy * dy);
-        const rim = Math.exp(-Math.pow((d - R0) / (R0 * 0.38), 2));
-        const core = Math.exp(-Math.pow(d / (R0 * 0.34), 2)) * 0.6;
-        // sharpened noise breaks the rim into separate islands
-        const n = Math.pow(fbm(x * s, y * s), 2.4) * 1.6;
-        return n * (rim + core) + fbm(x * s * 0.7, y * s * 0.7) * 0.05;
-      }, cell);
-    } else {
-      // blocks — a night city surveyed street by street
-      buildBlocks();
-    }
-  }
-
-  function buildBlocks() {
-    let seed = 7 + ((Math.random() * 100000) | 0);
-    const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
-    const street = 14;
-    let y = 20 + rnd() * 30;
-    while (y < H - 40) {
-      const rowH = 52 + rnd() * 86;
-      let x = 16 + rnd() * 40;
-      while (x < W - 40) {
-        const bw = 58 + rnd() * 104;
-        if (x + bw > W - 16) break;
-        const lvl = 1 + ((rnd() * (K - 1)) | 0);   // block height
-        // perimeter
-        putRun(x, y, x + bw, y, lvl);
-        putRun(x + bw, y, x + bw, y + rowH, lvl);
-        putRun(x + bw, y + rowH, x, y + rowH, lvl);
-        putRun(x, y + rowH, x, y, lvl);
-        // taller blocks carry an inner court
-        if (lvl >= K - 2 && bw > 70 && rowH > 70) {
-          const in2 = 16;
-          putRun(x + in2, y + in2, x + bw - in2, y + in2, K - 1);
-          putRun(x + bw - in2, y + in2, x + bw - in2, y + rowH - in2, K - 1);
-          putRun(x + bw - in2, y + rowH - in2, x + in2, y + rowH - in2, K - 1);
-          putRun(x + in2, y + rowH - in2, x + in2, y + in2, K - 1);
-        }
-        x += bw + street;
-      }
-      y += rowH + street;
-    }
-  }
-
-  // ══════════════════════════════════════════════════════════
-  // BAKED DARK — gradient + grain only. The world hides in it.
-  // ══════════════════════════════════════════════════════════
-  const paper = document.createElement('canvas');
-
-  function bakePaper() {
-    paper.width  = Math.floor(W * DPR);
-    paper.height = Math.floor(H * DPR);
-    const s = paper.getContext('2d');
-    s.setTransform(DPR, 0, 0, DPR, 0, 0);
-    const g = s.createLinearGradient(0, 0, 0, H);
-    g.addColorStop(0, '#06070A');
-    g.addColorStop(1, '#0C0F15');
-    s.fillStyle = g;
-    s.fillRect(0, 0, W, H);
-    let seed = 5501;
-    const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
-    const n = Math.floor((W * H) / 700);
-    for (let i = 0; i < n; i++) {
-      const x = rnd() * W, y = rnd() * H;
-      s.fillStyle = rnd() > 0.5
-        ? 'rgba(255,255,255,0.03)'
-        : 'rgba(0,0,0,0.05)';
-      s.fillRect(x, y, 1, 1);
-    }
-  }
-
-  function resize() {
-    DPR = Math.min(2, window.devicePixelRatio || 1);
-    W = window.innerWidth;
-    H = window.innerHeight;
-    canvas.width  = Math.floor(W * DPR);
-    canvas.height = Math.floor(H * DPR);
-    canvas.style.width  = W + 'px';
-    canvas.style.height = H + 'px';
-    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-    bakePaper();
-    buildWorld();
-    rings = [];
-    firstPing = null;
-  }
-  window.addEventListener('resize', resize, { passive: true });
-  window.addEventListener('orientationchange', () => setTimeout(resize, 200));
-
-  // ══════════════════════════════════════════════════════════
-  // PINGS
-  // ══════════════════════════════════════════════════════════
-  let rings = [];   // {x, y, r, str}
-  const MAX_RINGS = 7;
-
-  function ping(x, y, str) {
-    if (rings.length >= MAX_RINGS) rings.shift();
-    rings.push({ x, y, r: 6, str: str || 1 });
-  }
-
-  function stepRings(dt) {
-    const lim = Math.max(W, H) * 1.5;
-    for (let i = rings.length - 1; i >= 0; i--) {
-      const g = rings[i];
-      g.r += RING_V * dt;
-      g.str *= Math.pow(0.62, dt);
-      if (g.r > lim || g.str < 0.05) rings.splice(i, 1);
-    }
-  }
-
-  // ══════════════════════════════════════════════════════════
-  // LIGHT PASS — fronts light segments; summits answer later.
-  // ══════════════════════════════════════════════════════════
-  function stepSegs(dt, now) {
-    const keep = Math.pow(DECAY, dt);
-    const eKeep = Math.pow(0.22, dt);
-    const nR = rings.length;
-    for (let i = 0; i < segs.length; i++) {
-      const s = segs[i];
-      s.lit *= keep;
-      s.eLit *= eKeep;
-      for (let r = 0; r < nR; r++) {
-        const g = rings[r];
-        const mx = (s.x1 + s.x2) * 0.5 - g.x;
-        const my = (s.y1 + s.y2) * 0.5 - g.y;
-        const d = Math.sqrt(mx * mx + my * my);
-        const band = Math.abs(d - g.r);
-        if (band < BAND) {
-          const hit = g.str * (1 - band / BAND);
-          if (hit > s.lit) s.lit = hit;
-          // the summit answers: schedule a yellow return blink
-          if (s.lvl === K - 1 && hit > 0.22 && !s.echoAt) s.echoAt = now + 480;
-        }
-      }
-      if (s.echoAt && now >= s.echoAt) {
-        s.eLit = 1;
-        s.echoAt = 0;
+  function stampRing(rg, band) {
+    const rO = rg.r + band, rI = Math.max(0, rg.r - band);
+    const rO2 = rO * rO, rI2 = rI * rI;
+    const y0 = Math.max(0, Math.floor((rg.y - rO) / chD));
+    const y1 = Math.min(rows - 1, Math.floor((rg.y + rO) / chD));
+    for (let y = y0; y <= y1; y++) {
+      const dy = (y + 0.5) * chD - rg.y, dy2 = dy * dy;
+      if (dy2 > rO2) continue;
+      const xOut = Math.sqrt(rO2 - dy2);
+      const xIn = dy2 < rI2 ? Math.sqrt(rI2 - dy2) : 0;
+      if (xIn > 0) {
+        stampSpan(rg.x, rg.x - xOut, rg.x - xIn, y, dy2, rI2, rO2);
+        stampSpan(rg.x, rg.x + xIn, rg.x + xOut, y, dy2, rI2, rO2);
+      } else {
+        stampSpan(rg.x, rg.x - xOut, rg.x + xOut, y, dy2, rI2, rO2);
       }
     }
   }
 
-  function drawSegs() {
-    // slate ink, batched into alpha buckets
-    const B = 6;
-    for (let b = B - 1; b >= 0; b--) {
-      let open = false;
-      for (let i = 0; i < segs.length; i++) {
-        const s = segs[i];
-        const a = s.lit * (0.28 + 0.72 * (s.lvl / (K - 1)));
-        const bucket = Math.min(B - 1, (a * B) | 0);
-        if (bucket !== b || a < 0.015) continue;
-        if (!open) { ctx.beginPath(); open = true; }
-        ctx.moveTo(s.x1, s.y1);
-        ctx.lineTo(s.x2, s.y2);
-      }
-      if (open) {
-        ctx.strokeStyle = 'rgba(222, 229, 238, ' + ((b + 0.5) / B * 0.8).toFixed(3) + ')';
-        ctx.lineWidth = 1.1;
-        ctx.stroke();
+  function wake(px, py) {
+    // the pointer rubs a little heat into the sheet — terrain only
+    const cx = Math.floor(px / cwD), cy = Math.floor(py / chD);
+    const rx = Math.ceil(WAKE_R * aspect);
+    const r2 = (WAKE_R * chD) * (WAKE_R * chD);
+    for (let dy = -WAKE_R; dy <= WAKE_R; dy++) {
+      const y = cy + dy;
+      if (y < 0 || y >= rows) continue;
+      for (let dx = -rx; dx <= rx; dx++) {
+        const x = cx + dx;
+        if (x < 0 || x >= cols) continue;
+        const ddx = dx * cwD, ddy = dy * chD;
+        if (ddx * ddx + ddy * ddy > r2) continue;
+        const i = y * cols + x;
+        if (hF[i] <= SEA) continue;
+        if (I[i] < WAKE_CAP) I[i] = Math.min(WAKE_CAP, I[i] + WAKE_ADD);
       }
     }
-    // the yellow answers, drawn hot on top
-    let open = false;
-    for (let i = 0; i < segs.length; i++) {
-      const s = segs[i];
-      if (s.eLit < 0.04) continue;
-      if (!open) { ctx.beginPath(); open = true; }
-      ctx.moveTo(s.x1, s.y1);
-      ctx.lineTo(s.x2, s.y2);
-    }
-    if (open) {
-      ctx.strokeStyle = 'rgba(245, 203, 92, 0.85)';
-      ctx.lineWidth = 1.6;
-      ctx.stroke();
-    }
-  }
-
-  function drawRings() {
-    for (let i = 0; i < rings.length; i++) {
-      const g = rings[i];
-      ctx.strokeStyle = 'rgba(222, 229, 238, ' + (g.str * 0.16).toFixed(3) + ')';
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.arc(g.x, g.y, g.r, 0, Math.PI * 2);
-      ctx.stroke();
-    }
   }
 
   // ══════════════════════════════════════════════════════════
-  // THE BEACON — someone else is out there, sounding too.
-  // ══════════════════════════════════════════════════════════
-  let nextBeacon = null;
-  function stepBeacon(now) {
-    if (PRM) return;
-    if (nextBeacon === null) nextBeacon = now + 6000;
-    if (now >= nextBeacon) {
-      ping(W * 0.82, H * 0.24, 0.5);
-      nextBeacon = now + 8000 + Math.random() * 5000;
-    }
-  }
-
-  // ══════════════════════════════════════════════════════════
-  // INPUT — tap pings, hold keeps sounding.
+  // INPUT — tap pings, hold trains, drag wakes, keys switch worlds
   // ══════════════════════════════════════════════════════════
   const hint = document.getElementById('hint');
   let hintFaded = false;
@@ -576,86 +603,250 @@ between ridge, atoll, and blocks worlds.</p>
     hint.classList.add('fade');
   }
 
-  let pointer = null;
+  let pDown = false, pId = -1, pX = 0, pY = 0, holdAcc = 0;
 
   canvas.addEventListener('pointerdown', (e) => {
-    if (pointer) return;
-    pointer = { id: e.pointerId, x: e.clientX, y: e.clientY, t0: last, lastPing: 0 };
-    ping(e.clientX, e.clientY, 1);
-    pointer.lastPing = last;
+    if (pDown) return;                     // one finger sounds at a time
+    try { canvas.setPointerCapture(e.pointerId); } catch (err) { /* stale pointer — capture is a nicety */ }
+    pDown = true; pId = e.pointerId;
+    pX = e.clientX * DPR; pY = e.clientY * DPR;
+    holdAcc = 0;
+    ping(pX, pY);
     fadeHint();
   });
+
   canvas.addEventListener('pointermove', (e) => {
-    if (!pointer || e.pointerId !== pointer.id) return;
-    pointer.x = e.clientX;
-    pointer.y = e.clientY;
+    const px = e.clientX * DPR, py = e.clientY * DPR;
+    if (pDown && e.pointerId === pId) { pX = px; pY = py; }
+    wake(px, py);
   });
+
   function endPointer(e) {
-    if (!pointer || e.pointerId !== pointer.id) return;
-    pointer = null;
+    if (pDown && e.pointerId === pId) { pDown = false; pId = -1; }
   }
   canvas.addEventListener('pointerup', endPointer);
   canvas.addEventListener('pointercancel', endPointer);
-  window.addEventListener('pointerup', endPointer);
 
-  function stepHold(now) {
-    if (!pointer) return;
-    if (now - pointer.t0 > 500 && now - pointer.lastPing > 700) {
-      ping(pointer.x, pointer.y, 0.8);
-      pointer.lastPing = now;
+  window.addEventListener('keydown', (e) => {
+    if (e.key === '1') { setWorld('ridge'); fadeHint(); }
+    else if (e.key === '2') { setWorld('atoll'); fadeHint(); }
+    else if (e.key === '3') { setWorld('blocks'); fadeHint(); }
+  });
+
+  // ══════════════════════════════════════════════════════════
+  // WORLDS
+  // ══════════════════════════════════════════════════════════
+  function setWorld(name) {
+    if (WORLDS.indexOf(name) < 0) return;
+    world = name;
+    seed = (Math.random() * 0x7fffffff) | 0;   // a fresh sheet every visit
+    genTerrain();
+    I.fill(0); resolveAt.fill(0); answerAt.fill(0);
+    litCount = 0; pendingAnswers = 0; needsPaint = true;
+    rings.length = 0;
+    holdAcc = 0;
+    beaconT = 1.2;                             // the new sheet introduces itself
+    document.querySelectorAll('.mode-btn[data-mode]').forEach((btn) => {
+      const on = btn.dataset.mode === name;
+      btn.classList.toggle('active', on);
+      btn.setAttribute('aria-pressed', String(on));
+    });
+  }
+
+  document.getElementById('modes').addEventListener('click', (e) => {
+    const b = e.target.closest('.mode-btn');
+    if (b && b.dataset.mode) { setWorld(b.dataset.mode); fadeHint(); }
+  });
+
+  // ══════════════════════════════════════════════════════════
+  // ATLAS — every glyph pre-baked in three color classes; the
+  // frame loop only ever calls drawImage with integer coords.
+  // ══════════════════════════════════════════════════════════
+  const RAMP = ' .:-=+*#%@';                 // 10 — the teletype density ramp
+  const EDGES = '|/-\\+';                     // 5 — contour pen by gradient bin
+  const JUNK = '!<>-_\\/[]{}=+*^?#';          // 17 — the boiling scramble
+  const DUSTC = '·';                     // 1 — paper grain
+  const GLYPHS = RAMP + EDGES + JUNK + DUSTC; // 33 total
+  const E0 = 10, J0 = 15, DI = 32;
+  const JN = 17;
+  const NANS = 4;                             // pre-faded inverted answer rows
+
+  let atlas = null;
+  let fontsReady = false;
+
+  function bakeAtlas() {
+    atlas = document.createElement('canvas');
+    atlas.width = GLYPHS.length * cwD;
+    atlas.height = (3 + NANS) * chD;         // rows: 0 ink · 1 ink dim · 2 paper · 3+ inverted fades
+    const a = atlas.getContext('2d');
+    a.font = '700 ' + fontD + 'px "JetBrains Mono", ui-monospace, monospace';
+    a.textAlign = 'center';
+    a.textBaseline = 'middle';
+    const classes = [[INK, 1], [INK, 0.25], [PAPER, 1]];
+    for (let r = 0; r < 3; r++) {
+      a.fillStyle = classes[r][0];
+      a.globalAlpha = classes[r][1];
+      for (let g = 0; g < GLYPHS.length; g++) {
+        a.fillText(GLYPHS[g], g * cwD + cwD / 2, r * chD + chD * 0.54);
+      }
+    }
+    // inverted answers, pre-faded — ink block under paper glyph, baked
+    // at four alpha steps so the answer pass never touches canvas state.
+    // only the top of the ramp (7..9) ever answers back.
+    for (let r = 0; r < NANS; r++) {
+      const ry = (3 + r) * chD;
+      a.globalAlpha = (r + 0.5) / NANS;
+      a.fillStyle = INK;
+      a.fillRect(7 * cwD, ry, 3 * cwD, chD);
+      a.fillStyle = PAPER;
+      for (let g = 7; g <= 9; g++) {
+        a.fillText(GLYPHS[g], g * cwD + cwD / 2, ry + chD * 0.54);
+      }
+    }
+    a.globalAlpha = 1;
+  }
+
+  // font must be pulled explicitly — canvas text never triggers a load
+  const wanted = '700 16px "JetBrains Mono"';
+  function fontsUp() {
+    if (fontsReady) return;
+    fontsReady = true;
+    resize();     // remeasure the cell with the real metrics, rebake
+  }
+  if (document.fonts && document.fonts.load) {
+    Promise.all([document.fonts.load(wanted), document.fonts.ready])
+      .then(fontsUp).catch(fontsUp);
+  }
+  setTimeout(fontsUp, 2000);   // failsafe — worst case we print in the fallback mono
+
+  // ══════════════════════════════════════════════════════════
+  // DRAW — one white clear, then atlas blits for lit cells only.
+  // Class is quantized (dim under .25, full above) so the whole
+  // field batches; no per-cell globalAlpha in the main pass.
+  // ══════════════════════════════════════════════════════════
+  const inv = [];   // answered peaks this frame: x, y, t triplets
+
+  function draw() {
+    ctx.fillStyle = PAPER;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    if (!atlas) return;
+
+    const jt = PRM ? 0 : (frame >> 1);       // scramble clock (static under PRM)
+    const boilT = (frame / 6) | 0;           // ramp boil clock
+    const bt = (frame / 24) | 0;             // dust blink clock
+    inv.length = 0;
+
+    let i = 0;
+    for (let y = 0; y < rows; y++) {
+      const py = y * chD;
+      for (let x = 0; x < cols; x++, i++) {
+        const aA = answerAt[i];
+        if (aA > 0 && simT >= aA) {
+          const t = (simT - aA) / ANS_LEN;
+          if (t < 1) { inv.push(x, y, t); continue; }
+          answerAt[i] = 0;                   // spent — stop checking this cell
+          pendingAnswers--;
+        }
+        const Iv = I[i];
+        if (Iv > 0.02) {
+          let gi;
+          const cls = Iv < 0.25 ? 1 : 0;
+          if (!PRM && frame < resolveAt[i]) {
+            // not yet resolved — boiling junk regardless of intensity
+            gi = J0 + ((x * 31 + y * 57 + jt * 23) % JN);
+          } else {
+            const eb = edgeBin[i];
+            if (eb !== 255 && Iv > 0.1 && Iv < 0.8) {
+              gi = E0 + eb;                  // contours surface as the print fades
+            } else {
+              let ri = Math.round(Iv * 9);
+              if (ri < 1) ri = 1; else if (ri > 9) ri = 9;
+              if (!PRM && ((x * 7 + y * 13 + boilT * 31) % 97) < 10) {
+                ri += ((x + y + boilT) & 1) ? 1 : -1;   // the textmode boil, ±1 step
+                if (ri < 1) ri = 1; else if (ri > 9) ri = 9;
+              }
+              gi = ri;
+            }
+          }
+          ctx.drawImage(atlas, gi * cwD, cls * chD, cwD, chD, x * cwD, py, cwD, chD);
+        } else if (bandStamp[i] === frame) {
+          // the wavefront itself — faint junk even over open void
+          const gi = J0 + ((x * 31 + y * 57 + jt * 23) % JN);
+          ctx.drawImage(atlas, gi * cwD, chD, cwD, chD, x * cwD, py, cwD, chD);
+        } else if (dustM[i] && (PRM || ((x * 7 + y * 13 + bt * 31) % 97) > 7)) {
+          ctx.drawImage(atlas, DI * cwD, chD, cwD, chD, x * cwD, py, cwD, chD);
+        }
+      }
+    }
+
+    // answered peaks — pre-faded inverted rows, pure drawImage. in the
+    // blocks world whole footprints answer, not just a summit's worth,
+    // so this pass gets no per-cell alpha or fillRect either.
+    for (let k = 0; k < inv.length; k += 3) {
+      const x = inv[k], y = inv[k + 1], t = inv[k + 2];
+      const fade = Math.sin(Math.PI * t);               // soft in, soft out
+      const fr = 3 + Math.min(NANS - 1, (fade * NANS) | 0);
+      let gi = Math.round(hF[y * cols + x] * 9);
+      if (gi < 7) gi = 7;
+      ctx.drawImage(atlas, gi * cwD, fr * chD, cwD, chD, x * cwD, y * chD, cwD, chD);
     }
   }
 
-  // ── controls ──
-  document.getElementById('modes').addEventListener('click', (e) => {
-    const b = e.target.closest('.mode-btn');
-    if (!b || !b.dataset.mode) return;
-    modeName = b.dataset.mode;
-    document.querySelectorAll('.mode-btn[data-mode]').forEach(x => {
-      const on = x.dataset.mode === modeName;
-      x.classList.toggle('active', on);
-      x.setAttribute('aria-pressed', String(on));
-    });
-    buildWorld();
-    rings = [];
-    firstPing = last + 350;   // greet the new world with a ping
-  });
-  window.addEventListener('keydown', (e) => {
-    const byKey = { 1: 'ridge', 2: 'atoll', 3: 'blocks' };
-    if (byKey[e.key]) {
-      document.querySelector('.mode-btn[data-mode="' + byKey[e.key] + '"]').click();
-    } else if (e.key === ' ' && !e.repeat) {
-      e.preventDefault();
-      ping(W * (0.2 + Math.random() * 0.6), H * (0.2 + Math.random() * 0.6), 1);
-      fadeHint();
-    }
-  });
-
   // ══════════════════════════════════════════════════════════
-  // LOOP
+  // LOOP — everything schedules off the frame clock
   // ══════════════════════════════════════════════════════════
   let last = performance.now();
-  let firstPing = null;   // the opening ping fires once, from the middle
 
   function frameBody(now) {
-    if (canvas.width === 0 && window.innerWidth > 0) resize();   // 0-size load guard
-    const dt = Math.min(0.05, (now - last) / 1000);
+    if (canvas.width === 0 && window.innerWidth > 0) resize();
+    const dt = Math.max(0, Math.min(0.05, (now - last) / 1000));   // floored — qa tick() leaves `last` ahead of the wall clock
     last = now;
+    frame++;
+    simT += dt;
 
-    if (firstPing === null) firstPing = now + 500;
-    if (firstPing && now >= firstPing) {
-      ping(W * 0.42, H * 0.52, 1);
-      firstPing = 0;
+    // the paper forgets — everything decays toward blank
+    const k = Math.pow(DECAY, dt * 60);
+    let lit = 0;
+    for (let i = 0; i < total; i++) {
+      const v = I[i];
+      if (v !== 0) {
+        const nv = v * k;
+        if (nv < 0.015) { I[i] = 0; } else { I[i] = nv; lit++; }
+      }
+    }
+    litCount = lit;   // this loop already visits every cell — count here, free
+
+    // rings expand and stamp; spent rings retire
+    const vDev = RING_V * DPR;
+    const band = BAND_C * chD;
+    for (let ri = rings.length - 1; ri >= 0; ri--) {
+      const rg = rings[ri];
+      rg.r += vDev * dt;
+      if (rg.r - band > rg.maxR) { rings.splice(ri, 1); continue; }
+      stampRing(rg, band);
     }
 
-    stepHold(now);
-    stepBeacon(now);
-    stepRings(dt);
-    stepSegs(dt, now);
+    // hold = ping train under the pointer
+    if (pDown) {
+      holdAcc += dt;
+      if (holdAcc >= HOLD_S) { holdAcc -= HOLD_S; ping(pX, pY); }
+    }
 
-    ctx.drawImage(paper, 0, 0, W, H);
-    drawSegs();
-    drawRings();
+    // ambient beacon — the sheet sounds itself when left alone
+    beaconT -= dt;
+    if (beaconT <= 0) {
+      ping(beaconX, beaconY);
+      beaconT = BEACON[0] + Math.random() * (BEACON[1] - BEACON[0]);
+    }
+
+    // idle early-out — a fully-forgotten sheet is just the dust
+    // pattern, which only changes when the blink clock ticks.
+    const bt = (frame / 24) | 0;
+    if (rings.length || litCount || pendingAnswers || bt !== lastBt || needsPaint) {
+      draw();
+      lastBt = bt;
+      needsPaint = false;
+    }
   }
 
   function loop(now) {
@@ -663,26 +854,64 @@ between ridge, atoll, and blocks worlds.</p>
     frameBody(now);
   }
 
+  function resize() {
+    DPR = Math.min(2, window.devicePixelRatio || 1);
+    W = window.innerWidth;
+    H = window.innerHeight;
+    canvas.width = Math.floor(W * DPR);
+    canvas.height = Math.floor(H * DPR);
+    canvas.style.width = W + 'px';
+    canvas.style.height = H + 'px';
+
+    const fontPx = Math.min(W, H) < 700 ? FONT_MOB : FONT_DESK;
+    fontD = Math.round(fontPx * DPR);
+    ctx.font = '700 ' + fontD + 'px "JetBrains Mono", ui-monospace, monospace';
+    cwD = Math.max(1, Math.round(ctx.measureText('M').width));
+    chD = Math.round(fontD * 1.15);
+    aspect = chD / cwD;
+    cols = Math.ceil(canvas.width / cwD);
+    rows = Math.ceil(canvas.height / chD);
+    total = cols * rows;
+
+    I = new Float32Array(total);
+    resolveAt = new Int32Array(total);
+    answerAt = new Float32Array(total);
+    bandStamp = new Int32Array(total);   // zeros never match frame (frame >= 1)
+    litCount = 0; pendingAnswers = 0; needsPaint = true;   // fresh arrays, one forced paint
+
+    rings.length = 0;                    // old origins and reach are stale
+    genTerrain();                        // same seed — the map resamples, not reshuffles
+    if (fontsReady) bakeAtlas();
+    beaconT = Math.min(beaconT, 2.0);    // the resampled sheet re-introduces itself
+  }
+  // resize rebuilds the whole world — arrays, terrain, atlas. let the
+  // drag settle first; nothing on screen survives the rebuild anyway.
+  let rsT = 0;
+  window.addEventListener('resize', () => { clearTimeout(rsT); rsT = setTimeout(resize, 150); }, { passive: true });
+  window.addEventListener('orientationchange', () => { clearTimeout(rsT); rsT = setTimeout(resize, 200); });
+
   resize();
   requestAnimationFrame(loop);
 
   // ── QA hook: step the sim without rAF + read a small snapshot.
   //    Occluded windows starve rAF; this keeps the piece testable. ──
-  if (location.hostname === 'localhost' || location.search.indexOf('qa') !== -1) {
+  if (location.hostname === 'localhost' || new URLSearchParams(location.search).has('qa')) {
     window.__lab = {
       tick(n, ms) {
         n = n || 1; ms = ms || 16.7;
         for (let i = 0; i < n; i++) frameBody(last + ms);
       },
-      ping,
       snap(w) {
         w = w || 320;
         const c = document.createElement('canvas');
-        c.width = w; c.height = Math.round(w * H / W);
+        c.width = w; c.height = Math.round(w * canvas.height / canvas.width);
         c.getContext('2d').drawImage(canvas, 0, 0, c.width, c.height);
         return c.toDataURL('image/jpeg', 0.82);
       },
-      info: () => ({ segs: segs.length, rings: rings.length, mode: modeName }),
+      ping(x, y) {
+        ping((x == null ? W / 2 : x) * DPR, (y == null ? H / 2 : y) * DPR);
+      },
+      info: () => ({ cols, rows, rings: rings.length, mode: world }),
     };
   }
 })();

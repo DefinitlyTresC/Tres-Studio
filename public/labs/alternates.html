@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>alternates — tres carter</title>
   <meta name="description" content="The index of the tres.studio multiverse — seven universes, one front door." />
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23080808'/%3E%3Ccircle cx='16' cy='16' r='6' fill='%23ff5a1f'/%3E%3C/svg%3E" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
@@ -36,10 +35,13 @@
     }
 
     html {
+      /* gradient lives on the root so it propagates to the canvas —
+         paints viewport-stable at zero per-scroll cost */
       background: var(--black);
+      background: linear-gradient(#06070A, #0D1016) fixed;
     }
     body {
-      background: linear-gradient(#06070A, #0D1016) fixed;
+      background: transparent;
       color: var(--white);
       font-family: var(--mono);
       font-size: 15px;
@@ -155,6 +157,13 @@
       flex: 1;
       transition: color 0.25s var(--ease);
     }
+    .door .keep {
+      font-size: 0.56rem;
+      letter-spacing: 0.1em;
+      color: var(--ink-faint);
+      white-space: nowrap;
+    }
+    .door .keep .y { color: var(--yellow); }
     .door .arr {
       font-size: 0.66rem;
       color: var(--ink-faint);
@@ -229,9 +238,15 @@
       }
     }
 
+    /* reduced motion: the chrome holds still too */
+    @media (prefers-reduced-motion: reduce) {
+      .door, .door .tag, .door .arr, .roll, .nav .mark, .nav .back { transition: none; }
+    }
+
     @media (max-width: 700px) {
       .door { flex-wrap: wrap; row-gap: 0.15rem; }
       .door .tag { flex-basis: 100%; order: 3; padding-left: calc(9px + 1.1rem); }
+      .door .keep { flex-basis: 100%; order: 4; padding-left: calc(9px + 1.1rem); }
     }
 
     .sr {
@@ -256,6 +271,7 @@
   <h1>alternates<span class="y">.</span></h1>
   <p class="lede">tres.studio is seven sites wearing one address. the front
   door deals you a universe at random — these are the doors, held open.
+  each universe keeps one lab experiment now, in its own paint.
   (door seven isn't built yet.)</p>
 
   <ol class="doors">
@@ -263,42 +279,49 @@
       <span class="dot" aria-hidden="true"></span>
       <span class="name">one<span aria-hidden="true">.</span></span>
       <span class="tag">pencil on cream &mdash; every page is a sheet you can draw on</span>
+      <span class="keep">keeps plan<span class="y">.</span></span>
       <span class="arr" aria-hidden="true">&rarr;</span>
     </a></li>
     <li><a class="door" href="/2/" style="--sw:#9A9A9A">
       <span class="dot" aria-hidden="true"></span>
       <span class="name">two<span aria-hidden="true">.</span></span>
       <span class="tag">zero gravity &mdash; grab anything, throw it</span>
+      <span class="keep">keeps birds<span class="y">.</span></span>
       <span class="arr" aria-hidden="true">&rarr;</span>
     </a></li>
     <li><a class="door" href="/3/" style="--sw:#4A4A4A">
       <span class="dot" aria-hidden="true"></span>
       <span class="name">three<span aria-hidden="true">.</span></span>
       <span class="tag">ascii &mdash; ten thousand glyphs pretending to be a website</span>
+      <span class="keep">keeps pulse<span class="y">.</span></span>
       <span class="arr" aria-hidden="true">&rarr;</span>
     </a></li>
     <li><a class="door" href="/4/" style="--sw:#EC5B13">
       <span class="dot" aria-hidden="true"></span>
       <span class="name">four<span aria-hidden="true">.</span></span>
       <span class="tag">the orange 03 &mdash; a poster with a temper</span>
+      <span class="keep">keeps field<span class="y">.</span></span>
       <span class="arr" aria-hidden="true">&rarr;</span>
     </a></li>
     <li><a class="door" href="/5/" style="--sw:#2431FF">
       <span class="dot" aria-hidden="true"></span>
       <span class="name">five<span aria-hidden="true">.</span></span>
       <span class="tag">sideways &mdash; it scrolls the wrong way on purpose</span>
+      <span class="keep">keeps echo<span class="y">.</span></span>
       <span class="arr" aria-hidden="true">&rarr;</span>
     </a></li>
     <li><a class="door" href="/6/" style="--sw:#1F8A70">
       <span class="dot" aria-hidden="true"></span>
       <span class="name">six<span aria-hidden="true">.</span></span>
       <span class="tag">the hang &mdash; thirteen blocks, rehung by scroll</span>
+      <span class="keep">keeps drift<span class="y">.</span></span>
       <span class="arr" aria-hidden="true">&rarr;</span>
     </a></li>
     <li><a class="door" href="/8/" style="--sw:#D8341F">
       <span class="dot" aria-hidden="true"></span>
       <span class="name">eight<span aria-hidden="true">.</span></span>
       <span class="tag">the drop &mdash; everything falls, a stockkeeper reshelves</span>
+      <span class="keep">keeps stock<span class="y">.</span></span>
       <span class="arr" aria-hidden="true">&rarr;</span>
     </a></li>
   </ol>
@@ -326,10 +349,13 @@
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
 
+  let lastW = 0, lastH = 0, lastDPR = 0;
   function bake() {
     const W = window.innerWidth, H = window.innerHeight;
     if (!W || !H) return;
     const DPR = Math.min(2, window.devicePixelRatio || 1);
+    if (W === lastW && H === lastH && DPR === lastDPR) return; // same paper, keep it
+    lastW = W; lastH = H; lastDPR = DPR;
     canvas.width = Math.floor(W * DPR);
     canvas.height = Math.floor(H * DPR);
     ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
@@ -345,7 +371,12 @@
     }
   }
   bake();
-  window.addEventListener('resize', bake, { passive: true });
+  let rebake = 0;
+  window.addEventListener('resize', () => {
+    clearTimeout(rebake);
+    rebake = setTimeout(bake, 150);
+  }, { passive: true });
+  window.addEventListener('orientationchange', () => setTimeout(bake, 200));
 })();
 </script>
 
