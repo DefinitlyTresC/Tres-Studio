@@ -1,5 +1,55 @@
 # tres.studio — the living log
 
+## ✅ LAB V3 — SIX FLOATING DOORS + THE MUSEUM — 2026-07-20, SHIPPED with the collapse (Tres: "clean up the lab… all these silly mini games into slot 1… each of these smoothed out rounded boxes should be able to float around… keep it clean and sophisticated, but playful")
+
+**The lab went zero-g.** `/lab` is now SIX draggable door-cards (the site's
+own physics engine — grab, throw, jello home; `data-zg-slim` keeps phone
+scroll alive). Design contract: `docs/specs/2026-07-20-lab-v3-design.md`.
+
+- **Games** (pinwheel toy icon) → `/labs/games` — ALL seven sims collapsed
+  into one floating hall (plan/birds/pulse/field/echo/drift/stock, keeper
+  plates intact). Sims' back links now read `[ ← games ]`.
+- **Plugins** → `/labs/plugins` — the pyRevit shelf. FOLDER-DRIVEN: drop a
+  release file into `public/plugins/`, redeploy, it's listed with size +
+  date (+ install copy for Tres.extension). Footer "Plugins — soon" on
+  `/` and `/lab` is now a live link.
+- **Alternates** → `/labs/alternates.html` — the dusk-black museum. Doors
+  now open REAL exhibits: every universe landing restored byte-faithful
+  from git at `/alternates/1..6,8/` (nav retargeted to the live site,
+  museum chip top-right; sketch.js, mv8/grav.js, v2-tokens.css restored
+  for their keepers) + the 80k-particle three.js proto resurrected at
+  `/alternates/dot/`. Universe 2's door notes "became the site".
+- **Satisfactory** → `/labs/satisfactory` — clean docking stub; ANOTHER
+  CHAT replaces `<main>`'s contents with the real visualizer (comment in
+  the file says exactly what to keep).
+- **Roadmap** → `/labs/roadmap` — the site's history as a flowing
+  branching SVG timeline (trunk + superseded branches + hollow "next"
+  nodes), drawn from a plain `ROADMAP` array at the top of the file —
+  **append there and the drawing grows.** Draw-on via IntersectionObserver;
+  PRM = fully drawn at rest.
+- **WIP** — the sixth door is a span: drags like the rest, a true click
+  cycles its color through the zerog palette, goes nowhere.
+- **Mechanics:** engine owns each door's outer transform; ALL cosmetics
+  (arch border, entrance rise, hover) live on a `.din` inner wrapper.
+  Curtain door-opens intercept at DOCUMENT level after checking
+  `e.defaultPrevented`, so a drag-release can never navigate (this also
+  hardened `/mv/lab-takeover.js` on the index). `mv:covered` contract:
+  /lab's targets all autoReveal (flag rides through); games clears it
+  (sims don't reveal); alternates clears it only for the dot proto.
+- **Also:** LinkedIn added to the about page acts.
+- **Verified:** 14-agent build + 4-lens adversarial review (links contract,
+  physics/curtain, exhibit byte-fidelity via git hash-object, quality/PRM/
+  a11y/mobile) + hands-on browser pass (drag-suppressed clicks, WIP color
+  cycle, curtain flag flow, roadmap data, dot proto boots three.js, zero
+  console errors). Review caught + fixed pre-ship: games hall missing
+  `position:relative` (PRM pile-up), both halls too short for parked
+  layouts on laptop heights (now 960px/1310px floors), exhibit 1's
+  v2-tokens.css restored, alternates.html noindex/theme-color. Build: 35
+  pages, green.
+- **Known + accepted:** /resume.pdf + /portfolio.pdf still 404 site-wide —
+  pre-existing, they're rows 1-2 of ASSETS-NEEDED.md (drop the files in
+  `public/` whenever ready).
+
 ## 🔶 V3.0 — THE COLLAPSE: one site, the floating one — 2026-07-20 (Tres: "collapse it all into just the floaty site… keep all the nice quirks… keep the lab ready, keep all tracking functioning, just eliminate the randomness and extra site variants")
 
 **The multiverse is over. The floating one (zero gravity) is THE site,

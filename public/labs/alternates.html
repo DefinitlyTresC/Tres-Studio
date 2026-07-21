@@ -4,7 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>alternates — tres carter</title>
-  <meta name="description" content="The index of the tres.studio multiverse — seven universes, one front door." />
+  <meta name="robots" content="noindex" />
+  <meta name="theme-color" content="#06070A" />
+  <meta name="description" content="Every site this site has been — the tres.studio multiverse (2026-07-03 → 2026-07-20), held open as a museum." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
@@ -14,10 +16,11 @@
 
   <style>
     /* ───────────────────────────────────────────────────────────
-       ALTERNATES — the index of the multiverse.
-       The one lab page that scrolls: seven doors, one front door,
+       ALTERNATES — the museum of the multiverse
+       (2026-07-03 → 2026-07-20, then one site).
+       The one lab page that scrolls: seven doors held open,
        and the abandoned proto at the bottom. Swatches are the
-       registry colors (src/lib/multiverse.ts).
+       old registry colors.
        ─────────────────────────────────────────────────────────── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -164,6 +167,16 @@
       white-space: nowrap;
     }
     .door .keep .y { color: var(--yellow); }
+    /* door two is exhibit AND ancestor — the extra line gets its own row */
+    .door.lives { flex-wrap: wrap; }
+    .door .became {
+      flex-basis: 100%;
+      order: 5;
+      font-size: 0.56rem;
+      letter-spacing: 0.16em;
+      color: var(--ink-faint);
+      padding-left: calc(9px + 1.1rem);
+    }
     .door .arr {
       font-size: 0.66rem;
       color: var(--ink-faint);
@@ -176,7 +189,7 @@
       .door:hover .arr { color: var(--yellow); transform: translateX(3px); }
     }
 
-    .roll {
+    .one {
       display: inline-flex;
       align-items: center;
       min-height: 44px;
@@ -188,7 +201,7 @@
       transition: opacity 0.25s var(--ease);
     }
     @media (hover: hover) {
-      .roll:hover { opacity: 0.7; }
+      .one:hover { opacity: 0.7; }
     }
 
     .proto {
@@ -217,7 +230,7 @@
 
     /* entrance: rows settle into place, staggered */
     @media (prefers-reduced-motion: no-preference) {
-      .doors li, .lede, h1, .roll, .proto {
+      .doors li, .lede, h1, .one, .proto {
         opacity: 0;
         transform: translateY(14px);
         animation: rise 0.7s var(--ease) forwards;
@@ -231,7 +244,7 @@
       .doors li:nth-child(5) { animation-delay: 0.44s; }
       .doors li:nth-child(6) { animation-delay: 0.50s; }
       .doors li:nth-child(7) { animation-delay: 0.56s; }
-      .roll { animation-delay: 0.60s; }
+      .one { animation-delay: 0.60s; }
       .proto { animation-delay: 0.68s; }
       @keyframes rise {
         to { opacity: 1; transform: none; }
@@ -240,7 +253,7 @@
 
     /* reduced motion: the chrome holds still too */
     @media (prefers-reduced-motion: reduce) {
-      .door, .door .tag, .door .arr, .roll, .nav .mark, .nav .back { transition: none; }
+      .door, .door .tag, .door .arr, .one, .nav .mark, .nav .back { transition: none; }
     }
 
     @media (max-width: 700px) {
@@ -263,61 +276,62 @@
 <canvas id="grain" aria-hidden="true"></canvas>
 
 <nav class="nav">
-  <a class="mark" href="/">tres carter<span class="y">.</span></a>
   <a class="back" href="/lab">[ &larr; lab ]</a>
+  <a class="mark" href="/">tres carter<span class="y">.</span></a>
 </nav>
 
 <main>
   <h1>alternates<span class="y">.</span></h1>
-  <p class="lede">tres.studio is seven sites wearing one address. the front
-  door deals you a universe at random — these are the doors, held open.
-  each universe keeps one lab experiment now, in its own paint.
-  (door seven isn't built yet.)</p>
+  <p class="lede">tres.studio was seven sites wearing one address
+  (2026-07-03 &rarr; 2026-07-20). the multiverse has collapsed into one
+  site — these are every site this site has been, held open. each kept a
+  lab experiment in its own paint. (door seven was never built.)</p>
 
   <ol class="doors">
-    <li><a class="door" href="/1/" style="--sw:#BF9270">
+    <li><a class="door" href="/alternates/1/" style="--sw:#BF9270">
       <span class="dot" aria-hidden="true"></span>
       <span class="name">one<span aria-hidden="true">.</span></span>
       <span class="tag">pencil on cream &mdash; every page is a sheet you can draw on</span>
       <span class="keep">keeps plan<span class="y">.</span></span>
       <span class="arr" aria-hidden="true">&rarr;</span>
     </a></li>
-    <li><a class="door" href="/2/" style="--sw:#9A9A9A">
+    <li><a class="door lives" href="/alternates/2/" style="--sw:#9A9A9A">
       <span class="dot" aria-hidden="true"></span>
       <span class="name">two<span aria-hidden="true">.</span></span>
       <span class="tag">zero gravity &mdash; grab anything, throw it</span>
       <span class="keep">keeps birds<span class="y">.</span></span>
       <span class="arr" aria-hidden="true">&rarr;</span>
+      <span class="became">became the site</span>
     </a></li>
-    <li><a class="door" href="/3/" style="--sw:#4A4A4A">
+    <li><a class="door" href="/alternates/3/" style="--sw:#4A4A4A">
       <span class="dot" aria-hidden="true"></span>
       <span class="name">three<span aria-hidden="true">.</span></span>
       <span class="tag">ascii &mdash; ten thousand glyphs pretending to be a website</span>
       <span class="keep">keeps pulse<span class="y">.</span></span>
       <span class="arr" aria-hidden="true">&rarr;</span>
     </a></li>
-    <li><a class="door" href="/4/" style="--sw:#EC5B13">
+    <li><a class="door" href="/alternates/4/" style="--sw:#EC5B13">
       <span class="dot" aria-hidden="true"></span>
       <span class="name">four<span aria-hidden="true">.</span></span>
       <span class="tag">the orange 03 &mdash; a poster with a temper</span>
       <span class="keep">keeps field<span class="y">.</span></span>
       <span class="arr" aria-hidden="true">&rarr;</span>
     </a></li>
-    <li><a class="door" href="/5/" style="--sw:#2431FF">
+    <li><a class="door" href="/alternates/5/" style="--sw:#2431FF">
       <span class="dot" aria-hidden="true"></span>
       <span class="name">five<span aria-hidden="true">.</span></span>
       <span class="tag">sideways &mdash; it scrolls the wrong way on purpose</span>
       <span class="keep">keeps echo<span class="y">.</span></span>
       <span class="arr" aria-hidden="true">&rarr;</span>
     </a></li>
-    <li><a class="door" href="/6/" style="--sw:#1F8A70">
+    <li><a class="door" href="/alternates/6/" style="--sw:#1F8A70">
       <span class="dot" aria-hidden="true"></span>
       <span class="name">six<span aria-hidden="true">.</span></span>
       <span class="tag">the hang &mdash; thirteen blocks, rehung by scroll</span>
       <span class="keep">keeps drift<span class="y">.</span></span>
       <span class="arr" aria-hidden="true">&rarr;</span>
     </a></li>
-    <li><a class="door" href="/8/" style="--sw:#D8341F">
+    <li><a class="door" href="/alternates/8/" style="--sw:#D8341F">
       <span class="dot" aria-hidden="true"></span>
       <span class="name">eight<span aria-hidden="true">.</span></span>
       <span class="tag">the drop &mdash; everything falls, a stockkeeper reshelves</span>
@@ -326,11 +340,11 @@
     </a></li>
   </ol>
 
-  <a class="roll" href="/">[ roll the dice ]</a>
+  <a class="one" href="/">[ the one site ]</a>
 
   <div class="proto">
     <div class="proto-label">from before the multiverse</div>
-    <a class="door" href="Alternate%20Sites/alternate2/index.html" style="--sw:#FF5A1F">
+    <a class="door" href="/alternates/dot/" style="--sw:#FF5A1F">
       <span class="dot" aria-hidden="true"></span>
       <span class="name">proto</span>
       <span class="tag">an abandoned universe &mdash; 80,000 particles, three.js</span>
@@ -378,6 +392,33 @@
   }, { passive: true });
   window.addEventListener('orientationchange', () => setTimeout(bake, 200));
 })();
+</script>
+
+<script type="module">
+import { autoReveal, cover } from '/mv/curtain.js';
+autoReveal();
+let reduce = false;
+try { reduce = matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+let leaving = false;
+addEventListener('pageshow', (e) => { if (e.persisted) leaving = false; });
+document.addEventListener('click', async (e) => {
+  const a = e.target.closest && e.target.closest('a.door');
+  if (!a) return;
+  if (e.defaultPrevented) return;
+  if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button > 0) return;
+  if (reduce) return;                            // plain navigation
+  if (leaving) { e.preventDefault(); return; }
+  e.preventDefault();
+  leaving = true;
+  const r = a.getBoundingClientRect();
+  await cover({ x: e.clientX || r.left + r.width / 2, y: e.clientY || r.top + r.height / 2, color: '#0A0806' });
+  const href = a.getAttribute('href');
+  // The exhibits autoReveal and peel the flag themselves; the dot proto is
+  // static three.js with no curtain — clear the flag for that door only so
+  // the next site page doesn't peel a ghost.
+  if (href === '/alternates/dot/') { try { sessionStorage.removeItem('mv:covered'); } catch (err) {} }
+  location.href = href;
+});
 </script>
 
 </body>

@@ -25,8 +25,14 @@ it first in a new session. Design docs live in [docs/specs/](docs/specs/).
 | `/archive` | everything else |
 | `/about` | name, lede, contacts — all throwable |
 | `/project/<slug>` | project page (hero, essay, gallery + lightbox) |
-| `/lab` | the experiments hall — eight doors, site-branded |
-| `/labs/*.html` | the experiments (static, self-contained, universe-branded) |
+| `/lab` | six floating doors (zero-g, draggable): games · plugins · alternates · satisfactory · roadmap · wip |
+| `/labs/games` | the games room — all seven sims as floating doors |
+| `/labs/plugins` | the pyRevit shelf — folder-driven downloads (`public/plugins/`) |
+| `/labs/roadmap` | the site's history as a branching timeline (append the `ROADMAP` array) |
+| `/labs/satisfactory` | docking stub — the factory visualizer lands here |
+| `/labs/*.html` | the seven sims (static, self-contained, universe-branded) + alternates.html (the museum index) |
+| `/alternates/1..6,8/` | the multiverse landings, restored as exhibits |
+| `/alternates/dot/` | the pre-multiverse 80k-particle three.js proto |
 | `/me` | tracking control room (noindex, linked nowhere — exclude yourself) |
 | `/privacy` | the short privacy note |
 
@@ -68,7 +74,9 @@ src/
 └── pages/
     ├── index.astro         ← the letter field + menu + footer
     ├── work.astro · archive.astro · about.astro · project/[slug].astro
-    ├── lab.astro           ← the experiments hall (site brand, pinned)
+    ├── lab.astro           ← six floating doors (zero-g hall)
+    ├── labs/               ← games · plugins · roadmap · satisfactory
+    ├── alternates/1..8/    ← the universe exhibits (restored from git)
     ├── me.astro            ← tracking control room
     └── privacy.astro
 public/
@@ -77,7 +85,10 @@ public/
 │   ├── curtain.js             zero-g physics engine · ink-blot curtain ·
 │   ├── ticker.js              flip-card visit counter ·
 │   └── lab-takeover.js        /lab links get swallowed by the curtain
-├── labs/                   ← the eight lab experiments (static HTML)
+├── labs/                   ← the seven sims + alternates.html (static HTML)
+├── alternates/dot/         ← the three.js dot proto (restored)
+├── plugins/                ← DROP pyRevit releases here → listed on /labs/plugins
+├── mv8/grav.js · mv/sketch.js · v2-tokens.css ← exhibit engines/tokens (restored)
 ├── ts.js                   ← THE tracking bootstrap (Umami+Clarity+visitor id)
 └── _redirects              ← both eras of legacy URLs → clean 301s
 netlify/
@@ -113,7 +124,7 @@ Sheet URL: `content.config.ts` (`SHEET_CSV_URL` env var overrides).
 ```
 npm install
 npm run dev       # localhost:4321
-npm run build     # bakes the sheet + builds ~24 pages into dist/
+npm run build     # bakes the sheet + builds ~35 pages into dist/
 npm run preview   # serve dist/ locally
 ```
 

@@ -1,26 +1,19 @@
 ---
-// The front door — "the floating one." Zero gravity: every letter and menu
-// word is a physics body — grab, throw, collide, bounce, jello home. The
-// hand-rolled engine lives in /public/mv/zerog.js (one rAF loop, transforms
-// only) and scans for [data-zg] bodies inside [data-zg-room] containers. Two
-// rooms: the letter field (screen 1) and the centered menu (screen 2); bodies
-// never cross into other sections.
-//
-// V3.0 (2026-07-20): this universe (the multiverse's site 2) became THE site.
-// The dice roll, the refresh-roll, and the dot map are gone; the quirks stay
-// (color cycle on click, reshuffle on scroll re-entry, ink curtain into /lab,
-// the ticker).
+// Site 2 — "the floating one." Zero gravity: every letter and menu word is a
+// physics body — grab, throw, collide, bounce, jello home. The hand-rolled
+// engine lives in /public/mv/zerog.js (one rAF loop, transforms only) and
+// scans for [data-zg] bodies inside [data-zg-room] containers. Two rooms:
+// the letter field (screen 1) and the centered menu (screen 2); bodies never
+// cross into other sections.
 
 // Percent-based homes recompute from viewport size. x/y = wide screens,
 // xn/yn = narrow (<=640px). s = glyph scale factor.
-// V3.0: homes re-organized to read T R E S . left-to-right on a gently
-// bouncing baseline (was a full scatter) — floaty, but legible at rest.
 const LETTERS = [
-  { g: 'T', x: 15, y: 30, xn: 16, yn: 20, s: 1.0 },
-  { g: 'R', x: 35, y: 24, xn: 38, yn: 16, s: 0.78 },
-  { g: 'E', x: 55, y: 32, xn: 60, yn: 22, s: 0.9 },
-  { g: 'S', x: 74, y: 26, xn: 81, yn: 18, s: 1.22 },
-  { g: '.', x: 87, y: 38, xn: 90, yn: 28, s: 1.12 },
+  { g: 'T', x: 14, y: 26, xn: 18, yn: 16, s: 1.0 },
+  { g: 'R', x: 76, y: 18, xn: 74, yn: 13, s: 0.78 },
+  { g: 'E', x: 26, y: 66, xn: 22, yn: 46, s: 0.9 },
+  { g: 'S', x: 57, y: 42, xn: 62, yn: 36, s: 1.22 },
+  { g: '.', x: 87, y: 70, xn: 80, yn: 64, s: 1.12 },
 ];
 const MENU = [
   { label: 'Work', href: '/work', y: 20 },
@@ -34,7 +27,6 @@ const MENU = [
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="description" content="Tres Carter — architecture, art, and code from 30A, Florida." />
     <meta name="robots" content="noindex" />
     <meta name="theme-color" content="#FAFAF7" />
     <title>T R E S .</title>
@@ -45,6 +37,7 @@ const MENU = [
     <script is:inline defer src="/ts.js"></script>
   </head>
   <body>
+    <a class="alt-chip" href="/labs/alternates.html">alt 02 · all alternates</a>
     <header class="space" id="field" aria-label="Tres" data-zg-room>
       {LETTERS.map((l) => (
         <span
@@ -70,7 +63,7 @@ const MENU = [
       ))}
     </nav>
 
-    <footer class="info">
+    <footer id="mv-info" class="info">
       <div class="i-cols">
         <div class="i-col">
           <span class="lbl">Location</span>
@@ -90,17 +83,20 @@ const MENU = [
           <a href="/about">About</a><br />
           <a href="/resume.pdf">Resume</a><br />
           <a href="/portfolio.pdf">Portfolio</a><br />
-          <a href="/labs/plugins">Plugins</a>
+          <span style="color:rgba(16,16,16,0.45)">Plugins — soon</span>
         </div>
       </div>
       <div class="i-meta">
         <span>© 2026 Tres Carter</span>
-        <span id="mv-ticker-slot"></span>
         <a href="/privacy">Privacy</a>
       </div>
     </footer>
 
     <style is:inline>
+      :root {
+        --mvt-card: #ffffff; --mvt-ink: #101010; --mvt-line: rgba(0,0,0,0.25);
+        --mvt-label: rgba(0,0,0,0.5); --mvt-accent: #101010; --mvt-confetti: #101010,#9a9a9a,#ffffff;
+      }
       * { margin: 0; box-sizing: border-box; }
       html, body { overflow-x: hidden; }
       html { background: #FAFAF7; }
@@ -163,6 +159,10 @@ const MENU = [
         text-transform: uppercase; line-height: 1.9;
       }
       @media (max-width: 640px) { .i-cols { grid-template-columns: 1fr; } }
+      /* phones: the six-dot map sits at bottom:104px (ring.js narrow mode) —
+         the columns' last line must clear its strip (measured grazing
+         "plugins — soon" at 360x668, 2026-07-03) */
+      @media (max-width: 700px) { .i-cols { padding-bottom: 56px; } }
       .lbl { display: block; color: rgba(16,16,16,0.45); margin-bottom: 6px; }
       .i-meta {
         display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap;
@@ -173,6 +173,13 @@ const MENU = [
         .info a:hover { text-decoration: underline; text-underline-offset: 4px; }
       }
 
+      .alt-chip { position: fixed; top: 14px; right: 14px; z-index: 300;
+        font-family: 'Space Mono', ui-monospace, monospace; font-size: 10px;
+        letter-spacing: 0.12em; text-transform: uppercase; text-decoration: none;
+        padding: 10px 12px; border: 1px solid currentColor; border-radius: 999px;
+        opacity: 0.75; background: transparent; }
+      .alt-chip:hover, .alt-chip:focus-visible { opacity: 1; }
+
       @media (prefers-reduced-motion: reduce) {
         .mword .tx { transition-duration: 1ms; }
       }
@@ -181,10 +188,8 @@ const MENU = [
     <script is:inline type="module">
       import { autoReveal } from '/mv/curtain.js';
       autoReveal();
-      import('/mv/lab-takeover.js');
     </script>
 
     <script is:inline defer src="/mv/zerog.js"></script>
-    <script is:inline defer src="/mv/ticker.js"></script>
   </body>
 </html>

@@ -1,0 +1,214 @@
+---
+// Site 1 — the pencil (R5). Markup + chrome for the sketch engine
+// (/mv/sketch.js): full-page canvas, the bottom-right drafting stack
+// ([ pencil options ] / [ clear sketch ] / [ save sketch ][ b ]), the
+// pencil-box popover, and the mobile [ draw ] toggle. Strokes are
+// document-anchored and persist per page; all behavior lives in sketch.js.
+// Not a route: underscore-prefixed files in src/pages are excluded by Astro.
+---
+<canvas class="sk-cv" id="sk-cv" aria-hidden="true"></canvas>
+
+<div class="sk-tools" id="sk-tools" data-sk-ui>
+  <div class="sk-box" id="sk-box" role="group" aria-label="Pencil options">
+    <div class="sk-row">
+      <span class="sk-lbl" id="sk-lbl-lead">lead</span>
+      <div class="sk-set" role="group" aria-labelledby="sk-lbl-lead">
+        <button type="button" data-lead="0" aria-label="graphite" title="graphite">
+          <svg viewBox="0 0 34 16" width="34" height="16" aria-hidden="true"><path d="M2 11C7 3 12 15 18 7S28 9 32 5" fill="none" stroke="#2B1F1A" stroke-width="2.2" stroke-linecap="round"/></svg>
+        </button>
+        <button type="button" data-lead="1" aria-label="sanguine" title="sanguine">
+          <svg viewBox="0 0 34 16" width="34" height="16" aria-hidden="true"><path d="M2 11C7 3 12 15 18 7S28 9 32 5" fill="none" stroke="#B4543B" stroke-width="2.2" stroke-linecap="round"/></svg>
+        </button>
+        <button type="button" data-lead="2" aria-label="blueprint" title="blueprint">
+          <svg viewBox="0 0 34 16" width="34" height="16" aria-hidden="true"><path d="M2 11C7 3 12 15 18 7S28 9 32 5" fill="none" stroke="#35608A" stroke-width="2.2" stroke-linecap="round"/></svg>
+        </button>
+        <button type="button" data-lead="3" aria-label="umber" title="umber">
+          <svg viewBox="0 0 34 16" width="34" height="16" aria-hidden="true"><path d="M2 11C7 3 12 15 18 7S28 9 32 5" fill="none" stroke="#BF9270" stroke-width="2.2" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="sk-row">
+      <span class="sk-lbl" id="sk-lbl-point">point</span>
+      <div class="sk-set" role="group" aria-labelledby="sk-lbl-point">
+        <button type="button" data-point="0" aria-label="fine" title="fine"><span class="sk-dot" style="width:4px;height:4px"></span></button>
+        <button type="button" data-point="1" aria-label="medium" title="medium"><span class="sk-dot" style="width:7px;height:7px"></span></button>
+        <button type="button" data-point="2" aria-label="broad" title="broad"><span class="sk-dot" style="width:11px;height:11px"></span></button>
+      </div>
+    </div>
+    <div class="sk-row">
+      <span class="sk-lbl" id="sk-lbl-tool">tool</span>
+      <div class="sk-set sk-set-txt" role="group" aria-labelledby="sk-lbl-tool">
+        <button type="button" data-tool="0">pencil</button>
+        <button type="button" data-tool="1">ink</button>
+        <button type="button" data-tool="2">marker</button>
+        <button type="button" data-tool="3">eraser</button>
+      </div>
+    </div>
+    <div class="sk-row sk-foot">
+      <button type="button" id="sk-undo">[ undo ]</button>
+      <span class="sk-note">each page is its own sheet</span>
+    </div>
+  </div>
+
+  <button class="sk-btn" id="sk-opt" type="button" aria-haspopup="true" aria-expanded="false">[ pencil options ]</button>
+  <button class="sk-btn sk-off" id="sk-clear" type="button">[ clear sketch ]</button>
+  <div class="sk-save sk-off" id="sk-save-row">
+    <button class="sk-btn" id="sk-save" type="button">[ save sketch ]</button>
+    <button class="sk-btn sk-b" id="sk-bg" type="button" aria-pressed="false" aria-label="save the background only, without the page type" title="background only">[ b ]</button>
+  </div>
+</div>
+
+<button class="sk-mob" id="sk-mob" type="button" data-sk-ui aria-pressed="false">[ draw ]</button>
+
+<style is:inline>
+  /* the pencil cursor carries the current lead — sketch.js retints it */
+  @media (hover: hover) and (pointer: fine) {
+    html, body, a, button {
+      cursor: var(--sk-cursor, url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='26' height='26'%3E%3Cpath fill='%232B1F1A' d='M3 23L5.1 16.7 13.6 8.2 17.8 12.4 9.3 20.9Z'/%3E%3Cpath stroke='%23FFEDDB' stroke-width='1.1' fill='none' d='M5.1 16.7L9.3 20.9M11.5 10.3L15.7 14.5'/%3E%3C/svg%3E") 3 23), auto;
+    }
+  }
+
+  body.sk-drawing {
+    user-select: none; -webkit-user-select: none;
+    -webkit-touch-callout: none;
+  }
+  body.sk-mdraw {
+    touch-action: none;
+    overscroll-behavior: contain;
+  }
+
+  .sk-cv {
+    display: block;
+    position: fixed; inset: 0 auto auto 0; z-index: 3;
+    /* sketch.js owns the CSS box size so bitmap, box, and clientX/Y agree */
+    pointer-events: none;
+  }
+
+  /* ── the drafting stack, bottom-right ─────────────────────────────────── */
+  .sk-tools {
+    display: none;
+    position: fixed; z-index: 12;
+    right: calc(var(--v2-pad, 24px) + env(safe-area-inset-right, 0px));
+    bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+    flex-direction: column; align-items: end;
+  }
+  @media (hover: hover) and (pointer: fine) { .sk-tools { display: flex; } }
+  body.sk-mdraw .sk-tools { display: flex; }
+
+  .sk-btn {
+    min-height: 40px; min-width: 44px; padding: 9px 8px;
+    background: var(--v2-cream, #FFEDDB); border: none;
+    color: var(--v2-ink-soft, #6b5c54);
+    font-family: var(--v2-mono, monospace); font-size: 11px;
+    letter-spacing: 0.06em; text-transform: uppercase; text-align: right;
+    cursor: inherit;
+    transition: opacity 220ms var(--v2-out, ease-out), transform var(--v2-press, 140ms) var(--v2-out, ease-out);
+  }
+  .sk-btn:hover { text-decoration: underline; text-underline-offset: 4px; }
+  .sk-btn:active { transform: scale(0.96); }
+  .sk-btn:focus-visible { outline: 2px solid var(--v2-ink, #2B1F1A); outline-offset: 3px; }
+  .sk-off { opacity: 0; pointer-events: none; visibility: hidden; }
+  .sk-save { display: flex; align-items: center; }
+  .sk-b[aria-pressed="true"] { color: var(--v2-ink, #2B1F1A); text-decoration: underline; text-underline-offset: 4px; }
+
+  /* ── the pencil box ───────────────────────────────────────────────────── */
+  .sk-box {
+    position: absolute; right: 0; bottom: calc(100% + 10px);
+    width: 232px; padding: 16px 16px 12px;
+    background: var(--v2-cream, #FFEDDB);
+    border: 1px solid var(--v2-ink, #2B1F1A);
+    box-shadow: 5px 5px 0 rgba(43, 31, 26, 0.08);
+    display: grid; gap: 13px;
+    opacity: 0; visibility: hidden; translate: 0 6px;
+    transition: opacity 180ms var(--v2-out, ease-out), translate 180ms var(--v2-out, ease-out), visibility 0s linear 180ms;
+  }
+  .sk-box.sk-open { opacity: 1; visibility: visible; translate: 0 0; transition-delay: 0s; }
+  .sk-row { display: grid; gap: 6px; }
+  .sk-lbl {
+    font-family: var(--v2-mono, monospace); font-size: 9px;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--v2-ink-soft, #6b5c54);
+  }
+  .sk-set { display: flex; gap: 4px; }
+  .sk-set button {
+    display: grid; place-items: center;
+    min-width: 40px; min-height: 32px; padding: 4px 6px;
+    background: none; border: none; cursor: inherit;
+    border-bottom: 2px solid transparent;
+    opacity: 0.5;
+    transition: opacity 140ms var(--v2-out, ease-out), transform var(--v2-press, 140ms) var(--v2-out, ease-out);
+  }
+  .sk-set button:hover { opacity: 1; }
+  .sk-set button:active { transform: scale(0.94); }
+  .sk-set button:focus-visible { outline: 2px solid var(--v2-ink, #2B1F1A); outline-offset: 2px; }
+  .sk-set button[aria-pressed="true"] { opacity: 1; border-bottom-color: var(--v2-ink, #2B1F1A); }
+  .sk-dot { display: block; border-radius: 50%; background: var(--v2-ink, #2B1F1A); }
+  .sk-set-txt { gap: 0; }
+  .sk-set-txt button {
+    min-width: 0; padding: 4px 7px;
+    font-family: var(--v2-mono, monospace); font-size: 11px;
+    letter-spacing: 0.04em; color: var(--v2-ink-soft, #6b5c54);
+  }
+  .sk-set-txt button[aria-pressed="true"] { color: var(--v2-ink, #2B1F1A); }
+  .sk-foot {
+    grid-template-columns: auto 1fr; align-items: baseline; gap: 10px;
+    border-top: 1px solid var(--v2-hairline, rgba(43,31,26,.16));
+    padding-top: 10px;
+  }
+  #sk-undo {
+    background: none; border: none; padding: 6px 0; cursor: inherit;
+    font-family: var(--v2-mono, monospace); font-size: 11px;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--v2-ink-soft, #6b5c54); text-align: left;
+  }
+  #sk-undo:hover { text-decoration: underline; text-underline-offset: 4px; }
+  #sk-undo:focus-visible { outline: 2px solid var(--v2-ink, #2B1F1A); outline-offset: 2px; }
+  .sk-note {
+    font-family: var(--v2-mono, monospace); font-size: 9px;
+    letter-spacing: 0.08em; text-transform: uppercase; text-align: right;
+    color: var(--v2-ink-soft, #6b5c54); opacity: 0.75;
+  }
+
+  /* ── mobile [ draw ] toggle, top-right ────────────────────────────────── */
+  .sk-mob {
+    display: block;
+    position: fixed; z-index: 12;
+    top: calc(env(safe-area-inset-top, 0px) + calc(var(--v2-pad, 24px) * 0.35));
+    right: calc(var(--v2-pad, 24px) + env(safe-area-inset-right, 0px));
+    min-height: 44px; min-width: 44px; padding: 10px 0 10px 10px;
+    background: var(--v2-cream, #FFEDDB); border: none;
+    color: var(--v2-ink, #2B1F1A);
+    font-family: var(--v2-mono, monospace); font-size: 12px;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    transition: transform var(--v2-press, 140ms) var(--v2-out, ease-out);
+  }
+  .sk-mob:active { transform: scale(0.96); }
+  .sk-mob:focus-visible { outline: 2px solid var(--v2-ink, #2B1F1A); outline-offset: 3px; }
+  .sk-mob[aria-pressed="true"] { text-decoration: underline; text-underline-offset: 4px; }
+  @media (hover: hover) and (pointer: fine) { .sk-mob { display: none; } }
+
+  /* ── the TRES letters double as erasers (landing only) ────────────────── */
+  .ml { display: inline-block; touch-action: none; }
+  @media (hover: hover) and (pointer: fine) {
+    .ml { transition: translate 200ms var(--v2-out, ease-out); }
+    .ml:hover { translate: 0 -4px; }
+  }
+  .ml-drag { position: relative; z-index: 6; transition: none !important; translate: 0 0 !important; will-change: transform; }
+  .ml-home { transition: transform 480ms cubic-bezier(0.23, 1, 0.32, 1) !important; }
+  body.sk-erasing { user-select: none; -webkit-user-select: none; }
+
+  /* hybrids: a touch tap must not leave the hover-dim stuck on */
+  body.sk-touch .menu:hover a,
+  body.sk-touch .list:hover .row { opacity: 1; }
+  body.sk-touch .menu a:hover .pv > *,
+  body.sk-touch .row:hover .r-pv img { transform: translateX(115%) rotate(3deg); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .sk-btn, .sk-box, .sk-set button, .sk-mob, .ml, .ml-home {
+      transition: none !important;
+    }
+    .sk-btn:active, .sk-set button:active, .sk-mob:active { transform: none; }
+  }
+</style>
+
+<script is:inline defer src="/mv/sketch.js"></script>

@@ -1,0 +1,183 @@
+---
+// Plugins — the pyRevit shelf. The list IS the folder: anything dropped
+// into public/plugins/ deploys verbatim (URL: /plugins/<file>) and lists
+// itself here on the next build. No manifest to forget.
+import fs from 'node:fs';
+import path from 'node:path';
+
+const dir = path.resolve(process.cwd(), 'public/plugins');
+
+// whole bytes below 1 KB — a tenth of a byte is nobody's unit
+const human = (n) =>
+  n < 1024 ? `${n} B`
+  : n < 1048576 ? `${(n / 1024).toFixed(1)} KB`
+  : `${(n / 1048576).toFixed(1)} MB`;
+
+let files = [];
+try {
+  files = fs
+    .readdirSync(dir, { withFileTypes: true })
+    .filter((d) => d.isFile())
+    // dotfiles (.gitkeep included) and README stay backstage
+    .filter((d) => !d.name.startsWith('.') && !/^readme/i.test(d.name))
+    .map((d) => {
+      const st = fs.statSync(path.join(dir, d.name));
+      return {
+        name: d.name,
+        size: human(st.size),
+        date: st.mtime.toISOString().slice(0, 10),
+        ts: st.mtimeMs,
+      };
+    })
+    .sort((a, b) => b.ts - a.ts);
+} catch (e) {
+  // folder missing (fresh checkout): the shelf is empty, not broken
+  files = [];
+}
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="robots" content="noindex" />
+    <meta name="theme-color" content="#FAFAF7" />
+    <title>Plugins — T R E S .</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+    <!-- tracking: one bootstrap for the whole site (Umami + Clarity + visitor id + self-exclusion) - public/ts.js -->
+    <script is:inline defer src="/ts.js"></script>
+  </head>
+  <body>
+    <a class="back" id="back" href="/lab">← lab</a>
+
+    <main class="arch">
+      <header class="head">
+        <p class="spec">revit, sharpened — pyrevit extensions</p>
+        <h1 class="name">PLUGINS<span class="dot">.</span></h1>
+      </header>
+
+      <!-- copy: first-pass words — tres, tune these before anyone reads them -->
+      <section class="note">
+        <p class="n-label">the extension</p>
+        <p class="n-body">
+          Tres builds Revit add-ins as one pyRevit extension —
+          <strong>Tres.extension</strong> — productivity tooling for
+          architectural documentation. The small, repetitive moves, automated.
+        </p>
+        <p class="n-label">install</p>
+        <ol class="n-steps">
+          <li>install <a href="https://pyrevitlabs.notion.site/" target="_blank" rel="noopener">pyRevit</a> (docs) — or grab it from <a href="https://github.com/pyrevitlabs/pyRevit" target="_blank" rel="noopener">GitHub</a></li>
+          <li>download an extension release below</li>
+          <li>unzip into your pyRevit extensions folder and reload</li>
+        </ol>
+      </section>
+
+      <!-- the shelf is folder-driven: drop a release (zip) into public/plugins/
+           and redeploy — it appears here with size + date, newest first.
+           dotfiles, .gitkeep and README* are ignored. -->
+      {files.length > 0 ? (
+        <div class="list">
+          {files.map((f, i) => (
+            <div class="row">
+              <span class="r-no">{String(i + 1).padStart(2, '0')}</span>
+              <span class="r-name">{f.name}</span>
+              <span class="r-meta">{f.size}</span>
+              <span class="r-meta r-date">{f.date}</span>
+              <a class="dl" href={`/plugins/${encodeURIComponent(f.name)}`} download>[ download ]</a>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div class="list">
+          <p class="empty">the shelf is empty — first release soon.</p>
+        </div>
+      )}
+    </main>
+
+    <footer class="foot">
+      <span>© 2026 Tres Carter</span>
+      <a href="/privacy">Privacy</a>
+    </footer>
+
+    <style is:inline>
+      * { margin: 0; box-sizing: border-box; }
+      html { background: #FAFAF7; }
+      body { font-family: 'Hanken Grotesk', system-ui, sans-serif; color: #101010; -webkit-font-smoothing: antialiased; }
+      ::selection { background: #101010; color: #FAFAF7; }
+      a { color: inherit; text-decoration: none; }
+      a:focus-visible { outline: 2px solid #101010; outline-offset: 3px; }
+      .back { position: fixed; z-index: 10; top: var(--y, 14px); left: 6vw; font-family: 'Space Mono', monospace; font-size: 12px; padding: 12px 0; transition: transform 140ms cubic-bezier(0.23,1,0.32,1); }
+      .back:active { transform: scale(0.96); }
+      @media (hover: hover) and (pointer: fine) { .back:hover { text-decoration: underline; text-underline-offset: 4px; } }
+
+      .arch { max-width: 1100px; margin: 0 auto; padding: 0 6vw 12svh; }
+      .head { padding: clamp(110px, 22vh, 260px) 0 7svh; }
+      .spec { font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(16,16,16,0.45); }
+      .name { font-weight: 800; font-size: clamp(44px, 9vw, 96px); line-height: 1; margin-top: 10px; }
+      .dot { color: #9A9A9A; }
+
+      .note { max-width: 640px; display: grid; gap: 14px; padding: 0 0 7svh; }
+      .n-label { font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(16,16,16,0.45); }
+      .n-label + .n-label, .n-body + .n-label { margin-top: 14px; }
+      .n-body, .n-steps { font-size: 15px; line-height: 1.65; color: rgba(16,16,16,0.8); }
+      .n-body strong { font-weight: 700; color: #101010; }
+      .n-steps { padding-left: 1.4em; display: grid; gap: 6px; }
+      .note a { text-decoration: underline; text-underline-offset: 3px; }
+
+      .list { border-top: 1px solid rgba(0,0,0,0.14); }
+      .row {
+        display: grid; grid-template-columns: 3ch minmax(0, 1fr) auto auto auto; gap: 18px; align-items: baseline;
+        padding: 16px 0; border-bottom: 1px solid rgba(0,0,0,0.14);
+      }
+      .r-no, .r-meta { font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: 0.05em; text-transform: uppercase; color: rgba(16,16,16,0.45); }
+      .r-name { font-weight: 700; font-size: clamp(16px, 2.2vw, 22px); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .r-date { min-width: 10ch; text-align: right; }
+      /* 44px hit target: pad out, margin back in — the row keeps its rhythm */
+      .dl { font-family: 'Space Mono', monospace; font-size: 12px; white-space: nowrap; padding: 14px 10px; margin: -14px -10px; }
+      @media (max-width: 560px) { .r-date { display: none; } .row { grid-template-columns: 3ch minmax(0, 1fr) auto auto; } }
+      @media (hover: hover) and (pointer: fine) {
+        .r-name { transition: letter-spacing 300ms cubic-bezier(0.23,1,0.32,1); }
+        .row:hover .r-name { letter-spacing: 0.03em; }
+        .dl:hover { text-decoration: underline; text-underline-offset: 4px; }
+      }
+      .empty { font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: 0.05em; color: rgba(16,16,16,0.45); padding: 18px 0; border-bottom: 1px solid rgba(0,0,0,0.14); }
+
+      .foot { display: flex; justify-content: space-between; max-width: 1100px; margin: 0 auto; padding: 3svh 6vw 4svh; border-top: 1px solid rgba(0,0,0,0.14); font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; }
+    </style>
+
+    <style is:inline>
+      @media (prefers-reduced-motion: reduce) {
+        .back, .r-name { transition: none; }
+        .back:active { transform: none; }
+      }
+    </style>
+
+    <script is:inline type="module">
+      import { autoReveal } from '/mv/curtain.js';
+      autoReveal();
+    </script>
+    <script is:inline>
+      (function () {
+        var reduce = false, fine = false;
+        try { reduce = matchMedia('(prefers-reduced-motion: reduce)').matches; fine = matchMedia('(hover: hover) and (pointer: fine)').matches; } catch (e) {}
+        if (!fine || reduce) return;
+        var back = document.getElementById('back');
+        var target = null, cur = null, raf = null;
+        function frame() {
+          cur += (target - cur) * 0.09;
+          back.style.setProperty('--y', cur.toFixed(1) + 'px');
+          if (Math.abs(target - cur) > 0.4) raf = requestAnimationFrame(frame); else raf = null;
+        }
+        addEventListener('pointermove', function (e) {
+          if (e.pointerType === 'touch') return; /* hybrids: taps must not move it */
+          var h = back.offsetHeight;
+          target = Math.min(innerHeight - h - 12, Math.max(12, e.clientY - h / 2));
+          if (cur === null) cur = target;
+          if (!raf) raf = requestAnimationFrame(frame);
+        }, { passive: true });
+      })();
+    </script>
+  </body>
+</html>

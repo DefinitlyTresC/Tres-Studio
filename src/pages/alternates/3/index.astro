@@ -1,0 +1,569 @@
+---
+// Site 3 — "the terminal one," engine v2.
+// A glyph FIELD, not a pixel grid (per the research: Gysin/play.core school).
+// Words live as density fields; scrolling crossfades one field into the
+// next with per-cell noise stagger, so the whole band boils and resolves —
+// no flick. A Sobel edge pass draws letterform contours with directional
+// glyphs (| \ - /). The cursor writes velocity-aware heat into the field
+// and leaves a decaying wake. Clicks shatter radially from the point.
+// Glyphs blit from a pre-rendered atlas (~10x fillText).
+// Refs cited to client: aino.agency, play.core, Evervault.
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="robots" content="noindex" />
+    <meta name="theme-color" content="#FFFFFF" />
+    <title>TRES [ascii]</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Anybody:wdth,wght@150,900&family=JetBrains+Mono:wght@400;600;700;800&family=Space+Mono&display=swap" rel="stylesheet" />
+    <!-- tracking: one bootstrap for the whole site (Umami + Clarity + visitor id + self-exclusion) - public/ts.js -->
+    <script is:inline defer src="/ts.js"></script>
+  </head>
+  <body>
+    <a class="alt-chip" href="/labs/alternates.html">alt 03 · all alternates</a>
+    <section class="wrap" id="wrap">
+      <div class="pin">
+        <canvas id="ascii" aria-label="TRES — scroll to change the word, click the word to enter"></canvas>
+        <p class="hint" id="hint">[ scroll · click the word to enter ]</p>
+      </div>
+      <div class="snap"></div><div class="snap"></div><div class="snap"></div><div class="snap"></div><div class="snap"></div>
+    </section>
+
+    <nav class="keys" aria-label="Sections">
+      <a href="/work">[ work ]</a>
+      <a href="/archive">[ archive ]</a>
+      <a href="/lab">[ lab ]</a>
+      <a href="/about">[ about ]</a>
+    </nav>
+
+    <footer id="mv-info" class="info">
+      <div class="i-cols">
+        <div class="i-col">
+          <span class="lbl">location</span>
+          seagrove · 30a<br />florida, usa
+        </div>
+        <div class="i-col">
+          <span class="lbl">contact</span>
+          <a href="mailto:tres@tres.studio">tres@tres.studio</a><br />
+          <a href="https://instagram.com/tres.studio" target="_blank" rel="noopener">ig</a><br />
+          <a href="https://www.linkedin.com/in/tres-carter" target="_blank" rel="noopener">linkedin</a>
+        </div>
+        <div class="i-col">
+          <span class="lbl">sections</span>
+          <a href="/work">work</a><br />
+          <a href="/archive">archive</a><br />
+          <a href="/lab">lab</a><br />
+          <a href="/about">about</a><br />
+          <a href="/resume.pdf">resume</a><br />
+          <a href="/portfolio.pdf">portfolio</a><br />
+          <span style="color:rgba(20,20,20,0.45)">plugins — soon</span>
+        </div>
+      </div>
+      <div class="i-meta">
+        <span>© 2026 tres carter</span>
+        <a href="/privacy">privacy</a>
+      </div>
+    </footer>
+
+    <pre class="acur" id="acur" aria-hidden="true"></pre>
+
+    <style is:inline>
+      :root {
+        --mvt-card: #ffffff; --mvt-ink: #141414; --mvt-line: rgba(0,0,0,0.3);
+        --mvt-label: rgba(0,0,0,0.5); --mvt-accent: #141414; --mvt-confetti: #141414,#6a6a6a,#ffffff;
+      }
+      * { margin: 0; box-sizing: border-box; }
+      html { background: #fff; scroll-snap-type: y proximity; }
+      body { font-family: 'JetBrains Mono', ui-monospace, monospace; color: #141414; -webkit-font-smoothing: antialiased; }
+      ::selection { background: #141414; color: #fff; }
+      a { color: inherit; text-decoration: none; }
+
+      .alt-chip { position: fixed; top: 14px; right: 14px; z-index: 300;
+        font-family: 'Space Mono', ui-monospace, monospace; font-size: 10px;
+        letter-spacing: 0.12em; text-transform: uppercase; text-decoration: none;
+        padding: 10px 12px; border: 1px solid currentColor; border-radius: 999px;
+        opacity: 0.75; background: transparent; }
+      .alt-chip:hover, .alt-chip:focus-visible { opacity: 1; }
+
+      .wrap { height: 500svh; position: relative; }
+      .pin { position: sticky; top: 0; height: 100svh; overflow: hidden; }
+      #ascii { display: block; width: 100%; height: 100%; }
+      .snap { position: absolute; left: 0; width: 1px; height: 100svh; scroll-snap-align: start; }
+      .snap:nth-child(2) { top: 0; } .snap:nth-child(3) { top: 100svh; }
+      .snap:nth-child(4) { top: 200svh; } .snap:nth-child(5) { top: 300svh; }
+      .snap:nth-child(6) { top: 400svh; }
+      .hint {
+        position: absolute; bottom: 4svh; left: 50%; translate: -50% 0;
+        font-size: 11px; letter-spacing: 0.14em; color: rgba(20,20,20,0.45);
+        transition: opacity 400ms ease;
+        pointer-events: none; /* never a dead zone for canvas clicks */
+      }
+      .hint.off { opacity: 0; }
+
+      .keys {
+        position: fixed; z-index: 10;
+        bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+        left: calc(18px + env(safe-area-inset-left, 0px));
+        display: flex; gap: 14px;
+        font-size: 12px; font-weight: 600;
+      }
+      /* 44px hit areas without moving anything: pad out, pull back in */
+      .keys a { display: inline-block; padding: 12px 6px; margin: -12px -6px; }
+      @media (hover: hover) and (pointer: fine) {
+        .keys a:hover { background: #141414; color: #fff; }
+      }
+      .keys a:focus-visible, .info a:focus-visible { outline: 2px solid #141414; outline-offset: 3px; }
+
+      .info { min-height: 70svh; display: grid; align-content: end; gap: 7svh; position: relative; padding: 10svh 6vw 4svh; scroll-snap-align: end; }
+      .i-cols {
+        display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px;
+        padding-right: clamp(100px, 24vw, 240px);
+        font-size: 12px; letter-spacing: 0.05em; line-height: 1.9;
+      }
+      @media (max-width: 640px) { .i-cols { grid-template-columns: 1fr; } }
+      /* phones: the original's six-dot map strip sat at bottom:104px and the
+         columns' last line had to clear it (measured grazing "plugins — soon"
+         at 360x668, 2026-07-03) — the map is gone from the exhibit; the
+         padding stays so the footer lays out exactly as it did */
+      @media (max-width: 700px) { .i-cols { padding-bottom: 56px; } }
+      .lbl { display: block; color: rgba(20,20,20,0.45); margin-bottom: 6px; }
+      .i-meta {
+        display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap;
+        border-top: 1px dashed rgba(0,0,0,0.25); padding-top: 16px;
+        font-size: 10px; letter-spacing: 0.06em;
+      }
+      @media (hover: hover) and (pointer: fine) {
+        .info a:hover { text-decoration: underline; text-underline-offset: 4px; }
+      }
+
+      .acur {
+        position: fixed; top: 0; left: 0; z-index: 200; pointer-events: none; display: none;
+        font-family: 'JetBrains Mono', monospace; font-weight: 700;
+        font-size: 9px; line-height: 8px; letter-spacing: 0;
+        color: #141414; white-space: pre;
+      }
+      @media (hover: hover) and (pointer: fine) {
+        html.js-cursor, html.js-cursor body, html.js-cursor a, html.js-cursor canvas { cursor: none; }
+        .acur { display: block; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        html { scroll-snap-type: none; }
+        .wrap { height: 100svh; }
+        .hint { display: none; } /* its copy instructs scrolling, which does nothing here */
+        .acur { display: none !important; }
+        html.js-cursor, html.js-cursor body, html.js-cursor a, html.js-cursor canvas { cursor: auto; }
+      }
+    </style>
+
+    <script is:inline type="module">
+      import { autoReveal } from '/mv/curtain.js';
+      autoReveal();
+    </script>
+
+    <script is:inline type="module">
+      import { cover } from '/mv/curtain.js';
+      (function () {
+        'use strict';
+        var reduce = false, fine = false;
+        try {
+          reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+          fine = matchMedia('(hover: hover) and (pointer: fine)').matches;
+        } catch (e) {}
+
+        var WORDS = [
+          { w: 'TRES', href: null },
+          { w: 'WORK', href: '/work' },
+          { w: 'ARCHIVE', href: '/archive' },
+          { w: 'LAB', href: '/lab' },
+          { w: 'ABOUT', href: '/about' },
+        ];
+        /* choreography — retuned 2026-07-03 (Tres: shatter too speedy, scroll strange) */
+        var DWELL = 0.28;      /* seated plateau at each end of a word segment */
+        var PQ_STEPS = 48;     /* scramble ticks per segment — chunky textmode cadence, not per-pixel */
+        var SHAT_WIN = 1700;   /* click shatter: full window ms (was 900) */
+        var SHAT_TRAVEL = 800; /* wavefront travel ms edge-to-edge (was 450) */
+        var SHAT_BURST = 650;  /* per-cell burst ms (was 450) */
+
+        var RAMP = ' .:-=+*#%@';                       /* Bourke short, light->dark */
+        var EDGE = ['|', '\\', '-', '/'];              /* gradient-angle bins */
+        var SCRAM = '#%@*+=&$?!0123456789TRESWOKACHIVLBU<>[]{}';
+        var QUIET = '.:-=+*';                          /* low-ink debris for the morph fringe */
+        var DUST = ',.`\'';
+        var ALL = (RAMP + EDGE.join('') + SCRAM + DUST).split('')
+          .filter(function (c, i, a) { return c !== ' ' && a.indexOf(c) === i; });
+
+        var wrap = document.getElementById('wrap');
+        var cv = document.getElementById('ascii');
+        var ctx = cv.getContext('2d');
+        var hint = document.getElementById('hint');
+        var dpr = Math.min(2, devicePixelRatio || 1);
+        var CW = 0, CH = 0, cols = 0, rows = 0, FS = 0, CVW = 0, CVH = 0;
+        var fields = [], active = [], dust = [];
+        var atlas = null, AW = 0, AH = 0, idx = {};
+        var heat = null;                               /* cursor wake buffer */
+        var click = { x: 0, y: 0, t: -1e9 };
+        var boot = null;
+        var dirty = true, lastP = -1, heatAlive = false;
+
+        function hash(a, b) {
+          var h = (a * 374761393 + b * 668265263) | 0;
+          h = ((h ^ (h >>> 13)) * 1274126177) | 0;
+          return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
+        }
+
+        function buildAtlas() {
+          AW = Math.ceil(CW) + 2; AH = Math.ceil(CH) + 2;
+          atlas = document.createElement('canvas');
+          atlas.width = ALL.length * AW * dpr;
+          atlas.height = AH * dpr;
+          var a = atlas.getContext('2d');
+          a.setTransform(dpr, 0, 0, dpr, 0, 0);
+          a.font = '700 ' + FS + 'px "JetBrains Mono", monospace';
+          a.textBaseline = 'top';
+          a.fillStyle = '#141414';
+          idx = {};
+          for (var i = 0; i < ALL.length; i++) {
+            a.fillText(ALL[i], i * AW + 1, 1);
+            idx[ALL[i]] = i;
+          }
+        }
+        function blit(chr, x, y, alpha) {
+          var i = idx[chr];
+          if (i === undefined) return;
+          ctx.globalAlpha = alpha;
+          ctx.drawImage(atlas, i * AW * dpr, 0, AW * dpr, AH * dpr, x, y, AW, AH);
+        }
+
+        function build() {
+          /* size from the canvas's layout box, not the window — the pin is
+             100svh, so innerHeight drifts from it when the URL bar collapses */
+          CVW = cv.clientWidth || innerWidth; CVH = cv.clientHeight || innerHeight;
+          dpr = Math.min(2, devicePixelRatio || 1);
+          var small = CVW < 700;
+          FS = small ? 11 : 13;
+          CW = FS * 0.62; CH = FS * 1.18;
+          cols = Math.floor(CVW / CW);
+          rows = Math.floor(CVH / CH);
+          cv.width = CVW * dpr; cv.height = CVH * dpr;
+          ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+          buildAtlas();
+
+          /* density field + Sobel edge map per word */
+          fields = WORDS.map(function (W) {
+            var off = document.createElement('canvas');
+            off.width = cols; off.height = rows;
+            var o = off.getContext('2d');
+            var size = rows * (small ? 0.42 : 0.52);
+            /* Anybody pinned at wdth 150 brings the width itself — no fake squash */
+            o.font = '900 ' + size + 'px "Anybody", "Arial Black", sans-serif';
+            o.textAlign = 'center'; o.textBaseline = 'middle';
+            o.save();
+            o.translate(cols / 2, rows / 2);
+            /* cells are ~1.9x taller than wide; pre-stretch x by CH/CW so the
+               letterforms land undistorted on the glyph grid */
+            var asp = CH / CW;
+            var tw = o.measureText(W.w).width * asp;
+            o.scale(asp * Math.min(1, (cols * 0.92) / tw), 1);
+            o.fillText(W.w, 0, 0);
+            o.restore();
+            var data = o.getImageData(0, 0, cols, rows).data;
+            var d = new Float32Array(cols * rows);
+            for (var i = 0; i < d.length; i++) d[i] = data[i * 4 + 3] / 255;
+            /* Sobel */
+            var edge = new Int8Array(cols * rows).fill(-1);
+            var box = [1e9, 1e9, -1e9, -1e9];
+            function at(c, r) { return (c < 0 || r < 0 || c >= cols || r >= rows) ? 0 : d[r * cols + c]; }
+            for (var r = 0; r < rows; r++) {
+              for (var c = 0; c < cols; c++) {
+                var v = d[r * cols + c];
+                if (v > 0.08) {
+                  if (c * CW < box[0]) box[0] = c * CW;
+                  if (r * CH < box[1]) box[1] = r * CH;
+                  if (c * CW > box[2]) box[2] = c * CW;
+                  if (r * CH > box[3]) box[3] = r * CH;
+                }
+                var gx = (at(c + 1, r - 1) + 2 * at(c + 1, r) + at(c + 1, r + 1)) - (at(c - 1, r - 1) + 2 * at(c - 1, r) + at(c - 1, r + 1));
+                var gy = (at(c - 1, r + 1) + 2 * at(c, r + 1) + at(c + 1, r + 1)) - (at(c - 1, r - 1) + 2 * at(c, r - 1) + at(c + 1, r - 1));
+                var mag = Math.sqrt(gx * gx + gy * gy);
+                if (mag > 1.1) {
+                  var ang = Math.atan2(gy, gx);
+                  if (ang < 0) ang += Math.PI;
+                  var deg = ang * 180 / Math.PI;
+                  var bin = (deg < 22.5 || deg >= 157.5) ? 0 : deg < 67.5 ? 1 : deg < 112.5 ? 2 : 3;
+                  edge[r * cols + c] = bin;
+                }
+              }
+            }
+            return { d: d, edge: edge, box: box };
+          });
+
+          /* union of every word's live cells — the field we animate */
+          active = [];
+          for (var i2 = 0; i2 < cols * rows; i2++) {
+            for (var w = 0; w < fields.length; w++) {
+              if (fields[w].d[i2] > 0.05 || fields[w].edge[i2] >= 0) { active.push(i2); break; }
+            }
+          }
+
+          /* sparse dust everywhere else */
+          dust = [];
+          for (var r2 = 0; r2 < rows; r2++) {
+            for (var c2 = 0; c2 < cols; c2++) {
+              if (hash(c2, r2) <= 0.045) dust.push(r2 * cols + c2);
+            }
+          }
+
+          heat = new Float32Array(cols * rows);
+          dirty = true;
+        }
+
+        function progress() {
+          var r = wrap.getBoundingClientRect();
+          /* denominator = travel between snap stops (wrap minus one pin height);
+             innerHeight drifts from the 100svh pin when the URL bar collapses,
+             which would leave seated words fractionally off f = k */
+          var total = r.height - (CVH || innerHeight);
+          if (total <= 0) return 0; /* reduce collapses wrap to 100svh -> 0/0 */
+          return Math.min(1, Math.max(0, -r.top / total));
+        }
+
+        /* cursor wake: stamp velocity-scaled heat, decay each frame */
+        var px = -1, py = -1;
+        if (!reduce) {
+          addEventListener('pointermove', function (e) {
+            if (!heat) return;
+            var v = px < 0 ? 0 : Math.hypot(e.clientX - px, e.clientY - py);
+            px = e.clientX; py = e.clientY;
+            var power = Math.min(1, 0.25 + v / 40);
+            /* canvas-space y — the pin unsticks once the footer is in view */
+            var top = cv.getBoundingClientRect().top;
+            var cc = Math.floor(e.clientX / CW), cr = Math.floor((e.clientY - top) / CH);
+            var R = 6;
+            for (var dr = -R; dr <= R; dr++) {
+              for (var dc = -R; dc <= R; dc++) {
+                var c = cc + dc, r = cr + dr;
+                if (c < 0 || r < 0 || c >= cols || r >= rows) continue;
+                var dd = Math.sqrt(dc * dc + dr * dr) / R;
+                if (dd > 1) continue;
+                var f = (1 - dd) * (1 - dd) * power; /* smooth falloff */
+                var i = r * cols + c;
+                if (f > heat[i]) heat[i] = f;
+              }
+            }
+            heatAlive = true;
+          }, { passive: true });
+        }
+
+        function frame(now) {
+          requestAnimationFrame(frame);
+          if (boot === null) boot = now;
+          var bootT = (now - boot) / 1100;
+          var p = reduce ? 0 : progress();
+
+          var f = p * (WORDS.length - 1);
+          var A = Math.floor(f), B = Math.min(WORDS.length - 1, A + 1);
+          var frac = f - A;
+          /* dwell -> morph -> dwell: the word holds readable at both ends of a
+             segment, then eases through the boil — no dissolve on pixel one */
+          var seg = Math.min(1, Math.max(0, (frac - DWELL) / (1 - 2 * DWELL)));
+          seg = seg * seg * (3 - 2 * seg);         /* smoothstep */
+          var pq = Math.floor((A + seg) * PQ_STEPS); /* re-rolls only mid-morph */
+          var clickAge = now - click.t;
+          var maxD = Math.hypot(CVW, CVH);
+
+          /* idle skip: nothing can have changed -> no repaint (battery). Mid-morph
+             stays live so the boil's 90ms tick keeps breathing when scroll pauses. */
+          var live = dirty || heatAlive || clickAge < SHAT_WIN || p !== lastP ||
+                     (seg > 0 && seg < 1) || (!reduce && bootT < 1);
+          if (!live) return;
+          dirty = false; lastP = p;
+
+          ctx.clearRect(0, 0, CVW, CVH);
+
+          /* dust — quiet, but it shatters and feels the wake too */
+          for (var di = 0; di < dust.length; di++) {
+            var i = dust[di];
+            var c = i % cols, r = (i / cols) | 0;
+            var x = c * CW, y = r * CH;
+            var h = heat[i];
+            var scr0 = h * 0.9;
+            if (clickAge < SHAT_WIN) {
+              var delay = Math.hypot(x - click.x, y - click.y) / maxD * SHAT_TRAVEL;
+              var la = (clickAge - delay) / SHAT_BURST;
+              if (la > 0 && la < 1) scr0 = Math.max(scr0, Math.sin(Math.PI * la));
+            }
+            var chr = scr0 > 0.25
+              ? SCRAM[Math.floor(hash(i, pq + ((now / 90) | 0)) * SCRAM.length)]
+              : DUST[i % DUST.length];
+            blit(chr, x, y, 0.2 + scr0 * 0.4);
+          }
+
+          /* the word field */
+          var FA = fields[A], FB = fields[B];
+          for (var ai = 0; ai < active.length; ai++) {
+            var i2 = active[ai];
+            var c2 = i2 % cols, r2 = (i2 / cols) | 0;
+            var x2 = c2 * CW, y2 = r2 * CH;
+
+            /* per-cell staggered crossfade — the whole band boils, no flick */
+            var stag = hash(i2, 77) * 0.45;
+            var lf = seg <= 0 ? 0 : Math.min(1, Math.max(0, (seg - stag) / 0.55));
+            var d = FA.d[i2] + (FB.d[i2] - FA.d[i2]) * lf;
+
+            /* churn: peaks mid-transition; cursor wake; radial click shatter */
+            var churn = 4 * lf * (1 - lf) * 0.9;
+            var h2 = heat[i2];
+            churn = Math.max(churn, h2 * 0.85);
+            if (clickAge < SHAT_WIN) {
+              var delay2 = Math.hypot(x2 - click.x, y2 - click.y) / maxD * SHAT_TRAVEL;
+              var la2 = (clickAge - delay2) / SHAT_BURST;
+              if (la2 > 0 && la2 < 1) churn = Math.max(churn, Math.sin(Math.PI * la2));
+            }
+            if (d < 0.05 && churn < 0.08) continue;
+
+            var alpha = Math.min(1, d * 1.7 + churn * 0.5);
+            var chr2;
+            if (churn > 0 && hash(i2, 3) < churn) {
+              var SET = churn < 0.35 ? QUIET : SCRAM; /* debris at the fringe, alphabet at full boil */
+              chr2 = SET[Math.floor(hash(i2, pq + (churn > 0.2 ? ((now / 90) | 0) : 0)) * SET.length)];
+            } else {
+              var E = lf < 0.5 ? FA.edge[i2] : FB.edge[i2];
+              if (E >= 0 && d > 0.06) { chr2 = EDGE[E]; alpha = Math.max(alpha, 0.92); }
+              else if (d >= 0.05) chr2 = RAMP[Math.min(RAMP.length - 1, Math.max(1, Math.round(d * (RAMP.length - 1))))];
+              else continue;
+            }
+
+            /* whirl-in, first load only */
+            if (!reduce && bootT < 1 && p === 0) {
+              var dd2 = Math.hypot(x2 - CVW / 2, y2 - CVH / 2);
+              var e2 = Math.min(1, Math.max(0, (bootT - dd2 / maxD * 0.9) / 0.55));
+              e2 = 1 - Math.pow(1 - e2, 3);
+              if (e2 < 1) {
+                var ang2 = Math.atan2(y2 - CVH / 2, x2 - CVW / 2) + (1 - e2) * 4.2;
+                x2 += Math.cos(ang2) * (1 - e2) * maxD * 0.25;
+                y2 += Math.sin(ang2) * (1 - e2) * maxD * 0.25;
+                alpha *= e2;
+              }
+            }
+            blit(chr2, x2, y2, alpha);
+          }
+          ctx.globalAlpha = 1;
+
+          /* wake cools */
+          if (heat) {
+            heatAlive = false;
+            for (var hi = 0; hi < heat.length; hi++) {
+              if (heat[hi] > 0.003) { heat[hi] *= 0.93; heatAlive = true; }
+              else heat[hi] = 0;
+            }
+          }
+        }
+
+        function seatedWord() {
+          var f = (reduce ? 0 : progress()) * (WORDS.length - 1);
+          var k = Math.round(f);
+          /* seated = anywhere inside the plateau, where the word is intact */
+          return Math.abs(f - k) <= DWELL ? k : -1;
+        }
+
+        var leaving = false;
+        addEventListener('pageshow', function (e) {
+          if (e.persisted) leaving = false; /* bfcache Back restores the latched heap */
+        });
+        cv.addEventListener('click', async function (e) {
+          if (leaving) return;
+          var top = cv.getBoundingClientRect().top;
+          var cy = e.clientY - top; /* canvas-space — the pin unsticks past the wrap */
+          var k = seatedWord();
+          if (k >= 0) {
+            var B2 = fields[k].box;
+            if (e.clientX > B2[0] - 20 && e.clientX < B2[2] + 20 && cy > B2[1] - 20 && cy < B2[3] + 20) {
+              if (WORDS[k].href) {
+                leaving = true;
+                if (!reduce) await cover({ x: e.clientX, y: e.clientY, color: '#141414' });
+                location.href = WORDS[k].href;
+                return;
+              }
+            }
+          }
+          if (!reduce) click = { x: e.clientX, y: cy, t: performance.now() }; /* radial shatter */
+        });
+
+        addEventListener('scroll', function () {
+          if (hint && !hint.classList.contains('off') && progress() > 0.04) hint.classList.add('off');
+        }, { passive: true });
+
+        /* stranded-boil rescue: proximity snap only tugs NEAR a stop — parked
+           dead between words the field would boil forever with no readable
+           state. After a beat of idle mid-morph, glide to the nearest word. */
+        if (!reduce) {
+          var idleT = null;
+          addEventListener('scroll', function () {
+            clearTimeout(idleT);
+            idleT = setTimeout(function () {
+              var f2 = progress() * (WORDS.length - 1);
+              var k2 = Math.round(f2);
+              if (Math.abs(f2 - k2) <= DWELL) return; /* seated — leave it be */
+              var r2 = wrap.getBoundingClientRect();
+              var total2 = r2.height - (CVH || innerHeight);
+              if (total2 <= 0) return;
+              scrollTo({ top: scrollY + r2.top + total2 * (k2 / (WORDS.length - 1)), behavior: 'smooth' });
+            }, 850);
+          }, { passive: true });
+        }
+        var rzT = null;
+        addEventListener('resize', function () {
+          /* debounced — mobile URL-bar churn must not thrash full rebuilds */
+          clearTimeout(rzT);
+          rzT = setTimeout(function () {
+            if (cv.clientWidth === CVW && cv.clientHeight === CVH && Math.min(2, devicePixelRatio || 1) === dpr) return;
+            build();
+          }, 150);
+        }, { passive: true });
+
+        /* canvas-only faces never reach the DOM, so force the download first —
+           building against fallback metrics bakes a wrong atlas (hard-learned) */
+        var kicked = false;
+        function kick() { if (kicked) return; kicked = true; build(); requestAnimationFrame(frame); }
+        setTimeout(kick, 1500); /* failsafe: never blank-screen on a slow font */
+        if (document.fonts && document.fonts.load) {
+          var want = Promise.all([
+            document.fonts.load('700 13px "JetBrains Mono"'),
+            document.fonts.load('900 100px "Anybody"')
+          ]);
+          /* if the failsafe painted with fallbacks first, re-bake once real faces land */
+          want.then(function () { if (kicked) build(); else kick(); }, kick);
+        } else kick();
+
+        /* the character-arrow cursor */
+        if (fine && !reduce) {
+          document.documentElement.classList.add('js-cursor');
+          var acur = document.getElementById('acur');
+          var MASK = ['#', '##', '###', '####', '#####', '##&', '#.##', '   ##'];
+          function weave() {
+            var out = '';
+            for (var r = 0; r < MASK.length; r++) {
+              for (var c = 0; c < MASK[r].length; c++) {
+                out += MASK[r][c] === ' ' ? ' ' : SCRAM[Math.floor(Math.random() * SCRAM.length)];
+              }
+              out += '\n';
+            }
+            acur.textContent = out;
+          }
+          acur.style.visibility = 'hidden'; /* no top-left flicker before the first move */
+          var seen = false;
+          weave();
+          setInterval(function () { if (seen && !document.hidden) weave(); }, 110);
+          addEventListener('pointermove', function (e) {
+            if (!seen) { seen = true; acur.style.visibility = 'visible'; }
+            acur.style.transform = 'translate(' + e.clientX + 'px,' + e.clientY + 'px)';
+          }, { passive: true });
+        }
+      })();
+    </script>
+  </body>
+</html>

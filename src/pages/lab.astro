@@ -1,15 +1,16 @@
 ---
-// THE LAB — the experiments hall. Since the multiverse edition (2026-07-11)
-// each experiment was ADOPTED by one universe and wears its full brand — the
-// door plates carry the keeper's swatch + number. The doors are tall
-// DOORWAYS, each with a living pattern inside (pure CSS transform/opacity
-// animation on inline SVG). Clicking one floods the screen with ink
-// (curtain) and steps through to the static experiment at /labs/<name>.html.
+// THE LAB — six floating doors, one quiet room. V3 (2026-07-20): the hall
+// went zero-g. Every door is a body in /mv/zerog.js — grab it, throw it,
+// watch it spring home. The engine owns each door's OUTER transform (inline,
+// every frame), so all cosmetics — border, arch, background, entrance rise,
+// hover scale — live on the .din inner wrapper where they compose instead of
+// fight. Percent homes park the doors via CSS until the engine boots; under
+// reduced motion it never does, and the parked layout IS the page.
 //
-// V3.0 (2026-07-20): the multiverse collapsed to one site, and the lab's
-// per-load skin roll went with it — the portal now wears the site's own
-// brand (the old skin 02) permanently. The experiments keep their adopted
-// universe brands: the lab is where the other universes live on.
+// Five doors navigate (through the ink curtain); the sixth, WIP, is a span —
+// it drags like the rest and a true click cycles its color, but it goes
+// nowhere. All five targets autoReveal, so the covered flag is never cleared
+// here: it rides through and peels itself on arrival.
 ---
 
 <html lang="en">
@@ -30,179 +31,175 @@
 
     <main id="content">
       <header class="hero">
-        <p class="spec">eight doors, one quiet room</p>
+        <p class="spec">six doors, one quiet room</p>
         <h1 class="mark">LAB<span class="dot">.</span></h1>
       </header>
 
-      <nav class="hall" aria-label="Experiments">
+      <nav class="hall" aria-label="Experiments" data-zg-room>
 
-        <a class="door" href="/labs/plan.html" style="--i:0">
-          <span class="win" aria-hidden="true">
-            <svg viewBox="0 0 200 340" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
-              <path stroke="var(--hair)" stroke-width="1" fill="none" d="M28 0V340M56 0V340M84 0V340M112 0V340M140 0V340M168 0V340M0 28H200M0 56H200M0 84H200M0 112H200M0 140H200M0 168H200M0 196H200M0 224H200M0 252H200M0 280H200M0 308H200" />
-              <g fill="var(--ink)" opacity="0.12">
-                <rect x="58" y="226" width="24" height="24" />
-                <rect x="58" y="198" width="24" height="24" />
-                <rect x="58" y="170" width="24" height="24" />
-              </g>
-              <rect class="ant" x="86" y="226" width="24" height="24" fill="var(--accent)" />
-            </svg>
-          </span>
-          <span class="plate">
-            <span class="name">Plan</span>
-            <span class="tag">a plan drafts itself</span>
-            <span class="keeper"><i class="sw" style="--sw:#BF9270"></i>№ 01</span>
+        <a class="door" href="/labs/games" data-zg data-zg-slim
+           data-home-x="18" data-home-y="25" data-home-xn="50" data-home-yn="9"
+           style="--hx:18; --hy:25; --hxn:50; --hyn:9; --i:0">
+          <span class="din">
+            <span class="win" aria-hidden="true">
+              <svg viewBox="0 0 200 340" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+                <line x1="100" y1="170" x2="100" y2="260" stroke="var(--ink)" stroke-width="2" />
+                <g class="sails">
+                  <polygon points="100 170 100 106 138 140" fill="var(--ink)" />
+                  <polygon points="100 170 100 106 138 140" fill="var(--accent)" transform="rotate(90 100 170)" />
+                  <polygon points="100 170 100 106 138 140" fill="var(--ink)" transform="rotate(180 100 170)" />
+                  <polygon points="100 170 100 106 138 140" fill="none" stroke="var(--ink)" stroke-width="1.6" transform="rotate(270 100 170)" />
+                </g>
+                <circle cx="100" cy="170" r="4.5" fill="var(--ink)" />
+              </svg>
+            </span>
+            <span class="plate">
+              <span class="name">Games</span>
+              <span class="tag">seven toys, one shelf</span>
+            </span>
           </span>
         </a>
 
-        <a class="door" href="/labs/birds.html" style="--i:1">
-          <span class="win" aria-hidden="true">
-            <svg viewBox="0 0 200 340" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
-              <g class="f1" fill="var(--ink)" transform="translate(40 0)">
-                <polygon points="0 120 -10 125 -6.5 120 -10 115" />
-                <polygon points="24 96 14 101 17.5 96 14 91" />
-                <polygon points="48 132 38 137 41.5 132 38 127" />
-                <polygon points="72 104 62 109 65.5 104 62 99" fill="var(--accent)" />
-                <polygon points="96 148 86 153 89.5 148 86 143" />
-                <polygon points="48 162 38 167 41.5 162 38 157" />
-              </g>
-              <g class="f2" fill="var(--ink)" transform="translate(90 0)">
-                <polygon points="0 240 -10 245 -6.5 240 -10 235" />
-                <polygon points="28 262 18 267 21.5 262 18 257" fill="var(--accent)" />
-                <polygon points="56 228 46 233 49.5 228 46 223" />
-              </g>
-            </svg>
-          </span>
-          <span class="plate">
-            <span class="name">Birds</span>
-            <span class="tag">a murmuration, loose in the void</span>
-            <span class="keeper"><i class="sw" style="--sw:#9A9A9A"></i>№ 02</span>
-          </span>
-        </a>
-
-        <a class="door" href="/labs/pulse.html" style="--i:2">
-          <span class="win" aria-hidden="true">
-            <svg viewBox="0 0 200 340" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
-              <g fill="none">
-                <circle class="pulse-c" cx="100" cy="170" r="18" stroke="var(--accent)" stroke-width="7" />
-                <circle class="pulse-c" cx="100" cy="170" r="36" stroke="var(--ink)" stroke-width="5" style="animation-delay:-0.85s" />
-                <circle class="pulse-c" cx="100" cy="170" r="54" stroke="var(--accent)" stroke-width="4" style="animation-delay:-1.7s" />
-                <circle class="pulse-c" cx="100" cy="170" r="72" stroke="var(--ink)" stroke-width="3" style="animation-delay:-2.55s" />
-              </g>
-              <circle class="dot-p" cx="100" cy="170" r="6" fill="var(--ink)" />
-            </svg>
-          </span>
-          <span class="plate">
-            <span class="name">Pulse</span>
-            <span class="tag">sounding the blank sheet</span>
-            <span class="keeper"><i class="sw" style="--sw:#4A4A4A"></i>№ 03</span>
+        <a class="door" href="/labs/plugins" data-zg data-zg-slim
+           data-home-x="50" data-home-y="29" data-home-xn="50" data-home-yn="25"
+           style="--hx:50; --hy:29; --hxn:50; --hyn:25; --i:1">
+          <span class="din">
+            <span class="win" aria-hidden="true">
+              <svg viewBox="0 0 200 340" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+                <path d="M100 128 V140 M100 152 V164 M100 176 V188" fill="none" stroke="var(--hair)" stroke-width="2" />
+                <g stroke="var(--ink)" stroke-width="2" fill="none">
+                  <path d="M64 200 V248 H136 V200" />
+                  <path d="M56 200 H64 M136 200 H144" />
+                </g>
+                <g class="drop">
+                  <rect x="84" y="216" width="32" height="30" fill="none" stroke="var(--accent)" stroke-width="2" />
+                  <path d="M100 224 V238 M94 233 L100 239 L106 233" fill="none" stroke="var(--accent)" stroke-width="2" />
+                </g>
+              </svg>
+            </span>
+            <span class="plate">
+              <span class="name">Plugins</span>
+              <span class="tag">revit, sharpened</span>
+            </span>
           </span>
         </a>
 
-        <a class="door" href="/labs/field.html" style="--i:3">
-          <span class="win" aria-hidden="true">
-            <svg viewBox="0 0 200 340" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
-              <g fill="var(--ink)">
-                <circle class="ht1" cx="40" cy="90" r="5" /><circle class="ht2" cx="80" cy="90" r="7" /><circle class="ht3" cx="120" cy="90" r="9" /><circle class="ht1" cx="160" cy="90" r="7" style="animation-delay:-1.9s" />
-                <circle class="ht2" cx="40" cy="140" r="8" style="animation-delay:-0.7s" /><circle class="ht3" cx="80" cy="140" r="10" /><circle class="ht1" cx="120" cy="140" r="8" /><circle class="ht2" cx="160" cy="140" r="6" style="animation-delay:-2.5s" />
-                <circle class="ht3" cx="40" cy="190" r="9" style="animation-delay:-1.2s" /><circle class="ht1" cx="80" cy="190" r="11" /><circle class="ht2" cx="120" cy="190" r="9" style="animation-delay:-1.6s" /><circle class="ht3" cx="160" cy="190" r="7" />
-                <circle class="ht1" cx="40" cy="240" r="6" /><circle class="ht2" cx="80" cy="240" r="8" style="animation-delay:-2.1s" /><circle class="ht3" cx="120" cy="240" r="10" style="animation-delay:-0.4s" /><circle class="ht1" cx="160" cy="240" r="8" />
-              </g>
-              <circle class="dot-p" cx="100" cy="165" r="6" fill="var(--accent)" />
-            </svg>
-          </span>
-          <span class="plate">
-            <span class="name">Field</span>
-            <span class="tag">wind through the raster</span>
-            <span class="keeper"><i class="sw" style="--sw:#EC5B13"></i>№ 04</span>
-          </span>
-        </a>
-
-        <a class="door" href="/labs/echo.html" style="--i:4">
-          <span class="win" aria-hidden="true">
-            <svg viewBox="0 0 200 340" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
-              <g fill="none" stroke-width="1.6">
-                <circle class="echo-c" cx="62" cy="110" r="30" stroke="var(--ink)" />
-                <circle class="echo-c" cx="138" cy="96" r="30" stroke="var(--accent)" style="animation-delay:-1.4s" />
-                <circle class="echo-c" cx="100" cy="225" r="30" stroke="var(--ink)" style="animation-delay:-2.8s" />
-              </g>
-            </svg>
-          </span>
-          <span class="plate">
-            <span class="name">Echo</span>
-            <span class="tag">water, out of register</span>
-            <span class="keeper"><i class="sw" style="--sw:#2431FF"></i>№ 05</span>
+        <a class="door" href="/labs/alternates.html" data-zg data-zg-slim
+           data-home-x="82" data-home-y="24" data-home-xn="50" data-home-yn="41"
+           style="--hx:82; --hy:24; --hxn:50; --hyn:41; --i:2">
+          <span class="din">
+            <span class="win" aria-hidden="true">
+              <svg viewBox="0 0 200 340" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+                <g class="orbit" fill="var(--ink)">
+                  <circle cx="158" cy="170" r="5" fill="var(--accent)" />
+                  <circle cx="144.4" cy="207.3" r="5" />
+                  <circle cx="110.1" cy="227.1" r="5" />
+                  <circle cx="71" cy="220.2" r="5" />
+                  <circle cx="45.5" cy="189.8" r="5" />
+                  <circle cx="45.5" cy="150.2" r="5" />
+                  <circle cx="71" cy="119.8" r="5" />
+                  <circle cx="110.1" cy="112.9" r="5" />
+                  <circle cx="144.4" cy="132.7" r="5" />
+                </g>
+                <g class="orbit2" fill="var(--ink)">
+                  <circle cx="100" cy="196" r="3.5" />
+                  <circle cx="75.3" cy="178" r="3.5" />
+                  <circle cx="84.7" cy="149" r="3.5" />
+                  <circle cx="115.3" cy="149" r="3.5" />
+                  <circle cx="124.7" cy="178" r="3.5" />
+                </g>
+              </svg>
+            </span>
+            <span class="plate">
+              <span class="name">Alternates</span>
+              <span class="tag">every site this site has been</span>
+            </span>
           </span>
         </a>
 
-        <a class="door" href="/labs/drift.html" style="--i:5">
-          <span class="win" aria-hidden="true">
-            <svg viewBox="0 0 200 340" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
-              <g fill="none" stroke-width="1.6" stroke-linecap="round">
-                <path class="w1" stroke="var(--ink)" d="M-50 90 q12.5 -16 25 0 t25 0 t25 0 t25 0 t25 0 t25 0 t25 0 t25 0 t25 0 t25 0 t25 0 t25 0" />
-                <path class="w2" stroke="var(--accent)" d="M-50 170 q12.5 -16 25 0 t25 0 t25 0 t25 0 t25 0 t25 0 t25 0 t25 0 t25 0 t25 0 t25 0 t25 0" />
-                <path class="w3" stroke="var(--ink)" d="M-50 250 q12.5 -16 25 0 t25 0 t25 0 t25 0 t25 0 t25 0 t25 0 t25 0 t25 0 t25 0 t25 0 t25 0" />
-              </g>
-            </svg>
-          </span>
-          <span class="plate">
-            <span class="name">Drift</span>
-            <span class="tag">ink on water, hung by chance</span>
-            <span class="keeper"><i class="sw" style="--sw:#1F8A70"></i>№ 06</span>
-          </span>
-        </a>
-
-        <a class="door" href="/labs/stock.html" style="--i:6">
-          <span class="win" aria-hidden="true">
-            <svg viewBox="0 0 200 340" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
-              <g stroke="var(--ink)" stroke-width="2">
-                <path d="M24 130 H176 M24 124 V130 M176 124 V130" fill="none" />
-                <path d="M24 230 H176 M24 224 V230 M176 224 V230" fill="none" />
-              </g>
-              <g fill="none" stroke="var(--ink)" stroke-width="2">
-                <rect x="36" y="100" width="34" height="28" />
-                <rect x="120" y="196" width="42" height="32" />
-                <rect x="76" y="202" width="30" height="26" />
-              </g>
-              <rect class="parcel" x="92" y="94" width="36" height="30" fill="none" stroke="var(--accent)" stroke-width="2" />
-            </svg>
-          </span>
-          <span class="plate">
-            <span class="name">Stock</span>
-            <span class="tag">midnight in the stockroom</span>
-            <span class="keeper"><i class="sw" style="--sw:#D8341F"></i>№ 08</span>
+        <a class="door" href="/labs/satisfactory" data-zg data-zg-slim
+           data-home-x="18" data-home-y="75" data-home-xn="50" data-home-yn="57"
+           style="--hx:18; --hy:75; --hxn:50; --hyn:57; --i:3">
+          <span class="din">
+            <span class="win" aria-hidden="true">
+              <svg viewBox="0 0 200 340" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+                <g class="belt1">
+                  <rect x="10" y="168" width="30" height="26" fill="none" stroke="var(--accent)" stroke-width="2" />
+                </g>
+                <g class="belt2">
+                  <rect x="10" y="174" width="22" height="20" fill="none" stroke="var(--ink)" stroke-width="2" />
+                </g>
+                <g stroke="var(--ink)" stroke-width="2" fill="none">
+                  <path d="M20 196 H180" />
+                  <path d="M20 216 H180" />
+                </g>
+                <g fill="none" stroke="var(--ink)" stroke-width="1.6">
+                  <circle cx="40" cy="206" r="6" />
+                  <circle cx="70" cy="206" r="6" />
+                  <circle cx="100" cy="206" r="6" />
+                  <circle cx="130" cy="206" r="6" />
+                  <circle cx="160" cy="206" r="6" />
+                </g>
+              </svg>
+            </span>
+            <span class="plate">
+              <span class="name">Satisfactory</span>
+              <span class="tag">the factory, visualized</span>
+            </span>
           </span>
         </a>
 
-        <a class="door" href="/labs/alternates.html" style="--i:7">
-          <span class="win" aria-hidden="true">
-            <svg viewBox="0 0 200 340" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
-              <g class="orbit" fill="var(--ink)">
-                <circle cx="158" cy="170" r="5" fill="var(--accent)" />
-                <circle cx="144.4" cy="207.3" r="5" />
-                <circle cx="110.1" cy="227.1" r="5" />
-                <circle cx="71" cy="220.2" r="5" />
-                <circle cx="45.5" cy="189.8" r="5" />
-                <circle cx="45.5" cy="150.2" r="5" />
-                <circle cx="71" cy="119.8" r="5" />
-                <circle cx="110.1" cy="112.9" r="5" />
-                <circle cx="144.4" cy="132.7" r="5" />
-              </g>
-              <g class="orbit2" fill="var(--ink)">
-                <circle cx="100" cy="196" r="3.5" />
-                <circle cx="75.3" cy="178" r="3.5" />
-                <circle cx="84.7" cy="149" r="3.5" />
-                <circle cx="115.3" cy="149" r="3.5" />
-                <circle cx="124.7" cy="178" r="3.5" />
-              </g>
-            </svg>
-          </span>
-          <span class="plate">
-            <span class="name">Alternates</span>
-            <span class="tag">the multiverse, as it hung</span>
-            <span class="keeper">the space between</span>
+        <a class="door" href="/labs/roadmap" data-zg data-zg-slim
+           data-home-x="50" data-home-y="71" data-home-xn="50" data-home-yn="73"
+           style="--hx:50; --hy:71; --hxn:50; --hyn:73; --i:4">
+          <span class="din">
+            <span class="win" aria-hidden="true">
+              <svg viewBox="0 0 200 340" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+                <g fill="none" stroke="var(--ink)" stroke-width="2">
+                  <path d="M100 258 V196" />
+                  <path d="M100 196 C100 156 64 146 64 96" />
+                  <path d="M100 196 C100 156 136 146 136 88" />
+                </g>
+                <g fill="var(--ink)">
+                  <circle cx="100" cy="258" r="5" />
+                  <circle cx="100" cy="196" r="5" />
+                  <circle cx="82" cy="150" r="5" />
+                  <circle cx="64" cy="96" r="5" />
+                </g>
+                <circle class="dot-p" cx="136" cy="88" r="6" fill="var(--accent)" />
+              </svg>
+            </span>
+            <span class="plate">
+              <span class="name">Roadmap</span>
+              <span class="tag">where this is going</span>
+            </span>
           </span>
         </a>
+
+        <span class="door" data-zg data-zg-slim data-zg-color
+              aria-label="WIP — under construction" aria-disabled="true"
+              data-home-x="82" data-home-y="76" data-home-xn="50" data-home-yn="89"
+              style="--hx:82; --hy:76; --hxn:50; --hyn:89; --i:5">
+          <span class="din">
+            <span class="win" aria-hidden="true">
+              <svg viewBox="0 0 200 340" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+                <!-- currentColor: the engine's palette cycle lands on the
+                     outer span's color and the stripes inherit it -->
+                <g transform="rotate(45 100 170)" fill="currentColor">
+                  <rect x="-100" y="84" width="400" height="12" />
+                  <rect x="-100" y="124" width="400" height="12" />
+                  <rect x="-100" y="164" width="400" height="12" />
+                  <rect x="-100" y="204" width="400" height="12" />
+                  <rect x="-100" y="244" width="400" height="12" />
+                </g>
+              </svg>
+            </span>
+            <span class="plate">
+              <span class="name">WIP</span>
+              <span class="tag">under construction</span>
+            </span>
+          </span>
+        </span>
 
       </nav>
 
@@ -226,7 +223,7 @@
             <a href="/about">About</a><br />
             <a href="/resume.pdf">Resume</a><br />
             <a href="/portfolio.pdf">Portfolio</a><br />
-            <span class="soon">Plugins — soon</span>
+            <a href="/labs/plugins">Plugins</a>
           </div>
         </div>
         <div class="i-meta">
@@ -243,8 +240,6 @@
         --paper: #FAFAF7; --ink: #101010; --accent: #9A9A9A;
         --soft: rgba(16,16,16,0.5); --hair: rgba(16,16,16,0.16);
         --disp: 'Hanken Grotesk', system-ui, sans-serif; --mono: 'Space Mono', ui-monospace, monospace;
-        --bw: 1px; --rule: solid; --arch: 999px; --door-bg: var(--paper);
-        --wt: 800; --tt-name: none; --tt-mono: uppercase; --mark-ls: -0.01em;
         /* ticker skin */
         --mvt-card: #ffffff; --mvt-ink: #101010; --mvt-line: rgba(0,0,0,0.25);
         --mvt-label: rgba(16,16,16,0.5); --mvt-accent: #101010; --mvt-confetti: #101010,#9A9A9A,#ffffff;
@@ -258,11 +253,12 @@
 
       .back {
         position: fixed; z-index: 10; top: var(--y, 14px); left: 5vw;
-        font-family: var(--mono); font-size: 12px; letter-spacing: 0.1em; text-transform: var(--tt-mono);
+        font-family: var(--mono); font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase;
         padding: 14px 8px 14px 0;
         transition: transform 140ms cubic-bezier(0.23,1,0.32,1);
       }
       .back:active { transform: scale(0.96); }
+      .back:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
       @media (hover: hover) and (pointer: fine) {
         .back:hover { text-decoration: underline; text-underline-offset: 4px; }
       }
@@ -273,31 +269,56 @@
       }
       .spec {
         font-family: var(--mono); font-size: 12px; letter-spacing: 0.12em;
-        text-transform: var(--tt-mono); color: var(--soft);
+        text-transform: uppercase; color: var(--soft);
       }
       .mark {
-        font-weight: var(--wt); font-size: clamp(96px, 23vw, 280px); line-height: 0.9;
-        letter-spacing: var(--mark-ls); text-transform: var(--tt-name);
+        font-weight: 800; font-size: clamp(96px, 23vw, 280px); line-height: 0.9;
+        letter-spacing: -0.01em;
       }
       .dot { color: var(--accent); }
 
-      /* ── the hall of doors ─────────────────────────────────────────────── */
+      /* ── the hall: one zero-g room ─────────────────────────────────────── */
+      /* explicit height — the doors are absolute, and the engine clamps
+         bodies inside exactly this box */
       .hall {
-        display: flex; flex-wrap: wrap; justify-content: center;
-        gap: clamp(14px, 2.4vw, 30px);
-        max-width: 1240px; margin: 0 auto; padding: 4svh 5vw 16svh;
+        position: relative;
+        width: 100%; max-width: 1240px;
+        /* floor = the middle column (42 percent apart) clearing a full parked
+           door height (391px at the 230px cap) even on short laptops */
+        height: max(960px, 96svh);
+        margin: 0 auto 10svh;
       }
+      @media (max-width: 640px) { .hall { height: 1700px; } }
+
+      /* the [data-zg] element is the physics body: the engine writes its
+         inline transform every frame, so it carries no cosmetics. These
+         percent homes park each door until boot — and forever under reduced
+         motion, when the engine never runs. */
       .door {
-        position: relative; width: clamp(150px, 21vw, 230px); aspect-ratio: 10 / 17;
+        position: absolute;
+        left: calc(var(--hx) * 1%); top: calc(var(--hy) * 1%);
+        translate: -50% -50%;
+        width: clamp(150px, 21vw, 230px);
+        aspect-ratio: 10 / 17;
+      }
+      @media (max-width: 640px) {
+        .door { left: calc(var(--hxn) * 1%); top: calc(var(--hyn) * 1%); }
+      }
+      .sim .door { left: 0; top: 0; translate: none; will-change: transform; }
+      .door:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+
+      /* every cosmetic transform rides this inner wrapper so it composes
+         with the engine's outer transform instead of fighting it */
+      .din {
+        position: absolute; inset: 0;
         display: flex; flex-direction: column; justify-content: flex-end;
-        border: var(--bw) var(--rule) var(--ink);
-        border-radius: var(--arch) var(--arch) 0 0;
-        background: var(--door-bg);
+        border: 1px solid var(--ink);
+        border-radius: 999px 999px 0 0;
+        background: var(--paper);
         overflow: hidden;
         transition: transform 260ms cubic-bezier(0.23,1,0.32,1);
       }
-      .door:active { transform: scale(0.96); }
-      .door:focus-visible { outline: 2px solid var(--ink); outline-offset: 4px; }
+      .door:active .din { transform: scale(0.96); }
       .win { position: absolute; inset: 0; }
       .win svg {
         display: block; width: 100%; height: 100%;
@@ -307,35 +328,24 @@
       .plate {
         position: relative; display: grid; gap: 5px;
         padding: 14px 14px 18px; text-align: center;
-        background: var(--door-bg);
-        border-top: var(--bw) var(--rule) var(--hair);
+        background: var(--paper);
+        border-top: 1px solid var(--hair);
       }
-      .name {
-        font-weight: var(--wt); font-size: 19px; line-height: 1.1;
-        text-transform: var(--tt-name);
-      }
+      .name { font-weight: 800; font-size: 19px; line-height: 1.1; }
       .tag {
         font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em; line-height: 1.5;
-        text-transform: var(--tt-mono); color: var(--soft);
-      }
-      /* the keeper row — which universe held this piece in the multiverse */
-      .keeper {
-        display: flex; align-items: center; justify-content: center; gap: 6px;
-        font-family: var(--mono); font-size: 9px; letter-spacing: 0.14em;
-        text-transform: var(--tt-mono); color: var(--soft);
-      }
-      .sw {
-        width: 7px; height: 7px; border-radius: 50%;
-        background: var(--sw, var(--soft)); display: inline-block;
+        text-transform: uppercase; color: var(--soft);
       }
       @media (hover: hover) and (pointer: fine) {
-        .door:hover { transform: scale(1.035); }
+        .door:hover .din { transform: scale(1.035); }
         .door:hover .win svg { opacity: 1; }
+        .sim .door { cursor: grab; }
+        .sim .door:active { cursor: grabbing; }
       }
 
       /* entrance: doors rise into place, staggered */
       @media (prefers-reduced-motion: no-preference) {
-        .door {
+        .din {
           animation: rise 620ms cubic-bezier(0.23,1,0.32,1) both;
           animation-delay: calc(var(--i, 0) * 70ms);
         }
@@ -343,49 +353,32 @@
       }
 
       /* ── the living patterns (transform/opacity only) ──────────────────── */
-      .w1 { animation: waveX 7s linear infinite; }
-      .w2 { animation: waveX 5.2s linear infinite; }
-      .w3 { animation: waveX 9s linear infinite; }
-      @keyframes waveX { to { transform: translateX(-50px); } }
+      .sails { animation: pinspin 9s linear infinite; transform-box: view-box; transform-origin: 50% 50%; }
+      @keyframes pinspin { to { transform: rotate(360deg); } }
 
-      .ant { animation: antwalk 6.4s cubic-bezier(0.23,1,0.32,1) infinite; }
-      @keyframes antwalk {
-        0%, 10.5%    { transform: translate(0, 0); }
-        12.5%, 23%   { transform: translate(0, -28px); }
-        25%, 35.5%   { transform: translate(28px, -28px); }
-        37.5%, 48%   { transform: translate(28px, -56px); }
-        50%, 60.5%   { transform: translate(56px, -56px); }
-        62.5%, 73%   { transform: translate(56px, -28px); }
-        75%, 85.5%   { transform: translate(28px, -28px); }
-        87.5%, 98%   { transform: translate(28px, 0); }
-        100%         { transform: translate(0, 0); }
+      .drop {
+        animation: traydrop 5.2s cubic-bezier(0.23,1,0.32,1) infinite;
+        transform-box: fill-box; transform-origin: 50% 100%;
       }
-
-      .f1 { animation: fly 14s linear infinite; animation-delay: -6s; }
-      .f2 { animation: fly 10s linear infinite; animation-delay: -3s; }
-      @keyframes fly { from { transform: translateX(-110px); } to { transform: translateX(310px); } }
+      @keyframes traydrop {
+        0%, 8%    { transform: translateY(-104px); opacity: 0; }
+        14%       { opacity: 1; }
+        32%       { transform: translateY(0) scaleY(1); }
+        38%       { transform: translateY(0) scaleY(0.88); }
+        46%, 84%  { transform: translateY(0) scaleY(1); opacity: 1; }
+        94%, 100% { transform: translateY(0); opacity: 0; }
+      }
 
       .orbit { animation: spin 36s linear infinite; transform-box: view-box; transform-origin: 50% 50%; }
       .orbit2 { animation: spinrev 20s linear infinite; transform-box: view-box; transform-origin: 50% 50%; }
       @keyframes spin { to { transform: rotate(360deg); } }
       @keyframes spinrev { to { transform: rotate(-360deg); } }
 
-      .echo-c {
-        animation: ripple 4.2s cubic-bezier(0.215,0.61,0.355,1) infinite;
-        transform-box: fill-box; transform-origin: center;
-      }
-      @keyframes ripple {
-        from { transform: scale(0.12); opacity: 0.95; }
-        to { transform: scale(3.4); opacity: 0; }
-      }
-
-      .pulse-c {
-        animation: pulseout 3.4s cubic-bezier(0.215,0.61,0.355,1) infinite;
-        transform-box: fill-box; transform-origin: center;
-      }
-      @keyframes pulseout {
-        from { transform: scale(0.3); opacity: 0.95; }
-        to { transform: scale(1.35); opacity: 0; }
+      .belt1 { animation: convey 8s linear infinite; }
+      .belt2 { animation: convey 8s linear infinite; animation-delay: -4s; }
+      @keyframes convey {
+        from { transform: translateX(-70px); }
+        to { transform: translateX(230px); }
       }
 
       .dot-p {
@@ -397,53 +390,36 @@
         50% { transform: scale(1.7); opacity: 0.45; }
       }
 
-      .ht1 { animation: htbreathe 3.8s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
-      .ht2 { animation: htbreathe 3.8s ease-in-out infinite; animation-delay: -1.3s; transform-box: fill-box; transform-origin: center; }
-      .ht3 { animation: htbreathe 3.8s ease-in-out infinite; animation-delay: -2.6s; transform-box: fill-box; transform-origin: center; }
-      @keyframes htbreathe {
-        0%, 100% { transform: scale(0.55); }
-        50% { transform: scale(1.15); }
-      }
-
-      .parcel {
-        animation: parceldrop 5.2s cubic-bezier(0.23,1,0.32,1) infinite;
-        transform-box: fill-box; transform-origin: 50% 100%;
-      }
-      @keyframes parceldrop {
-        0%, 8%   { transform: translateY(-90px); opacity: 0; }
-        14%      { opacity: 1; }
-        30%      { transform: translateY(0) scaleY(1); }
-        36%      { transform: translateY(0) scaleY(0.86); }
-        44%, 86% { transform: translateY(0) scaleY(1); opacity: 1; }
-        94%, 100% { transform: translateY(0); opacity: 0; }
-      }
-
       /* ── info footer ───────────────────────────────────────────────────── */
       .info {
         min-height: 78svh; display: grid; align-content: end; gap: 7svh;
         position: relative; padding: 10svh 5vw 5svh;
-        border-top: var(--bw) var(--rule) var(--hair);
+        border-top: 1px solid var(--hair);
       }
       .i-cols {
         display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px;
         padding-right: clamp(100px, 24vw, 240px);
         font-family: var(--mono); font-size: 12px; letter-spacing: 0.05em;
-        text-transform: var(--tt-mono); line-height: 1.9;
+        text-transform: uppercase; line-height: 1.9;
       }
       @media (max-width: 640px) { .i-cols { grid-template-columns: 1fr; } }
       .lbl { display: block; color: var(--soft); margin-bottom: 6px; }
       .soon { color: var(--soft); }
       .i-meta {
         display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap;
-        border-top: var(--bw) var(--rule) var(--hair); padding-top: 16px;
-        font-family: var(--mono); font-size: 10px; letter-spacing: 0.06em; text-transform: var(--tt-mono);
+        border-top: 1px solid var(--hair); padding-top: 16px;
+        font-family: var(--mono); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase;
       }
       @media (hover: hover) and (pointer: fine) {
         .info a:hover { text-decoration: underline; text-underline-offset: 4px; }
       }
 
-      /* reduced motion: everything rests, composed and legible */
+      /* reduced motion: everything rests, composed and legible — the parked
+         percent homes above are already the whole layout */
       @media (prefers-reduced-motion: reduce) {
+        .back, .din, .win svg { transition: none; }
+        .back:active { transform: none; }
+        .door:active .din, .door:hover .din { transform: none; }
         .win svg * { animation: none !important; }
         .win svg { opacity: 0.6; }
       }
@@ -453,37 +429,39 @@
       import { autoReveal, cover } from '/mv/curtain.js';
       autoReveal();
 
-      /* doors open through the curtain */
+      /* doors open through the ink — one DOCUMENT-level handler, so the
+         engine's element-level click listener runs first and a suppressed
+         drag-click arrives here already defaultPrevented. Matches a.door
+         only: the WIP span drags and color-cycles but never navigates. */
       let reduce = false;
       try { reduce = matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
       let leaving = false;
       addEventListener('pageshow', (e) => {
         if (e.persisted) leaving = false; /* bfcache Back restores the latched heap */
       });
-      document.querySelectorAll('a.door').forEach((a) => {
-        a.addEventListener('click', async (e) => {
-          /* modified/aux clicks keep their native meaning (new tab etc.) */
-          if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button > 0) return;
-          if (reduce) return;
-          /* mid-cover: swallow repeat clicks so they can't navigate natively */
-          if (leaving) { e.preventDefault(); return; }
-          e.preventDefault();
-          leaving = true;
-          const r = a.getBoundingClientRect();
-          const x = e.clientX || r.left + r.width / 2;
-          const y = e.clientY || r.top + r.height / 2;
-          await cover({ x, y, color: '#101010' });
-          /* the experiments are self-contained pages with no autoReveal —
-             clear the flag so the NEXT site page doesn't peel a ghost */
-          try { sessionStorage.removeItem('mv:covered'); } catch (err) {}
-          location.href = a.getAttribute('href');
-        });
+      document.addEventListener('click', async (e) => {
+        const a = e.target.closest && e.target.closest('a.door');
+        if (!a) return;
+        if (e.defaultPrevented) return; /* zerog suppressed a drag-click */
+        /* modified/aux clicks keep their native meaning (new tab etc.) */
+        if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button > 0) return;
+        if (reduce) return; /* plain navigation */
+        /* mid-cover: swallow repeat clicks so they can't navigate natively */
+        if (leaving) { e.preventDefault(); return; }
+        e.preventDefault();
+        leaving = true;
+        const r = a.getBoundingClientRect();
+        const x = e.clientX || r.left + r.width / 2;
+        const y = e.clientY || r.top + r.height / 2;
+        await cover({ x, y, color: '#101010' });
+        /* all six targets autoReveal — the covered flag rides through and
+           peels itself on arrival, so it must NOT be cleared here */
+        location.href = a.getAttribute('href');
       });
     </script>
     <script is:inline>
       /* back link rides the cursor — the site-wide pattern */
       (function () {
-        'use strict';
         var reduce = false, fine = false;
         try { reduce = matchMedia('(prefers-reduced-motion: reduce)').matches; fine = matchMedia('(hover: hover) and (pointer: fine)').matches; } catch (e) {}
         if (!fine || reduce) return;
@@ -495,6 +473,7 @@
           if (Math.abs(target - cur) > 0.4) raf = requestAnimationFrame(frame); else raf = null;
         }
         addEventListener('pointermove', function (e) {
+          if (e.pointerType === 'touch') return; /* hybrids: taps must not move it */
           var h = back.offsetHeight;
           target = Math.min(innerHeight - h - 12, Math.max(12, e.clientY - h / 2));
           if (cur === null) cur = target;
@@ -502,6 +481,7 @@
         }, { passive: true });
       })();
     </script>
+    <script is:inline defer src="/mv/zerog.js"></script>
     <script is:inline defer src="/mv/ticker.js"></script>
   </body>
 </html>
