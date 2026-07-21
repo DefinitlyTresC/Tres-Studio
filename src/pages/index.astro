@@ -12,11 +12,15 @@
 // the ticker).
 //
 // V3.1 (2026-07-20): the menu drops Archive (folded into /work) — three words
-// now. And the Work word plays hard to get: clicks one and two pop drifting
-// project portals (EE-13, then Drome) instead of navigating; click three is a
-// plain link again. Session-scoped — see WORK POP PORTALS (CSS + script) below.
+// now. And the Work word plays hard to get: the first three clicks pop
+// drifting project portals (EE-13 first, then two drawn at random from the
+// selected five) instead of navigating; click four is a plain link again.
+// The blobs are bubbles: they never overlap each other, they shove the
+// letters and menu words around (the zero-g __zg kick surface), and after
+// ~20s afloat they pop away on their own. Session-scoped — see WORK POP
+// PORTALS (CSS + script) below.
 import { getCollection } from 'astro:content';
-import { heroUrl } from '../lib/cloudinary';
+import { joinUrl } from '../lib/cloudinary';
 
 // Percent-based homes recompute from viewport size. x/y = wide screens,
 // xn/yn = narrow (<=640px). s = glyph scale factor.
@@ -39,13 +43,14 @@ const MENU = [
   { label: 'About', href: '/about', y: 75 },
 ];
 
-// Pop portal payload — hero URLs resolve at build time; the client gets only
-// what it needs (slug, name, hero) as JSON in an inline script below.
+// Pop portal payload — the five selected projects, EE-13 first (the client
+// always pops it first, then draws the rest at random). Hero URLs resolve at
+// build time; w_900 covers the ~280px blob at 2x without hero-page weight.
 const all = (await getCollection('projects')).map((e) => e.data);
-const POPS = ['ee13', 'drome']
+const POPS = ['ee13', 'z07', 'tucker', 'drome', 'thesis']
   .map((s) => all.find((p) => p.slug === s))
   .filter(Boolean)
-  .map((p) => ({ slug: p.slug, name: p.name, hero: heroUrl(p) }));
+  .map((p) => ({ slug: p.slug, name: p.name, hero: joinUrl(p.heroImage, 'w_900', 'image') }));
 ---
 
 <html lang="en">
@@ -248,6 +253,14 @@ const POPS = ['ee13', 'drome']
       .pop.go .pin { animation: none; transform: none; }
       .pop.go .pskin { animation: none; transition: border-radius 340ms ease-in-out; }
       .pop.go .pname { opacity: 0; }
+      /* the bubble bursts: a breath outward, then gone (lifetime expiry) */
+      .pop.bye { pointer-events: none; }
+      .pop.bye .pin { animation: pop-bye 460ms cubic-bezier(0.45, 0, 0.55, 0.2) forwards; }
+      @keyframes pop-bye {
+        0% { transform: scale(1); opacity: 1; }
+        32% { transform: scale(1.12); opacity: 1; }
+        100% { transform: scale(0); opacity: 0; }
+      }
 
       @media (prefers-reduced-motion: reduce) {
         .mword .tx { transition-duration: 1ms; }
@@ -265,10 +278,15 @@ const POPS = ['ee13', 'drome']
 
     <script is:inline set:html={`const POPS = ${JSON.stringify(POPS)};`}></script>
     <script is:inline>
-      /* WORK POP PORTALS — the menu Work word plays hard to get. Click one:
-         EE-13 pops in as a drifting blob-hole. Click two: Drome joins it.
-         Click three: the link is a link again. Session-scoped (mv:work-pops,
-         0..2) — blobs respawn on every landing visit until the tab closes.
+      /* WORK POP PORTALS — the menu Work word plays hard to get. The first
+         THREE clicks each pop a project blob instead of navigating: EE-13
+         always first, then two drawn at random from the selected five.
+         Click four is a plain link again. The blobs are bubbles:
+           - they never overlap each other (circle collision + clean spawns);
+           - they SHOVE the letters and menu words (zero-g's __zg surface —
+             the blob deflects, the word gets kicked loose and springs home);
+           - they live ~20s afloat, then burst and are gone. No respawn on
+             later visits — only the popped list persists (mv:work-popped).
          Constraints: intercept at DOCUMENT level and bail on defaultPrevented
          (zero-g preventDefaults drag-release clicks at element level, and its
          listener must run first); only #menuWork — the footer Work link stays
@@ -281,18 +299,34 @@ const POPS = ['ee13', 'drome']
         try { reduce = matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
         if (reduce || typeof POPS === 'undefined' || !POPS.length) return;
 
-        var KEY = 'mv:work-pops';
-        function getCount() {
-          var n = 0;
-          try { n = parseInt(sessionStorage.getItem(KEY) || '0', 10); } catch (e) {}
-          if (isNaN(n) || n < 0) n = 0;
-          return Math.min(n, POPS.length);
+        var MAX = Math.min(3, POPS.length);
+        var LIFE = 20000; /* ms afloat before the burst (+ per-blob jitter) */
+        var KEY = 'mv:work-popped';
+        function getPopped() {
+          try {
+            var v = JSON.parse(sessionStorage.getItem(KEY) || '[]');
+            if (Object.prototype.toString.call(v) === '[object Array]') return v.slice(0, MAX);
+          } catch (e) {}
+          return [];
         }
-        function setCount(n) { try { sessionStorage.setItem(KEY, String(n)); } catch (e) {} }
+        function setPopped(list) { try { sessionStorage.setItem(KEY, JSON.stringify(list)); } catch (e) {} }
+        /* EE-13 leads; the rest of the run is dealt at random, no repeats */
+        function nextPick(popped) {
+          if (!popped.length) return POPS[0];
+          var pool = [];
+          for (var i = 0; i < POPS.length; i++) {
+            if (popped.indexOf(POPS[i].slug) === -1) pool.push(POPS[i]);
+          }
+          return pool.length ? pool[Math.floor(Math.random() * pool.length)] : null;
+        }
 
         var pops = [], raf = null, last = 0, leaving = false;
 
         function place(s) { s.el.style.transform = 'translate3d(' + s.x.toFixed(1) + 'px,' + s.y.toFixed(1) + 'px,0)'; }
+        function cx(s) { return s.x + s.w / 2; }
+        function cy(s) { return s.y + s.h / 2; }
+        /* the morph keeps the shape inside ~92% of the box */
+        function rad(s) { return s.w * 0.46; }
 
         function spawn(data, i) {
           var a = document.createElement('a');
@@ -315,19 +349,31 @@ const POPS = ['ee13', 'drome']
           a.appendChild(chip);
           document.body.appendChild(a);
 
-          /* random on-screen spawn point, 12vw/12vh in from the edges */
           var r = a.getBoundingClientRect();
           var padX = innerWidth * 0.12, padY = innerHeight * 0.12;
           var s = {
             el: a, skin: skin,
             w: r.width, h: r.height,
-            x: padX + Math.random() * Math.max(1, innerWidth - r.width - padX * 2),
-            y: padY + Math.random() * Math.max(1, innerHeight - r.height - padY * 2),
+            x: 0, y: 0,
             ang: Math.random() * Math.PI * 2,
             speed: 14 + Math.random() * 10,
             phase: Math.random() * Math.PI * 2,
-            freq: 0.25 + Math.random() * 0.3
+            freq: 0.25 + Math.random() * 0.3,
+            die: performance.now() + LIFE + Math.random() * 5000,
+            hitT: {}
           };
+          /* clean spawn: try for a spot clear of the other bubbles */
+          for (var t = 0; t < 24; t++) {
+            s.x = padX + Math.random() * Math.max(1, innerWidth - s.w - padX * 2);
+            s.y = padY + Math.random() * Math.max(1, innerHeight - s.h - padY * 2);
+            var clear = true;
+            for (var j = 0; j < pops.length; j++) {
+              var o = pops[j];
+              var dx = cx(s) - cx(o), dy = cy(s) - cy(o);
+              if (Math.sqrt(dx * dx + dy * dy) < rad(s) + rad(o) + 14) { clear = false; break; }
+            }
+            if (clear) break;
+          }
           place(s);
           /* true click (not a suppressed drag-release) = enter through the
              dot; Enter on the focused anchor lands here too */
@@ -341,16 +387,43 @@ const POPS = ['ee13', 'drome']
           start();
         }
 
-        /* drift: slow wander, direction steered by a sinusoid, soft edge
-           bounces keeping the blob fully on-screen minus 8px. dt-clamped so
-           a background tab never teleports a blob. */
+        /* the burst: a breath outward, then gone */
+        function expire(s) {
+          var i = pops.indexOf(s);
+          if (i > -1) pops.splice(i, 1);
+          s.el.classList.add('bye');
+          setTimeout(function () {
+            if (s.el.parentNode) s.el.parentNode.removeChild(s.el);
+          }, 500);
+        }
+
+        /* reflect a blob's heading off normal (nx,ny) if it's approaching */
+        function deflect(s, nx, ny) {
+          var vx = Math.cos(s.ang), vy = Math.sin(s.ang);
+          var d = vx * nx + vy * ny;
+          if (d >= 0) return; /* already leaving */
+          vx -= 2 * d * nx; vy -= 2 * d * ny;
+          s.ang = Math.atan2(vy, vx);
+        }
+
+        /* drift + bubble physics. dt-clamped so a background tab never
+           teleports a blob. */
         function tick(now) {
           raf = null;
           var dt = Math.min(0.05, (now - last) / 1000);
           last = now;
           var t = now / 1000;
-          for (var i = 0; i < pops.length; i++) {
-            var s = pops[i];
+          var i, j, s, o, dx, dy, d, nx, ny;
+
+          for (i = pops.length - 1; i >= 0; i--) {
+            s = pops[i];
+            /* lifetime — but never mid-hover (rude) or mid-swallow */
+            if (now > s.die) {
+              var hov = false;
+              try { hov = s.el.matches(':hover'); } catch (e) {}
+              if (hov) { s.die = now + 2000; }
+              else { expire(s); continue; }
+            }
             s.ang += Math.sin(t * s.freq * 6.283 + s.phase) * 0.5 * dt;
             s.x += Math.cos(s.ang) * s.speed * dt;
             s.y += Math.sin(s.ang) * s.speed * dt;
@@ -360,8 +433,46 @@ const POPS = ['ee13', 'drome']
             else if (s.x > maxX) { s.x = maxX; s.ang = Math.PI - s.ang; }
             if (s.y < 8) { s.y = 8; s.ang = -s.ang; }
             else if (s.y > maxY) { s.y = maxY; s.ang = -s.ang; }
-            place(s);
           }
+
+          /* bubbles never overlap: separate along the normal, deflect both */
+          for (i = 0; i < pops.length; i++) {
+            for (j = i + 1; j < pops.length; j++) {
+              s = pops[i]; o = pops[j];
+              dx = cx(o) - cx(s); dy = cy(o) - cy(s);
+              d = Math.sqrt(dx * dx + dy * dy) || 1;
+              var need = rad(s) + rad(o) + 6;
+              if (d >= need) continue;
+              nx = dx / d; ny = dy / d;
+              var push = (need - d) / 2;
+              s.x -= nx * push; s.y -= ny * push;
+              o.x += nx * push; o.y += ny * push;
+              deflect(s, -nx, -ny);
+              deflect(o, nx, ny);
+            }
+          }
+
+          /* the bubbles shove the words: blob deflects, word gets kicked
+             loose (zero-g brings it home). 300ms per-pair cooldown so a
+             grazing pass reads as one bump, not a rattle. */
+          if (window.__zg) {
+            window.__zg.each(function (bi, bx, by, br) {
+              for (var k = 0; k < pops.length; k++) {
+                var p = pops[k];
+                var ddx = bx - cx(p), ddy = by - cy(p);
+                var dd = Math.sqrt(ddx * ddx + ddy * ddy) || 1;
+                if (dd >= rad(p) + br) continue;
+                if (p.hitT[bi] && now - p.hitT[bi] < 300) continue;
+                p.hitT[bi] = now;
+                var kx = ddx / dd, ky = ddy / dd;
+                var mag = 200 + p.speed * 6;
+                window.__zg.kick(bi, kx * mag, ky * mag);
+                deflect(p, -kx, -ky);
+              }
+            });
+          }
+
+          for (i = 0; i < pops.length; i++) place(pops[i]);
           if (pops.length) raf = requestAnimationFrame(tick);
         }
         function start() {
@@ -418,20 +529,20 @@ const POPS = ['ee13', 'drome']
           /* modified/aux clicks keep their native meaning (new tab etc.) */
           if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button > 0) return;
           if (leaving) { e.preventDefault(); return; }
-          var n = getCount();
-          if (n >= POPS.length) return; /* click three: a link again */
+          var popped = getPopped();
+          if (popped.length >= MAX) return; /* click four: a link again */
+          var pick = nextPick(popped);
+          if (!pick) return;
           e.preventDefault();
-          spawn(POPS[n], n);
-          setCount(n + 1);
+          spawn(pick, popped.length);
+          popped.push(pick.slug);
+          setPopped(popped);
         });
 
-        /* the counter's blobs persist across landing visits this session */
-        function respawn() {
-          for (var i = 0, n = getCount(); i < n; i++) spawn(POPS[i], i);
-        }
+        /* bfcache return (possibly mid-swallow): tear down — the bubbles
+           burst offstage; only the popped list persists */
         addEventListener('pageshow', function (e) {
           if (!e.persisted) return;
-          /* bfcache return (possibly mid-swallow): tear down and re-pop */
           leaving = false;
           if (raf) { cancelAnimationFrame(raf); raf = null; }
           pops.length = 0;
@@ -439,9 +550,7 @@ const POPS = ['ee13', 'drome']
           for (var i = strays.length - 1; i >= 0; i--) {
             if (strays[i].parentNode) strays[i].parentNode.removeChild(strays[i]);
           }
-          respawn();
         });
-        respawn();
       })();
     </script>
 

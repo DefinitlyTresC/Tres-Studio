@@ -500,6 +500,26 @@
       render(1);
       for (var gi = 0; gi < groups.length; gi++) groups[gi].el.classList.add('sim');
       watchColorRooms();
+      /* V3.1: the landing's pop portals bump the words — a minimal
+         read/kick surface. Viewport-space circles out, impulses in; held
+         bodies are untouchable. (index.astro's blob loop is the consumer.) */
+      window.__zg = {
+        each: function (fn) {
+          for (var i = 0; i < bodies.length; i++) {
+            var b = bodies[i];
+            if (b.state === HELD) continue;
+            var rc = b.el.getBoundingClientRect();
+            fn(i, rc.left + rc.width / 2, rc.top + rc.height / 2, b.r);
+          }
+        },
+        kick: function (i, vx, vy) {
+          var b = bodies[i];
+          if (!b || b.state === HELD) return;
+          b.vx += vx; b.vy += vy;
+          /* a real shove knocks a floating body loose; it springs home after */
+          if (b.state === FLOAT && b.vx * b.vx + b.vy * b.vy > 22500) { b.state = FREE; b.restT = 0; }
+        },
+      };
       var rT = 0;
       addEventListener('resize', function () {
         clearTimeout(rT);
