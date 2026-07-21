@@ -1,0 +1,2611 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SATISFACTORY — TRES.</title>
+<!-- tracking: one bootstrap for the whole site (Umami + Clarity + visitor id + self-exclusion) - public/ts.js -->
+<script defer src="/ts.js"></script>
+<script type="module">import { autoReveal } from '/mv/curtain.js'; autoReveal();</script>
+<style>
+/* ============================================================
+   TRES FACTORY — monochrome industrial schematic
+   ============================================================ */
+:root{
+  --bg:#050607; --panel:#0a0b0d; --panel2:#0d0f11; --card:#0c0e10;
+  --line:#26292e; --line2:#3a3e45; --dim:#6b7078; --mid:#9aa0a8;
+  --fg:#e8eaed; --hot:#ffffff;
+  --gridline:rgba(232,234,237,.025); --gridline2:rgba(232,234,237,.055);
+  --vig:rgba(0,0,0,.55); --selglow:rgba(255,255,255,.13);
+  --mono:"Cascadia Mono","JetBrains Mono",Consolas,"Courier New",ui-monospace,monospace;
+}
+html[data-theme="light"]{
+  --bg:#eceef0; --panel:#f6f7f8; --panel2:#eef0f2; --card:#fbfcfc;
+  --line:#d7dade; --line2:#bfc4ca; --dim:#7d838c; --mid:#4c525a;
+  --fg:#1c1e22; --hot:#000000;
+  --gridline:rgba(28,30,34,.045); --gridline2:rgba(28,30,34,.085);
+  --vig:rgba(0,0,0,.07); --selglow:rgba(0,0,0,.18);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:var(--bg); color:var(--fg); font-family:var(--mono);
+  font-size:12px; overflow:hidden; -webkit-font-smoothing:antialiased;
+}
+::selection{background:var(--fg);color:var(--bg)}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-thumb{background:var(--line2);border:2px solid var(--panel)}
+::-webkit-scrollbar-track{background:transparent}
+
+#app{display:grid;grid-template-rows:auto 1fr 30px;height:100vh;min-width:0}
+#mid{display:grid;grid-template-columns:236px minmax(0,1fr) 292px;min-height:0;min-width:0}
+
+/* ---------- header ---------- */
+#hdr{display:flex;align-items:center;flex-wrap:wrap;gap:8px 14px;padding:8px 14px;border-bottom:1px solid var(--line);background:var(--panel);min-height:46px}
+#logo{display:flex;align-items:baseline;gap:10px;white-space:nowrap}
+#logo .glyph{font-size:15px;color:var(--hot)}
+#logo b{font-size:15px;letter-spacing:.22em;color:var(--hot);font-weight:700}
+#logo span{font-size:9px;letter-spacing:.18em;color:var(--dim)}
+#hdr .sep{flex:1}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line2);padding:3px 9px;font-size:10px;letter-spacing:.1em;color:var(--mid);white-space:nowrap}
+.chip b{color:var(--hot);font-weight:700}
+.chip.alert b{color:var(--hot)}
+.chip.alert.on{border-color:var(--fg);background:var(--fg)}
+.chip.alert.on *{color:var(--bg)}
+.hbtn{border:1px solid var(--line2);background:none;color:var(--mid);font:inherit;font-size:10px;letter-spacing:.14em;padding:5px 10px;cursor:pointer}
+.hbtn:hover{border-color:var(--fg);color:var(--hot)}
+.hbtn.pri{border-color:var(--fg);color:var(--hot)}
+
+/* ---------- panels ---------- */
+.panel{background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0;overflow:hidden}
+#rpanel{border-right:none;border-left:1px solid var(--line)}
+.psec{border-bottom:1px solid var(--line)}
+.ptitle{font-size:9px;letter-spacing:.24em;color:var(--dim);padding:9px 12px 7px;display:flex;justify-content:space-between;align-items:center}
+.ptitle .n{color:var(--mid)}
+.pscroll{overflow-y:auto;flex:1;min-height:0}
+#palscroll{flex:0 1 auto;min-height:0;overflow-y:auto} /* tool list scrolls on short screens */
+#palResize{flex:0 0 8px;cursor:ns-resize;background:var(--panel2);border-top:1px solid var(--line);border-bottom:1px solid var(--line);display:grid;place-items:center;user-select:none}
+#palResize::before{content:"···";color:var(--dim);font-size:10px;letter-spacing:.35em;line-height:0;transform:translateY(-1px)}
+#palResize:hover,#palResize.on{background:var(--line2)}
+
+/* palette */
+.tool{display:flex;align-items:center;gap:9px;width:100%;background:none;border:none;border-top:1px solid transparent;
+  color:var(--mid);font:inherit;font-size:11px;letter-spacing:.08em;padding:6px 12px;cursor:pointer;text-align:left}
+.tool:hover{color:var(--hot);background:var(--panel2)}
+.tool .g{width:18px;height:18px;flex:none;border:1px solid var(--line2);display:grid;place-items:center;font-size:9px;color:var(--fg)}
+.tool:hover .g{border-color:var(--fg)}
+
+/* warnings list */
+.witem{width:100%;text-align:left;background:none;border:none;border-bottom:1px solid var(--line);
+  color:var(--mid);font:inherit;font-size:10px;line-height:1.5;padding:7px 12px;cursor:pointer;display:flex;gap:8px}
+.witem:hover{background:var(--panel2);color:var(--fg)}
+.witem .wg{flex:none;width:14px;height:14px;border:1px solid var(--fg);color:var(--fg);display:grid;place-items:center;font-size:9px;margin-top:1px}
+.witem.cap .wg{border-color:var(--dim);color:var(--dim)}
+.wempty{padding:12px;font-size:10px;color:var(--dim);letter-spacing:.1em}
+
+/* ---------- canvas ---------- */
+#viewport{position:relative;overflow:hidden;background:var(--bg);cursor:crosshair;min-width:0}
+#viewport::after{content:"";position:absolute;inset:0;pointer-events:none;
+  box-shadow:inset 0 0 90px var(--vig)}
+#grid{position:absolute;inset:0;pointer-events:none}
+#marq{position:absolute;border:1px dashed var(--hot);background:var(--selglow);display:none;pointer-events:none;z-index:5}
+#world{position:absolute;left:0;top:0;transform-origin:0 0}
+#edgesvg{position:absolute;left:0;top:0;overflow:visible;pointer-events:none}
+#edgesvg .epath{fill:none;stroke:var(--dim);stroke-width:var(--esw,1.4px);pointer-events:stroke;cursor:pointer}
+#edgesvg .epath.live{stroke:var(--fg)}
+#edgesvg .epath.sel{stroke:var(--hot);stroke-width:calc(var(--esw,1.4px)*1.6)}
+#edgesvg .epath.idle{stroke-dasharray:5 4}
+#edgesvg .ehalo{fill:none;stroke:transparent;stroke-width:var(--ehw,14px);pointer-events:stroke;cursor:pointer}
+#edgesvg .temp{fill:none;stroke:var(--hot);stroke-width:1.4;stroke-dasharray:6 4}
+#world.lod #elabels{display:none}
+.elabel{position:absolute;transform:translate(-50%,-50%);background:var(--bg);border:1px solid var(--line2);
+  padding:2px 6px;font-size:9px;letter-spacing:.06em;color:var(--mid);white-space:nowrap;cursor:pointer;line-height:1.45}
+.elabel b{color:var(--fg);font-weight:400}
+.elabel.sel{border-color:var(--hot);color:var(--fg)}
+.elabel.sat{border-style:double;border-width:3px;padding:0 5px}
+.elabel .cap{color:var(--dim)}
+
+/* ---------- node card ---------- */
+.node{position:absolute;width:196px;background:var(--card);border:1px solid var(--nc,var(--line2));cursor:grab;user-select:none}
+.node:active{cursor:grabbing}
+.node.sel{border-color:var(--hot);box-shadow:0 0 0 1px var(--hot),0 0 24px var(--selglow)}
+.node.warn{border-style:dashed}
+.node.msel,.anno.msel{outline:2px dashed var(--hot);outline-offset:4px}
+/* bank unit squares — one tick per machine, full-detail view only */
+.ucount{position:absolute;top:calc(100% + 8px);left:0;display:flex;flex-wrap:wrap;gap:4px;max-width:196px;pointer-events:none}
+.usq{width:11px;height:11px;background:var(--nc,var(--dim));opacity:.85;box-shadow:inset 0 0 0 1px rgba(0,0,0,.4)}
+html[data-theme="light"] .usq{box-shadow:inset 0 0 0 1px rgba(255,255,255,.5)}
+.umore{font-size:9px;color:var(--dim);letter-spacing:.08em;line-height:11px;align-self:center}
+/* LOD blocks — semantic zoom: node becomes a filled slab of its type color */
+.node.lod{border:none;opacity:.92}
+.node.lod .tick{display:none}
+.node.lod.warn{outline:2px dashed var(--hot);outline-offset:2px}
+.node.lod.sel{box-shadow:0 0 0 3px var(--hot)}
+.node .tick{position:absolute;width:7px;height:7px;border:1px solid var(--nc,var(--line2));pointer-events:none}
+.node.sel .tick{border-color:var(--hot)}
+.node .tick.tl{left:-4px;top:-4px;border-right:none;border-bottom:none}
+.node .tick.tr{right:-4px;top:-4px;border-left:none;border-bottom:none}
+.node .tick.bl{left:-4px;bottom:-4px;border-right:none;border-top:none}
+.node .tick.br{right:-4px;bottom:-4px;border-left:none;border-top:none}
+.nhead{display:flex;align-items:center;gap:7px;padding:6px 8px;border-bottom:1px solid var(--line)}
+.nhead .nid{font-size:9px;letter-spacing:.1em;color:var(--dim);flex:none}
+.nhead .nname{font-size:10px;letter-spacing:.12em;color:var(--nc,var(--hot));font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nhead .nwarn{margin-left:auto;flex:none;width:14px;height:14px;border:1px solid var(--fg);display:grid;place-items:center;font-size:9px}
+.nbody{padding:6px 8px;display:flex;flex-direction:column;gap:3px}
+.nrow{display:flex;justify-content:space-between;gap:8px;font-size:10px;color:var(--mid);line-height:1.5}
+.nrow .k{color:var(--dim);letter-spacing:.06em;flex:none}
+.nrow .v{text-align:right;color:var(--fg)}
+.nrow .v.dim{color:var(--dim)}
+.nrow .v.hot{color:var(--hot);font-weight:700}
+.effwrap{display:flex;align-items:center;gap:7px;margin:2px 0}
+.effbar{flex:1;height:5px;border:1px solid var(--line2);position:relative}
+.effbar i{position:absolute;left:0;top:0;bottom:0;background:var(--nc,var(--fg))}
+.effpct{font-size:9px;color:var(--fg);width:38px;text-align:right}
+.port{position:absolute;width:9px;height:9px;background:var(--bg);border:1px solid var(--nc,var(--fg));transform:rotate(45deg);cursor:pointer;z-index:3}
+.port::after{content:"";position:absolute;inset:-8px} /* fat hit target */
+.port:hover{background:var(--nc,var(--fg))}
+
+/* ---------- annotations: movable text + divider lines ---------- */
+#annos{position:absolute;left:0;top:0}
+.anno{position:absolute;cursor:grab;user-select:none}
+.anno:active{cursor:grabbing}
+.anno.sel{outline:1px dashed var(--hot);outline-offset:8px}
+.atext{color:var(--ac,var(--dim));font-weight:700;letter-spacing:.32em;white-space:pre;line-height:1.35}
+.atext.s1{font-size:11px}.atext.s2{font-size:17px}.atext.s3{font-size:28px}.atext.s4{font-size:46px}
+.aline::before{content:"";position:absolute;inset:-8px} /* grab band */
+.aline.h{border-top:1px dashed var(--ac,var(--line2));height:0}
+.aline.v{border-left:1px dashed var(--ac,var(--line2));width:0}
+.port.in{left:-5px;top:50%;margin-top:-5px}
+.port.out{right:-5px;top:50%;margin-top:-5px}
+.badge{display:inline-block;border:1px solid var(--fg);color:var(--fg);font-size:8px;letter-spacing:.12em;padding:0 4px;margin-left:5px}
+.badge.inv{background:var(--fg);color:var(--bg)}
+
+/* ---------- inspector ---------- */
+#insp{padding:0;overflow-y:auto;flex:1}
+.ihead{padding:10px 12px;border-bottom:1px solid var(--line)}
+.ihead .t1{font-size:9px;letter-spacing:.22em;color:var(--dim)}
+.ihead .t2{font-size:13px;letter-spacing:.14em;color:var(--hot);font-weight:700;margin-top:3px}
+.igroup{padding:10px 12px;border-bottom:1px solid var(--line)}
+.ilabel{font-size:9px;letter-spacing:.2em;color:var(--dim);margin-bottom:5px}
+.irow{display:flex;gap:6px;align-items:center;margin-bottom:6px}
+.irow:last-child{margin-bottom:0}
+select,input[type=text],input[type=number]{
+  width:100%;background:var(--bg);border:1px solid var(--line2);color:var(--fg);
+  font:inherit;font-size:11px;padding:5px 7px;outline:none}
+select:focus,input:focus{border-color:var(--fg)}
+select option{background:var(--bg)}
+input[type=range]{width:100%;accent-color:#e8eaed;background:transparent}
+.stepper{display:flex;border:1px solid var(--line2)}
+.stepper button{background:none;border:none;color:var(--fg);font:inherit;width:26px;padding:4px 0;cursor:pointer}
+.stepper button:hover{background:var(--fg);color:var(--bg)}
+.stepper input{border:none;border-left:1px solid var(--line2);border-right:1px solid var(--line2);text-align:center;width:60px}
+.ibtn{width:100%;background:none;border:1px solid var(--line2);color:var(--mid);font:inherit;font-size:10px;
+  letter-spacing:.16em;padding:6px;cursor:pointer;margin-bottom:6px}
+.ibtn:hover{border-color:var(--fg);color:var(--hot)}
+.ibtn.danger:hover{background:var(--fg);color:var(--bg)}
+.ibtn:last-child{margin-bottom:0}
+.kv{display:flex;justify-content:space-between;font-size:10px;color:var(--mid);line-height:1.7}
+.kv b{color:var(--fg);font-weight:400}
+.linkgrid{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+.linkbtn{border:1px solid var(--line2);background:none;color:var(--mid);font:inherit;font-size:9px;
+  letter-spacing:.08em;padding:5px 4px;cursor:pointer;text-align:center;line-height:1.5}
+.linkbtn:hover{border-color:var(--fg);color:var(--fg)}
+.linkbtn.on{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.itip{font-size:9px;color:var(--dim);line-height:1.7;letter-spacing:.04em}
+.buildsheet{font-size:10px;color:var(--mid);line-height:1.75;letter-spacing:.03em}
+.buildsheet b{color:var(--fg);font-weight:400}
+.buildsheet .step{margin-bottom:8px}
+.buildsheet .step:last-child{margin-bottom:0}
+.checkrow{display:flex;align-items:center;gap:8px;font-size:10px;color:var(--mid);cursor:pointer;letter-spacing:.08em}
+.checkrow input{width:auto;accent-color:#e8eaed}
+
+/* ---------- footer ---------- */
+#ftr{display:flex;align-items:center;gap:18px;padding:0 14px;border-top:1px solid var(--line);
+  background:var(--panel);font-size:10px;color:var(--dim);letter-spacing:.1em;overflow:hidden;white-space:nowrap}
+#ftr b{color:var(--fg);font-weight:400}
+#ftr .lead{color:var(--dim)}
+
+/* ---------- modal ---------- */
+#modal{position:fixed;inset:0;background:rgba(5,6,7,.82);display:none;place-items:center;z-index:50}
+#modal.open{display:grid}
+#mbox{width:min(680px,92vw);max-height:86vh;overflow-y:auto;background:var(--panel);border:1px solid var(--line2);
+  box-shadow:0 0 60px rgba(0,0,0,.8)}
+#mbox .mh{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1px solid var(--line)}
+#mbox .mh b{letter-spacing:.2em;font-size:12px;color:var(--hot)}
+#mbox .mh button{background:none;border:1px solid var(--line2);color:var(--fg);font:inherit;padding:2px 9px;cursor:pointer}
+#mbox .mc{padding:16px}
+#mbox h4{font-size:10px;letter-spacing:.22em;color:var(--dim);margin:16px 0 7px;font-weight:400}
+#mbox h4:first-child{margin-top:0}
+#mbox p,#mbox li{font-size:11px;color:var(--mid);line-height:1.8}
+#mbox ul{list-style:none}
+#mbox li::before{content:"— ";color:var(--dim)}
+#mbox table{width:100%;border-collapse:collapse;margin:6px 0}
+#mbox th,#mbox td{border:1px solid var(--line);padding:4px 8px;font-size:10px;text-align:left;color:var(--mid)}
+#mbox th{color:var(--dim);letter-spacing:.14em;font-weight:400}
+#mbox td b{color:var(--fg);font-weight:400}
+kbd{border:1px solid var(--line2);padding:0 5px;font-size:10px;color:var(--fg)}
+
+/* items drawer table */
+#itemsTable td.num{text-align:right}
+
+.crrow{display:grid;grid-template-columns:1fr 90px;gap:6px;margin-bottom:6px}
+
+/* blueprints */
+.bprow{display:flex;border-bottom:1px solid var(--line)}
+.bpstamp{flex:1;display:flex;justify-content:space-between;align-items:center;gap:8px;background:none;border:none;
+  color:var(--mid);font:inherit;font-size:10px;letter-spacing:.1em;padding:8px 10px;cursor:pointer;text-align:left;min-width:0}
+.bpstamp b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:400;color:var(--fg)}
+.bpstamp span{flex:none;color:var(--dim);font-size:9px}
+.bpstamp:hover{background:var(--panel2)}
+.bpstamp:hover b{color:var(--hot)}
+.bpdel{flex:none;background:none;border:none;border-left:1px solid var(--line);color:var(--dim);font:inherit;
+  font-size:10px;padding:0 10px;cursor:pointer}
+.bpdel:hover{background:var(--fg);color:var(--bg)}
+#toast{position:fixed;left:50%;bottom:44px;transform:translateX(-50%);background:var(--fg);color:var(--bg);
+  padding:6px 14px;font-size:10px;letter-spacing:.14em;display:none;z-index:60}
+</style>
+</head>
+<body>
+<div id="app">
+  <header id="hdr">
+    <a href="/lab" class="hbtn" style="text-decoration:none">← LAB</a>
+    <div id="logo"><span class="glyph">▣</span><b>TRES&nbsp;FACTORY</b><span>THE FACTORY, VISUALIZED</span></div>
+    <div class="sep"></div>
+    <button class="hbtn pri" id="btnSave">⭳ SAVE FILE</button>
+    <button class="hbtn" id="btnBulk">BULK</button>
+    <button class="hbtn" id="btnTheme">◑ LIGHT</button>
+    <span class="chip">POWER <b id="stPower">0 MW</b></span>
+    <span class="chip">MACHINES <b id="stMach">0</b></span>
+    <span class="chip alert" id="stAlertChip">ALERTS <b id="stAlerts">0</b></span>
+    <button class="hbtn" id="btnItems">ITEMS</button>
+    <button class="hbtn" id="btnColors">COLORS</button>
+    <button class="hbtn" id="btnSelect">⬚ SELECT</button>
+    <button class="hbtn" id="btnFit">FIT</button>
+    <button class="hbtn" id="btnExport">EXPORT</button>
+    <button class="hbtn" id="btnImport">IMPORT</button>
+    <button class="hbtn" id="btnDemo">DEMO</button>
+    <button class="hbtn" id="btnNew">NEW</button>
+    <button class="hbtn pri" id="btnHelp">HELP</button>
+  </header>
+
+  <div id="mid">
+    <aside class="panel" id="lpanel">
+      <div id="palscroll">
+      <div class="psec">
+        <div class="ptitle">EXTRACTION</div>
+        <button class="tool" data-add="res:miner"><span class="g">◆</span>ORE NODE + MINER</button>
+        <button class="tool" data-add="res:oil"><span class="g">●</span>OIL EXTRACTOR</button>
+        <button class="tool" data-add="res:water"><span class="g">~</span>WATER EXTRACTOR</button>
+      </div>
+      <div class="psec">
+        <div class="ptitle">PRODUCTION</div>
+        <button class="tool" data-add="m:smelter"><span class="g">▲</span>SMELTER</button>
+        <button class="tool" data-add="m:foundry"><span class="g">▲▲</span>FOUNDRY</button>
+        <button class="tool" data-add="m:constructor"><span class="g">□</span>CONSTRUCTOR</button>
+        <button class="tool" data-add="m:assembler"><span class="g">◫</span>ASSEMBLER</button>
+        <button class="tool" data-add="m:manufacturer"><span class="g">▦</span>MANUFACTURER</button>
+        <button class="tool" data-add="m:refinery"><span class="g">◎</span>REFINERY</button>
+      </div>
+      <div class="psec">
+        <div class="ptitle">LOGISTICS</div>
+        <button class="tool" data-add="split"><span class="g">⋔</span>SPLITTER</button>
+        <button class="tool" data-add="merge"><span class="g">⋎</span>MERGER</button>
+        <button class="tool" data-add="store"><span class="g">▢</span>STORAGE</button>
+        <button class="tool" data-add="truck"><span class="g">▣</span>TRUCK STATION</button>
+        <button class="tool" data-add="train"><span class="g">═</span>TRAIN STATION</button>
+        <button class="tool" data-add="sink"><span class="g">◉</span>SINK / OUTPUT</button>
+      </div>
+      <div class="psec">
+        <div class="ptitle">ANNOTATE</div>
+        <button class="tool" data-add="anno:text"><span class="g">T</span>TEXT LABEL</button>
+        <button class="tool" data-add="anno:line"><span class="g">┊</span>DIVIDER LINE</button>
+      </div>
+      <div class="psec">
+        <button class="tool" id="btnCustom"><span class="g">+</span>CUSTOM RECIPE</button>
+      </div>
+      </div>
+      <div id="palResize" title="drag to resize · double-click to reset"></div>
+      <div class="psec" style="flex:1;display:flex;flex-direction:column;min-height:110px;border-bottom:none">
+        <div class="ptitle">DIAGNOSTICS <span class="n" id="wcount"></span></div>
+        <div class="pscroll" id="wlist"></div>
+      </div>
+    </aside>
+
+    <div id="viewport">
+      <div id="grid"></div>
+      <div id="marq"></div>
+      <div id="world">
+        <svg id="edgesvg" width="10" height="10"></svg>
+        <div id="nodes"></div>
+        <div id="elabels"></div>
+        <div id="annos"></div>
+      </div>
+    </div>
+
+    <aside class="panel" id="rpanel">
+      <div id="insp"></div>
+      <div class="psec" style="border-top:1px solid var(--line);border-bottom:none">
+        <div class="ptitle">BLUEPRINTS <span class="n" id="bpcount"></span></div>
+        <div id="bplist" style="max-height:190px;overflow-y:auto"></div>
+      </div>
+    </aside>
+  </div>
+
+  <footer id="ftr"><span class="lead">NET&nbsp;//</span><span id="ticker">—</span></footer>
+</div>
+
+<div id="modal"><div id="mbox">
+  <div class="mh"><b id="mtitle">—</b><button id="mclose">ESC</button></div>
+  <div class="mc" id="mbody"></div>
+</div></div>
+<div id="toast"></div>
+<input type="file" id="fileInput" accept=".json" style="display:none">
+<input type="file" id="savInput" accept=".sav" style="display:none">
+
+<script>
+"use strict";
+/* ════════════════════════════════════════════════════════════
+   GAME DATA — Satisfactory 1.0, standard recipes.
+   All rates are items (or m³) PER MINUTE at 100% clock.
+   Verified against satisfactory.wiki.gg (July 2026).
+   ════════════════════════════════════════════════════════════ */
+const EPS = 1e-6;   // math tolerance
+const TOL = 1e-3;   // user-facing diagnostics tolerance (items/min)
+const PWR_EXP = Math.log(2.5)/Math.log(2); // 1.321928… power = base × clock^exp
+
+const FLUIDS = new Set(["water","crude_oil","heavy_oil_residue","fuel","alumina_solution","sulfuric_acid"]);
+const ORES = ["iron_ore","copper_ore","limestone","coal","caterium_ore","raw_quartz","sulfur","bauxite"];
+
+const ITEM_NAMES = {
+  iron_ore:"Iron Ore", copper_ore:"Copper Ore", limestone:"Limestone", coal:"Coal",
+  caterium_ore:"Caterium Ore", raw_quartz:"Raw Quartz", sulfur:"Sulfur", bauxite:"Bauxite",
+  crude_oil:"Crude Oil", water:"Water",
+  iron_ingot:"Iron Ingot", copper_ingot:"Copper Ingot", steel_ingot:"Steel Ingot",
+  caterium_ingot:"Caterium Ingot", aluminum_ingot:"Aluminum Ingot", aluminum_scrap:"Aluminum Scrap",
+  iron_plate:"Iron Plate", iron_rod:"Iron Rod", screw:"Screw", wire:"Wire", cable:"Cable",
+  copper_sheet:"Copper Sheet", concrete:"Concrete", steel_beam:"Steel Beam", steel_pipe:"Steel Pipe",
+  quickwire:"Quickwire", quartz_crystal:"Quartz Crystal", silica:"Silica",
+  reinforced_iron_plate:"Reinforced Iron Plate", rotor:"Rotor", stator:"Stator", motor:"Motor",
+  smart_plating:"Smart Plating", modular_frame:"Modular Frame", versatile_framework:"Versatile Framework",
+  automated_wiring:"Automated Wiring", circuit_board:"Circuit Board",
+  encased_industrial_beam:"Encased Industrial Beam", ai_limiter:"AI Limiter",
+  alclad_aluminum_sheet:"Alclad Aluminum Sheet",
+  heavy_modular_frame:"Heavy Modular Frame", computer:"Computer", crystal_oscillator:"Crystal Oscillator",
+  high_speed_connector:"High-Speed Connector", modular_engine:"Modular Engine",
+  adaptive_control_unit:"Adaptive Control Unit",
+  plastic:"Plastic", rubber:"Rubber", heavy_oil_residue:"Heavy Oil Residue", fuel:"Fuel",
+  polymer_resin:"Polymer Resin", petroleum_coke:"Petroleum Coke", alumina_solution:"Alumina Solution",
+  sulfuric_acid:"Sulfuric Acid", black_powder:"Black Powder", smokeless_powder:"Smokeless Powder",
+};
+function itemName(id){ return ITEM_NAMES[id] || id.replace(/_/g," ").replace(/\b\w/g,c=>c.toUpperCase()); }
+
+const BUILDINGS = {
+  smelter:{name:"Smelter",power:4}, foundry:{name:"Foundry",power:16},
+  constructor:{name:"Constructor",power:4}, assembler:{name:"Assembler",power:15},
+  manufacturer:{name:"Manufacturer",power:55}, refinery:{name:"Refinery",power:30},
+};
+const EXTRACTORS = {
+  mk1:{name:"Miner Mk.1",power:5, rates:{impure:30, normal:60, pure:120}},
+  mk2:{name:"Miner Mk.2",power:15,rates:{impure:60, normal:120,pure:240}},
+  mk3:{name:"Miner Mk.3",power:45,rates:{impure:120,normal:240,pure:480}},
+  oil:{name:"Oil Extractor",power:40,rates:{impure:60,normal:120,pure:240}},
+  water:{name:"Water Extractor",power:20,rates:{normal:120}},
+};
+const LINKS = [
+  {id:"b1",label:"BELT MK.1",cap:60},  {id:"b2",label:"BELT MK.2",cap:120},
+  {id:"b3",label:"BELT MK.3",cap:270}, {id:"b4",label:"BELT MK.4",cap:480},
+  {id:"b5",label:"BELT MK.5",cap:780}, {id:"b6",label:"BELT MK.6",cap:1200},
+  {id:"p1",label:"PIPE MK.1",cap:300}, {id:"p2",label:"PIPE MK.2",cap:600},
+];
+const LINK_BY_ID = Object.fromEntries(LINKS.map(l=>[l.id,l]));
+
+/* Recipes: rates per minute per machine at 100%. */
+const BASE_RECIPES = [
+ // — SMELTER —
+ {id:"iron_ingot",b:"smelter",in:{iron_ore:30},out:{iron_ingot:30}},
+ {id:"copper_ingot",b:"smelter",in:{copper_ore:30},out:{copper_ingot:30}},
+ {id:"caterium_ingot",b:"smelter",in:{caterium_ore:45},out:{caterium_ingot:15}},
+ // — FOUNDRY —
+ {id:"steel_ingot",b:"foundry",in:{iron_ore:45,coal:45},out:{steel_ingot:45}},
+ {id:"aluminum_ingot",b:"foundry",in:{aluminum_scrap:90,silica:75},out:{aluminum_ingot:60}},
+ // — CONSTRUCTOR —
+ {id:"iron_plate",b:"constructor",in:{iron_ingot:30},out:{iron_plate:20}},
+ {id:"iron_rod",b:"constructor",in:{iron_ingot:15},out:{iron_rod:15}},
+ {id:"screw",b:"constructor",in:{iron_rod:10},out:{screw:40}},
+ {id:"wire",b:"constructor",in:{copper_ingot:15},out:{wire:30}},
+ {id:"cable",b:"constructor",in:{wire:60},out:{cable:30}},
+ {id:"copper_sheet",b:"constructor",in:{copper_ingot:20},out:{copper_sheet:10}},
+ {id:"concrete",b:"constructor",in:{limestone:45},out:{concrete:15}},
+ {id:"steel_beam",b:"constructor",in:{steel_ingot:60},out:{steel_beam:15}},
+ {id:"steel_pipe",b:"constructor",in:{steel_ingot:30},out:{steel_pipe:20}},
+ {id:"quickwire",b:"constructor",in:{caterium_ingot:12},out:{quickwire:60}},
+ {id:"quartz_crystal",b:"constructor",in:{raw_quartz:37.5},out:{quartz_crystal:22.5}},
+ {id:"silica",b:"constructor",in:{raw_quartz:22.5},out:{silica:37.5}},
+ // — ASSEMBLER —
+ {id:"reinforced_iron_plate",b:"assembler",in:{iron_plate:30,screw:60},out:{reinforced_iron_plate:5}},
+ {id:"rotor",b:"assembler",in:{iron_rod:20,screw:100},out:{rotor:4}},
+ {id:"stator",b:"assembler",in:{steel_pipe:15,wire:40},out:{stator:5}},
+ {id:"motor",b:"assembler",in:{rotor:10,stator:10},out:{motor:5}},
+ {id:"smart_plating",b:"assembler",in:{reinforced_iron_plate:2,rotor:2},out:{smart_plating:2}},
+ {id:"modular_frame",b:"assembler",in:{reinforced_iron_plate:3,iron_rod:12},out:{modular_frame:2}},
+ {id:"versatile_framework",b:"assembler",in:{modular_frame:2.5,steel_beam:30},out:{versatile_framework:5}},
+ {id:"automated_wiring",b:"assembler",in:{stator:2.5,cable:50},out:{automated_wiring:2.5}},
+ {id:"circuit_board",b:"assembler",in:{copper_sheet:15,plastic:30},out:{circuit_board:7.5}},
+ {id:"encased_industrial_beam",b:"assembler",in:{steel_beam:18,concrete:36},out:{encased_industrial_beam:6}},
+ {id:"ai_limiter",b:"assembler",in:{copper_sheet:25,quickwire:100},out:{ai_limiter:5}},
+ {id:"alclad_aluminum_sheet",b:"assembler",in:{aluminum_ingot:30,copper_ingot:10},out:{alclad_aluminum_sheet:30}},
+ // — MANUFACTURER —
+ {id:"heavy_modular_frame",b:"manufacturer",in:{modular_frame:10,steel_pipe:40,encased_industrial_beam:10,screw:240},out:{heavy_modular_frame:2}},
+ {id:"computer",b:"manufacturer",in:{circuit_board:10,cable:20,plastic:40},out:{computer:2.5}},
+ {id:"crystal_oscillator",b:"manufacturer",in:{quartz_crystal:18,cable:14,reinforced_iron_plate:2.5},out:{crystal_oscillator:1}},
+ {id:"high_speed_connector",b:"manufacturer",in:{quickwire:210,cable:37.5,circuit_board:3.75},out:{high_speed_connector:3.75}},
+ {id:"modular_engine",b:"manufacturer",in:{motor:2,rubber:15,smart_plating:2},out:{modular_engine:1}},
+ {id:"adaptive_control_unit",b:"manufacturer",in:{automated_wiring:5,circuit_board:5,heavy_modular_frame:1,computer:2},out:{adaptive_control_unit:1}},
+ // — REFINERY —
+ {id:"plastic",b:"refinery",in:{crude_oil:30},out:{plastic:20,heavy_oil_residue:10}},
+ {id:"rubber",b:"refinery",in:{crude_oil:30},out:{rubber:20,heavy_oil_residue:20}},
+ {id:"fuel",b:"refinery",in:{crude_oil:60},out:{fuel:40,polymer_resin:30}},
+ {id:"petroleum_coke",b:"refinery",in:{heavy_oil_residue:40},out:{petroleum_coke:120}},
+ {id:"residual_fuel",b:"refinery",in:{heavy_oil_residue:60},out:{fuel:40}},
+ {id:"residual_plastic",b:"refinery",in:{polymer_resin:60,water:20},out:{plastic:20}},
+ {id:"residual_rubber",b:"refinery",in:{polymer_resin:40,water:40},out:{rubber:20}},
+ {id:"alumina_solution",b:"refinery",in:{bauxite:120,water:180},out:{alumina_solution:120,silica:50}},
+ {id:"aluminum_scrap",b:"refinery",in:{alumina_solution:240,coal:120},out:{aluminum_scrap:360,water:120}},
+ {id:"sulfuric_acid",b:"refinery",in:{sulfur:50,water:50},out:{sulfuric_acid:50}},
+];
+function recipeName(r){ return itemName(r.id.replace(/^residual_/,"residual_")) && (r.name || itemName(Object.keys(r.out)[0])); }
+function allRecipes(){ return BASE_RECIPES.concat(state.customRecipes||[]); }
+function getRecipe(id){ return allRecipes().find(r=>r.id===id); }
+
+/* ════════════════════════════════════════════════════════════
+   STATE
+   ════════════════════════════════════════════════════════════ */
+const TYPE_META = {
+  res:  {prefix:"EXT", title:"EXTRACTOR"},
+  m:    {prefix:"",    title:"MACHINE"},
+  split:{prefix:"SPL", title:"SPLITTER"},
+  merge:{prefix:"MRG", title:"MERGER"},
+  store:{prefix:"STO", title:"STORAGE"},
+  truck:{prefix:"TRK", title:"TRUCK STATION"},
+  train:{prefix:"TRN", title:"TRAIN STATION"},
+  sink: {prefix:"OUT", title:"SINK / OUTPUT"},
+};
+const M_PREFIX = {smelter:"SML",foundry:"FND",constructor:"CON",assembler:"ASM",manufacturer:"MFR",refinery:"RFN"};
+const PASSTHRU = new Set(["split","merge","store","truck","train"]);
+const CAN_BUFFER = new Set(["store","truck","train"]);
+/* overflow targets (sinks + LOADING storages) only receive what machines don't take —
+   like a Smart Splitter set to Overflow */
+function isOverflowNode(n){ return !!n && (n.type==="sink" || (CAN_BUFFER.has(n.type)&&n.buffer===true)); }
+
+/* type colors — schematic layer tints */
+const COLORSET = [
+  {id:"amber",  name:"AMBER",  hex:"#ffc857"},
+  {id:"orange", name:"ORANGE", hex:"#ff9950"},
+  {id:"red",    name:"RED",    hex:"#ff6b6b"},
+  {id:"magenta",name:"MAGENTA",hex:"#e07ee0"},
+  {id:"violet", name:"VIOLET", hex:"#a58aff"},
+  {id:"blue",   name:"BLUE",   hex:"#6ba4ff"},
+  {id:"cyan",   name:"CYAN",   hex:"#5ad7e6"},
+  {id:"teal",   name:"TEAL",   hex:"#5ae6b8"},
+  {id:"green",  name:"GREEN",  hex:"#7ee081"},
+  {id:"lime",   name:"LIME",   hex:"#c8e07e"},
+  {id:"gray",   name:"GRAY",   hex:"#9aa0a8"},
+];
+const COLOR_HEX = Object.fromEntries(COLORSET.map(c=>[c.id,c.hex]));
+/* darker variants so tints hold contrast on the light ground */
+const COLOR_HEX_LIGHT = {amber:"#96700a",orange:"#b1560a",red:"#b32d2d",magenta:"#993299",violet:"#5b45c4",
+  blue:"#2160c4",cyan:"#0b7c92",teal:"#0e8a67",green:"#2c8a36",lime:"#63820c",gray:"#5a6068"};
+const THEME_KEY="tres-theme";
+function currentTheme(){ return document.documentElement.dataset.theme==="light"?"light":"dark"; }
+function themedHex(cid){
+  if(!cid) return null;
+  return currentTheme()==="light" ? (COLOR_HEX_LIGHT[cid]||COLOR_HEX[cid]) : COLOR_HEX[cid];
+}
+const COLOR_KEYS = [
+  {key:"extraction",  name:"EXTRACTION"},
+  {key:"smelter",     name:"SMELTER"},
+  {key:"foundry",     name:"FOUNDRY"},
+  {key:"constructor", name:"CONSTRUCTOR"},
+  {key:"assembler",   name:"ASSEMBLER"},
+  {key:"manufacturer",name:"MANUFACTURER"},
+  {key:"refinery",    name:"REFINERY"},
+  {key:"logistics",   name:"LOGISTICS"},
+  {key:"sink",        name:"SINK / OUTPUT"},
+];
+const AUTO_COLORS = {extraction:"amber",smelter:"orange",foundry:"red",constructor:"cyan",
+  assembler:"violet",manufacturer:"magenta",refinery:"teal",logistics:"gray",sink:"green"};
+function colorKey(n){ return n.type==="res"?"extraction" : n.type==="m"?n.mtype : n.type==="sink"?"sink":"logistics"; }
+function nodeColor(n){ return themedHex((state.colors||{})[colorKey(n)]); }
+function annoColor(a){ return themedHex(a.color); }
+
+let state = null;
+let sel = null;              // {kind:'node'|'edge'|'anno', id}
+let msel = {nodes:new Set(), annos:new Set()};   // shift multi-selection
+let view = {x:60,y:40,s:1};
+let lod = false;             // semantic-zoom simplified mode
+let undoStack = [];
+let CALC = null;             // last solve result
+let blueprints = [];         // saved reusable groups (own localStorage key)
+const sizeCache = {};        // nodeId -> {w,h}, measured on full render, reused in LOD
+const mselSize = ()=>msel.nodes.size+msel.annos.size;
+function clearMsel(){ msel.nodes.clear(); msel.annos.clear(); }
+
+function blankState(){
+  return {nodes:[],edges:[],annos:[],customRecipes:[],colors:{},seq:{},eseq:0,aseq:0,defaultLink:"b2"};
+}
+const clean=s=>String(s==null?"":s).replace(/[<>&"'`]/g,"").trim();
+function normalizeState(st){
+  st.annos=st.annos||[]; st.colors=st.colors||{}; st.customRecipes=st.customRecipes||[];
+  st.aseq=st.aseq||0; st.seq=st.seq||{}; st.eseq=st.eseq||0; st.defaultLink=st.defaultLink||"b2";
+  /* harden imported files: recipe names & item ids end up in innerHTML */
+  const cleanRates=o=>{ const r={};
+    for(const k in (o||{})){ const id=String(k).toLowerCase().replace(/[^a-z0-9_]/g,"_"); const v=+o[k];
+      if(id&&v>0&&isFinite(v)) r[id]=v; }
+    return r; };
+  st.customRecipes=st.customRecipes.filter(r=>r&&r.out).map(r=>({
+    id:String(r.id||"cr").replace(/[^\w-]/g,""),
+    name:clean(r.name||"CUSTOM"),
+    b:BUILDINGS[r.b]?r.b:"constructor",
+    in:cleanRates(r.in), out:cleanRates(r.out),
+  })).filter(r=>Object.keys(r.out).length);
+  return st;
+}
+function nid(type, mtype){
+  const pfx = type==="m" ? (M_PREFIX[mtype]||"MCH") : TYPE_META[type].prefix;
+  do{ state.seq[pfx] = (state.seq[pfx]||0)+1; }
+  while(state.nodes.some(n=>n.id===pfx+"-"+state.seq[pfx])); // survive hand-edited saves
+  return pfx+"-"+state.seq[pfx];
+}
+function nextEdgeId(){
+  do{ state.eseq++; } while(state.edges.some(e=>e.id==="E"+state.eseq));
+  return "E"+state.eseq;
+}
+function nextAnnoId(){
+  do{ state.aseq++; } while((state.annos||[]).some(a=>a.id==="A"+state.aseq));
+  return "A"+state.aseq;
+}
+function makeNode(type, opts={}){
+  const n = {id:nid(type,opts.mtype), type, x:opts.x||0, y:opts.y||0, label:opts.label||null};
+  if(type==="res"){
+    n.resource = opts.resource||"iron_ore";
+    n.extractor = opts.extractor||"mk1";
+    n.purity = opts.purity||"normal";
+    n.count = opts.count||1; n.clock = opts.clock||1; n.override = opts.override??null;
+  }else if(type==="m"){
+    n.mtype = opts.mtype||"smelter";
+    n.recipe = opts.recipe || allRecipes().find(r=>r.b===n.mtype).id;
+    n.count = opts.count||1; n.clock = opts.clock||1; n.override = opts.override??null;
+  }else if(CAN_BUFFER.has(type)){
+    n.buffer = opts.buffer??false;
+  }
+  state.nodes.push(n);
+  return n;
+}
+function makeEdge(from,to,link){
+  if(from===to) return null;
+  if(state.edges.some(e=>e.from===from&&e.to===to)) return null;
+  const src = getNode(from);
+  let lk = link || state.defaultLink;
+  if(!link && src){ // auto-pick pipe when the source emits fluids
+    const em = staticEmits(src);
+    if([...em].some(i=>FLUIDS.has(i))) lk = "p1";
+  }
+  const e = {id:nextEdgeId(), from, to, link:lk};
+  state.edges.push(e);
+  return e;
+}
+function makeAnno(kind,opts={}){
+  const a={id:nextAnnoId(),kind,x:opts.x||0,y:opts.y||0,color:opts.color||null};
+  if(kind==="text"){ a.text=opts.text||"SECTION"; a.size=opts.size||2; }
+  else{ a.orient=opts.orient||"v"; a.len=opts.len||480; }
+  state.annos.push(a);
+  return a;
+}
+function getAnno(id){ return (state.annos||[]).find(a=>a.id===id); }
+function getNode(id){ return state.nodes.find(n=>n.id===id); }
+function getEdge(id){ return state.edges.find(e=>e.id===id); }
+function delNode(id){
+  state.edges = state.edges.filter(e=>e.from!==id&&e.to!==id);
+  state.nodes = state.nodes.filter(n=>n.id!==id);
+}
+function staticEmits(n){
+  if(n.type==="res") return new Set([n.resource]);
+  if(n.type==="m"){ const r=getRecipe(n.recipe); return new Set(r?Object.keys(r.out):[]); }
+  return new Set(); // passthrough resolved in solve
+}
+
+/* ════════════════════════════════════════════════════════════
+   SOLVER — demand-driven steady-state flow.
+   Round = reverse demand sweep + forward supply sweep.
+   Machines always demand full input need; over-feed relative to
+   actual consumption is reported as backlog (belts back up in game).
+   ════════════════════════════════════════════════════════════ */
+function waterfill(amount, edges, capOf){
+  const alloc = new Map(edges.map(e=>[e.id,0]));
+  if(!(amount>EPS) || !edges.length) return alloc;
+  let remaining = amount;
+  let active = edges.filter(e=>capOf(e)>EPS);
+  let guard=0;
+  while(remaining>EPS && active.length && guard++<400){
+    const share = remaining===Infinity ? Infinity : remaining/active.length;
+    let given=0;
+    for(const e of active){
+      const room = capOf(e)-alloc.get(e.id);
+      const g = Math.min(share,room);
+      if(g>EPS){ alloc.set(e.id,alloc.get(e.id)+g); given+=g; }
+    }
+    if(remaining!==Infinity) remaining-=given;
+    active = active.filter(e=>capOf(e)-alloc.get(e.id)>EPS);
+    if(given<EPS) break;
+  }
+  return alloc;
+}
+function sumVals(o){ let s=0; for(const k in o) s+=o[k]; return s; }
+
+function resourceRate(n){
+  const ex = EXTRACTORS[n.extractor];
+  const base = ex.rates[n.purity] ?? ex.rates.normal;
+  return (n.override!=null && n.override>=0) ? n.override : base*n.count*n.clock;
+}
+/* machine spec: needs + potential outputs (before input limits) */
+function machineSpec(n){
+  const r = getRecipe(n.recipe);
+  if(!r) return {needs:{},outs:{},forced:false};
+  const primary = Object.keys(r.out)[0];
+  let f = n.count*n.clock, forced=false;
+  if(n.override!=null && n.override>=0){ f = n.override/r.out[primary]; forced=true; }
+  const needs={},outs={};
+  for(const k in r.in) needs[k]=r.in[k]*f;
+  for(const k in r.out) outs[k]=r.out[k]*f;
+  return {needs,outs,forced,recipe:r};
+}
+function nodePower(n){
+  if(n.type==="res") return EXTRACTORS[n.extractor].power * n.count * Math.pow(n.clock,PWR_EXP);
+  if(n.type==="m")   return BUILDINGS[n.mtype].power * n.count * Math.pow(n.clock,PWR_EXP);
+  return 0;
+}
+
+function solve(st){
+  const nodes = st.nodes, edges = st.edges;
+  const inE={},outE={};
+  for(const n of nodes){ inE[n.id]=[]; outE[n.id]=[]; }
+  for(const e of edges){
+    if(!inE[e.to]||!outE[e.from]) continue;
+    inE[e.to].push(e); outE[e.from].push(e);
+  }
+  const cap = e => LINK_BY_ID[e.link].cap;
+
+  /* --- static: which items can each node emit (fixpoint thru passthrough) --- */
+  const emits={};
+  for(const n of nodes) emits[n.id] = PASSTHRU.has(n.type)||n.type==="sink" ? new Set() : staticEmits(n);
+  let grew=true, gguard=0;
+  while(grew && gguard++<nodes.length+2){
+    grew=false;
+    for(const n of nodes){
+      if(!PASSTHRU.has(n.type)) continue;
+      for(const e of inE[n.id]) for(const it of emits[e.from])
+        if(!emits[n.id].has(it)){ emits[n.id].add(it); grew=true; }
+    }
+  }
+  const ePossible={}; for(const e of edges) ePossible[e.id]=emits[e.from];
+
+  /* --- topological order (Kahn) --- */
+  const indeg={}; for(const n of nodes) indeg[n.id]=0;
+  for(const e of edges) if(indeg[e.to]!=null) indeg[e.to]++;
+  const order=[]; const q=nodes.filter(n=>indeg[n.id]===0).map(n=>n.id);
+  const indg={...indeg};
+  while(q.length){ const id=q.shift(); order.push(id);
+    for(const e of outE[id]) if(--indg[e.to]===0) q.push(e.to); }
+  const cyclic = order.length<nodes.length;
+  if(cyclic) for(const n of nodes) if(!order.includes(n.id)) order.push(n.id);
+  const rev=[...order].reverse();
+  let depth=0; { const d={}; for(const id of order){ d[id]=0;
+    for(const e of inE[id]) if(d[e.from]!=null) d[id]=Math.max(d[id],d[e.from]+1); depth=Math.max(depth,d[id]); } }
+  const rounds = cyclic ? 200 : Math.max(60, depth+8); // geometric convergence → run to FP floor
+
+  /* --- iterate --- */
+  const flow={}, dem={}, surplus={};
+  for(const e of edges) flow[e.id]={};
+  for(const n of nodes) surplus[n.id]={};
+  const nodeById={}; for(const n of nodes) nodeById[n.id]=n;
+  const recvMap={}, outMap={}, effMap={};
+
+  const demandOf = (id)=>{ // what node id wants to pull, or 'ALL'
+    const n=nodeById[id];
+    if(n.type==="m"){ const s=machineSpec(n); return {mode:"items",items:s.needs}; }
+    if(n.type==="sink") return {mode:"all"};
+    if(PASSTHRU.has(n.type)){
+      if(CAN_BUFFER.has(n.type)&&n.buffer) return {mode:"all"};
+      const items={};
+      for(const e of outE[id]) for(const it in dem[e.id]||{}) items[it]=(items[it]||0)+dem[e.id][it];
+      return {mode:"items",items};
+    }
+    return null;
+  };
+
+  for(let r=0;r<rounds;r++){
+    const prevFlow={}; for(const e of edges) prevFlow[e.id]={...flow[e.id]};
+    /* reverse: assign per-edge demand */
+    for(const id of rev){
+      const ins=inE[id]; if(!ins.length) continue;
+      for(const e of ins) dem[e.id]={};
+      const spec=demandOf(id); if(!spec) continue;
+      let items;
+      if(spec.mode==="all"){ items=new Set(); for(const e of ins) for(const it of ePossible[e.id]) items.add(it); }
+      else items=new Set(Object.keys(spec.items));
+      /* Demand is a per-item upper bound capped at each link's tier; actual
+         belt sharing across items is enforced in the forward pass. */
+      for(const it of [...items].sort()){
+        const target = spec.mode==="all" ? Infinity : spec.items[it];
+        if(!(target>EPS)) continue;
+        const elig = ins.filter(e=>ePossible[e.id].has(it));
+        if(!elig.length) continue;
+        // tier 1: prefer routes with demonstrated supply (prev round flow + source leftover)
+        const avail = e => (flow[e.id][it]||0) + (surplus[e.from][it]||0);
+        const a1 = waterfill(target, elig, e=>Math.min(cap(e), avail(e)));
+        let got=0; for(const e of elig){ dem[e.id][it]=a1.get(e.id)||0; got+=dem[e.id][it]; }
+        let rem = target===Infinity?Infinity:target-got;
+        if(rem>EPS){
+          const a2 = waterfill(rem, elig, e=>cap(e)-(dem[e.id][it]||0));
+          for(const e of elig) dem[e.id][it]+=a2.get(e.id)||0;
+        }
+      }
+    }
+    /* forward: produce + distribute */
+    for(const id of order){
+      const n=nodeById[id];
+      const recv={};
+      for(const e of inE[id]) for(const it in flow[e.id]) recv[it]=(recv[it]||0)+flow[e.id][it];
+      recvMap[id]=recv;
+      let out={};
+      if(n.type==="res"){ out={[n.resource]:resourceRate(n)}; effMap[id]=1; }
+      else if(n.type==="m"){
+        const s=machineSpec(n);
+        let eff=1;
+        for(const it in s.needs) if(s.needs[it]>EPS) eff=Math.min(eff,(recv[it]||0)/s.needs[it]);
+        if(Object.keys(s.needs).length===0) eff=1;
+        eff=Math.max(0,Math.min(1,eff));
+        effMap[id]=eff;
+        const scale = s.forced ? 1 : eff;
+        for(const it in s.outs) out[it]=s.outs[it]*scale;
+      }
+      else if(PASSTHRU.has(n.type)){ out={...recv}; effMap[id]=1; }
+      else { out={}; effMap[id]=1; } // sink
+      outMap[id]=out;
+      surplus[id]={};
+      const capLeft=new Map(outE[id].map(e=>[e.id,cap(e)]));
+      for(const e of outE[id]) flow[e.id]={};
+      for(const it of Object.keys(out).sort()){
+        const elig = outE[id].filter(e=>(dem[e.id]&&dem[e.id][it]>EPS));
+        /* consumers first; sinks + LOADING storages are overflow and take the rest */
+        const prim = elig.filter(e=>!isOverflowNode(nodeById[e.to]));
+        const ovf  = elig.filter(e=> isOverflowNode(nodeById[e.to]));
+        let shipped=0;
+        const give=(edges,amount)=>{
+          const alloc=waterfill(amount, edges, e=>Math.min(capLeft.get(e.id), dem[e.id][it]));
+          for(const e of edges){ const a=alloc.get(e.id)||0;
+            if(a>EPS) flow[e.id][it]=(flow[e.id][it]||0)+a;
+            shipped+=a; capLeft.set(e.id,Math.max(0,capLeft.get(e.id)-a)); }
+        };
+        give(prim, out[it]);
+        if(out[it]-shipped>EPS) give(ovf, out[it]-shipped);
+        const left=out[it]-shipped;
+        if(left>EPS) surplus[id][it]=left;
+      }
+    }
+    /* converged? */
+    let delta=0;
+    for(const e of edges){
+      const a=prevFlow[e.id],b=flow[e.id];
+      for(const it in b) delta=Math.max(delta,Math.abs((b[it]||0)-(a[it]||0)));
+      for(const it in a) if(!(it in b)) delta=Math.max(delta,a[it]);
+    }
+    if(delta<1e-9 && r>=2) break;
+  }
+
+  /* --- metrics + diagnostics --- */
+  const nodeCalc={}, edgeCalc={};
+  const warns=[]; // {cls:'alert'|'cap', nodeId?|edgeId?, msg}
+  const totals={power:0,machines:0,supply:{},used:{},sunk:{},untapped:{}};
+  const add=(o,k,v)=>{ if(v>EPS) o[k]=(o[k]||0)+v; };
+
+  if(cyclic) warns.push({cls:"alert",msg:"LOOP DETECTED — flows are an iterative approximation"});
+
+  for(const e of edges){
+    const f=flow[e.id]||{}; const tot=sumVals(f);
+    const util = tot/cap(e);
+    edgeCalc[e.id]={items:f,total:tot,cap:cap(e),util};
+  }
+  for(const n of nodes){
+    const recv=recvMap[n.id]||{}, out=outMap[n.id]||{}, sur=surplus[n.id]||{};
+    const shippedOf = it => (out[it]||0)-(sur[it]||0);
+    const c={recv,out,surplus:sur,eff:effMap[n.id]??1,power:nodePower(n),warn:false,cap:false};
+    const W=(cls,msg)=>{ warns.push({cls,nodeId:n.id,msg}); if(cls==="alert")c.warn=true; else c.cap=true; };
+
+    if(n.type==="res"){
+      totals.power+=c.power; totals.machines+=n.count;
+      const pot=resourceRate(n), shipped=shippedOf(n.resource);
+      c.potential=pot; c.shipped=shipped;
+      add(totals.supply,n.resource,shipped);
+      add(totals.untapped,n.resource,pot-shipped);
+      if(pot-shipped>TOL) W("cap",`${n.id} · +${fmt(pot-shipped)}/min ${itemName(n.resource)} untapped`);
+    }
+    else if(n.type==="m"){
+      totals.power+=c.power; totals.machines+=n.count;
+      const s=machineSpec(n); c.spec=s;
+      const consumed={}; for(const it in s.needs){ consumed[it]=Math.min(recv[it]||0, s.needs[it]*(s.forced?1:c.eff)); }
+      c.consumed=consumed;
+      for(const it in consumed) add(totals.used,it,consumed[it]);
+      for(const it in out) add(totals.supply,it,out[it]);
+      const hasIn = inE[n.id].length>0;
+      if(c.eff<1-1e-4 && !s.forced){
+        const shorts=[];
+        for(const it in s.needs){ const short=s.needs[it]-(recv[it]||0);
+          if(short>TOL && Math.abs((recv[it]||0)/s.needs[it]-c.eff)<1e-4) shorts.push(`${fmt(short)}/min ${itemName(it)}`); }
+        W("alert",`${n.id} · ${Math.round(c.eff*100)}% — short ${shorts.join(", ")||"input"}${hasIn?"":" (nothing connected)"}`);
+      }
+      if(s.forced){
+        c.forcedShort = Object.keys(s.needs).some(it=>s.needs[it]-(recv[it]||0)>TOL);
+        if(c.forcedShort) W("alert",`${n.id} · FORCED rate exceeds supplied inputs`);
+      }
+      for(const it in recv){
+        const over=recv[it]-(consumed[it]||0);
+        if(over>TOL && s.needs[it]) W("alert",`${n.id} · +${fmt(over)}/min ${itemName(it)} over-fed (belt will back up)`);
+        else if(over>TOL && !s.needs[it]) W("alert",`${n.id} · receiving ${itemName(it)} — not used by this recipe`);
+      }
+      for(const it in sur) if(sur[it]>TOL) W("cap",`${n.id} · ${fmt(sur[it])}/min ${itemName(it)} unconsumed at output`);
+    }
+    else if(PASSTHRU.has(n.type)){
+      const fwd={}; for(const e of outE[n.id]) for(const it in flow[e.id]) fwd[it]=(fwd[it]||0)+flow[e.id][it];
+      c.thru=recv; c.fwd=fwd;
+      const held={}; for(const it in recv){ const h=recv[it]-(fwd[it]||0); if(h>EPS) held[it]=h; }
+      c.held=held;
+      if(CAN_BUFFER.has(n.type)&&n.buffer){ for(const it in held) add(totals.sunk,it,held[it]); }
+      else for(const it in held) if(held[it]>TOL) W("cap",`${n.id} · ${fmt(held[it])}/min ${itemName(it)} blocked (no downstream demand)`);
+      if(n.type==="split"&&outE[n.id].length>3) W("alert",`${n.id} · ${outE[n.id].length} outputs — game splitter has 3`);
+      if(n.type==="merge"&&inE[n.id].length>3) W("alert",`${n.id} · ${inE[n.id].length} inputs — game merger has 3`);
+      if(n.type==="split"&&inE[n.id].length>1) W("alert",`${n.id} · splitter takes 1 input`);
+      if(n.type==="merge"&&outE[n.id].length>1) W("alert",`${n.id} · merger has 1 output`);
+    }
+    else if(n.type==="sink"){
+      c.absorbed=recv;
+      for(const it in recv) add(totals.sunk,it,recv[it]);
+    }
+    nodeCalc[n.id]=c;
+  }
+  /* belt saturation that actually binds */
+  for(const e of edges){
+    const ec=edgeCalc[e.id];
+    if(ec.util>=0.999){
+      const srcSur=surplus[e.from]||{};
+      const binds=Object.keys(ec.items).some(it=>srcSur[it]>EPS) ||
+        (nodeById[e.to].type==="m" && (nodeCalc[e.to].eff<1-EPS));
+      ec.sat=true;
+      if(binds){ ec.binding=true;
+        warns.push({cls:"alert",edgeId:e.id,msg:`${e.id} · ${LINK_BY_ID[e.link].label} saturated at ${ec.cap}/min — upgrade link`});
+        }
+    }
+    if(Object.keys(ec.items).length>1) ec.mixed=true;
+  }
+  const free={};
+  for(const it in totals.supply){
+    const f=totals.supply[it]-(totals.used[it]||0)-(totals.sunk[it]||0);
+    if(f>TOL) free[it]=f;
+  }
+  totals.free=free;
+  return {nodeCalc,edgeCalc,warns,totals,cyclic};
+}
+
+/* ════════════════════════════════════════════════════════════
+   FORMATTING
+   ════════════════════════════════════════════════════════════ */
+function fmt(v){
+  if(v==null||isNaN(v)) return "0";
+  const r=Math.round(v*100)/100;
+  return (Math.abs(r-Math.round(r))<1e-9? Math.round(r) : r).toString();
+}
+function esc(s){ return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+
+/* ════════════════════════════════════════════════════════════
+   PERSISTENCE / HISTORY
+   ════════════════════════════════════════════════════════════ */
+const LS_KEY="tres-factory-v1";
+let saveTimer=null;
+function persist(){
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(()=>{ try{ localStorage.setItem(LS_KEY, JSON.stringify({state,view})); }catch(_){}} ,250);
+}
+function snapshot(){ undoStack.push(JSON.stringify(state)); if(undoStack.length>60) undoStack.shift(); }
+function undo(){
+  if(!undoStack.length) return;
+  state=normalizeState(JSON.parse(undoStack.pop()));
+  if(sel&&sel.kind==="node"&&!getNode(sel.id)) sel=null;
+  if(sel&&sel.kind==="edge"&&!getEdge(sel.id)) sel=null;
+  if(sel&&sel.kind==="anno"&&!getAnno(sel.id)) sel=null;
+  refresh(); toast("UNDO");
+}
+function commit(){ refresh(); persist(); }
+
+/* ════════════════════════════════════════════════════════════
+   DEMO — Tres's starter iron line
+   ════════════════════════════════════════════════════════════ */
+/* Demo: Tres's own "Tier 2/3 Starter Base" arrangement (their layout export,
+   2026-07-18) — Smart Plating 10/min + wire/cable/concrete stock. Positions and
+   annotations verbatim from their file; wire & cable storages added so no
+   output runs FREE. Every machine 100%, zero warnings. */
+const DEMO_STATE=(()=>{
+  const R=(id,x,y,label,resource,clock=1)=>({id,type:"res",x,y,label,resource,extractor:"mk1",purity:"normal",count:1,clock,override:null});
+  const M=(id,x,y,label,mtype,recipe,count=1,clock=1)=>({id,type:"m",x,y,label,mtype,recipe,count,clock,override:null});
+  const S=(id,x,y,label)=>({id,type:"store",x,y,label,buffer:true});
+  return {
+    nodes:[
+      R("EXT-1",40,60,"IRON NODE 1","iron_ore"),
+      R("EXT-2",40,260,"IRON NODE 2","iron_ore",.875),
+      R("EXT-3",40,490,"IRON NODE 3","iron_ore"),
+      R("EXT-4",40,690,"IRON NODE 4","iron_ore"),
+      {id:"MRG-1",type:"merge",x:740,y:188,label:"MERGE IRON A"},
+      M("SML-1",1552,94,"SMELTER BANK A","smelter","iron_ingot",3),
+      M("SML-2",1552,484,"SMELTER BANK B","smelter","iron_ingot",4),
+      M("SML-3",1548,336,"SMELTER TOP-UP","smelter","iron_ingot",1,.75),
+      M("CON-1",2664,-228,"PLATE BANK","constructor","iron_plate",3),
+      M("CON-2",2220,756,"ROD BANK","constructor","iron_rod",10,.95),
+      M("CON-3",2664,-48,"SCREW BANK","constructor","screw",10,.925),
+      M("ASM-1",3672,-36,"RIP BANK","assembler","reinforced_iron_plate",2),
+      M("ASM-2",3672,264,"ROTOR A","assembler","rotor"),
+      M("ASM-3",3672,528,"ROTOR B","assembler","rotor"),
+      M("ASM-4",3672,742,"ROTOR C","assembler","rotor",1,.5),
+      M("ASM-5",4404,252,"SMART PLATING BANK","assembler","smart_plating",5),
+      S("STO-1",4908,264,"ELEVATOR STOCKPILE"),
+      R("EXT-5",40,1060,"COPPER NODE 1","copper_ore"),
+      R("EXT-6",40,1260,"COPPER NODE 2","copper_ore"),
+      {id:"MRG-2",type:"merge",x:644,y:1160,label:"MERGE COPPER"},
+      M("SML-4",1164,1128,"SMELTER BANK CU","smelter","copper_ingot",4),
+      M("CON-4",1704,1116,"WIRE BANK","constructor","wire",8),
+      M("CON-5",2580,1116,"CABLE BANK","constructor","cable",2),
+      S("STO-10",2160,1368,"WIRE STOCK"),
+      S("STO-11",3060,1128,"CABLE STOCK"),
+      R("EXT-7",36,1548,"LIMESTONE NODE 1","limestone",.75),
+      R("EXT-8",36,1764,"LIMESTONE NODE 2","limestone",.75),
+      {id:"MRG-3",type:"merge",x:516,y:1632,label:"MERGE LIMESTONE"},
+      M("CON-6",912,1620,"CONCRETE BANK","constructor","concrete",2),
+      S("STO-4",1416,1632,"CONCRETE STOCK"),
+    ],
+    edges:[
+      ["E1","EXT-1","MRG-1"],["E2","EXT-2","MRG-1"],["E3","EXT-2","SML-3"],
+      ["E4","EXT-3","SML-2"],["E5","EXT-4","SML-2"],["E6","MRG-1","SML-1"],
+      ["E7","SML-1","CON-1"],["E8","SML-2","CON-2"],["E9","SML-3","CON-2"],
+      ["E10","CON-2","CON-3"],["E11","CON-2","ASM-2"],["E12","CON-2","ASM-3"],["E13","CON-2","ASM-4"],
+      ["E14","CON-1","ASM-1"],["E15","CON-3","ASM-1"],["E16","CON-3","ASM-2"],
+      ["E17","CON-3","ASM-3"],["E18","CON-3","ASM-4"],
+      ["E19","ASM-1","ASM-5"],["E20","ASM-2","ASM-5"],["E21","ASM-3","ASM-5"],["E22","ASM-4","ASM-5"],
+      ["E23","ASM-5","STO-1"],
+      ["E24","EXT-5","MRG-2"],["E25","EXT-6","MRG-2"],["E26","MRG-2","SML-4"],["E27","SML-4","CON-4"],
+      ["E38","CON-4","CON-5"],["E44","CON-4","STO-10"],["E45","CON-5","STO-11"],
+      ["E31","EXT-7","MRG-3"],["E32","EXT-8","MRG-3"],["E33","MRG-3","CON-6"],["E34","CON-6","STO-4"],
+    ].map(([id,from,to])=>({id,from,to,link:"b2"})),
+    annos:[
+      {id:"A1",kind:"text",x:40,y:-170,color:null,text:"TIER 2/3 STARTER BASE",size:3},
+      {id:"A2",kind:"text",x:40,y:-90,color:"orange",text:"IRON — SMART PLATING 10/MIN",size:2},
+      {id:"A3",kind:"text",x:40,y:960,color:"amber",text:"COPPER — WIRE + CABLE",size:2},
+      {id:"A4",kind:"text",x:40,y:1460,color:"gray",text:"LIMESTONE — CONCRETE",size:2},
+      {id:"A6",kind:"line",x:24,y:1416,color:"gray",orient:"h",len:2560},
+      {id:"A7",kind:"line",x:20,y:1500,color:"gray",orient:"h",len:2560},
+      {id:"A8",kind:"text",x:1620,y:24,color:"orange",text:"smelt",size:2},
+      {id:"A9",kind:"text",x:1248,y:1044,color:"orange",text:"smelt",size:2},
+      {id:"A10",kind:"text",x:48,y:-120,color:null,text:"COORDINATES: -533, 2026",size:1},
+      {id:"A11",kind:"text",x:1764,y:1068,color:"cyan",text:"wire",size:2},
+      {id:"A12",kind:"text",x:2640,y:1080,color:"cyan",text:"cable",size:2},
+      {id:"A13",kind:"text",x:2292,y:708,color:"cyan",text:"rod",size:2},
+      {id:"A14",kind:"text",x:2712,y:-276,color:"cyan",text:"plates",size:2},
+      {id:"A15",kind:"text",x:2724,y:-96,color:"cyan",text:"screws",size:2},
+      {id:"A16",kind:"text",x:3612,y:-72,color:"violet",text:"reinforced iron plates",size:2},
+      {id:"A17",kind:"text",x:3708,y:228,color:"violet",text:"rotors",size:2},
+      {id:"A18",kind:"text",x:4416,y:204,color:"violet",text:"smart plates",size:2},
+    ],
+    customRecipes:[],
+    colors:{extraction:"amber",smelter:"orange",foundry:"red",constructor:"cyan",
+      assembler:"violet",manufacturer:"magenta",refinery:"teal",logistics:"gray",sink:"green"},
+    seq:{EXT:8,MRG:4,SML:4,CON:6,ASM:5,STO:11,SPL:1},
+    eseq:45,aseq:18,defaultLink:"b2",
+  };
+})();
+function buildDemo(){
+  state=normalizeState(JSON.parse(JSON.stringify(DEMO_STATE)));
+  return state;
+}
+
+/* ════════════════════════════════════════════════════════════
+   RENDER
+   ════════════════════════════════════════════════════════════ */
+const $=id=>document.getElementById(id);
+const worldEl=$("world"), nodesEl=$("nodes"), svg=$("edgesvg"), labelsEl=$("elabels"), vp=$("viewport");
+
+function applyView(){
+  worldEl.style.transform=`translate(${view.x}px,${view.y}px) scale(${view.s})`;
+  const g=$("grid"), sz=24*view.s, SZ=120*view.s;
+  const minor = sz>=7; // drop the fine grid when cells collapse to noise
+  const gl=(c)=>`linear-gradient(var(${c}) 1px,transparent 1px),linear-gradient(90deg,var(${c}) 1px,transparent 1px)`;
+  g.style.backgroundImage=(minor?gl("--gridline")+",":"")+gl("--gridline2");
+  g.style.backgroundSize=(minor?`${sz}px ${sz}px,${sz}px ${sz}px,`:"")+`${SZ}px ${SZ}px,${SZ}px ${SZ}px`;
+  g.style.backgroundPosition=`${view.x}px ${view.y}px`;
+  updateLOD();
+}
+/* semantic zoom with hysteresis: enter simplified view below 0.26, leave above 0.32 */
+function updateLOD(){
+  const was=lod;
+  if(lod){ if(view.s>0.32) lod=false; }
+  else if(view.s<0.26) lod=true;
+  // keep belts readable when far out: aim for ~2.2px on screen
+  svg.style.setProperty("--esw", lod?(2.2/view.s).toFixed(2)+"px":"1.4px");
+  svg.style.setProperty("--ehw", lod?Math.min(200,10/view.s).toFixed(2)+"px":"14px");
+  if(was!==lod){
+    worldEl.classList.toggle("lod",lod);
+    renderNodes(); renderEdges(); renderAnnos();
+  }
+}
+function nodeSize(id){
+  if(sizeCache[id]) return sizeCache[id];
+  const el=nodesEl.querySelector(`[data-id="${id}"]`);
+  return el?{w:el.offsetWidth,h:el.offsetHeight}:{w:196,h:90};
+}
+function portPos(n,side){
+  const s=nodeSize(n.id);
+  return side==="out" ? {x:n.x+s.w, y:n.y+s.h/2} : {x:n.x, y:n.y+s.h/2};
+}
+function edgePath(e){
+  const a=getNode(e.from),b=getNode(e.to); if(!a||!b) return "";
+  const p1=portPos(a,"out"),p2=portPos(b,"in");
+  const dx=Math.max(40,Math.abs(p2.x-p1.x)*0.45);
+  return `M${p1.x},${p1.y} C${p1.x+dx},${p1.y} ${p2.x-dx},${p2.y} ${p2.x},${p2.y}`;
+}
+function edgeMid(e){
+  const a=getNode(e.from),b=getNode(e.to);
+  const p1=portPos(a,"out"),p2=portPos(b,"in");
+  return {x:(p1.x+p2.x)/2,y:(p1.y+p2.y)/2};
+}
+
+function nodeHTML(n){
+  const c=CALC?CALC.nodeCalc[n.id]:null;
+  const warn=c&&(c.warn||c.forcedShort);
+  let head, rows="";
+  const name=n.label?esc(n.label):null;
+  const row=(k,v,cls="")=>`<div class="nrow"><span class="k">${k}</span><span class="v ${cls}">${v}</span></div>`;
+  if(n.type==="res"){
+    const ex=EXTRACTORS[n.extractor];
+    head=`<span class="nid">${n.id}</span><span class="nname">${name||itemName(n.resource).toUpperCase()}</span>`;
+    const meta=[ex.name.toUpperCase()];
+    if(n.extractor!=="water") meta.push(n.purity.toUpperCase());
+    if(n.count>1) meta.push("×"+n.count);
+    if(Math.abs(n.clock-1)>EPS) meta.push(fmt(n.clock*100)+"%");
+    rows+=row("RIG",meta.join(" · "),"dim");
+    rows+=row("EXTRACT",fmt(c?c.potential:resourceRate(n))+"/min","hot");
+    if(c){ const un=c.potential-c.shipped;
+      rows+=row("SHIPPED",fmt(c.shipped)+"/min");
+      if(un>EPS) rows+=row("UNTAPPED",fmt(un)+"/min","dim");
+    }
+    if(n.override!=null) rows+=row("MODE",`<span class="badge inv">FORCED</span>`);
+  }
+  else if(n.type==="m"){
+    const r=getRecipe(n.recipe), b=BUILDINGS[n.mtype];
+    head=`<span class="nid">${n.id}</span><span class="nname">${name||(r?itemName(Object.keys(r.out)[0]).toUpperCase():"?")}</span>`;
+    const meta=[b.name.toUpperCase()]; if(n.count>1)meta.push("×"+n.count);
+    if(Math.abs(n.clock-1)>EPS) meta.push(fmt(n.clock*100)+"%");
+    rows+=row("UNIT",meta.join(" · "),"dim");
+    const eff=c?c.eff:1;
+    rows+=`<div class="effwrap"><div class="effbar"><i style="width:${Math.round(eff*100)}%"></i></div><span class="effpct">${Math.round(eff*100)}%</span></div>`;
+    if(r&&c&&c.spec){
+      for(const it in c.spec.needs){
+        const need=c.spec.needs[it], got=c.recv[it]||0;
+        const ok=got>=need-1e-4;
+        rows+=row("◂ "+itemName(it).toUpperCase(), `${fmt(got)}<span class="${ok?'':'hot'}">/${fmt(need)}</span>`, ok?"":"hot");
+      }
+      for(const it in c.spec.outs){
+        const made=c.out[it]||0, sur=(c.surplus&&c.surplus[it])||0;
+        rows+=row("▸ "+itemName(it).toUpperCase(), fmt(made)+"/min"+(sur>EPS?` <span class="badge">+${fmt(sur)} FREE</span>`:""),"hot");
+      }
+    }
+    if(n.override!=null) rows+=row("MODE",`<span class="badge inv">FORCED ${fmt(n.override)}/min</span>`);
+  }
+  else if(PASSTHRU.has(n.type)){
+    head=`<span class="nid">${n.id}</span><span class="nname">${name||TYPE_META[n.type].title}</span>`;
+    if(c){
+      const items=Object.keys(c.thru);
+      if(!items.length) rows+=row("THRU","0/min","dim");
+      for(const it of items) rows+=row(itemName(it).toUpperCase(),fmt(c.thru[it])+"/min");
+      if(CAN_BUFFER.has(n.type)&&n.buffer){
+        const h=sumVals(c.held||{});
+        rows+=row("MODE","LOADING","dim");
+        if(h>EPS) rows+=row("STORING","+"+fmt(h)+"/min","hot");
+      }
+    }
+  }
+  else{ // sink
+    head=`<span class="nid">${n.id}</span><span class="nname">${name||"SINK / OUTPUT"}</span>`;
+    if(c){
+      const items=Object.keys(c.absorbed||{});
+      if(!items.length) rows+=row("INTAKE","0/min","dim");
+      for(const it of items) rows+=row(itemName(it).toUpperCase(),fmt(c.absorbed[it])+"/min","hot");
+    }
+  }
+  const ports =
+    (n.type==="res"?"":`<span class="port in" data-port="in" data-node="${n.id}"></span>`)+
+    (n.type==="sink"?"":`<span class="port out" data-port="out" data-node="${n.id}"></span>`);
+  let ucount="";
+  if((n.type==="res"||n.type==="m")&&n.count>1){
+    const shown=Math.min(n.count,20);
+    ucount=`<div class="ucount">${'<i class="usq"></i>'.repeat(shown)}${n.count>shown?`<span class="umore">+${n.count-shown}</span>`:""}</div>`;
+  }
+  const col=nodeColor(n);
+  return `<div class="node${sel&&sel.kind==="node"&&sel.id===n.id?" sel":""}${msel.nodes.has(n.id)?" msel":""}${warn?" warn":""}" data-id="${n.id}" style="left:${n.x}px;top:${n.y}px${col?`;--nc:${col}`:""}">
+    <i class="tick tl"></i><i class="tick tr"></i><i class="tick bl"></i><i class="tick br"></i>
+    <div class="nhead">${head}${warn?'<span class="nwarn">!</span>':""}</div>
+    <div class="nbody">${rows}</div>${ports}${ucount}</div>`;
+}
+
+function renderNodes(){
+  if(lod){
+    nodesEl.innerHTML = state.nodes.map(n=>{
+      const s=sizeCache[n.id]||{w:196,h:100};
+      const col=nodeColor(n)||"var(--dim)";
+      const isSel=sel&&sel.kind==="node"&&sel.id===n.id;
+      const c=CALC&&CALC.nodeCalc[n.id];
+      const warn=c&&(c.warn||c.forcedShort);
+      return `<div class="node lod${isSel?" sel":""}${msel.nodes.has(n.id)?" msel":""}${warn?" warn":""}" data-id="${n.id}" style="left:${n.x}px;top:${n.y}px;width:${s.w}px;height:${s.h}px;background:${col}"></div>`;
+    }).join("");
+    return;
+  }
+  nodesEl.innerHTML = state.nodes.map(nodeHTML).join("");
+  for(const el of nodesEl.querySelectorAll(".node"))
+    sizeCache[el.dataset.id]={w:el.offsetWidth,h:el.offsetHeight};
+}
+function renderEdges(){
+  let paths="";
+  for(const e of state.edges){
+    const ec=CALC?CALC.edgeCalc[e.id]:null;
+    const live=ec&&ec.total>EPS;
+    const seld=sel&&sel.kind==="edge"&&sel.id===e.id;
+    const cls=`epath${live?" live":" idle"}${seld?" sel":""}`;
+    const src=getNode(e.from);
+    const col=live&&!seld&&src?nodeColor(src):null;
+    const d=edgePath(e);
+    paths+=`<path class="ehalo" data-eid="${e.id}" d="${d}"></path><path class="${cls}" data-eid="${e.id}" d="${d}"${col?` style="stroke:${col}"`:""}></path>`;
+  }
+  paths+=`<path id="temppath" class="temp" d=""></path>`;
+  svg.innerHTML=paths;
+  let labels="";
+  for(const e of state.edges){
+    const ec=CALC?CALC.edgeCalc[e.id]:null;
+    const m=edgeMid(e);
+    let txt;
+    if(ec&&ec.total>EPS){
+      const its=Object.entries(ec.items).sort((a,b)=>b[1]-a[1]);
+      const line=its.slice(0,2).map(([it,q])=>`<b>${itemName(it).toUpperCase()} ${fmt(q)}</b>`).join("<br>");
+      txt=`${line}${its.length>2?" +"+(its.length-2):""}<br><span class="cap">${fmt(ec.total)} / ${ec.cap} · ${LINK_BY_ID[e.link].label}</span>`;
+    }else{
+      txt=`<span class="cap">IDLE · ${LINK_BY_ID[e.link].label}</span>`;
+    }
+    const seld=sel&&sel.kind==="edge"&&sel.id===e.id;
+    const src=getNode(e.from);
+    const col=ec&&ec.total>EPS&&!seld&&src?nodeColor(src):null;
+    const sat=ec&&ec.binding?" sat":"";
+    labels+=`<div class="elabel${seld?" sel":""}${sat}" data-eid="${e.id}" style="left:${m.x}px;top:${m.y}px${col?`;border-color:${col}`:""}">${txt}</div>`;
+  }
+  labelsEl.innerHTML=labels;
+}
+function annoHTML(a){
+  const c=annoColor(a);
+  const s=(sel&&sel.kind==="anno"&&sel.id===a.id?" sel":"")+(msel.annos.has(a.id)?" msel":"");
+  const st=c?`--ac:${c};`:"";
+  if(a.kind==="text")
+    return `<div class="anno atext s${a.size||2}${s}" data-aid="${a.id}" style="left:${a.x}px;top:${a.y}px;${st}">${esc(a.text||"")}</div>`;
+  const dim=a.orient==="h"?`width:${a.len}px;`:`height:${a.len}px;`;
+  return `<div class="anno aline ${a.orient}${s}" data-aid="${a.id}" style="left:${a.x}px;top:${a.y}px;${dim}${st}"></div>`;
+}
+function renderAnnos(){ $("annos").innerHTML=(state.annos||[]).map(annoHTML).join(""); }
+function renderStats(){
+  if(!CALC) return;
+  $("stPower").textContent=fmt(CALC.totals.power)+" MW";
+  $("stMach").textContent=CALC.totals.machines;
+  const alerts=CALC.warns.filter(w=>w.cls==="alert").length;
+  $("stAlerts").textContent=alerts;
+  $("stAlertChip").classList.toggle("on",alerts>0);
+  // ticker: free outputs
+  const free=Object.entries(CALC.totals.free).sort((a,b)=>b[1]-a[1]);
+  const sunk=Object.entries(CALC.totals.sunk).sort((a,b)=>b[1]-a[1]);
+  let t = free.map(([it,q])=>`${itemName(it).toUpperCase()} <b>+${fmt(q)}</b>`).join(" · ");
+  if(sunk.length) t += (t?" &nbsp;·&nbsp; ":"")+"STORED: "+sunk.map(([it,q])=>`${itemName(it).toUpperCase()} <b>${fmt(q)}</b>`).join(" · ");
+  $("ticker").innerHTML = t || "no surplus — everything is consumed";
+}
+function renderWarns(){
+  const el=$("wlist");
+  if(!CALC){el.innerHTML="";return;}
+  const ws=CALC.warns;
+  $("wcount").textContent=ws.length?ws.length:"";
+  if(!ws.length){ el.innerHTML=`<div class="wempty">ALL SYSTEMS NOMINAL</div>`; return; }
+  el.innerHTML=ws.map((w,i)=>
+    `<button class="witem ${w.cls==="cap"?"cap":""}" data-wi="${i}">
+      <span class="wg">${w.cls==="cap"?"+":"!"}</span><span>${esc(w.msg)}</span></button>`).join("");
+}
+
+/* ---------- inspector ---------- */
+/* concrete in-game build steps for a bank: machines, clocks, manifolds, belt tiers */
+function buildSheetHTML(n,c){
+  const tierFor=(rate,fluid)=>{
+    const opts=LINKS.filter(x=>fluid?x.id.startsWith("p"):x.id.startsWith("b"));
+    const l=opts.find(x=>x.cap>=rate-EPS);
+    return l?l.label:`${opts[opts.length-1].label} ×${Math.ceil(rate/opts[opts.length-1].cap)} (split the load)`;
+  };
+  const steps=[];
+  if(n.type==="res"){
+    if(Math.abs(n.clock-1)>EPS)
+      steps.push(`□ set the miner's clock to <b>${fmt(n.clock*100)}%</b> — type the exact number in its clock box (decimals are fine, no power shard needed under 100%)`);
+    if(c&&c.shipped>EPS)
+      steps.push(`□ carry <b>${fmt(c.shipped)}/min</b> out on a <b>${tierFor(c.shipped,FLUIDS.has(n.resource))}</b> or better`);
+    return steps.length?`<div class="buildsheet">${steps.map(s=>`<div class="step">${s}</div>`).join("")}</div>`:"";
+  }
+  if(n.type!=="m"||!c||!c.spec) return "";
+  const r=getRecipe(n.recipe);
+  steps.push(`□ place <b>${n.count} × ${BUILDINGS[n.mtype].name.toUpperCase()}</b>${n.count>1?" in a row":""}${r?` — recipe <b>${esc((r.name||itemName(Object.keys(r.out)[0])).toUpperCase())}</b>`:""}`);
+  if(Math.abs(n.clock-1)>EPS)
+    steps.push(`□ set <b>every machine's clock to ${fmt(n.clock*100)}%</b> — type the exact number (decimals are fine; shards only needed above 100%)`);
+  for(const it in c.spec.needs){
+    const tot=c.spec.needs[it], perM=tot/n.count, fluid=FLUIDS.has(it);
+    steps.push(n.count>1
+      ? `□ feed <b>${itemName(it).toUpperCase()} ${fmt(tot)}/min</b> in on one <b>${tierFor(tot,fluid)}</b> trunk — ${fluid?"pipe junctions":"splitter manifold"} down the row, each machine pulls ${fmt(perM)}/min by itself`
+      : `□ feed <b>${itemName(it).toUpperCase()} ${fmt(tot)}/min</b> in — <b>${tierFor(tot,fluid)}</b> or better`);
+  }
+  let mixedOvf=false;
+  for(const it in c.spec.outs){
+    const tot=c.out[it]||0; if(!(tot>EPS)) continue;
+    const outs=state.edges.filter(e=>e.from===n.id&&CALC.edgeCalc[e.id]&&CALC.edgeCalc[e.id].items[it]>EPS);
+    if(outs.some(e=>isOverflowNode(getNode(e.to)))&&outs.some(e=>!isOverflowNode(getNode(e.to)))) mixedOvf=true;
+    const split=outs.length>1?` — keep <b>${outs.length} separate output belts</b> as drawn (${outs.map(e=>fmt(CALC.edgeCalc[e.id].items[it])).join(" + ")})`
+      :` on a <b>${tierFor(tot,FLUIDS.has(it))}</b>`;
+    steps.push(`□ collect <b>${itemName(it).toUpperCase()} ${fmt(tot)}/min</b>${n.count>1?" with mergers down the row":""}${split}`);
+  }
+  if(mixedOvf)
+    steps.push(`▸ this output feeds machines <b>and</b> a storage/sink: use a <b>SMART SPLITTER</b> (Caterium MAM research) with the storage branch set to <b>OVERFLOW</b> so machines stay fed while it fills. A plain splitter works too, but shorts your machines until the container is full.`);
+  if(n.count>=3)
+    steps.push(`▸ manifolds fill <b>front-to-back</b> — the last machines idle until the belts saturate (long rows take a few minutes). That's normal: feed it, wait, THEN judge efficiency by the last machine in the row.`);
+  return `<div class="buildsheet">${steps.map(s=>`<div class="step">${s}</div>`).join("")}</div>`;
+}
+function inspHTML(){
+  if(mselSize()){
+    return `<div class="ihead"><div class="t1">GROUP</div><div class="t2">${mselSize()} SELECTED</div></div>
+    <div class="igroup"><div class="ilabel">SAVE AS BLUEPRINT</div>
+      <input type="text" id="fBPName" placeholder="e.g. 4× SMELTER BLOCK" style="margin-bottom:6px">
+      <button class="ibtn" data-act="saveBP">▣ SAVE TO BLUEPRINTS</button></div>
+    <div class="igroup"><div class="ilabel">GROUP ACTIONS</div>
+      <button class="ibtn" data-act="dupGroup">⧉ DUPLICATE GROUP (CTRL+D)</button>
+      <button class="ibtn danger" data-act="delGroup">✕ DELETE ALL (DEL)</button></div>
+    <div class="igroup itip">SHIFT-click adds or removes gear. SHIFT-drag empty canvas for box select.
+    Drag any selected card to move the whole group. Belts between selected machines are saved with the blueprint.</div>`;
+  }
+  if(!sel) return `<div class="ihead"><div class="t1">INSPECTOR</div><div class="t2">NOTHING SELECTED</div></div>
+    <div class="igroup itip">Click a node or a belt label to edit it.<br><br>
+    ▸ Drag from a node's right port to another node to run a belt.<br>
+    ▸ Drag cards to arrange your floor plan.<br>
+    ▸ Scroll to zoom · drag empty space to pan.<br><br>
+    <b style="color:var(--fg)">KEYS</b><br>
+    DEL remove · CTRL+D duplicate · CTRL+Z undo · F fit · H help</div>`;
+  if(sel.kind==="edge"){
+    const e=getEdge(sel.id); if(!e) return "";
+    const ec=CALC&&CALC.edgeCalc[e.id];
+    const a=getNode(e.from),b=getNode(e.to);
+    let flows="";
+    if(ec&&Object.keys(ec.items).length)
+      flows=Object.entries(ec.items).map(([it,q])=>`<div class="kv"><span>${itemName(it).toUpperCase()}</span><b>${fmt(q)}/min</b></div>`).join("");
+    else flows=`<div class="kv"><span>FLOW</span><b>idle</b></div>`;
+    return `<div class="ihead"><div class="t1">LINK ${e.id}</div><div class="t2">${esc(a?a.id:"?")} → ${esc(b?b.id:"?")}</div></div>
+    <div class="igroup"><div class="ilabel">THROUGHPUT</div>${flows}
+      <div class="kv"><span>LOAD</span><b>${ec?fmt(ec.total):"0"} / ${LINK_BY_ID[e.link].cap} (${ec?Math.round(ec.util*100):0}%)</b></div></div>
+    <div class="igroup"><div class="ilabel">LINK TIER</div>
+      <div class="linkgrid">${LINKS.map(l=>`<button class="linkbtn${e.link===l.id?" on":""}" data-setlink="${l.id}">${l.label}<br>${l.cap}/min</button>`).join("")}</div></div>
+    <div class="igroup">
+      <button class="ibtn" data-act="reverse">⇄ REVERSE DIRECTION</button>
+      <button class="ibtn danger" data-act="delEdge">✕ DELETE LINK</button></div>`;
+  }
+  if(sel.kind==="anno"){
+    const a=getAnno(sel.id); if(!a) return "";
+    const g=(t,inner)=>`<div class="igroup"><div class="ilabel">${t}</div>${inner}</div>`;
+    const colorSel=`<select id="fAColor"><option value="">MONO</option>${COLORSET.map(cc=>`<option value="${cc.id}"${a.color===cc.id?" selected":""}>${cc.name}</option>`).join("")}</select>`;
+    let body="";
+    if(a.kind==="text"){
+      body+=g("TEXT",`<input type="text" id="fAText" value="${esc(a.text||"")}">`);
+      body+=g("SIZE",`<select id="fASize">${[1,2,3,4].map(s=>`<option value="${s}"${(a.size||2)===s?" selected":""}>${["SMALL","MEDIUM","LARGE","HUGE"][s-1]}</option>`).join("")}</select>`);
+    }else{
+      body+=g("ORIENTATION",`<select id="fAOrient"><option value="v"${a.orient==="v"?" selected":""}>VERTICAL</option><option value="h"${a.orient==="h"?" selected":""}>HORIZONTAL</option></select>`);
+      body+=g("LENGTH (px)",`<input type="number" id="fALen" min="24" step="12" value="${a.len}">`);
+    }
+    body+=g("COLOR",colorSel);
+    body+=g("ACTIONS",
+      `<button class="ibtn" data-act="dup">⧉ DUPLICATE (CTRL+D)</button>
+       <button class="ibtn danger" data-act="delAnno">✕ DELETE (DEL)</button>`);
+    return `<div class="ihead"><div class="t1">${a.kind==="text"?"TEXT LABEL":"DIVIDER LINE"}</div><div class="t2">${esc(a.kind==="text"?(a.text||a.id):a.id)}</div></div>`+body;
+  }
+  const n=getNode(sel.id); if(!n) return "";
+  const c=CALC&&CALC.nodeCalc[n.id];
+  let body="";
+  const grp=(t,inner)=>`<div class="igroup"><div class="ilabel">${t}</div>${inner}</div>`;
+  body+=grp("LABEL",`<input type="text" id="fLabel" value="${esc(n.label||"")}" placeholder="${TYPE_META[n.type].title}">`);
+  if(n.type==="res"){
+    const resOpts = n.extractor==="oil" ? ["crude_oil"] : n.extractor==="water" ? ["water"] : ORES;
+    body+=grp("RESOURCE",`<select id="fRes">${resOpts.map(r=>`<option value="${r}"${n.resource===r?" selected":""}>${itemName(r).toUpperCase()}</option>`).join("")}</select>`);
+    if(n.extractor!=="water"){
+      const exOpts = n.extractor==="oil" ? ["oil"] : ["mk1","mk2","mk3"];
+      if(n.extractor!=="oil")
+        body+=grp("MINER",`<select id="fExt">${exOpts.map(x=>`<option value="${x}"${n.extractor===x?" selected":""}>${EXTRACTORS[x].name.toUpperCase()} — ${EXTRACTORS[x].rates.normal}/min @ NORMAL</option>`).join("")}</select>`);
+      body+=grp("NODE PURITY",`<select id="fPur">${["impure","normal","pure"].map(p=>`<option value="${p}"${n.purity===p?" selected":""}>${p.toUpperCase()} — ${EXTRACTORS[n.extractor].rates[p]}/min</option>`).join("")}</select>`);
+    }
+  }
+  if(n.type==="m"){
+    const rs=allRecipes().filter(r=>r.b===n.mtype);
+    body+=grp("RECIPE",`<select id="fRecipe">${rs.map(r=>`<option value="${r.id}"${n.recipe===r.id?" selected":""}>${(r.name||itemName(Object.keys(r.out)[0])).toUpperCase()}</option>`).join("")}</select>`);
+    const r=getRecipe(n.recipe);
+    if(r){
+      const per=Object.entries(r.in).map(([it,q])=>`<div class="kv"><span>◂ ${itemName(it).toUpperCase()}</span><b>${fmt(q)}/min</b></div>`).join("")+
+        Object.entries(r.out).map(([it,q])=>`<div class="kv"><span>▸ ${itemName(it).toUpperCase()}</span><b>${fmt(q)}/min</b></div>`).join("");
+      body+=grp("PER MACHINE @100%",per);
+    }
+  }
+  if(n.type==="res"||n.type==="m"){
+    body+=grp("UNITS",`<div class="stepper"><button data-act="cntDn">−</button><input type="number" id="fCount" min="1" max="999" step="1" value="${n.count}"><button data-act="cntUp">+</button></div>`);
+    body+=grp("CLOCK SPEED — <span id='clockVal'>"+fmt(n.clock*100)+"%</span>",
+      `<input type="range" id="fClock" min="1" max="250" step="1" value="${Math.round(n.clock*100)}">
+       <div class="irow" style="margin-top:6px"><input type="number" id="fClockN" min="1" max="250" step="0.01" value="${+(n.clock*100).toFixed(2)}"></div>
+       <div class="itip">decimals allowed (92.5 etc) for exact ratios — power scales with clock^1.32</div>`);
+    body+=grp("MASTER OVERRIDE",
+      `<label class="checkrow"><input type="checkbox" id="fOvrOn"${n.override!=null?" checked":""}> FORCE OUTPUT RATE</label>
+       <div class="irow" style="margin-top:6px"><input type="number" id="fOvr" min="0" step="any" value="${n.override!=null?n.override:""}" placeholder="items/min" ${n.override==null?"disabled":""}></div>
+       <div class="itip">forces this node's total output (${n.type==="m"?"first product":"resource"}) to an exact rate — use it to correct me, or as a stand-in source for part of your factory you haven't drawn.</div>`);
+  }
+  if(CAN_BUFFER.has(n.type)){
+    body+=grp("MODE",`<label class="checkrow"><input type="checkbox" id="fBuf"${n.buffer?" checked":""}> LOADING MODE (absorb surplus)</label>
+      <div class="itip">ON = overflow target: takes only what machines don't need and stores it — like a Smart Splitter set to Overflow. OFF = pure pass-through at steady state.</div>`);
+  }
+  if(c){
+    let live="";
+    live+=`<div class="kv"><span>POWER DRAW</span><b>${fmt(c.power)} MW</b></div>`;
+    if(n.type==="m") live+=`<div class="kv"><span>EFFICIENCY</span><b>${Math.round(c.eff*100)}%</b></div>`;
+    if(n.type==="res") live+=`<div class="kv"><span>UNTAPPED</span><b>${fmt((c.potential||0)-(c.shipped||0))}/min</b></div>`;
+    body+=grp("LIVE",live);
+    const bs=buildSheetHTML(n,c);
+    if(bs) body+=grp("HOW TO BUILD IT — IN GAME",bs);
+  }
+  body+=grp("ACTIONS",
+    `<button class="ibtn" data-act="dup">⧉ DUPLICATE (CTRL+D)</button>
+     <button class="ibtn danger" data-act="delNode">✕ DELETE NODE (DEL)</button>`);
+  const title = n.type==="m" ? BUILDINGS[n.mtype].name.toUpperCase() : TYPE_META[n.type].title;
+  return `<div class="ihead"><div class="t1">${title}</div><div class="t2">${esc(n.label||n.id)}</div></div>`+body;
+}
+function renderInsp(){
+  const ae=document.activeElement;
+  if(ae && $("insp").contains(ae) && (ae.tagName==="INPUT"||ae.tagName==="SELECT")) return; // don't yank focus
+  $("insp").innerHTML=inspHTML();
+}
+
+function refresh(){
+  CALC=solve(state);
+  renderNodes();          // nodes first (edge anchors need sizes)
+  renderEdges();
+  renderAnnos();
+  renderStats();
+  renderWarns();
+  renderInsp();
+}
+
+/* ════════════════════════════════════════════════════════════
+   INTERACTION
+   ════════════════════════════════════════════════════════════ */
+function toWorld(cx,cy){
+  const r=vp.getBoundingClientRect();
+  return {x:(cx-r.left-view.x)/view.s, y:(cy-r.top-view.y)/view.s};
+}
+let drag=null; // {mode:'node'|'pan'|'wire', ...}
+
+vp.addEventListener("pointerdown",ev=>{
+  const portEl=ev.target.closest(".port");
+  const nodeEl=ev.target.closest(".node");
+  const labelEl=ev.target.closest(".elabel");
+  const annoEl=ev.target.closest(".anno");
+  const pathEl=ev.target.closest("[data-eid]");
+  try{ vp.setPointerCapture(ev.pointerId); }catch(_){}
+  if(ev.button===1){ // middle mouse: pan from anywhere, any mode
+    drag={mode:"pan",sx:ev.clientX,sy:ev.clientY,vx:view.x,vy:view.y,moved:true};
+    ev.preventDefault(); return;
+  }
+  if(portEl){
+    drag={mode:"wire",node:portEl.dataset.node,dir:portEl.dataset.port,moved:false};
+    ev.preventDefault(); return;
+  }
+  if(annoEl){
+    const a=getAnno(annoEl.dataset.aid);
+    if(ev.shiftKey){
+      sel=null;
+      msel.annos.has(a.id)?msel.annos.delete(a.id):msel.annos.add(a.id);
+      select(null); ev.preventDefault(); return;
+    }
+    const w=toWorld(ev.clientX,ev.clientY);
+    if(mselSize()&&msel.annos.has(a.id)){
+      drag={mode:"group",sx:w.x,sy:w.y,start:groupPositions(),moved:false,snap:JSON.stringify(state)};
+    }else{
+      clearMsel();
+      drag={mode:"anno",id:a.id,dx:w.x-a.x,dy:w.y-a.y,moved:false,snap:JSON.stringify(state)};
+      select({kind:"anno",id:a.id});
+    }
+    ev.preventDefault(); return;
+  }
+  if(nodeEl){
+    const n=getNode(nodeEl.dataset.id);
+    if(ev.shiftKey){
+      sel=null;
+      msel.nodes.has(n.id)?msel.nodes.delete(n.id):msel.nodes.add(n.id);
+      select(null); ev.preventDefault(); return;
+    }
+    const w=toWorld(ev.clientX,ev.clientY);
+    if(mselSize()&&msel.nodes.has(n.id)){
+      drag={mode:"group",sx:w.x,sy:w.y,start:groupPositions(),moved:false,snap:JSON.stringify(state)};
+    }else{
+      clearMsel();
+      drag={mode:"node",id:n.id,dx:w.x-n.x,dy:w.y-n.y,moved:false,snap:JSON.stringify(state)};
+      select({kind:"node",id:n.id});
+    }
+    ev.preventDefault(); return;
+  }
+  if(ev.shiftKey || (selectMode && !labelEl && !pathEl)){ // box select
+    if(selectMode && !ev.shiftKey) clearMsel(); // fresh box replaces selection; shift adds
+    drag={mode:"marq",sx:ev.clientX,sy:ev.clientY,moved:false};
+    ev.preventDefault(); return;
+  }
+  if(labelEl||pathEl){
+    const eid=(labelEl||pathEl).dataset.eid;
+    clearMsel();
+    select({kind:"edge",id:eid});
+    drag=null; return;
+  }
+  drag={mode:"pan",sx:ev.clientX,sy:ev.clientY,vx:view.x,vy:view.y,moved:false};
+});
+function groupPositions(){
+  const g={nodes:{},annos:{}};
+  for(const id of msel.nodes){ const n=getNode(id); if(n) g.nodes[id]={x:n.x,y:n.y}; }
+  for(const id of msel.annos){ const a=getAnno(id); if(a) g.annos[id]={x:a.x,y:a.y}; }
+  return g;
+}
+vp.addEventListener("pointermove",ev=>{
+  if(!drag) return;
+  if(drag.mode==="pan"){
+    const dx=ev.clientX-drag.sx, dy=ev.clientY-drag.sy;
+    if(Math.abs(dx)+Math.abs(dy)>3) drag.moved=true;
+    view.x=drag.vx+dx; view.y=drag.vy+dy; applyView(); return;
+  }
+  if(drag.mode==="node"){
+    const w=toWorld(ev.clientX,ev.clientY);
+    const n=getNode(drag.id); if(!n) return;
+    n.x=Math.round((w.x-drag.dx)/12)*12; n.y=Math.round((w.y-drag.dy)/12)*12;
+    drag.moved=true;
+    const el=nodesEl.querySelector(`[data-id="${n.id}"]`);
+    if(el){el.style.left=n.x+"px";el.style.top=n.y+"px";}
+    renderEdges(); return;
+  }
+  if(drag.mode==="anno"){
+    const w=toWorld(ev.clientX,ev.clientY);
+    const a=getAnno(drag.id); if(!a) return;
+    a.x=Math.round((w.x-drag.dx)/12)*12; a.y=Math.round((w.y-drag.dy)/12)*12;
+    drag.moved=true;
+    const el=$("annos").querySelector(`[data-aid="${a.id}"]`);
+    if(el){el.style.left=a.x+"px";el.style.top=a.y+"px";}
+    return;
+  }
+  if(drag.mode==="group"){
+    const w=toWorld(ev.clientX,ev.clientY);
+    const dx=Math.round((w.x-drag.sx)/12)*12, dy=Math.round((w.y-drag.sy)/12)*12;
+    if(dx||dy) drag.moved=true;
+    for(const id in drag.start.nodes){
+      const n=getNode(id); if(!n) continue;
+      n.x=drag.start.nodes[id].x+dx; n.y=drag.start.nodes[id].y+dy;
+      const el=nodesEl.querySelector(`[data-id="${id}"]`);
+      if(el){el.style.left=n.x+"px";el.style.top=n.y+"px";}
+    }
+    for(const id in drag.start.annos){
+      const a=getAnno(id); if(!a) continue;
+      a.x=drag.start.annos[id].x+dx; a.y=drag.start.annos[id].y+dy;
+      const el=$("annos").querySelector(`[data-aid="${id}"]`);
+      if(el){el.style.left=a.x+"px";el.style.top=a.y+"px";}
+    }
+    renderEdges(); return;
+  }
+  if(drag.mode==="marq"){
+    drag.moved=true;
+    const r=vp.getBoundingClientRect();
+    const x1=Math.min(drag.sx,ev.clientX)-r.left, y1=Math.min(drag.sy,ev.clientY)-r.top;
+    const x2=Math.max(drag.sx,ev.clientX)-r.left, y2=Math.max(drag.sy,ev.clientY)-r.top;
+    const m=$("marq");
+    m.style.display="block";
+    m.style.left=x1+"px"; m.style.top=y1+"px"; m.style.width=(x2-x1)+"px"; m.style.height=(y2-y1)+"px";
+    return;
+  }
+  if(drag.mode==="wire"){
+    drag.moved=true;
+    const w=toWorld(ev.clientX,ev.clientY);
+    const src=getNode(drag.node);
+    const p=portPos(src,drag.dir);
+    const sgn=drag.dir==="out"?1:-1;
+    const dx=Math.max(40,Math.abs(w.x-p.x)*0.45);
+    const tp=svg.querySelector("#temppath");
+    if(tp) tp.setAttribute("d",`M${p.x},${p.y} C${p.x+sgn*dx},${p.y} ${w.x-sgn*dx},${w.y} ${w.x},${w.y}`);
+  }
+});
+vp.addEventListener("pointerup",ev=>{
+  if(!drag) return;
+  const d=drag; drag=null;
+  if(d.mode==="pan"){ if(!d.moved){ clearMsel(); select(null); } persist(); return; }
+  if(d.mode==="node"||d.mode==="anno"||d.mode==="group"){ if(d.moved){ undoStack.push(d.snap); if(undoStack.length>60)undoStack.shift(); refresh(); persist(); } return; }
+  if(d.mode==="marq"){
+    $("marq").style.display="none";
+    if(!d.moved) return;
+    const x1=Math.min(d.sx,ev.clientX), y1=Math.min(d.sy,ev.clientY);
+    const x2=Math.max(d.sx,ev.clientX), y2=Math.max(d.sy,ev.clientY);
+    const hit=(r)=>r.left<x2&&r.right>x1&&r.top<y2&&r.bottom>y1;
+    for(const el of nodesEl.querySelectorAll(".node"))
+      if(hit(el.getBoundingClientRect())) msel.nodes.add(el.dataset.id);
+    for(const el of $("annos").querySelectorAll(".anno"))
+      if(hit(el.getBoundingClientRect())) msel.annos.add(el.dataset.aid);
+    sel=null;
+    select(null);
+    return;
+  }
+  if(d.mode==="wire"){
+    const tp=svg.querySelector("#temppath"); if(tp) tp.setAttribute("d","");
+    const el=document.elementFromPoint(ev.clientX,ev.clientY);
+    const tgt=el && el.closest(".node,.port");
+    if(tgt){
+      const dropId = tgt.classList&&tgt.classList.contains("port") ? tgt.dataset.node : tgt.dataset.id;
+      if(dropId && dropId!==d.node){
+        const fromId = d.dir==="out" ? d.node : dropId;
+        const toId   = d.dir==="out" ? dropId : d.node;
+        const fromN=getNode(fromId), toN=getNode(toId);
+        if(fromN && toN && fromN.type!=="sink" && toN.type!=="res"){
+          snapshot();
+          const e=makeEdge(fromId,toId);
+          if(e){ select({kind:"edge",id:e.id}); commit(); return; }
+        } else toast("CAN'T CONNECT THAT WAY");
+      }
+    }
+    renderEdges();
+  }
+});
+vp.addEventListener("wheel",ev=>{
+  ev.preventDefault();
+  const r=vp.getBoundingClientRect();
+  const mx=ev.clientX-r.left,my=ev.clientY-r.top;
+  const f=ev.deltaY<0?1.12:1/1.12;
+  const ns=Math.min(2.2,Math.max(0.05,view.s*f));
+  view.x=mx-(mx-view.x)*(ns/view.s);
+  view.y=my-(my-view.y)*(ns/view.s);
+  view.s=ns; applyView(); persist();
+},{passive:false});
+
+function select(s){
+  sel=s;
+  renderNodes(); renderEdges(); renderAnnos();
+  $("insp").innerHTML=inspHTML(); // selection change always rebuilds
+}
+function centerOn(nodeId){
+  const n=getNode(nodeId); if(!n) return;
+  const r=vp.getBoundingClientRect();
+  const sz=nodeSize(n.id);
+  view.x=r.width/2-(n.x+sz.w/2)*view.s;
+  view.y=r.height/2-(n.y+sz.h/2)*view.s;
+  applyView();
+}
+function fitView(){
+  if(!state.nodes.length&&!(state.annos||[]).length) return;
+  const r=vp.getBoundingClientRect();
+  let x1=1e9,y1=1e9,x2=-1e9,y2=-1e9;
+  for(const n of state.nodes){
+    const s=nodeSize(n.id);
+    x1=Math.min(x1,n.x);y1=Math.min(y1,n.y);
+    x2=Math.max(x2,n.x+s.w);y2=Math.max(y2,n.y+s.h);
+  }
+  for(const a of state.annos||[]){
+    x1=Math.min(x1,a.x); y1=Math.min(y1,a.y);
+    x2=Math.max(x2,a.x+(a.kind==="line"&&a.orient==="h"?a.len:180));
+    y2=Math.max(y2,a.y+(a.kind==="line"&&a.orient==="v"?a.len:48));
+  }
+  const pad=60;
+  const s=Math.min(2,Math.max(0.05,Math.min((r.width-pad*2)/(x2-x1),(r.height-pad*2)/(y2-y1))));
+  view.s=s; view.x=(r.width-(x2-x1)*s)/2-x1*s; view.y=(r.height-(y2-y1)*s)/2-y1*s;
+  applyView(); persist();
+}
+
+/* palette */
+document.querySelectorAll("[data-add]").forEach(btn=>{
+  btn.addEventListener("click",()=>{
+    snapshot();
+    const r=vp.getBoundingClientRect();
+    const c=toWorld(r.left+r.width/2,r.top+r.height/2);
+    const jitter=()=>Math.round((Math.random()*80-40)/12)*12;
+    const [kind,sub]=btn.dataset.add.split(":");
+    if(kind==="anno"){
+      const a=makeAnno(sub,{x:c.x+jitter(),y:c.y+jitter()});
+      select({kind:"anno",id:a.id});
+      commit(); return;
+    }
+    let n;
+    if(kind==="res"){
+      if(sub==="oil") n=makeNode("res",{resource:"crude_oil",extractor:"oil",purity:"normal",x:c.x+jitter(),y:c.y+jitter()});
+      else if(sub==="water") n=makeNode("res",{resource:"water",extractor:"water",purity:"normal",x:c.x+jitter(),y:c.y+jitter()});
+      else n=makeNode("res",{x:c.x+jitter(),y:c.y+jitter()});
+    }
+    else if(kind==="m") n=makeNode("m",{mtype:sub,x:c.x+jitter(),y:c.y+jitter()});
+    else n=makeNode(kind,{x:c.x+jitter(),y:c.y+jitter()});
+    select({kind:"node",id:n.id});
+    commit();
+  });
+});
+
+/* inspector delegation */
+$("insp").addEventListener("click",ev=>{
+  const b=ev.target.closest("[data-act],[data-setlink]");
+  if(!b) return;
+  if(b.dataset.setlink && sel&&sel.kind==="edge"){
+    snapshot(); getEdge(sel.id).link=b.dataset.setlink; commit();
+    $("insp").innerHTML=inspHTML(); return;
+  }
+  const act=b.dataset.act;
+  if(act==="saveBP"){ const inp=$("fBPName"); saveBlueprint((inp&&inp.value.trim())||""); return; }
+  if(act==="dupGroup"){ duplicateGroup(); return; }
+  if(act==="delGroup"&&mselSize()){
+    snapshot();
+    for(const id of [...msel.nodes]) delNode(id);
+    state.annos=state.annos.filter(a=>!msel.annos.has(a.id));
+    clearMsel(); sel=null; commit(); $("insp").innerHTML=inspHTML(); return;
+  }
+  if(act==="delEdge"&&sel&&sel.kind==="edge"){ snapshot(); state.edges=state.edges.filter(e=>e.id!==sel.id); sel=null; commit(); $("insp").innerHTML=inspHTML(); }
+  if(act==="reverse"&&sel&&sel.kind==="edge"){ const e=getEdge(sel.id); snapshot();
+    const to=getNode(e.from), from=getNode(e.to);
+    if(from.type!=="sink"&&to.type!=="res"){ [e.from,e.to]=[e.to,e.from]; commit(); $("insp").innerHTML=inspHTML(); } else toast("CAN'T REVERSE INTO THAT"); }
+  if(act==="delNode"&&sel&&sel.kind==="node"){ snapshot(); delNode(sel.id); sel=null; commit(); $("insp").innerHTML=inspHTML(); }
+  if(act==="delAnno"&&sel&&sel.kind==="anno"){ snapshot(); state.annos=state.annos.filter(a=>a.id!==sel.id); sel=null; commit(); $("insp").innerHTML=inspHTML(); }
+  if(act==="dup"&&sel&&(sel.kind==="node"||sel.kind==="anno")) dupSelected();
+  if(act==="cntUp"||act==="cntDn"){
+    const n=getNode(sel.id); if(!n)return; snapshot();
+    n.count=Math.max(1,Math.min(999,n.count+(act==="cntUp"?1:-1))); commit();
+    $("insp").innerHTML=inspHTML();
+  }
+});
+$("insp").addEventListener("change",ev=>{
+  if(!sel) return;
+  if(sel.kind==="anno"){
+    const a=getAnno(sel.id); if(!a) return;
+    const id=ev.target.id;
+    snapshot();
+    if(id==="fAText") a.text=ev.target.value;
+    if(id==="fASize") a.size=+ev.target.value;
+    if(id==="fAOrient") a.orient=ev.target.value;
+    if(id==="fALen") a.len=Math.max(24,Math.round(+ev.target.value||480));
+    if(id==="fAColor") a.color=ev.target.value||null;
+    ev.target.blur();
+    commit();
+    $("insp").innerHTML=inspHTML();
+    return;
+  }
+  if(sel.kind!=="node") return;
+  const n=getNode(sel.id); if(!n) return;
+  const id=ev.target.id;
+  snapshot();
+  if(id==="fLabel") n.label=ev.target.value.trim()||null;
+  if(id==="fRes") n.resource=ev.target.value;
+  if(id==="fExt"){ n.extractor=ev.target.value; }
+  if(id==="fPur") n.purity=ev.target.value;
+  if(id==="fRecipe") n.recipe=ev.target.value;
+  if(id==="fCount") n.count=Math.max(1,Math.min(999,Math.round(+ev.target.value||1)));
+  if(id==="fClock") n.clock=Math.max(0.01,Math.min(2.5,(+ev.target.value||100)/100));
+  if(id==="fClockN") n.clock=Math.max(0.01,Math.min(2.5,(+ev.target.value||100)/100));
+  if(id==="fOvrOn"){
+    if(ev.target.checked){
+      const def = n.type==="res" ? resourceRate({...n,override:null}) : machineSpec({...n,override:null}).outs[Object.keys(machineSpec({...n,override:null}).outs)[0]];
+      n.override = Math.round(def*100)/100;
+    } else n.override=null;
+  }
+  if(id==="fOvr") n.override=Math.max(0,+ev.target.value||0);
+  if(id==="fBuf") n.buffer=ev.target.checked;
+  ev.target.blur();
+  commit();
+  $("insp").innerHTML=inspHTML();
+});
+$("insp").addEventListener("input",ev=>{
+  if(ev.target.id==="fClock"){ const v=$("clockVal"); if(v) v.textContent=ev.target.value+"%"; }
+});
+
+function dupSelected(){
+  if(!sel) return;
+  if(sel.kind==="anno"){
+    const a=getAnno(sel.id); if(!a)return;
+    snapshot();
+    const copy=JSON.parse(JSON.stringify(a));
+    copy.id=nextAnnoId(); copy.x+=36; copy.y+=36;
+    state.annos.push(copy);
+    select({kind:"anno",id:copy.id});
+    commit(); return;
+  }
+  if(sel.kind!=="node") return;
+  const n=getNode(sel.id); if(!n)return;
+  snapshot();
+  const copy=JSON.parse(JSON.stringify(n));
+  copy.id=nid(n.type,n.mtype); copy.x+=36; copy.y+=36;
+  state.nodes.push(copy);
+  select({kind:"node",id:copy.id});
+  commit();
+}
+
+/* ---------- blueprints ---------- */
+const BP_KEY="tres-blueprints-v1";
+function loadBPs(){ try{ blueprints=JSON.parse(localStorage.getItem(BP_KEY))||[]; }catch(_){ blueprints=[]; }
+  if(!Array.isArray(blueprints)) blueprints=[]; }
+function saveBPs(){ try{ localStorage.setItem(BP_KEY,JSON.stringify(blueprints)); }catch(_){}}
+function renderBPs(){
+  $("bpcount").textContent=blueprints.length||"";
+  $("bplist").innerHTML = blueprints.length
+    ? blueprints.map(b=>`<div class="bprow">
+        <button class="bpstamp" data-bp="${b.id}" title="place a copy at view center"><b>${esc(b.name)}</b><span>${b.nodes.length}N ${b.edges.length}E</span></button>
+        <button class="bpdel" data-bp="${b.id}" title="delete blueprint">✕</button></div>`).join("")
+    : `<div class="wempty">SHIFT-SELECT GEAR, THEN<br>"SAVE TO BLUEPRINTS"</div>`;
+}
+function selectionAsGroup(){
+  const nodes=state.nodes.filter(n=>msel.nodes.has(n.id));
+  const annos=(state.annos||[]).filter(a=>msel.annos.has(a.id));
+  if(!nodes.length&&!annos.length) return null;
+  const edges=state.edges.filter(e=>msel.nodes.has(e.from)&&msel.nodes.has(e.to));
+  let mx=Infinity,my=Infinity;
+  for(const o of [...nodes,...annos]){ mx=Math.min(mx,o.x); my=Math.min(my,o.y); }
+  return {
+    nodes:nodes.map(n=>({...JSON.parse(JSON.stringify(n)),x:n.x-mx,y:n.y-my})),
+    edges:JSON.parse(JSON.stringify(edges)),
+    annos:annos.map(a=>({...JSON.parse(JSON.stringify(a)),x:a.x-mx,y:a.y-my})),
+    origin:{x:mx,y:my},
+  };
+}
+/* place a group copy; fresh ids, edges remapped; the copy becomes the selection */
+function stampGroup(g,ox,oy){
+  const idMap={};
+  clearMsel(); sel=null;
+  for(const src of g.nodes){
+    const n=JSON.parse(JSON.stringify(src));
+    n.id=nid(src.type,src.mtype); n.x=ox+src.x; n.y=oy+src.y;
+    if(n.type==="m"&&!getRecipe(n.recipe)){ const fb=allRecipes().find(r=>r.b===n.mtype); n.recipe=fb?fb.id:n.recipe; }
+    idMap[src.id]=n.id; state.nodes.push(n); msel.nodes.add(n.id);
+  }
+  for(const se of g.edges){
+    if(idMap[se.from]&&idMap[se.to])
+      state.edges.push({id:nextEdgeId(),from:idMap[se.from],to:idMap[se.to],link:LINK_BY_ID[se.link]?se.link:"b2"});
+  }
+  for(const sa of g.annos||[]){
+    const a=JSON.parse(JSON.stringify(sa)); a.id=nextAnnoId();
+    a.x=ox+sa.x; a.y=oy+sa.y; state.annos.push(a); msel.annos.add(a.id);
+  }
+}
+function saveBlueprint(name){
+  const g=selectionAsGroup();
+  if(!g){ toast("NOTHING SELECTED"); return; }
+  blueprints.push({id:"bp"+Date.now().toString(36)+Math.random().toString(36).slice(2,6),
+    name:name||("BLUEPRINT "+(blueprints.length+1)),nodes:g.nodes,edges:g.edges,annos:g.annos});
+  saveBPs(); renderBPs(); toast("BLUEPRINT SAVED");
+}
+function stampBlueprint(id){
+  const bp=blueprints.find(b=>b.id===id); if(!bp) return;
+  snapshot();
+  const r=vp.getBoundingClientRect();
+  const c=toWorld(r.left+r.width/2,r.top+r.height/2);
+  stampGroup(bp,Math.round((c.x-120)/12)*12,Math.round((c.y-90)/12)*12);
+  commit(); toast("PLACED — DRAG TO POSITION");
+}
+function duplicateGroup(){
+  const g=selectionAsGroup(); if(!g) return;
+  snapshot();
+  stampGroup(g,g.origin.x+48,g.origin.y+48);
+  commit(); toast("GROUP DUPLICATED");
+}
+$("bplist").addEventListener("click",ev=>{
+  const del=ev.target.closest(".bpdel");
+  if(del){ const bp=blueprints.find(b=>b.id===del.dataset.bp);
+    if(bp&&confirm(`Delete blueprint "${bp.name}"?`)){ blueprints=blueprints.filter(b=>b.id!==del.dataset.bp); saveBPs(); renderBPs(); }
+    return; }
+  const st=ev.target.closest(".bpstamp");
+  if(st) stampBlueprint(st.dataset.bp);
+});
+
+/* warnings click → focus */
+$("wlist").addEventListener("click",ev=>{
+  const b=ev.target.closest("[data-wi]"); if(!b)return;
+  const w=CALC.warns[+b.dataset.wi];
+  if(w.nodeId){ select({kind:"node",id:w.nodeId}); centerOn(w.nodeId); }
+  else if(w.edgeId){ select({kind:"edge",id:w.edgeId});
+    const e=getEdge(w.edgeId); if(e) centerOn(e.from); }
+});
+
+/* header buttons */
+function applyTheme(t){
+  document.documentElement.dataset.theme=t;
+  try{ localStorage.setItem(THEME_KEY,t); }catch(_){}
+  const b=$("btnTheme"); if(b) b.textContent = t==="light" ? "◑ DARK" : "◑ LIGHT";
+  if(state&&CALC) refresh(); // re-tint type colors for the new ground
+}
+$("btnTheme").onclick=()=>applyTheme(currentTheme()==="dark"?"light":"dark");
+let selectMode=false;
+function toggleSelectMode(){
+  selectMode=!selectMode;
+  $("btnSelect").classList.toggle("pri",selectMode);
+  vp.style.cursor=selectMode?"cell":"crosshair";
+  toast(selectMode?"SELECT MODE — DRAG A BOX · MIDDLE-DRAG PANS · S TO EXIT":"SELECT MODE OFF");
+}
+$("btnSelect").onclick=toggleSelectMode;
+/* draggable palette/diagnostics divider */
+(()=>{
+  const pr=$("palResize"), ps=$("palscroll"), lp=$("lpanel");
+  if(!pr||!ps) return;
+  try{ const s=+localStorage.getItem("tres-palh"); if(s>80){ ps.style.flex="0 0 auto"; ps.style.height=s+"px"; } }catch(_){}
+  let startY=0,startH=0,on=false;
+  pr.addEventListener("pointerdown",ev=>{
+    on=true; pr.classList.add("on");
+    startY=ev.clientY; startH=ps.getBoundingClientRect().height;
+    try{ pr.setPointerCapture(ev.pointerId); }catch(_){}
+    ev.preventDefault();
+  });
+  pr.addEventListener("pointermove",ev=>{
+    if(!on) return;
+    const max=lp.getBoundingClientRect().height-150;
+    const h=Math.max(80,Math.min(max,startH+(ev.clientY-startY)));
+    ps.style.flex="0 0 auto"; ps.style.height=h+"px";
+  });
+  const done=()=>{ if(!on) return; on=false; pr.classList.remove("on");
+    try{ localStorage.setItem("tres-palh",Math.round(ps.getBoundingClientRect().height)); }catch(_){}};
+  pr.addEventListener("pointerup",done);
+  pr.addEventListener("pointercancel",done);
+  pr.addEventListener("dblclick",()=>{ ps.style.flex=""; ps.style.height="";
+    try{ localStorage.removeItem("tres-palh"); }catch(_){} });
+})();
+$("btnFit").onclick=fitView;
+$("btnDemo").onclick=()=>{ if(confirm("Load the demo factory? Current layout will be replaced (export first if you want it).")){ buildDemo(); clearMsel(); sel=null; refresh(); persist(); setTimeout(fitView,30);} };
+$("btnNew").onclick=()=>{ if(confirm("Start a blank sheet? Current layout will be replaced (export first if you want it).")){ state=blankState(); clearMsel(); sel=null; refresh(); persist(); } };
+$("btnExport").onclick=()=>{
+  const blob=new Blob([JSON.stringify({state,view,blueprints},null,2)],{type:"application/json"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob); a.download="tres-factory.json"; a.click();
+  URL.revokeObjectURL(a.href); toast("EXPORTED");
+};
+$("btnImport").onclick=()=>$("fileInput").click();
+$("fileInput").addEventListener("change",ev=>{
+  const f=ev.target.files[0]; if(!f)return;
+  const rd=new FileReader();
+  rd.onload=()=>{ try{
+    const data=JSON.parse(rd.result);
+    if(!data.state||!Array.isArray(data.state.nodes)) throw 0;
+    snapshot(); state=normalizeState(data.state); if(data.view)view=data.view;
+    if(Array.isArray(data.blueprints)&&data.blueprints.length){
+      for(const bp of data.blueprints)
+        if(bp&&bp.id&&!blueprints.some(b=>b.id===bp.id)) blueprints.push(bp);
+      saveBPs(); renderBPs();
+    }
+    clearMsel(); sel=null; refresh(); applyView(); persist(); toast("IMPORTED");
+  }catch(_){ toast("BAD FILE"); } };
+  rd.readAsText(f);
+  ev.target.value="";
+});
+
+/* ---------- modals ---------- */
+function openModal(title,html){ $("mtitle").textContent=title; $("mbody").innerHTML=html; $("modal").classList.add("open"); }
+function closeModal(){ $("modal").classList.remove("open"); }
+$("mclose").onclick=closeModal;
+$("modal").addEventListener("click",ev=>{ if(ev.target.id==="modal") closeModal(); });
+
+$("btnItems").onclick=()=>{
+  if(!CALC) return;
+  const items=new Set([...Object.keys(CALC.totals.supply),...Object.keys(CALC.totals.untapped)]);
+  const rows=[...items].sort((a,b)=>itemName(a).localeCompare(itemName(b))).map(it=>{
+    const s=CALC.totals.supply[it]||0,u=CALC.totals.used[it]||0,k=CALC.totals.sunk[it]||0,
+          f=CALC.totals.free[it]||0,un=CALC.totals.untapped[it]||0;
+    return `<tr><td><b>${itemName(it).toUpperCase()}</b></td><td class="num">${fmt(s)}</td><td class="num">${fmt(u)}</td><td class="num">${fmt(k)}</td><td class="num"><b>${fmt(f)}</b></td><td class="num">${fmt(un)}</td></tr>`;
+  }).join("");
+  openModal("ITEM LEDGER — per minute",
+   `<table id="itemsTable"><tr><th>ITEM</th><th>SUPPLY</th><th>USED</th><th>STORED/SUNK</th><th>FREE</th><th>UNTAPPED</th></tr>${rows||"<tr><td colspan=6>nothing flowing yet</td></tr>"}</table>
+    <p style="margin-top:10px">SUPPLY = actually entering the network · USED = consumed by machines · STORED = buffered/sunk ·
+    <b style="color:var(--fg)">FREE = sitting unconsumed — build something with it</b> · UNTAPPED = extra your nodes could mine if demanded.</p>`);
+};
+
+$("btnHelp").onclick=()=>openModal("MANUAL",`
+  <h4>WHAT THIS IS</h4>
+  <p>A live schematic of your factory. Every belt, machine and truck line recalculates as you edit.
+  It is <b>demand-driven</b>: machines pull what they need through belts, exactly like the game's steady state.</p>
+  <h4>CONTROLS</h4>
+  <ul>
+    <li>Add gear from the left palette — it drops at the center of your view.</li>
+    <li>Drag from a node's <b>right diamond port</b> onto another node to run a belt/pipe.</li>
+    <li><b>COLORS</b> (header) tints each machine type; belts inherit the feeding machine's color.</li>
+    <li><b>ANNOTATE</b> (palette) adds movable text labels and divider lines to section your floor plan.</li>
+    <li><b>SHIFT-click</b> (or SHIFT-drag a box on empty canvas) selects multiple — drag any selected card to move the whole group.</li>
+    <li><b>⬚ SELECT mode</b> (<kbd>S</kbd>): plain drag box-selects without holding shift — handy for rearranging imports. <b>Middle-mouse drag pans</b> in any mode.</li>
+    <li><b>BLUEPRINTS</b>: with a group selected, name it and "SAVE TO BLUEPRINTS" (right panel). Click a blueprint to stamp a copy — belts between saved machines come with it.</li>
+    <li>Zoom far out and the map switches to a simplified block view (colors = machine types, thicker lines) — zoom back in for full cards.</li>
+    <li><b>◑</b> button toggles dark / light mode.</li>
+    <li>Click a node or belt label → edit everything in the right panel (recipe, count, clock, belt tier).</li>
+    <li>Drag cards to arrange. Scroll = zoom. Drag empty space = pan.</li>
+    <li><kbd>DEL</kbd> delete · <kbd>CTRL+D</kbd> duplicate · <kbd>CTRL+Z</kbd> undo · <kbd>F</kbd> fit · <kbd>ESC</kbd> deselect</li>
+  </ul>
+  <h4>FROM DIAGRAM TO REAL FACTORY</h4>
+  <ul>
+    <li>A bank card like <b>×10 @ 92.5%</b> means: build <b>10 identical machines in a row</b> and set <b>each one's</b> clock to 92.5% — click the machine in game, type the exact decimal into the clock box. Below 100% needs no power shards.</li>
+    <li>Select any machine card → the right panel shows <b>HOW TO BUILD IT</b>: machine count, clocks, belt tiers, and per-machine pull rates.</li>
+    <li>Feed a row with a <b>manifold</b>: one trunk belt along the row, one splitter per machine, splitter chained to splitter. No math — it balances itself.</li>
+    <li>The catch: manifolds fill <b>front-to-back</b>. The last machines idle until every belt buffer saturates — a long row can take ~5 minutes. Don't rewire, just wait. When the <b>last</b> machine hits 100%, the row is healthy.</li>
+    <li>Collect outputs the same way with mergers down the row.</li>
+    <li>Uneven splits (a node sending 30 one way, 22.5 another) settle on their own: belts back up, splitter overflow finds the ratio — as long as total supply = total demand, which is what this tool checks.</li>
+    <li>Don't split inputs "exactly" per machine — that's the belts' job. Your job is only: right totals in, same clock on every machine.</li>
+    <li><b>No clock panel in your machines yet?</b> Under/overclocking is locked until the MAM Power Slugs research "Overclock Production" (craft 1 Power Shard from a blue slug + 25 plates + 50 wire). Cheap — do it early.</li>
+    <li><b>No clocks, no problem:</b> running everything at 100% and letting storages/sinks catch the surplus is a fully valid style — this tool models it exactly (overflow targets only take what machines don't). It costs more power than underclocking, and the AWESOME Sink pays you coupons for the excess.</li>
+  </ul>
+  <h4>READING THE NUMBERS</h4>
+  <ul>
+    <li>Machine cards show <b>◂ inputs (got/needed)</b> and <b>▸ outputs</b>. The bar is efficiency.</li>
+    <li>"+N FREE" on an output = nobody is eating it. In the game that belt backs up and the machine eventually stalls — feed it to something or a container/sink.</li>
+    <li>Storage/truck/train nodes have <b>LOADING MODE</b>: ON they're overflow targets — machines and production lines get fed <b>first</b>, the storage takes only the surplus (like a Smart Splitter set to Overflow). Sinks work the same way. OFF = pure pass-through.</li>
+    <li>DIAGNOSTICS panel: <b>!</b> = problems (starved machines, saturated belts) · <b>+</b> = spare capacity you could use.</li>
+    <li><b>MASTER OVERRIDE</b> on any machine/miner forces its rate — use it to correct the math or stub out a part of the factory you haven't drawn yet.</li>
+    <li>Power shown is worst-case draw at full speed. Keep ~20% headroom on your grid.</li>
+  </ul>
+  <h4>LINK TIERS</h4>
+  <table><tr><th>BELTS</th><td>MK.1 60 · MK.2 120 · MK.3 270 · MK.4 480 · MK.5 780 · MK.6 1200 /min</td></tr>
+  <tr><th>PIPES</th><td>MK.1 300 · MK.2 600 m³/min (fluids only)</td></tr></table>
+  <h4>BEGINNER RATIOS THAT ALWAYS WORK</h4>
+  <table>
+    <tr><th>SOURCE</th><th>FEEDS</th></tr>
+    <tr><td>1 pure node + Miner Mk.1 (120/min)</td><td><b>4 smelters</b></td></tr>
+    <tr><td>1 smelter (30 iron ingot)</td><td><b>1 plate constructor</b> or <b>2 rod constructors</b></td></tr>
+    <tr><td>2 rod constructors (30 rods)</td><td><b>3 screw constructors</b> (120 screws) — your setup!</td></tr>
+    <tr><td>3 plate + 3 screw constructors</td><td><b>2 reinforced-plate assemblers</b> (10 RIP/min)</td></tr>
+    <tr><td>1 rod + a bit: 20 rods + 100 screws</td><td><b>1 rotor assembler</b> (4/min)</td></tr>
+    <tr><td>1 coal generator</td><td>75 MW, eats 15 coal/min + 45 water</td></tr>
+  </table>
+  <h4>HOW THE SOLVER WORKS (honesty section)</h4>
+  <p>Each belt carries min(supply share, downstream demand, belt cap). Splitters share evenly with overflow
+  redistribution, mergers pull fairly — same as the game. If a machine is over-fed on one input because another
+  input is short, the surplus is flagged as "backing up" instead of silently vanishing. Data: Satisfactory 1.0
+  standard recipes, verified against the wiki.</p>`);
+
+/* type colors modal */
+$("btnColors").onclick=()=>{
+  const opts=cur=>`<option value="">MONO (WHITE)</option>`+
+    COLORSET.map(cc=>`<option value="${cc.id}"${cur===cc.id?" selected":""}>${cc.name}</option>`).join("");
+  openModal("TYPE COLORS",`
+    <p style="margin-bottom:12px">Tint every machine of a type — belts inherit the color of whatever feeds them, so you can trace a bus at a glance.</p>
+    ${COLOR_KEYS.map(k=>`<div style="display:grid;grid-template-columns:150px 1fr;gap:8px;margin-bottom:6px;align-items:center">
+      <span style="font-size:10px;letter-spacing:.16em;color:var(--mid)">${k.name}</span>
+      <select data-ckey="${k.key}">${opts(state.colors[k.key])}</select></div>`).join("")}
+    <p style="margin-top:14px;display:flex;gap:8px">
+      <button class="ibtn" id="cAuto" style="width:auto;padding:7px 20px">AUTO ASSIGN</button>
+      <button class="ibtn" id="cMono" style="width:auto;padding:7px 20px">ALL MONO</button></p>`);
+  $("mbody").querySelectorAll("[data-ckey]").forEach(s=>s.addEventListener("change",ev=>{
+    snapshot();
+    const k=ev.target.dataset.ckey;
+    if(ev.target.value) state.colors[k]=ev.target.value; else delete state.colors[k];
+    commit();
+  }));
+  $("cAuto").onclick=()=>{ snapshot(); state.colors={...AUTO_COLORS}; commit(); $("btnColors").onclick(); };
+  $("cMono").onclick=()=>{ snapshot(); state.colors={}; commit(); $("btnColors").onclick(); };
+};
+
+/* custom recipe modal */
+$("btnCustom").onclick=()=>{
+  const itemOpts=Object.keys(ITEM_NAMES).sort((a,b)=>itemName(a).localeCompare(itemName(b)))
+    .map(i=>`<option value="${i}">${itemName(i)}</option>`).join("");
+  const rowSel=(id)=>`<div class="crrow"><input list="itemlist" id="${id}i" placeholder="item (pick or type new)"><input type="number" id="${id}q" placeholder="/min" min="0" step="any"></div>`;
+  openModal("CUSTOM RECIPE",`
+    <datalist id="itemlist">${itemOpts}</datalist>
+    <h4>MACHINE</h4>
+    <select id="crB">${Object.entries(BUILDINGS).map(([k,v])=>`<option value="${k}">${v.name.toUpperCase()}</option>`).join("")}</select>
+    <h4>NAME</h4><input type="text" id="crName" placeholder="e.g. Alternate: Cast Screw">
+    <h4>INPUTS — per machine per minute</h4>${rowSel("crI1")}${rowSel("crI2")}${rowSel("crI3")}${rowSel("crI4")}
+    <h4>OUTPUTS — per machine per minute</h4>${rowSel("crO1")}${rowSel("crO2")}
+    <p style="margin:10px 0"><button class="ibtn" id="crSave" style="width:auto;padding:8px 22px">SAVE RECIPE</button></p>
+    <p class="itip">Tip: for alternate recipes, rate/min = amount × 60 ÷ craft seconds. New item names are created automatically.</p>`);
+  $("crSave").onclick=()=>{
+    const slug=s=>s.trim().toLowerCase().replace(/[^a-z0-9]+/g,"_").replace(/^_|_$/g,"");
+    const gather=pfx=>{ const o={};
+      for(let i=1;i<=4;i++){ const ie=$(pfx+i+"i"),qe=$(pfx+i+"q"); if(!ie)continue;
+        const raw=ie.value.trim(), q=+qe.value;
+        if(!raw||!(q>0)) continue;
+        const id=Object.keys(ITEM_NAMES).find(k=>k===raw||itemName(k).toLowerCase()===raw.toLowerCase())||slug(raw);
+        if(!ITEM_NAMES[id]) ITEM_NAMES[id]=clean(raw);
+        o[id]=q; }
+      return o; };
+    const inn=gather("crI"), out=gather("crO");
+    const name=clean($("crName").value);
+    if(!name||!Object.keys(out).length){ toast("NEEDS A NAME + 1 OUTPUT"); return; }
+    snapshot();
+    state.customRecipes.push({id:"cr_"+slug(name)+"_"+Date.now()%1e5,name,b:$("crB").value,in:inn,out});
+    commit(); closeModal(); toast("RECIPE SAVED");
+  };
+};
+
+/* keyboard */
+document.addEventListener("keydown",ev=>{
+  if(ev.target.tagName==="INPUT"||ev.target.tagName==="SELECT"||ev.target.tagName==="TEXTAREA"){
+    if(ev.key==="Escape") ev.target.blur();
+    return;
+  }
+  if(ev.key==="Escape"){ if($("modal").classList.contains("open")) closeModal(); else { clearMsel(); select(null); } }
+  if(ev.key==="Delete"||ev.key==="Backspace"){
+    if(mselSize()){
+      snapshot();
+      for(const id of [...msel.nodes]) delNode(id);
+      state.annos=state.annos.filter(a=>!msel.annos.has(a.id));
+      clearMsel(); sel=null; commit();
+    }
+    else if(sel&&sel.kind==="node"){ snapshot(); delNode(sel.id); sel=null; commit(); }
+    else if(sel&&sel.kind==="edge"){ snapshot(); state.edges=state.edges.filter(e=>e.id!==sel.id); sel=null; commit(); }
+    else if(sel&&sel.kind==="anno"){ snapshot(); state.annos=state.annos.filter(a=>a.id!==sel.id); sel=null; commit(); }
+  }
+  if((ev.ctrlKey||ev.metaKey)&&ev.key.toLowerCase()==="d"){ ev.preventDefault(); mselSize()?duplicateGroup():dupSelected(); }
+  if((ev.ctrlKey||ev.metaKey)&&ev.key.toLowerCase()==="z"){ ev.preventDefault(); undo(); }
+  if(ev.key.toLowerCase()==="f") fitView();
+  if(ev.key.toLowerCase()==="s") toggleSelectMode();
+  if(ev.key.toLowerCase()==="h") $("btnHelp").click();
+});
+
+function toast(msg){
+  const t=$("toast"); t.textContent=msg; t.style.display="block";
+  clearTimeout(t._t); t._t=setTimeout(()=>t.style.display="none",1400);
+}
+
+/* ════════════════════════════════════════════════════════════
+   V2 — SATISFACTORY .SAV IMPORT (reverse-engineered, save v60 / game 1.2)
+   Scan-based region parser: finds actor/component header tables by class-path
+   signature, pairs data entries by end-alignment, walks the belt graph.
+   ════════════════════════════════════════════════════════════ */
+const SAV = (() => {
+  const MAGIC = 0x9E2A83C1;
+  async function inflateChunks(buf) {
+    const dv = new DataView(buf);
+    let bs = 0;
+    for (let i = 300; i < 4000; i++) if (dv.getUint32(i, true) === MAGIC) { bs = i; break; }
+    if (!bs) throw new Error("not a Satisfactory save (no chunk magic)");
+    const jobs = [];
+    let o = bs;
+    while (o < buf.byteLength - 48) {
+      o += 17;
+      const cs = Number(dv.getBigInt64(o, true)); o += 32;
+      jobs.push(buf.slice(o, o + cs)); o += cs;
+    }
+    const parts = await Promise.all(jobs.map(sl =>
+      new Response(new Blob([sl]).stream().pipeThrough(new DecompressionStream("deflate"))).arrayBuffer()));
+    let total = 0; for (const p of parts) total += p.byteLength;
+    const body = new Uint8Array(total);
+    let off = 0; for (const p of parts) { body.set(new Uint8Array(p), off); off += p.byteLength; }
+    return body;
+  }
+  function parseHeaderInfo(buf) {
+    const dv = new DataView(buf);
+    let p = 0;
+    const i32 = () => { const v = dv.getInt32(p, true); p += 4; return v; };
+    const str = () => { const len = i32(); if (!len) return "";
+      if (len > 0) { let s = ""; for (let i = 0; i < len - 1; i++) s += String.fromCharCode(dv.getUint8(p + i)); p += len; return s; }
+      const n = -len; let s = ""; for (let i = 0; i < n - 1; i++) s += String.fromCharCode(dv.getUint16(p + 2 * i, true)); p += 2 * n; return s; };
+    const h = {};
+    h.headerVersion = i32(); h.saveVersion = i32(); h.buildVersion = i32();
+    if (h.headerVersion >= 14) h.saveName = str();
+    h.mapName = str(); h.mapOptions = str(); h.sessionName = str();
+    h.playedSeconds = i32(); p += 8; p += 1;
+    if (h.headerVersion >= 7) i32();
+    if (h.headerVersion >= 8) { str(); i32(); }
+    if (h.headerVersion >= 10) str();
+    if (h.headerVersion >= 11) i32();
+    if (h.headerVersion >= 12) p += 20;
+    if (h.headerVersion >= 13) { h.creativeFlagOffset = p; h.isCreativeModeEnabled = i32(); }
+    return h;
+  }
+  function extract(body) {
+    const B = body, DV = new DataView(B.buffer, B.byteOffset, B.byteLength);
+    const bodyStr = new TextDecoder("latin1").decode(B);
+    let P = 0;
+    const rstr = () => { const len = DV.getInt32(P, true); P += 4; if (!len) return "";
+      if (len > 1e5 || len < -1e5) throw new Error("strlen");
+      if (len > 0) { if (P + len > B.length) throw new Error("oob"); const s = bodyStr.slice(P, P + len - 1); P += len; return s; }
+      const n = -len; if (P + 2 * n > B.length) throw new Error("oob");
+      let s = ""; for (let i = 0; i < n - 1; i++) s += String.fromCharCode(DV.getUint16(P + 2 * i, true)); P += 2 * n; return s; };
+    const validStrAt = (pos, min, max) => { if (pos + 4 > B.length) return 0;
+      const len = DV.getInt32(pos, true);
+      if (len < min || len > max || pos + 4 + len > B.length) return 0;
+      for (let i = 0; i < len - 1; i++) { const c = B[pos + 4 + i]; if (c < 32 || c > 126) return 0; }
+      return B[pos + 4 + len - 1] === 0 ? len : 0; };
+    const validHeaderAt = pos => { if (pos < 0 || pos + 16 > B.length) return false;
+      const t = DV.getInt32(pos, true);
+      if (t !== 0 && t !== 1) return false;
+      const tpLen = validStrAt(pos + 4, 8, 250);
+      if (!tpLen || B[pos + 8] !== 47) return false;
+      const rootLen = validStrAt(pos + 8 + tpLen, 2, 64);
+      if (!rootLen) return false;
+      return validStrAt(pos + 8 + tpLen + 4 + rootLen, 4, 300) > 0; };
+    // candidates
+    const needles = ["/Game/FactoryGame/Buildable/", "/Script/FactoryGame.FGFactoryConnectionComponent"];
+    const hits = new Set();
+    for (const n of needles) { let i = -1;
+      while ((i = bodyStr.indexOf(n, i + 1)) !== -1) { if (validHeaderAt(i - 8)) hits.add(i - 8); } }
+    const cands = [...hits].sort((a, b) => a - b);
+    // props
+    function parseProps(end) {
+      const out = {}; let guard = 0;
+      while (P < end && guard++ < 6000) {
+        let tries = 0;
+        while (tries < 8 && P < end - 4) {
+          const len = DV.getInt32(P, true);
+          if (len > 1 && len < 200 && P + 4 + len <= end) {
+            let ok = true;
+            for (let i = 0; i < len - 1; i++) { const c = B[P + 4 + i]; if (c < 32 || c > 126) { ok = false; break; } }
+            if (ok && B[P + 4 + len - 1] === 0) break;
+          }
+          P++; tries++;
+        }
+        if (tries >= 8 || P >= end - 4) return out;
+        const name = rstr();
+        if (name === "None") return out;
+        let type; try { type = rstr(); } catch (_) { return out; }
+        if (!type.endsWith("Property")) continue;
+        const size = DV.getUint32(P, true); P += 8;
+        if (type === "BoolProperty") { out[name] = B[P] !== 0; P += 2; continue; }
+        if (type === "StructProperty") { try { rstr(); } catch (_) { return out; } P += 17 + size; continue; }
+        if (type === "ByteProperty") { try { rstr(); } catch (_) { return out; } P += 1; if (size === 1) out[name] = B[P]; P += size; continue; }
+        const g = B[P]; P += 1; if (g) P += 16;
+        const pStart = P;
+        try {
+          if (type === "IntProperty") out[name] = DV.getInt32(P, true);
+          else if (type === "FloatProperty") out[name] = DV.getFloat32(P, true);
+          else if (type === "ObjectProperty") { rstr(); out[name] = rstr(); }
+        } catch (_) {}
+        P = pStart + size;
+      }
+      return out;
+    }
+    const IS_BELT = /Build_(ConveyorBeltMk\d|ConveyorLiftMk\d)/;
+    const IS_MACHINE = /Build_(SmelterMk1|FoundryMk\d|ConstructorMk1|AssemblerMk1|ManufacturerMk1|OilRefinery|MinerMk\d|WaterPump|OilPump|ConveyorAttachmentSplitter\w*|ConveyorAttachmentMerger|StorageContainerMk\d|TruckStation|TrainStation|ResourceSink)_C$/;
+    const machines = [], beltActors = new Map(), comps = new Map();
+    let ci = 0;
+    while (ci < cands.length) {
+      const regionStart = cands[ci];
+      const headers = [];
+      let p = regionStart;
+      while (validHeaderAt(p)) {
+        P = p;
+        const type = DV.getInt32(P, true); P += 4;
+        let tp, root, inst;
+        try { tp = rstr(); root = rstr(); inst = rstr(); } catch (_) { break; }
+        if (type === 1) {
+          P += 8;
+          const t0 = P, e32 = t0 + 44, e64 = t0 + 84;
+          const v32 = validHeaderAt(e32), v64 = validHeaderAt(e64);
+          let use64 = v64 && !v32;
+          if (!v32 && !v64) use64 = DV.getUint32(t0 + 60, true) === 0x3ff00000;
+          let x, y, z;
+          if (use64) { x = DV.getFloat64(t0 + 32, true); y = DV.getFloat64(t0 + 40, true); z = DV.getFloat64(t0 + 48, true); P = e64; }
+          else { x = DV.getFloat32(t0 + 16, true); y = DV.getFloat32(t0 + 20, true); z = DV.getFloat32(t0 + 24, true); P = e32; }
+          headers.push({ a: 1, tp, inst, x, y, z });
+        } else { P += 4; try { rstr(); } catch (_) { break; } headers.push({ a: 0, tp, inst }); }
+        p = P;
+        if (headers.length > 500000) break;
+      }
+      const ciBefore = ci;
+      while (ci < cands.length && cands[ci] < p) ci++;
+      if (ci === ciBefore) ci++;
+      // pair data entries
+      P = p;
+      try {
+        const cc = DV.getUint32(P, true); P += 4;
+        if (cc > 20000) throw 0;
+        for (let c = 0; c < cc; c++) { rstr(); rstr(); }
+        const sizeB = Number(DV.getBigInt64(P, true)); P += 8;
+        if (sizeB < 4 || sizeB > B.length) throw 0;
+        const dataEnd = P + sizeB;
+        const nObj = DV.getUint32(P, true); P += 4;
+        if (nObj < headers.length || nObj > 2e6) throw 0;
+        for (let i = 0, skipN = nObj - headers.length; i < skipN; i++) {
+          const sz = DV.getUint32(P + 8, true); P += 16 + sz;
+          if (P > dataEnd) throw 0;
+        }
+        for (let i = 0; i < headers.length; i++) {
+          const ver = DV.getInt32(P, true);
+          if (ver < 30 || ver > 90) throw 0;
+          P += 8; const sz = DV.getUint32(P, true); P += 4;
+          const eStart = P, eEnd = P + sz;
+          if (eEnd + 4 > dataEnd + 8) throw 0;
+          const H = headers[i];
+          if (H.a === 1 && IS_BELT.test(H.tp)) beltActors.set(H.inst, H.tp.match(/Mk(\d)/) ? +H.tp.match(/Mk(\d)/)[1] : 1);
+          else if (H.a === 1 && IS_MACHINE.test(H.tp)) {
+            let props = {};
+            try {
+              rstr(); rstr();
+              const n = DV.getInt32(P, true); P += 4;
+              if (n >= 0 && n < 500) for (let c = 0; c < n; c++) { rstr(); rstr(); }
+              props = parseProps(eEnd);
+            } catch (_) {}
+            machines.push({ cls: H.tp.match(/Build_(\w+)_C$/)[1], inst: H.inst, x: H.x, y: H.y, z: H.z, props });
+          } else if (H.a === 0 && H.tp.includes("FGFactoryConnectionComponent")) {
+            let conn = null;
+            try { conn = parseProps(eEnd).mConnectedComponent || null; } catch (_) {}
+            comps.set(H.inst, conn);
+          }
+          P = eEnd + 4;
+        }
+      } catch (_) {
+        for (const H of headers) {
+          if (H.a === 1 && IS_MACHINE.test(H.tp))
+            machines.push({ cls: H.tp.match(/Build_(\w+)_C$/)[1], inst: H.inst, x: H.x, y: H.y, z: H.z, props: {} });
+          else if (H.a === 1 && IS_BELT.test(H.tp)) beltActors.set(H.inst, H.tp.match(/Mk(\d)/) ? +H.tp.match(/Mk(\d)/)[1] : 1);
+        }
+      }
+    }
+    // belt graph
+    const ownerOf = i => i.slice(0, i.lastIndexOf("."));
+    const machSet = new Set(machines.map(m => m.inst));
+    const compsByOwner = new Map();
+    for (const k of comps.keys()) { const ow = ownerOf(k);
+      if (!compsByOwner.has(ow)) compsByOwner.set(ow, []); compsByOwner.get(ow).push(k); }
+    const edges = [];
+    for (const [ck, conn] of comps) {
+      const owner = ownerOf(ck);
+      if (!machSet.has(owner) || !/Output/i.test(ck.slice(ck.lastIndexOf(".")))) continue;
+      let cur = conn, guard = 0, tierMin = 99;
+      while (cur && guard++ < 600) {
+        const co = ownerOf(cur);
+        if (machSet.has(co)) { edges.push({ from: owner, to: co, tier: tierMin === 99 ? 1 : tierMin }); break; }
+        const bt = beltActors.get(co);
+        if (bt == null) break;
+        tierMin = Math.min(tierMin, bt);
+        const others = (compsByOwner.get(co) || []).filter(k => k !== cur);
+        if (others.length !== 1) break;
+        cur = comps.get(others[0]);
+      }
+    }
+    return { machines, edges, beltCount: beltActors.size };
+  }
+  return { inflateChunks, parseHeaderInfo, extract };
+})();
+
+/* .sav → tool state */
+function savToState(ex) {
+  const RM = { Recipe_IngotIron_C:"iron_ingot", Recipe_IngotCopper_C:"copper_ingot", Recipe_IngotCaterium_C:"caterium_ingot",
+    Recipe_IngotSteel_C:"steel_ingot", Recipe_Concrete_C:"concrete", Recipe_IronRod_C:"iron_rod", Recipe_Wire_C:"wire",
+    Recipe_CopperSheet_C:"copper_sheet", Recipe_Cable_C:"cable", Recipe_Screw_C:"screw", Recipe_IronPlate_C:"iron_plate",
+    Recipe_Rotor_C:"rotor", Recipe_IronPlateReinforced_C:"reinforced_iron_plate", Recipe_SpaceElevatorPart_1_C:"smart_plating",
+    Recipe_SpaceElevatorPart_2_C:"versatile_framework", Recipe_SpaceElevatorPart_3_C:"automated_wiring",
+    Recipe_ModularFrame_C:"modular_frame", Recipe_QuartzCrystal_C:"quartz_crystal", Recipe_Silica_C:"silica",
+    Recipe_Stator_C:"stator", Recipe_Motor_C:"motor", Recipe_SteelBeam_C:"steel_beam", Recipe_SteelPipe_C:"steel_pipe",
+    Recipe_Quickwire_C:"quickwire", Recipe_Biomass_Wood_C:"cr_biomass_wood", Recipe_Biomass_Leaves_C:"cr_biomass_leaves",
+    Recipe_Biofuel_C:"cr_solid_biofuel" };
+  const CR = [
+    { id:"cr_biomass_wood", name:"Biomass (Wood)", b:"constructor", in:{wood:60}, out:{biomass:300} },
+    { id:"cr_biomass_leaves", name:"Biomass (Leaves)", b:"constructor", in:{leaves:120}, out:{biomass:60} },
+    { id:"cr_solid_biofuel", name:"Solid Biofuel", b:"constructor", in:{biomass:120}, out:{solid_biofuel:60} }];
+  const CM = { SmelterMk1:"smelter", FoundryMk1:"foundry", ConstructorMk1:"constructor", AssemblerMk1:"assembler",
+    ManufacturerMk1:"manufacturer", OilRefinery:"refinery" };
+  const ORE = { iron_ingot:"iron_ore", copper_ingot:"copper_ore", caterium_ingot:"caterium_ore", steel_ingot:"iron_ore",
+    concrete:"limestone", quartz_crystal:"raw_quartz", silica:"raw_quartz" };
+  const seq = {}, idFor = new Map(), nodes = [], edges = [], unmapped = new Map();
+  const mkId = pfx => { seq[pfx] = (seq[pfx] || 0) + 1; return pfx + "-" + seq[pfx]; };
+  let x1 = 1e12, y1 = 1e12, z1 = 1e12;
+  for (const m of ex.machines) { x1 = Math.min(x1, m.x); y1 = Math.min(y1, m.y); z1 = Math.min(z1, m.z ?? 0); }
+  const S = 0.42;
+  const px = m => Math.round(((m.x - x1) * S + ((m.z ?? z1) - z1) * 0.35 * S) / 12) * 12 + 40;
+  const py = m => Math.round(((m.y - y1) * S + ((m.z ?? z1) - z1) * 0.35 * S) / 12) * 12 + 40;
+  for (const m of ex.machines) {
+    const cls = m.cls; let node = null;
+    if (cls.startsWith("MinerMk"))
+      node = { id: mkId("EXT"), type: "res", x: px(m), y: py(m), label: "CHECK PURITY", resource: "iron_ore",
+        extractor: "mk" + cls.slice(-1), purity: "normal", count: 1, clock: m.props.mCurrentPotential ?? 1, override: null };
+    else if (cls === "WaterPump")
+      node = { id: mkId("EXT"), type: "res", x: px(m), y: py(m), label: "WATER", resource: "water",
+        extractor: "water", purity: "normal", count: 1, clock: 1, override: null };
+    else if (CM[cls]) {
+      const rc = (m.props.mCurrentRecipe || "").split(".").pop();
+      let recipe = RM[rc] || null, label = null;
+      if (!recipe) {
+        if (rc) { unmapped.set(rc, (unmapped.get(rc) || 0) + 1); label = "WAS: " + rc.replace(/^Recipe_|_C$/g, ""); }
+        recipe = { smelter:"iron_ingot", foundry:"steel_ingot", constructor:"iron_plate", assembler:"reinforced_iron_plate",
+          manufacturer:"heavy_modular_frame", refinery:"plastic" }[CM[cls]];
+      }
+      node = { id: mkId({smelter:"SML",foundry:"FND",constructor:"CON",assembler:"ASM",manufacturer:"MFR",refinery:"RFN"}[CM[cls]]),
+        type: "m", x: px(m), y: py(m), label, mtype: CM[cls], recipe, count: 1, clock: m.props.mCurrentPotential ?? 1, override: null };
+    }
+    else if (cls.startsWith("ConveyorAttachmentSplitter")) node = { id: mkId("SPL"), type: "split", x: px(m), y: py(m), label: null };
+    else if (cls === "ConveyorAttachmentMerger") node = { id: mkId("MRG"), type: "merge", x: px(m), y: py(m), label: null };
+    else if (cls.startsWith("StorageContainer")) node = { id: mkId("STO"), type: "store", x: px(m), y: py(m), label: null, buffer: true };
+    else if (cls === "TruckStation") node = { id: mkId("TRK"), type: "truck", x: px(m), y: py(m), label: null, buffer: true };
+    else if (cls.includes("TrainStation")) node = { id: mkId("TRN"), type: "train", x: px(m), y: py(m), label: null, buffer: true };
+    else if (cls === "ResourceSink") node = { id: mkId("OUT"), type: "sink", x: px(m), y: py(m), label: "AWESOME SINK" };
+    if (node) { nodes.push(node); idFor.set(m.inst, node.id); }
+  }
+  const seenE = new Map(); let eseq = 0;
+  for (const e of ex.edges) {
+    const a = idFor.get(e.from), b = idFor.get(e.to);
+    if (!a || !b || a === b) continue;
+    const k = a + ">" + b;
+    if (seenE.has(k)) { seenE.get(k).link = "b" + Math.min(+seenE.get(k).link.slice(1), Math.max(1, Math.min(e.tier, 6))); continue; }
+    const edge = { id: "E" + (++eseq), from: a, to: b, link: "b" + Math.max(1, Math.min(e.tier, 6)) };
+    seenE.set(k, edge); edges.push(edge);
+  }
+  // infer miner ore from downstream recipes
+  const outAdj = new Map();
+  for (const e of edges) { if (!outAdj.has(e.from)) outAdj.set(e.from, []); outAdj.get(e.from).push(e.to); }
+  const byId = new Map(nodes.map(n => [n.id, n]));
+  for (const n of nodes) {
+    if (n.type !== "res" || n.extractor === "water") continue;
+    let q = [n.id]; const vis = new Set(); let found = null;
+    for (let d = 0; d < 8 && q.length && !found; d++) {
+      const next = [];
+      for (const id of q) for (const t of outAdj.get(id) || []) {
+        if (vis.has(t)) continue; vis.add(t);
+        const tn = byId.get(t);
+        if (tn && tn.type === "m" && ORE[tn.recipe]) { found = ORE[tn.recipe]; break; }
+        next.push(t);
+      }
+      q = next;
+    }
+    if (found) { n.resource = found; n.label = itemName(found).toUpperCase() + " — CHECK PURITY"; }
+    else n.label = "SET RESOURCE + PURITY";
+  }
+  const annos = [
+    { id: "A1", kind: "text", x: 40, y: -220, color: null, text: "IMPORTED FROM SAVE", size: 3 },
+    { id: "A2", kind: "text", x: 40, y: -140, color: "orange", text: "POSITIONS = YOUR REAL MAP (SCALED) · FLOORS FAN OUT DIAGONALLY", size: 1 },
+    { id: "A3", kind: "text", x: 40, y: -100, color: "gray", text: "MINERS: SET PURITY — THE SAVE DOESN'T STORE NODE TYPE (DEFAULTED TO NORMAL)", size: 1 }];
+  return { state: { nodes, edges, annos, customRecipes: CR,
+      colors: { ...AUTO_COLORS }, seq, eseq, aseq: 3, defaultLink: "b2" },
+    report: { unmapped: [...unmapped.entries()], counts: { nodes: nodes.length, edges: edges.length } } };
+}
+
+/* import flow */
+async function importSavBuffer(buf, fileName) {
+  toast("PARSING SAVE…");
+  const hdr = SAV.parseHeaderInfo(buf);
+  const body = await SAV.inflateChunks(buf);
+  const ex = SAV.extract(body);
+  if (!ex.machines.length) { toast("NO MACHINES FOUND"); return; }
+  const { state: newState, report } = savToState(ex);
+  snapshot();
+  state = normalizeState(newState);
+  clearMsel(); sel = null;
+  refresh(); fitView(); persist();
+  const hrs = Math.round((hdr.playedSeconds || 0) / 360) / 10;
+  const alerts = CALC.warns.filter(w => w.cls === "alert").length;
+  window.__lastSavBuf = { buf, hdr, fileName };
+  openModal("SAVE IMPORTED — " + esc(hdr.sessionName || fileName), `
+    <h4>WHAT CAME IN</h4>
+    <p>${report.counts.nodes} buildings · ${report.counts.edges} belt routes · ${ex.beltCount} belt segments walked · ${hrs}h session</p>
+    <h4>DO THIS NOW</h4>
+    <ul>
+      <li><b>Set purity on your miners</b> — saves don't store node type. Pure nodes default to NORMAL here, so starved lines below are usually just that.</li>
+      <li>${alerts} alerts right now — expect most to clear once purities are right.</li>
+      ${report.unmapped.length ? `<li>Recipes not in this tool yet (kept as labels): ${report.unmapped.map(([r, c]) => esc(r.replace(/^Recipe_|_C$/g, "")) + " ×" + c).join(", ")}</li>` : ""}
+      <li>Machines overlapping? Multi-floor racks fan out diagonally — shift-drag a box around a floor and pull it aside.</li>
+    </ul>
+    ${hdr.isCreativeModeEnabled ? `<h4>ADVANCED GAME SETTINGS DETECTED</h4>
+    <p>This save has the creative/AGS flag set (achievements disabled). Experimental: download a copy with the header flag cleared — load it in game and check. Body game-rules may still re-flag it; your original file is untouched either way.</p>
+    <p style="margin-top:8px"><button class="ibtn" style="width:auto;padding:7px 18px" onclick="downloadAchvCopy()">⭳ DOWNLOAD ACHIEVEMENTS-CLEARED COPY</button></p>` : ""}
+  `);
+}
+function downloadAchvCopy() {
+  const d = window.__lastSavBuf; if (!d) return;
+  const b = new Uint8Array(d.buf.slice(0));
+  new DataView(b.buffer).setInt32(d.hdr.creativeFlagOffset, 0, true);
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([b]));
+  a.download = (d.fileName || "save").replace(/\.sav$/i, "") + "_ACHV.sav";
+  a.click(); URL.revokeObjectURL(a.href);
+  toast("SAVED — LOAD IT IN GAME TO TEST");
+}
+$("btnSave").onclick = () => {
+  if (!confirm("Import a .sav file? Current sheet will be replaced (CTRL+Z restores it; export first if unsure).")) return;
+  $("savInput").click();
+};
+$("savInput").addEventListener("change", ev => {
+  const f = ev.target.files[0]; if (!f) return;
+  f.arrayBuffer().then(buf => importSavBuffer(buf, f.name)).catch(e => { console.error(e); toast("IMPORT FAILED: " + e.message); });
+  ev.target.value = "";
+});
+
+/* bulk operations */
+$("btnBulk").onclick = () => {
+  const beltOpts = LINKS.filter(l => l.id.startsWith("b")).map(l => `<button class="linkbtn" data-bulkbelt="${l.id}">${l.label}<br>${l.cap}/min</button>`).join("");
+  const pipeOpts = LINKS.filter(l => l.id.startsWith("p")).map(l => `<button class="linkbtn" data-bulkpipe="${l.id}">${l.label}<br>${l.cap}/min</button>`).join("");
+  openModal("BULK OPERATIONS", `
+    <h4>UPGRADE ALL BELTS TO</h4><div class="linkgrid">${beltOpts}</div>
+    <h4>UPGRADE ALL PIPES TO</h4><div class="linkgrid">${pipeOpts}</div>
+    <h4>UPGRADE ALL MINERS TO</h4><div class="linkgrid">
+      ${["mk1","mk2","mk3"].map(m => `<button class="linkbtn" data-bulkminer="${m}">${EXTRACTORS[m].name.toUpperCase()}<br>${EXTRACTORS[m].rates.normal}/min @ NORMAL</button>`).join("")}</div>
+    <h4>STORAGE MODE</h4><div class="linkgrid">
+      <button class="linkbtn" data-bulkbuf="1">ALL STORAGES → LOADING<br>(overflow targets)</button>
+      <button class="linkbtn" data-bulkbuf="0">ALL STORAGES → PASS-THROUGH</button></div>
+    <p style="margin-top:10px" class="itip">Applies to the whole sheet. One CTRL+Z undoes it.</p>`);
+  $("mbody").addEventListener("click", ev => {
+    const b = ev.target.closest("[data-bulkbelt],[data-bulkpipe],[data-bulkminer],[data-bulkbuf]");
+    if (!b) return;
+    snapshot();
+    let n = 0;
+    if (b.dataset.bulkbelt) for (const e of state.edges) { if (e.link.startsWith("b")) { e.link = b.dataset.bulkbelt; n++; } }
+    if (b.dataset.bulkpipe) for (const e of state.edges) { if (e.link.startsWith("p")) { e.link = b.dataset.bulkpipe; n++; } }
+    if (b.dataset.bulkminer) for (const nd of state.nodes) { if (nd.type === "res" && /^mk\d$/.test(nd.extractor)) { nd.extractor = b.dataset.bulkminer; n++; } }
+    if (b.dataset.bulkbuf != null) for (const nd of state.nodes) { if (CAN_BUFFER.has(nd.type)) { nd.buffer = b.dataset.bulkbuf === "1"; n++; } }
+    commit();
+    toast("APPLIED TO " + n + " " + (b.dataset.bulkminer ? "MINERS" : b.dataset.bulkbuf != null ? "STORAGES" : "LINKS"));
+  }, { once: false });
+};
+
+/* ════════════════════════════════════════════════════════════
+   SELF-TESTS — run window.__TESTS() in the console.
+   ════════════════════════════════════════════════════════════ */
+window.__TESTS=function(){
+  const out=[]; let pass=0,fail=0;
+  const keep={state,sel};
+  const T=(name,cond,detail)=>{ if(cond){pass++;out.push("PASS  "+name);} else {fail++;out.push("FAIL  "+name+(detail?"  →  "+detail:""));} };
+  const near=(a,b,tol=0.01)=>Math.abs(a-b)<=tol;
+  try{
+    /* T1: the demo factory — Smart Plating starter, zero-waste */
+    state=blankState(); buildDemo();
+    let C=solve(state);
+    const byLabel=l=>state.nodes.find(n=>n.label===l);
+    T("demo: ZERO warnings of any kind",C.warns.length===0,C.warns.map(w=>w.msg).join(" | "));
+    T("demo: smart plating 10/min stored",near(C.totals.sunk.smart_plating,10),C.totals.sunk.smart_plating);
+    T("demo: wire 120 stored",near(C.totals.sunk.wire,120),C.totals.sunk.wire);
+    T("demo: cable 60 stored",near(C.totals.sunk.cable,60),C.totals.sunk.cable);
+    T("demo: concrete 30 stored",near(C.totals.sunk.concrete,30),C.totals.sunk.concrete);
+    T("demo: screws 370 made & used",near(C.totals.supply.screw,370)&&near(C.totals.used.screw,370),C.totals.supply.screw+"/"+C.totals.used.screw);
+    T("demo: iron ingots 232.5 exact",near(C.totals.supply.iron_ingot,232.5)&&near(C.totals.used.iron_ingot,232.5),C.totals.supply.iron_ingot);
+    T("demo: rotors 10 made & used",near(C.totals.supply.rotor,10)&&near(C.totals.used.rotor,10),C.totals.supply.rotor);
+    T("demo: nothing untapped",Object.keys(C.totals.untapped).length===0,JSON.stringify(C.totals.untapped));
+    T("demo: every machine at 100%",state.nodes.filter(n=>n.type==="m").every(n=>C.nodeCalc[n.id].eff>0.9999),
+      state.nodes.filter(n=>n.type==="m"&&C.nodeCalc[n.id].eff<=0.9999).map(n=>n.label+":"+C.nodeCalc[n.id].eff.toFixed(4)).join(","));
+    T("demo: 65 machines",C.totals.machines===65,C.totals.machines);
+    const eRIP=state.edges.find(e=>e.from===byLabel("SCREW BANK").id&&e.to===byLabel("RIP BANK").id);
+    T("demo: screw→RIP belt 120/120",eRIP&&near(C.edgeCalc[eRIP.id].total,120)&&C.edgeCalc[eRIP.id].cap===120,eRIP&&C.edgeCalc[eRIP.id].total);
+
+    /* T2: starvation split — 30 supply, two consumers wanting 30 each */
+    state=blankState();
+    const src=makeNode("res",{resource:"iron_ore",purity:"impure",extractor:"mk1"}); // 30/min
+    const s1=makeNode("m",{mtype:"smelter",recipe:"iron_ingot"});
+    const s2=makeNode("m",{mtype:"smelter",recipe:"iron_ingot"});
+    makeEdge(src.id,s1.id,"b1"); makeEdge(src.id,s2.id,"b1");
+    C=solve(state);
+    T("starve: fair split 50/50",near(C.nodeCalc[s1.id].eff,.5)&&near(C.nodeCalc[s2.id].eff,.5),
+      C.nodeCalc[s1.id].eff+","+C.nodeCalc[s2.id].eff);
+
+    /* T3: belt cap clamps */
+    state=blankState();
+    const src3=makeNode("res",{resource:"iron_ore",purity:"pure",extractor:"mk1"}); // 120
+    const sm3=makeNode("m",{mtype:"smelter",recipe:"iron_ingot",count:4});          // wants 120
+    const e3=makeEdge(src3.id,sm3.id,"b1");                                          // cap 60
+    C=solve(state);
+    T("belt: flow clamped to 60",near(C.edgeCalc[e3.id].total,60),C.edgeCalc[e3.id].total);
+    T("belt: smelters at 50%",near(C.nodeCalc[sm3.id].eff,.5),C.nodeCalc[sm3.id].eff);
+    T("belt: flagged binding",C.edgeCalc[e3.id].binding===true);
+    T("belt: 60 untapped at node",near(C.totals.untapped.iron_ore,60),C.totals.untapped.iron_ore);
+
+    /* T4: over-feed backlog via forced feeders */
+    state=blankState();
+    const pf=makeNode("m",{mtype:"constructor",recipe:"iron_plate",override:30}); // forced 30 plates
+    const sf=makeNode("m",{mtype:"constructor",recipe:"screw",override:30});      // forced 30 screws
+    const rip=makeNode("m",{mtype:"assembler",recipe:"reinforced_iron_plate"});   // wants 30+60
+    makeEdge(pf.id,rip.id,"b2"); makeEdge(sf.id,rip.id,"b2");
+    C=solve(state);
+    T("forced: RIP eff 50%",near(C.nodeCalc[rip.id].eff,.5),C.nodeCalc[rip.id].eff);
+    T("forced: RIP out 2.5",near(C.nodeCalc[rip.id].out.reinforced_iron_plate,2.5),C.nodeCalc[rip.id].out.reinforced_iron_plate);
+    T("forced: plate backlog flagged",C.warns.some(w=>w.msg.includes("over-fed")&&w.nodeId===rip.id));
+    T("forced: plate over-feed = 15",near((C.nodeCalc[rip.id].recv.iron_plate||0)-(C.nodeCalc[rip.id].consumed.iron_plate||0),15));
+
+    /* T5: buffer absorbs */
+    state=blankState();
+    const src5=makeNode("res",{resource:"copper_ore",purity:"normal",extractor:"mk1"});
+    const st5=makeNode("store",{buffer:true});
+    makeEdge(src5.id,st5.id,"b1");
+    C=solve(state);
+    T("buffer: stores 60/min",near(C.totals.sunk.copper_ore,60),C.totals.sunk.copper_ore);
+
+    /* T6: refinery byproduct surplus */
+    state=blankState();
+    const oil=makeNode("res",{resource:"crude_oil",extractor:"oil",purity:"normal"}); // 120
+    const rf=makeNode("m",{mtype:"refinery",recipe:"plastic",count:4});               // eats 120, makes 80 plastic + 40 HOR
+    const sk=makeNode("sink",{});
+    makeEdge(oil.id,rf.id,"p1"); makeEdge(rf.id,sk.id,"b2");
+    C=solve(state);
+    T("refinery: 100%",near(C.nodeCalc[rf.id].eff,1),C.nodeCalc[rf.id].eff);
+    T("refinery: plastic 80 to sink",near(C.nodeCalc[sk.id].absorbed.plastic||0,80),C.nodeCalc[sk.id].absorbed.plastic);
+    T("refinery: HOR 40 sunk too",near(C.nodeCalc[sk.id].absorbed.heavy_oil_residue||0,40),C.nodeCalc[sk.id].absorbed.heavy_oil_residue);
+
+    /* T7: overclock power: constructor @250% = 4×2.5^1.3219 ≈ 13.43 */
+    state=blankState();
+    const oc=makeNode("m",{mtype:"constructor",recipe:"iron_rod",clock:2.5});
+    C=solve(state);
+    T("power: 250% constructor ≈13.43 MW",near(C.nodeCalc[oc.id].power,13.43,0.02),C.nodeCalc[oc.id].power);
+
+    /* T8: uneven mergers rebalance (30 + 90 through storage to 120 demand) */
+    state=blankState();
+    const a8=makeNode("res",{resource:"iron_ore",purity:"impure",extractor:"mk1"});          // 30
+    const b8=makeNode("res",{resource:"iron_ore",purity:"normal",extractor:"mk2"});          // 120 avail, demand-limited
+    const st8=makeNode("store",{});
+    const sm8=makeNode("m",{mtype:"smelter",recipe:"iron_ingot",count:4});                   // wants 120
+    makeEdge(a8.id,st8.id,"b2"); makeEdge(b8.id,st8.id,"b2"); makeEdge(st8.id,sm8.id,"b2");
+    C=solve(state);
+    T("rebalance: smelters 100%",near(C.nodeCalc[sm8.id].eff,1),C.nodeCalc[sm8.id].eff);
+    T("rebalance: 30 untapped at B", near(C.totals.untapped.iron_ore,30),C.totals.untapped.iron_ore);
+
+    /* T9: wrong-item wiring flagged */
+    state=blankState();
+    const cu=makeNode("res",{resource:"copper_ore",purity:"normal",extractor:"mk1"});
+    const ip=makeNode("m",{mtype:"constructor",recipe:"iron_plate"});
+    makeEdge(cu.id,ip.id,"b1");
+    C=solve(state);
+    T("wiring: no copper into plate maker",!(C.nodeCalc[ip.id].recv.copper_ore>EPS));
+    T("wiring: plate maker starved 0%",near(C.nodeCalc[ip.id].eff,0),C.nodeCalc[ip.id].eff);
+
+    /* T10: smart plating chain exact (2×RIP + 2×rotor → smart plating ×5 like the calculator screenshot) */
+    state=blankState();
+    const fRIP=makeNode("m",{mtype:"assembler",recipe:"reinforced_iron_plate",count:2,override:10});
+    const fROT=makeNode("m",{mtype:"assembler",recipe:"rotor",count:3,override:10});
+    const sp=makeNode("m",{mtype:"assembler",recipe:"smart_plating",count:5});
+    const out10=makeNode("sink",{});
+    makeEdge(fRIP.id,sp.id,"b1"); makeEdge(fROT.id,sp.id,"b1"); makeEdge(sp.id,out10.id,"b1");
+    C=solve(state);
+    T("smart plating: 10/min out",near(C.nodeCalc[out10.id].absorbed.smart_plating||0,10),C.nodeCalc[out10.id].absorbed.smart_plating);
+
+    /* T11: two items share one belt through a storage into a sink */
+    state=blankState();
+    const oil11=makeNode("res",{resource:"crude_oil",extractor:"oil",purity:"normal"}); // 120
+    const rf11=makeNode("m",{mtype:"refinery",recipe:"rubber",count:4});                // 80 rubber + 80 HOR
+    const st11=makeNode("store",{});
+    const sk11=makeNode("sink",{});
+    makeEdge(oil11.id,rf11.id,"p1"); makeEdge(rf11.id,st11.id,"b3"); makeEdge(st11.id,sk11.id,"b3");
+    C=solve(state);
+    T("mixed thru: rubber 80 sunk",near(C.nodeCalc[sk11.id].absorbed.rubber||0,80),C.nodeCalc[sk11.id].absorbed.rubber);
+    T("mixed thru: HOR 80 sunk",near(C.nodeCalc[sk11.id].absorbed.heavy_oil_residue||0,80),C.nodeCalc[sk11.id].absorbed.heavy_oil_residue);
+    T("mixed thru: belt 160/270",near(C.edgeCalc[state.edges[2].id].total,160),C.edgeCalc[state.edges[2].id].total);
+
+    /* T12: overflow priority — LOADING storage must not steal from machines */
+    state=blankState();
+    const src12=makeNode("res",{resource:"iron_ore",purity:"normal",extractor:"mk1"});      // 60
+    const sm12=makeNode("m",{mtype:"smelter",recipe:"iron_ingot",count:2});                 // wants all 60
+    const st12=makeNode("store",{buffer:true});
+    makeEdge(src12.id,sm12.id,"b2"); makeEdge(src12.id,st12.id,"b2");
+    C=solve(state);
+    T("overflow: machines fed first (100%)",near(C.nodeCalc[sm12.id].eff,1),C.nodeCalc[sm12.id].eff);
+    T("overflow: storage gets nothing when machines want it all",!(C.totals.sunk.iron_ore>EPS),C.totals.sunk.iron_ore);
+    sm12.count=1;                                                                            // now wants only 30
+    C=solve(state);
+    T("overflow: storage siphons the true surplus",near(C.totals.sunk.iron_ore,30),C.totals.sunk.iron_ore);
+    T("overflow: machine still 100%",near(C.nodeCalc[sm12.id].eff,1),C.nodeCalc[sm12.id].eff);
+  }catch(err){ fail++; out.push("EXCEPTION  "+err.message+"\n"+err.stack); }
+  state=keep.state; sel=keep.sel; refresh();
+  const summary=`${pass} passed, ${fail} failed`;
+  console.log("__TESTS: "+summary+"\n"+out.join("\n"));
+  return {pass,fail,summary,detail:out};
+};
+
+/* ════════════════════════════════════════════════════════════
+   BOOT
+   ════════════════════════════════════════════════════════════ */
+(function boot(){
+  let th=null;
+  try{ th=localStorage.getItem(THEME_KEY); }catch(_){}
+  if(th!=="light"&&th!=="dark")
+    th=(window.matchMedia&&matchMedia("(prefers-color-scheme: light)").matches)?"light":"dark";
+  applyTheme(th);
+  loadBPs(); renderBPs();
+  let loaded=null;
+  try{ loaded=JSON.parse(localStorage.getItem(LS_KEY)); }catch(_){}
+  if(loaded&&loaded.state&&Array.isArray(loaded.state.nodes)&&loaded.state.nodes.length){
+    state=normalizeState(loaded.state); if(loaded.view) view=loaded.view;
+    refresh(); applyView();
+  }else{
+    buildDemo(); refresh(); applyView();
+    setTimeout(fitView,50);
+  }
+})();
+window.addEventListener("resize",applyView);
+</script>
+</body>
+</html>
