@@ -1,9 +1,9 @@
 # ─────────────────────────────────────────────────────────────
-# Legacy → clean URL redirects (301 permanent) for the Astro migration.
+# Redirects (301 permanent), two eras deep.
 #
 # ORDER MATTERS — Netlify processes the first matching rule and stops.
-# Query-param rules must come before the bare fallbacks, and the specific
-# cat=lab rule must come before the generic cat=:cat capture.
+# Query-param rules must come before the bare fallbacks, and specific
+# rules before their generic captures.
 #
 # Netlify query matching: `cat=:cat` matches ONLY when the query string is
 # exactly that one param (no others). Legacy URLs only ever carried a single
@@ -11,20 +11,63 @@
 # catch paramless hits.
 # ─────────────────────────────────────────────────────────────
 
+# ── Era 1: the pre-Astro static site (.html URLs) ────────────
 # Project detail: /project.html?id=<slug>  →  /project/<slug>
-/project.html   id=:id     /project/:id    301!
+/project.html   id=:id            /project/:id    301!
 
-# Category listing: /category.html?cat=<cat>  →  /<cat>
-# 'lab' has no /:cat page (it's a hardcoded /lab page), so send it there
-# explicitly BEFORE the generic capture below.
-/category.html  cat=lab    /lab            301!
-/category.html  cat=:cat   /:cat           301!
+# Category listing: architecture lives in /work, everything else in /archive.
+/category.html  cat=lab           /lab            301!
+/category.html  cat=architecture  /work           301!
+/category.html  cat=:cat          /archive        301!
 
 # Bare (paramless) fallbacks — must follow the param rules above.
-/project.html              /               301!
-/category.html             /architecture   301!
+/project.html                     /               301!
+/category.html                    /work           301!
 
 # Static page renames.
-/about.html                /about          301!
-/lab.html                  /lab            301!
-/privacy.html              /privacy        301!
+/about.html                       /about          301!
+/lab.html                         /lab            301!
+/privacy.html                     /privacy        301!
+
+# Old clean-URL category pages (retired in V3.0).
+/architecture                     /work           301!
+/personal                         /archive        301!
+
+# ── Era 2: the multiverse (2026-07-03 → 2026-07-20) ──────────
+# Seven universes lived at /1/../6/ and /8/; V3.0 collapsed them into the
+# one site (the old universe 2). Same page, no matter which door you knew.
+/1/work        /work            301!
+/1/archive     /archive         301!
+/1/about       /about           301!
+/1/project/*   /project/:splat  301!
+/1/*           /                301!
+/2/work        /work            301!
+/2/archive     /archive         301!
+/2/about       /about           301!
+/2/project/*   /project/:splat  301!
+/2/*           /                301!
+/3/work        /work            301!
+/3/archive     /archive         301!
+/3/about       /about           301!
+/3/project/*   /project/:splat  301!
+/3/*           /                301!
+/4/work        /work            301!
+/4/archive     /archive         301!
+/4/about       /about           301!
+/4/project/*   /project/:splat  301!
+/4/*           /                301!
+/5/work        /work            301!
+/5/archive     /archive         301!
+/5/about       /about           301!
+/5/project/*   /project/:splat  301!
+/5/*           /                301!
+/6/work        /work            301!
+/6/archive     /archive         301!
+/6/about       /about           301!
+/6/project/*   /project/:splat  301!
+/6/*           /                301!
+/8/work        /work            301!
+/8/archive     /archive         301!
+/8/about       /about           301!
+/8/project/*   /project/:splat  301!
+/8/*           /                301!

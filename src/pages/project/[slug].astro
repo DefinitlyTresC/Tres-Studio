@@ -1,228 +1,253 @@
 ---
-// project/[slug].astro — data-driven project detail page.
-//
-// Phase 3 port of project.html's inline script tag. v1 fetched the sheet and
-// built the detail DOM client-side; here every project is a static page,
-// pre-rendered from the 'projects' content collection.
-//
-// Parity notes (matched against project.html verbatim):
-//   - Spec line = "No. <#> · year · location · status" (uses p.id, the sheet's
-//     '#' column, padded to 2 digits). NOTE: the v1 script does NOT put
-//     subcategory in this line — only No./year/location/status — so neither do
-//     we. (See report: the migration audit listed subcategory here.)
-//   - Description: split on blank lines -> <p>, single newlines -> <br>
-//     (renderDescription port).
-//   - Hero renders with HERO_TRANSFORM (heroUrl) at w_2400; gallery cells use
-//     mediaUrl (images w_1800 THUMB, videos no width transform) — matching what
-//     data.js baked into p.heroUrl / p.media[].url.
-//   - Gallery cells: image vs video, exact attrs (video: autoplay muted loop
-//     playsinline preload="metadata"; the onload/onloadeddata add .loaded, the
-//     onerror hides the parent) so brand.js's lightbox on .gallery-item works
-//     unchanged.
-//   - gallery--long modifier when media.length > 50.
-//   - Prev/next within the SAME category, ordered by Order, wrapping around;
-//     links to /project/<slug>.
-//   - Back link + detail-back both target the clean category path /<category>.
-//   - Reading-progress bar: <div class="read-progress"> + the rAF-throttled
-//     inline script, shipped with is:inline (runs in the browser, verbatim).
-import Base from '../../layouts/Base.astro';
+// Project page — weightless skin.
 import { getCollection } from 'astro:content';
-import { heroUrl, mediaUrl } from '../../lib/cloudinary';
-import type { Project } from '../../lib/sheet';
+import { heroUrl, gridUrl, mediaUrl } from '../../lib/cloudinary';
 
 export async function getStaticPaths() {
-  const all = await getCollection('projects');
-  const projects = all.map((e) => e.data);
-
-  return projects.map((p) => {
-    // Prev/next within the same category, ordered by the sheet's Order column.
-    // Wraps around. Verbatim logic from project.html.
-    const siblings = p.category
-      ? projects
-          .filter((x) => x.category === p.category)
-          .sort((a, b) => a.order - b.order)
-      : [];
-    const idx = siblings.findIndex((x) => x.slug === p.slug);
-    let prev: Project | null = null;
-    let next: Project | null = null;
-    if (idx >= 0 && siblings.length > 1) {
-      prev = siblings[(idx - 1 + siblings.length) % siblings.length];
-      next = siblings[(idx + 1) % siblings.length];
-    }
-
-    return { params: { slug: p.slug }, props: { p, prev, next } };
+  const all = (await getCollection('projects')).map((e) => e.data);
+  return all.map((p) => {
+    const cat = all.filter((q) => q.category === p.category);
+    const ring = cat.length > 1 ? cat : all; /* singleton category: nav must not self-link */
+    const i = ring.findIndex((q) => q.slug === p.slug);
+    return {
+      params: { slug: p.slug },
+      props: { p, prev: ring[(i - 1 + ring.length) % ring.length], next: ring[(i + 1) % ring.length] },
+    };
   });
 }
 
-interface Props {
-  p: Project;
-  prev: Project | null;
-  next: Project | null;
-}
-
+const WORK = ['z07', 'ee13', 'flatwood', 'tucker', 'thesis'];
 const { p, prev, next } = Astro.props;
-
-// Description rendering — port of renderDescription: split on blank lines into
-// paragraphs, single newlines -> <br>. Returns an array of paragraph strings so
-// the template can emit <p> nodes (the <br> is injected via set:html).
-function descriptionParagraphs(text: string): string[] {
-  if (!text) return [];
-  return text
-    .split(/\n\s*\n/)
-    .map((s) => s.trim())
-    .filter(Boolean)
-    .map((para) => para.replace(/\n/g, '<br>'));
-}
-
-const paragraphs = descriptionParagraphs(p.description);
-
-const backHref = p.category ? `/${p.category}` : '/';
-const backLabel = p.category
-  ? p.category.charAt(0).toUpperCase() + p.category.slice(1)
-  : 'Index';
-
-// Spec-sheet metadata line — No. <#> · year · location · status.
-const specBits: string[] = [];
-if (p.id) specBits.push(`No. ${String(p.id).padStart(2, '0')}`);
-if (p.year) specBits.push(p.year);
-if (p.location) specBits.push(p.location);
-if (p.status) specBits.push(p.status);
-
-const hero = heroUrl(p);
-
-// Head metadata — verbatim from project.html's derivation.
-const title = `${p.name} — Tres.`;
-const firstLine = (p.description || '').split(/\n+/)[0].trim();
-const descParts: string[] = [];
-if (p.location) descParts.push(p.location);
-if (p.year) descParts.push(p.year);
-const description = (firstLine || descParts.join(' · ') || 'Project by Tres Carter.').slice(0, 200);
+const backHref = WORK.includes(p.slug) ? '/work' : '/archive';
+const backLabel = WORK.includes(p.slug) ? 'work' : 'archive';
+const spec = [`No. ${String(p.id ?? '').padStart(2, '0')}`, p.year, p.location, p.status].filter(Boolean).join(' · ');
+const paragraphs = (p.description || '').split(/\n\s*\n/).map((s) => s.trim()).filter(Boolean);
+// image ordinal must match the lightbox counter, which counts images only
+let imgOrdinal = 0;
 ---
 
-<Base title={title} description={description}>
-  <div class="read-progress" id="readProgress" aria-hidden="true"></div>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="robots" content="noindex" />
+    <meta name="theme-color" content="#FAFAF7" />
+    <title>{p.name} — T R E S .</title>
+    <link rel="preconnect" href="https://res.cloudinary.com" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;700;800&family=Space+Mono&display=swap" rel="stylesheet" />
+    <!-- tracking: one bootstrap for the whole site (Umami + Clarity + visitor id + self-exclusion) - public/ts.js -->
+    <script is:inline defer src="/ts.js"></script>
+  </head>
+  <body>
+    <a class="back" id="back" href={backHref}>← {backLabel}</a>
 
-  <main id="content">
-    <section class="detail">
-      <div class="detail-head">
-        <div class="reveal">
-          <div class="detail-eyebrow">— {backLabel} · Project</div>
-          <h1 class="detail-title">{p.name}</h1>
-          <div class="detail-loc">{specBits.join(' · ')}</div>
-        </div>
-        <div class="detail-desc reveal">
-          {paragraphs.map((para) => (
-            <p set:html={para} />
-          ))}
-          {p.designedAt && (
-            <div class="detail-credit">
-              — Designed at {p.designedAtUrl ? (
-                <a href={p.designedAtUrl} target="_blank" rel="noopener">{p.designedAt}</a>
-              ) : (
-                <span>{p.designedAt}</span>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {hero && (
-        <section class="gallery" style="margin-top:clamp(40px,8vh,90px)">
-          <div class="gallery-item reveal">
-            <img
-              src={hero}
-              alt={p.name}
-              fetchpriority="high"
-              decoding="async"
-              onload="this.classList.add('loaded')"
-              onerror="this.parentElement.style.display='none'"
-            />
-          </div>
-        </section>
-      )}
-
-      <section class={`gallery${p.media.length > 50 ? ' gallery--long' : ''}`}>
-        {p.media.map((m) =>
-          m.type === 'video' ? (
-            <div class="gallery-item reveal">
-              <video
-                src={mediaUrl(m) || ''}
-                autoplay
-                muted
-                loop
-                playsinline
-                preload="metadata"
-                onloadeddata="this.classList.add('loaded')"
-                onerror="this.parentElement.style.display='none'"
-              ></video>
-            </div>
-          ) : (
-            <div class="gallery-item reveal">
-              <img
-                src={mediaUrl(m) || ''}
-                alt={p.name}
-                loading="lazy"
-                decoding="async"
-                onload="this.classList.add('loaded')"
-                onerror="this.parentElement.style.display='none'"
-              />
-            </div>
-          )
+    <main class="proj">
+      <header class="head">
+        <p class="spec">{spec}</p>
+        <h1 class="name">{p.name}</h1>
+        {p.designedAt && (
+          <p class="spec at">
+            designed at {p.designedAtUrl
+              ? <a href={p.designedAtUrl} target="_blank" rel="noopener">{p.designedAt}</a>
+              : p.designedAt}
+          </p>
         )}
-      </section>
+      </header>
 
-      {(prev || next) && (
-        <nav class="detail-nav" aria-label={`More projects in ${backLabel}`}>
-          {prev ? (
-            <a class="detail-nav-link detail-nav-link--prev" href={`/project/${prev.slug}`}>
-              <span class="detail-nav-meta"><span class="detail-nav-arrow">←</span> Previous</span>
-              <span class="detail-nav-name">{prev.name}</span>
-            </a>
-          ) : (
-            <span></span>
-          )}
-          {next ? (
-            <a class="detail-nav-link detail-nav-link--next" href={`/project/${next.slug}`}>
-              <span class="detail-nav-meta">Next <span class="detail-nav-arrow">→</span></span>
-              <span class="detail-nav-name">{next.name}</span>
-            </a>
-          ) : (
-            <span></span>
-          )}
-        </nav>
+      {heroUrl(p) && <img class="hero" src={heroUrl(p)} alt={p.name} fetchpriority="high" decoding="async" />}
+
+      {paragraphs.length > 0 && (
+        <div class="desc">{paragraphs.map((t) => <p>{t}</p>)}</div>
       )}
 
-      <a class="detail-back" href={backHref}>← Back to {backLabel}</a>
-    </section>
-  </main>
-</Base>
+      {p.media.length > 0 && (
+        <div class="gallery">
+          {p.media.map((m, i) =>
+            m.type === 'video' ? (
+              <video src={mediaUrl(m)} autoplay muted loop playsinline preload="metadata"></video>
+            ) : (
+              <button class="cell" type="button" data-full={mediaUrl(m)} aria-label={`View image ${++imgOrdinal}`}>
+                <img src={gridUrl(m)} alt="" loading="lazy" decoding="async" />
+              </button>
+            )
+          )}
+        </div>
+      )}
 
-<script is:inline>
-  // Reading progress — orange line fills 0→100% through the body. rAF-throttled.
-  // Verbatim port of project.html's initReadProgress, run on DOMContentLoaded so
-  // #readProgress exists when it binds.
-  (function () {
-    function initReadProgress() {
-      const bar = document.getElementById('readProgress');
-      if (!bar) return;
-      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { bar.style.display = 'none'; return; }
-      let scheduled = false;
-      function update() {
-        scheduled = false;
-        const doc = document.documentElement;
-        const max = doc.scrollHeight - window.innerHeight;
-        const ratio = max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0;
-        bar.style.transform = `scaleX(${ratio})`;
+      <nav class="pn">
+        <a href={`/project/${prev.slug}`}>← {prev.name}</a>
+        <a class="pn-next" href={`/project/${next.slug}`}>{next.name} →</a>
+      </nav>
+    </main>
+
+    <footer class="foot">
+      <span>© 2026 Tres Carter</span>
+      <a href="/privacy">Privacy</a>
+    </footer>
+
+    <div class="lb" id="lb" hidden role="dialog" aria-modal="true" aria-label="Gallery image">
+      <img id="lb-img" alt="" />
+      <p class="lb-n" id="lb-n"></p>
+      <button class="lb-x" id="lb-x" type="button" aria-label="Close">close</button>
+      <button class="lb-prev" id="lb-prev" type="button" aria-label="Previous">←</button>
+      <button class="lb-next" id="lb-next" type="button" aria-label="Next">→</button>
+    </div>
+
+    <style is:inline>
+      * { margin: 0; box-sizing: border-box; }
+      html { background: #FAFAF7; }
+      body { font-family: 'Hanken Grotesk', system-ui, sans-serif; color: #101010; -webkit-font-smoothing: antialiased; }
+      ::selection { background: #101010; color: #FAFAF7; }
+      a { color: inherit; text-decoration: none; }
+      button { font: inherit; color: inherit; background: none; border: none; padding: 0; cursor: pointer; }
+
+      .back { position: fixed; z-index: 10; top: var(--y, 14px); left: 6vw; font-family: 'Space Mono', monospace; font-size: 12px; padding: 12px 0; transition: transform 140ms cubic-bezier(0.23,1,0.32,1); }
+      .back:active { transform: scale(0.96); }
+      @media (hover: hover) and (pointer: fine) { .back:hover { text-decoration: underline; text-underline-offset: 4px; } }
+      .back:focus-visible { outline: 2px solid #101010; outline-offset: 3px; }
+
+      .proj { max-width: 1100px; margin: 0 auto; padding: 0 6vw 6svh; }
+      .head { padding: clamp(110px, 20vh, 220px) 0 5svh; }
+      .spec { font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(16,16,16,0.45); }
+      .name { font-weight: 800; font-size: clamp(38px, 7.8vw, 92px); line-height: 1; letter-spacing: -0.015em; text-wrap: balance; margin-top: 12px; }
+      .at { margin-top: 14px; }
+      .at a { text-decoration: underline; text-underline-offset: 3px; }
+
+      .hero { display: block; width: 100%; height: auto; outline: 1px solid rgba(0,0,0,0.1); outline-offset: -1px; }
+      .desc { max-width: 62ch; padding: 6svh 0 2svh; }
+      .desc p { font-size: 17px; line-height: 1.6; text-wrap: pretty; }
+      .desc p + p { margin-top: 1em; }
+
+      .gallery { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(10px, 1.6vw, 20px); padding-top: 5svh; }
+      @media (max-width: 640px) { .gallery { grid-template-columns: 1fr; } }
+      .gallery img, .gallery video { display: block; width: 100%; height: auto; outline: 1px solid rgba(0,0,0,0.1); outline-offset: -1px; }
+      .cell { display: block; transition: transform 140ms cubic-bezier(0.23,1,0.32,1); }
+      .cell:active { transform: scale(0.99); }
+      .cell:focus-visible { outline: 2px solid #101010; outline-offset: 3px; }
+
+      .pn { display: flex; justify-content: space-between; gap: 18px; padding: 8svh 0 0; font-family: 'Space Mono', monospace; font-size: 13px; }
+      .pn-next { text-align: right; }
+      @media (hover: hover) and (pointer: fine) { .pn a:hover { text-decoration: underline; text-underline-offset: 4px; } }
+
+      .foot { display: flex; justify-content: space-between; max-width: 1100px; margin: 0 auto; padding: 3svh 6vw 4svh; border-top: 1px solid rgba(0,0,0,0.14); font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; }
+
+      .lb { position: fixed; inset: 0; z-index: 100; background: rgba(250, 250, 247, 0.97); display: grid; place-items: center; }
+      .lb[hidden] { display: none; }
+      .lb img { max-width: 92vw; max-height: 86svh; outline: 1px solid rgba(0,0,0,0.1); outline-offset: -1px; }
+      .lb-n { position: fixed; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); left: 50%; translate: -50% 0; font-family: 'Space Mono', monospace; font-size: 11px; color: rgba(16,16,16,0.5); }
+      .lb-x { position: fixed; top: calc(10px + env(safe-area-inset-top, 0px)); right: 6vw; font-family: 'Space Mono', monospace; font-size: 12px; padding: 14px 0 14px 14px; min-height: 44px; }
+      .lb-prev, .lb-next { position: fixed; top: 50%; translate: 0 -50%; font-family: 'Space Mono', monospace; font-size: 18px; padding: 14px; min-width: 44px; min-height: 44px; }
+      .lb-prev { left: calc(3vw + env(safe-area-inset-left, 0px)); }
+      .lb-next { right: calc(3vw + env(safe-area-inset-right, 0px)); }
+      @media (hover: hover) and (pointer: fine) { .lb button:hover { text-decoration: underline; text-underline-offset: 4px; } }
+      .lb button:focus-visible { outline: 2px solid #101010; outline-offset: 3px; }
+
+      @media (prefers-reduced-motion: reduce) {
+        .back, .cell { transition: none; }
+        .back:active, .cell:active { transform: none; }
       }
-      function onScroll() { if (scheduled) return; scheduled = true; requestAnimationFrame(update); }
-      window.addEventListener('scroll', onScroll, { passive: true });
-      window.addEventListener('resize', onScroll);
-      update();
-    }
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', initReadProgress);
-    } else {
-      initReadProgress();
-    }
-  })();
-</script>
+    </style>
+
+    <script is:inline type="module">
+      import { autoReveal } from '/mv/curtain.js';
+      autoReveal();
+    </script>
+    <script is:inline>
+      (function () {
+        'use strict';
+        var reduce = false, fine = false;
+        try {
+          reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+          fine = matchMedia('(hover: hover) and (pointer: fine)').matches;
+        } catch (e) {}
+
+        if (reduce) {
+          /* reduced motion: gallery videos must not autoplay-loop */
+          Array.prototype.forEach.call(document.querySelectorAll('.gallery video'), function (v) {
+            v.removeAttribute('autoplay'); v.removeAttribute('loop');
+            try { v.pause(); } catch (err) {}
+            v.controls = true;
+          });
+        }
+
+        if (fine && !reduce) {
+          var back = document.getElementById('back');
+          var target = null, cur = null, raf = null;
+          function frame() {
+            cur += (target - cur) * 0.09;
+            back.style.setProperty('--y', cur.toFixed(1) + 'px');
+            if (Math.abs(target - cur) > 0.4) raf = requestAnimationFrame(frame);
+            else raf = null;
+          }
+          addEventListener('pointermove', function (e) {
+            if (e.pointerType === 'touch') return; /* hybrids: taps must not move it */
+            var h = back.offsetHeight;
+            target = Math.min(innerHeight - h - 12, Math.max(12, e.clientY - h / 2));
+            if (cur === null) cur = target;
+            if (!raf) raf = requestAnimationFrame(frame);
+          }, { passive: true });
+        }
+
+        var cellEls = Array.prototype.slice.call(document.querySelectorAll('.cell'));
+        var full = cellEls.map(function (c) { return c.getAttribute('data-full'); });
+        var lb = document.getElementById('lb');
+        var img = document.getElementById('lb-img');
+        var n = document.getElementById('lb-n');
+        var at = 0, lastFocus = null, lockY = 0;
+        function open(i) {
+          var wasClosed = lb.hidden;
+          at = i;
+          img.src = full[at];
+          n.textContent = (at + 1) + ' / ' + full.length;
+          lb.hidden = false;
+          if (wasClosed) {
+            /* lock + focus capture on a TRUE open only — re-running on
+               prev/next steps zeroes lockY (body is already fixed, so
+               scrollY reads 0) and steals focus from the stepping button */
+            lockY = window.scrollY || 0;
+            /* body position:fixed — the lock iOS actually honors */
+            document.body.style.position = 'fixed';
+            document.body.style.top = -lockY + 'px';
+            document.body.style.left = '0';
+            document.body.style.right = '0';
+            document.body.style.overflow = 'hidden';
+            lastFocus = document.activeElement;
+            document.getElementById('lb-x').focus();
+          }
+        }
+        function close() {
+          lb.hidden = true; img.src = '';
+          document.body.style.position = '';
+          document.body.style.top = '';
+          document.body.style.left = '';
+          document.body.style.right = '';
+          document.body.style.overflow = '';
+          window.scrollTo(0, lockY);
+          if (lastFocus) lastFocus.focus();
+        }
+        function step(d) { open((at + d + full.length) % full.length); }
+        cellEls.forEach(function (c, i) { c.addEventListener('click', function () { open(i); }); });
+        document.getElementById('lb-x').addEventListener('click', close);
+        document.getElementById('lb-prev').addEventListener('click', function (e) { e.stopPropagation(); step(-1); });
+        document.getElementById('lb-next').addEventListener('click', function (e) { e.stopPropagation(); step(1); });
+        lb.addEventListener('click', function (e) { if (e.target === lb) close(); });
+        addEventListener('keydown', function (e) {
+          if (lb.hidden) return;
+          if (e.key === 'Escape') close();
+          else if (e.key === 'ArrowLeft') step(-1);
+          else if (e.key === 'ArrowRight') step(1);
+          else if (e.key === 'Tab') {
+            /* keep focus inside the dialog */
+            var ring = [document.getElementById('lb-x'), document.getElementById('lb-prev'), document.getElementById('lb-next')];
+            var idx = ring.indexOf(document.activeElement);
+            e.preventDefault();
+            var nx = idx === -1 ? 0 : (idx + (e.shiftKey ? -1 : 1) + ring.length) % ring.length;
+            ring[nx].focus();
+          }
+        });
+      })();
+    </script>
+  </body>
+</html>

@@ -1,6 +1,70 @@
-# tres.studio — Brief V3: the Multiverse
+# tres.studio — the living log
 
-## 🔶 LAB, MULTIVERSE EDITION — BUILT + REVIEWED, **NOT PUSHED** — 2026-07-12 (Tres: "rebuild it all from scratch… theme align with the site it is associated with… make me proud")
+## 🔶 V3.0 — THE COLLAPSE: one site, the floating one — 2026-07-20 (Tres: "collapse it all into just the floaty site… keep all the nice quirks… keep the lab ready, keep all tracking functioning, just eliminate the randomness and extra site variants")
+
+**The multiverse is over. The floating one (zero gravity) is THE site,
+served at root URLs.** Committed on `astro-migration`; **NOT PUSHED — deploy
+needs Tres's explicit go (push = live).**
+
+- **NAMING, FOR THE RECORD:** Tres asked for "site 03, the floaty one." The
+  registry's floaty one was **universe 2** ("the floating one", zero-g
+  letters, color cycle on click, color reshuffle on scroll re-entry);
+  universe 3 was the ascii/terminal one (monochrome, no floating letters).
+  Every descriptor — floaty, letters floating up top, scrolling color
+  change — matched 2 and only 2, and the brand itself is 03 (Tres = three),
+  so "site 03" read as brand slang, not the registry id. Collapsed to
+  universe 2. If that call was wrong, `git revert` this and say the word.
+- **Promoted to root:** `/2/` → `/`, `/2/work` → `/work`, `/2/archive` →
+  `/archive`, `/2/about` → `/about`, `/2/project/*` → `/project/*`. Pages
+  are byte-faithful ports minus the multiverse bootstrap (no MV_CLIENT, no
+  refresh-roll, no dot map).
+- **The letters read TRES now:** the landing letter homes were re-organized
+  left-to-right on a gently bouncing baseline — T(15,30) R(35,24) E(55,32)
+  S(74,26) ·(87,38), narrow homes to match — instead of the old full
+  scatter (E below T, S mid-screen). Still floaty: same physics, same
+  sizes, same grab/throw/jello, color cycle + scroll-re-entry reshuffle
+  untouched (zerog.js unchanged).
+- **Randomness eliminated:** deleted the edge dice roll
+  (`netlify/edge-functions/roll.js` + its netlify.toml block), the
+  refresh-roll / MV_CLIENT (`src/lib/multiverse.ts`), the front-door
+  fallback roller, the dot map (`public/mv/ring.js`), and the lab's
+  per-load skin roll. `mv_last` / `mv:u` cookies+storage are simply unread
+  now (they expire on their own).
+- **Universes removed:** `src/pages/{1,3,4,5,6,8}/` and per-site fx
+  (`public/mv/sketch.js`, `public/mv8/`). Also retired the legacy old-brand
+  clean-URL pages (`Base.astro`, `[cat].astro`, root `about/project`
+  pages, `brand.js`, `counter.js`, `style.css`, `v2-tokens.css`,
+  `src/styles/`) — the real pages live at those URLs now — and the stray
+  pre-multiverse `public/labs/Alternate Sites/` folder. All in git history.
+- **Old doors never 404:** `_redirects` now 301s every `/N/…` page to its
+  root twin (`/N/work` → `/work`, `/N/project/*` → `/project/*`, `/N/*` →
+  `/`), plus `/architecture` → `/work`, `/personal` → `/archive` for the
+  retired category pages.
+- **The lab stays, pinned:** `/lab` wears the site's own brand (the old
+  skin 02) permanently — skin roll, reroll button, skin-4 warning strip and
+  skin-5 marquee removed. All eight doors + keeper plates (swatch + №)
+  kept; all eight experiments untouched and still universe-branded — the
+  lab is where the multiverse lives on. Their "from universe 0N"
+  provenance links now ride the redirects home. alternates.html kept as
+  the era's index (its doors all lead home now); its /lab door tag reads
+  "the multiverse, as it hung".
+- **Quirks kept:** zero-g physics everywhere, letter color cycle + scroll
+  reshuffle, ink-blot curtain (autoReveal on every page; /lab links
+  swallowed via new `public/mv/lab-takeover.js`, extracted from ring.js;
+  lab doors flood in site ink), cursor-riding back links, flip-card ticker
+  + slot-machine + confetti, the die-3 favicon (still on brand — Tres =
+  three).
+- **Tracking untouched:** ts.js, /me control room, pulse.mjs counter
+  (epoch 2), ticker — all exactly as before.
+- **Build:** green, 24 pages (was 172). dist grep-verified: zero `/N/`
+  links and zero MV/ring references outside `labs/` provenance.
+- **Open flags for Tres:** (1) push = deploy — your go; (2) everything is
+  still `noindex` — with one real site this is THE moment for the SEO
+  pass; (3) alternates.html is now a museum piece whose doors all lead
+  home — keep or retire, your call; (4) letter homes are constants at the
+  top of `src/pages/index.astro` — nudge x/y to taste.
+
+## 🔶 LAB, MULTIVERSE EDITION — BUILT + REVIEWED, **shipped 2026-07-12** — 2026-07-12 (Tres: "rebuild it all from scratch… theme align with the site it is associated with… make me proud")
 
 **Every lab experiment is now ADOPTED by one universe and rebuilt ground-up
 in that universe's full brand.** This supersedes the one-album dusk-black

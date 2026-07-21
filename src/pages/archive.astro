@@ -1,11 +1,10 @@
 ---
-// Site 2 — work. The dense index, weightless skin.
-import { MV_CLIENT } from '../../lib/multiverse';
+// Archive — everything else, weightless.
 import { getCollection } from 'astro:content';
 
 const WORK = ['z07', 'ee13', 'flatwood', 'tucker', 'thesis'];
 const all = (await getCollection('projects')).map((e) => e.data);
-const rows = WORK.map((s) => all.find((p) => p.slug === s)).filter(Boolean);
+const rows = all.filter((p) => !WORK.includes(p.slug));
 ---
 
 <html lang="en">
@@ -14,28 +13,28 @@ const rows = WORK.map((s) => all.find((p) => p.slug === s)).filter(Boolean);
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="robots" content="noindex" />
     <meta name="theme-color" content="#FAFAF7" />
-    <title>Work — T R E S .</title>
+    <title>Archive — T R E S .</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;700;800&family=Space+Mono&display=swap" rel="stylesheet" />
-    <script is:inline set:html={MV_CLIENT(2)} />
     <!-- tracking: one bootstrap for the whole site (Umami + Clarity + visitor id + self-exclusion) - public/ts.js -->
     <script is:inline defer src="/ts.js"></script>
   </head>
   <body>
-    <a class="back" id="back" href="/2/">← index</a>
+    <a class="back" id="back" href="/">← index</a>
 
     <main class="arch">
       <header class="head">
-        <p class="spec">work · 05</p>
-        <h1 class="name">W o r k</h1>
+        <p class="spec">archive · {String(rows.length).padStart(2, '0')}</p>
+        <h1 class="name">E v e r y t h i n g&ensp;e l s e</h1>
       </header>
       <div class="list" data-zg-room>
-        {rows.map((p, i) => (
-          <a class="row" data-zg data-zg-slim href={`/2/project/${p.slug}`} style={`--off:${(i % 3) * 4}vw`}>
-            <span class="r-no">{String(i + 1).padStart(2, '0')}</span>
+        {rows.map((p) => (
+          <a class="row" data-zg data-zg-slim href={`/project/${p.slug}`}>
+            <span class="r-no">{String(p.id ?? '').padStart(2, '0')}</span>
             <span class="r-name">{p.name}</span>
-            <span class="r-meta">{p.year}</span>
+            <span class="r-meta">{p.category}</span>
+            <span class="r-meta r-year">{p.year}</span>
           </a>
         ))}
       </div>
@@ -57,18 +56,20 @@ const rows = WORK.map((s) => all.find((p) => p.slug === s)).filter(Boolean);
       @media (hover: hover) and (pointer: fine) { .back:hover { text-decoration: underline; text-underline-offset: 4px; } }
       .back:focus-visible { outline: 2px solid #101010; outline-offset: 3px; }
 
-      .arch { padding: 0 6vw 12svh; }
-      .head { padding: clamp(110px, 22vh, 260px) 0 8svh; }
+      .arch { max-width: 1100px; margin: 0 auto; padding: 0 6vw 12svh; }
+      .head { padding: clamp(110px, 22vh, 260px) 0 7svh; }
       .spec { font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(16,16,16,0.45); }
-      .name { font-weight: 800; font-size: clamp(44px, 9vw, 110px); line-height: 1; margin-top: 10px; }
+      .name { font-weight: 800; font-size: clamp(34px, 6.2vw, 76px); line-height: 1.04; margin-top: 10px; }
 
-      .list { display: grid; gap: 6svh; padding-top: 2svh; }
-      /* fit-content: rows hug their text so the zero-g engine gets horizontal
-         room to throw them in — visually identical at rest (left-packed flex) */
-      .row { display: flex; align-items: baseline; gap: 18px; margin-left: var(--off, 0); width: fit-content; }
-      .r-no, .r-meta { font-family: 'Space Mono', monospace; font-size: 12px; color: rgba(16,16,16,0.45); }
-      .r-name { font-weight: 700; font-size: clamp(28px, 5.4vw, 60px); line-height: 1; letter-spacing: -0.01em; }
-      @media (max-width: 640px) { .row { margin-left: calc(var(--off, 0) * 0.4); } }
+      .list { border-top: 1px solid rgba(0,0,0,0.14); }
+      .row {
+        display: grid; grid-template-columns: 3ch minmax(0, 1fr) auto auto; gap: 18px; align-items: baseline;
+        padding: 16px 0; border-bottom: 1px solid rgba(0,0,0,0.14);
+      }
+      .r-no, .r-meta { font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: 0.05em; text-transform: uppercase; color: rgba(16,16,16,0.45); }
+      .r-name { font-weight: 700; font-size: clamp(16px, 2.2vw, 22px); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .r-year { text-align: right; min-width: 4ch; }
+      @media (max-width: 560px) { .r-meta:not(.r-year) { display: none; } .row { grid-template-columns: 3ch minmax(0, 1fr) auto; } }
       @media (hover: hover) and (pointer: fine) {
         .r-name { transition: letter-spacing 300ms cubic-bezier(0.23,1,0.32,1); }
         .row:hover .r-name { letter-spacing: 0.03em; }
@@ -76,7 +77,7 @@ const rows = WORK.map((s) => all.find((p) => p.slug === s)).filter(Boolean);
         .sim .row:active { cursor: grabbing; }
       }
 
-      .foot { display: flex; justify-content: space-between; padding: 3svh 6vw 4svh; border-top: 1px solid rgba(0,0,0,0.14); font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; }
+      .foot { display: flex; justify-content: space-between; max-width: 1100px; margin: 0 auto; padding: 3svh 6vw 4svh; border-top: 1px solid rgba(0,0,0,0.14); font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; }
     </style>
 
     <style is:inline>

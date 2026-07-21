@@ -1,43 +1,89 @@
 ---
-// ABOUT — port of root about.html onto the shared Base layout.
-//
-// Head differences from Base defaults (carried via props):
-//   - title/description are the about-specific copy.
-//   - the SECOND masthead nav link is "Contact" (mailto) instead of "About",
-//     so the current page isn't a self-link — passed via Base's contactNav prop.
-// The page-specific .about-min / .about-lede / .am-actions styles ship inline
-// exactly as in about.html (they aren't in global.css). All copy + DOM classes
-// (.reveal for brand.js, .about-tag/.about-name/.y) are kept byte-for-byte.
-//
-// NOTE (parity gap, intentional): about.html carried og:/twitter: + canonical
-// meta that Base does not emit; matching the migration plan, Base owns the
-// canonical <head> and those tags are dropped for now (same as category/lab).
-import Base from '../layouts/Base.astro';
+// About — weightless voice, same facts.
 ---
 
-<Base
-  title="About — Tres."
-  description="Tres Carter — architectural designer on 30A, Florida."
-  contactNav={{ label: 'Contact', href: 'mailto:tres@tres.studio' }}
->
-  <main class="about-min" id="content">
-    <div class="about-tag reveal">— About</div>
-    <h1 class="about-name reveal">Tres<br />Carter<span class="y">.</span></h1>
-    <p class="about-lede reveal">Architectural designer on 30A, Florida.</p>
-    <div class="am-actions reveal">
-      <a href="mailto:tres@tres.studio">tres@tres.studio</a>
-      <a href="https://instagram.com/trescarter" target="_blank" rel="noopener">@trescarter</a>
-    </div>
-  </main>
-</Base>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="robots" content="noindex" />
+    <meta name="theme-color" content="#FAFAF7" />
+    <title>About — T R E S .</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;700;800&family=Space+Mono&display=swap" rel="stylesheet" />
+    <!-- tracking: one bootstrap for the whole site (Umami + Clarity + visitor id + self-exclusion) - public/ts.js -->
+    <script is:inline defer src="/ts.js"></script>
+  </head>
+  <body>
+    <a class="back" id="back" href="/">← index</a>
 
-<style is:inline>
-    .about-min{max-width:var(--wrap);margin:0 auto;padding:clamp(150px,28vh,340px) var(--pad) clamp(80px,14vh,160px);min-height:72vh}
-    .about-lede{font-family:var(--disp);font-weight:300;font-size:clamp(20px,2.8vw,30px);line-height:1.4;color:var(--sage);
-      max-width:34ch;margin:clamp(22px,4vh,38px) 0 clamp(32px,6vh,52px)}
-    .am-actions{display:flex;flex-wrap:wrap;gap:12px}
-    .am-actions a{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;
-      border:1.5px solid var(--line2);border-radius:30px;padding:11px 20px;color:var(--bone);
-      transition:background .35s,color .35s,border-color .35s}
-    .am-actions a:hover{background:var(--accent);border-color:var(--accent);color:var(--d0)}
-</style>
+    <main class="about" data-zg-room>
+      <h1 class="name"><span data-zg data-zg-slim>T r e s</span><span class="shift" data-zg data-zg-slim>C a r t e r</span></h1>
+      <p class="lede" data-zg data-zg-slim>Architectural designer — 30A, Florida.</p>
+      <div class="acts">
+        <a href="mailto:tres@tres.studio" data-zg data-zg-slim>tres@tres.studio</a>
+        <a href="https://instagram.com/tres.studio" target="_blank" rel="noopener" data-zg data-zg-slim>IG</a>
+      </div>
+    </main>
+
+    <style is:inline>
+      * { margin: 0; box-sizing: border-box; }
+      html { background: #FAFAF7; }
+      body { font-family: 'Hanken Grotesk', system-ui, sans-serif; color: #101010; -webkit-font-smoothing: antialiased; }
+      ::selection { background: #101010; color: #FAFAF7; }
+      a { color: inherit; text-decoration: none; }
+      .back { position: fixed; z-index: 10; top: var(--y, 14px); left: 6vw; font-family: 'Space Mono', monospace; font-size: 12px; padding: 12px 0; transition: transform 140ms cubic-bezier(0.23,1,0.32,1); }
+      .back:active { transform: scale(0.96); }
+      @media (hover: hover) and (pointer: fine) { .back:hover { text-decoration: underline; text-underline-offset: 4px; } }
+      .back:focus-visible { outline: 2px solid #101010; outline-offset: 3px; }
+
+      .about { padding: clamp(140px, 28vh, 340px) 6vw 16svh; }
+      .name { font-weight: 800; font-size: clamp(52px, 10vw, 130px); line-height: 1.02; }
+      /* fit-content: lines hug their text so the zero-g engine gets horizontal
+         room to throw them in — visually identical at rest (left-aligned) */
+      .name span { display: block; width: fit-content; }
+      .name .shift { margin-left: clamp(30px, 12vw, 220px); }
+      .lede { font-family: 'Space Mono', monospace; font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(16,16,16,0.5); margin-top: 26px; width: fit-content; }
+      .acts { display: flex; gap: 28px; margin-top: 44px; font-family: 'Space Mono', monospace; font-size: 13px; }
+      /* 44px hit areas without moving anything: pad out, pull back in */
+      .acts a { display: inline-block; padding: 14px; margin: -14px; }
+      @media (hover: hover) and (pointer: fine) {
+        a:hover { text-decoration: underline; text-underline-offset: 4px; }
+        .sim [data-zg] { cursor: grab; }
+        .sim [data-zg]:active { cursor: grabbing; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .back { transition: none; }
+        .back:active { transform: none; }
+      }
+    </style>
+
+    <script is:inline type="module">
+      import { autoReveal } from '/mv/curtain.js';
+      autoReveal();
+    </script>
+    <script is:inline>
+      (function () {
+        var reduce = false, fine = false;
+        try { reduce = matchMedia('(prefers-reduced-motion: reduce)').matches; fine = matchMedia('(hover: hover) and (pointer: fine)').matches; } catch (e) {}
+        if (!fine || reduce) return;
+        var back = document.getElementById('back');
+        var target = null, cur = null, raf = null;
+        function frame() {
+          cur += (target - cur) * 0.09;
+          back.style.setProperty('--y', cur.toFixed(1) + 'px');
+          if (Math.abs(target - cur) > 0.4) raf = requestAnimationFrame(frame); else raf = null;
+        }
+        addEventListener('pointermove', function (e) {
+          if (e.pointerType === 'touch') return; /* hybrids: taps must not move it */
+          var h = back.offsetHeight;
+          target = Math.min(innerHeight - h - 12, Math.max(12, e.clientY - h / 2));
+          if (cur === null) cur = target;
+          if (!raf) raf = requestAnimationFrame(frame);
+        }, { passive: true });
+      })();
+    </script>
+    <script is:inline defer src="/mv/zerog.js"></script>
+  </body>
+</html>

@@ -5,9 +5,11 @@ hit placeholder spots. (Say the word and I'll hand you this as a .docx.)
 
 | # | Asset | Spec | Where it goes | Used by |
 |---|-------|------|---------------|---------|
-| 1 | Resume | PDF, named exactly `resume.pdf` | drop into the repo's `public/` folder | Resume link in every universe's footer |
-| 2 | Portfolio | PDF, named exactly `portfolio.pdf` (keep it under ~25 MB so it loads fast) | `public/` | Portfolio link in every universe's footer |
-| 3 | Archie cutout | PNG with transparent background, at least 1500px on the long side, subject cut out clean (no white halo) | `public/assets/archie.png` | Site 5's LONGSHOT-style landing (big image beside the bold TRESCARTER) |
+| 1 | Resume | PDF, named exactly `resume.pdf` | drop into the repo's `public/` folder | Resume link in the site footer |
+| 2 | Portfolio | PDF, named exactly `portfolio.pdf` (keep it under ~25 MB so it loads fast) | `public/` | Portfolio link in the site footer |
+
+_(V3.0 note: the Archie-cutout row was for site 5's landing — retired with
+the multiverse collapse, 2026-07-20.)_
 
 ## Coming soon (don't act yet — specs will be added when the builds start)
 - STL exports of 2–3 favorite building models (for the model-viewer/lab work)

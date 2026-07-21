@@ -1,19 +1,15 @@
 ---
-// THE LAB — the shared portals room of the multiverse. Every universe's Lab
-// link gets swallowed by the ink curtain and lands HERE. One page, seven
-// skins: on each load an inline head script rolls one of the universes'
-// identities (palette + type + flavor) onto :root BEFORE paint — "all lab
-// pages are the same. the branding is just randomized."
+// THE LAB — the experiments hall. Since the multiverse edition (2026-07-11)
+// each experiment was ADOPTED by one universe and wears its full brand — the
+// door plates carry the keeper's swatch + number. The doors are tall
+// DOORWAYS, each with a living pattern inside (pure CSS transform/opacity
+// animation on inline SVG). Clicking one floods the screen with ink
+// (curtain) and steps through to the static experiment at /labs/<name>.html.
 //
-// Since the multiverse edition (2026-07-11) each experiment is ADOPTED by
-// one universe and wears its full brand — the door plates carry the keeper's
-// swatch + number. The doors are tall DOORWAYS, each with a living pattern
-// inside (pure CSS transform/opacity animation on inline SVG). Clicking one
-// floods the screen with the rolled skin's ink (curtain) and steps through
-// to the static experiment at /labs/<name>.html.
-//
-// Map: MV_CLIENT(0) — no universe highlighted; all dots are exits.
-import { MV_CLIENT } from '../lib/multiverse';
+// V3.0 (2026-07-20): the multiverse collapsed to one site, and the lab's
+// per-load skin roll went with it — the portal now wears the site's own
+// brand (the old skin 02) permanently. The experiments keep their adopted
+// universe brands: the lab is where the other universes live on.
 ---
 
 <html lang="en">
@@ -25,98 +21,17 @@ import { MV_CLIENT } from '../lib/multiverse';
     <title>LAB — TRES.</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <script is:inline set:html={MV_CLIENT(0)} />
+    <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
     <!-- tracking: one bootstrap for the whole site (Umami + Clarity + visitor id + self-exclusion) - public/ts.js -->
     <script is:inline defer src="/ts.js"></script>
-    <script is:inline>
-      /* THE SKIN ROLL — runs before paint. Picks one of the seven universes'
-         identities, never the same one twice in a row (per tab). */
-      (function () {
-        'use strict';
-        var SKINS = {
-          1: { paper: '#FFEDDB', ink: '#2B1F1A', ac: '#BF9270',
-               soft: 'rgba(43,31,26,0.55)', hair: 'rgba(43,31,26,0.22)',
-               disp: "'Archivo', system-ui, sans-serif", mono: "'Space Mono', ui-monospace, monospace",
-               gf: 'Archivo:wght@500;600;700', spec: 'sheet L·08 — seven live studies',
-               card: '#ffffff', line: 'rgba(43,31,26,0.3)', mac: '#BF9270',
-               conf: '#EDCDBB,#E3B7A0,#BF9270,#2B1F1A,#ffffff' },
-          2: { paper: '#FAFAF7', ink: '#101010', ac: '#9A9A9A',
-               soft: 'rgba(16,16,16,0.5)', hair: 'rgba(16,16,16,0.16)',
-               disp: "'Hanken Grotesk', system-ui, sans-serif", mono: "'Space Mono', ui-monospace, monospace",
-               gf: 'Hanken+Grotesk:wght@400;700;800', spec: 'eight doors, one quiet room',
-               card: '#ffffff', line: 'rgba(0,0,0,0.25)', mac: '#101010',
-               conf: '#101010,#9A9A9A,#ffffff' },
-          3: { paper: '#FFFFFF', ink: '#141414', ac: '#141414',
-               soft: 'rgba(20,20,20,0.45)', hair: 'rgba(20,20,20,0.28)',
-               disp: "'IBM Plex Mono', ui-monospace, monospace", mono: "'IBM Plex Mono', ui-monospace, monospace",
-               gf: 'IBM+Plex+Mono:wght@400;600;700', spec: '/lab · eight doors, shared by every universe',
-               card: '#ffffff', line: 'rgba(0,0,0,0.3)', mac: '#141414',
-               conf: '#141414,#4A4A4A,#ffffff' },
-          4: { paper: '#EC5B13', ink: '#141210', ac: '#E8DCC6',
-               soft: 'rgba(20,18,16,0.55)', hair: 'rgba(20,18,16,0.4)',
-               disp: "'Inter Tight', system-ui, sans-serif", mono: "'Space Mono', ui-monospace, monospace",
-               gf: 'Inter+Tight:wght@800;900', spec: 'seven live experiments — enter at your own risk',
-               card: '#ffffff', line: 'rgba(0,0,0,0.35)', mac: '#141210',
-               conf: '#E8DCC6,#141210,#ffffff' },
-          5: { paper: '#FFFFFF', ink: '#0A0A0A', ac: '#2431FF',
-               soft: 'rgba(10,10,10,0.5)', hair: 'rgba(10,10,10,0.2)',
-               disp: "'Anton', system-ui, sans-serif", mono: "'Space Mono', ui-monospace, monospace",
-               gf: 'Anton', spec: 'one room — every universe',
-               card: '#ffffff', line: 'rgba(0,0,0,0.3)', mac: '#2431FF',
-               conf: '#2431FF,#0A0A0A,#ffffff' },
-          6: { paper: '#FAF8F3', ink: '#141310', ac: '#FF5A1F',
-               soft: 'rgba(20,19,16,0.5)', hair: 'rgba(20,19,16,0.18)',
-               disp: "'Schibsted Grotesk', system-ui, sans-serif", mono: "'Space Mono', ui-monospace, monospace",
-               gf: 'Schibsted+Grotesk:wght@400;500;700', spec: 'group show — eight rooms',
-               card: '#ffffff', line: 'rgba(20,19,16,0.3)', mac: '#FF5A1F',
-               conf: '#E8442E,#2E5EA8,#1F8A70,#E3B71F,#FF5A1F' },
-          8: { paper: '#F6F4EE', ink: '#141310', ac: '#D8341F',
-               soft: 'rgba(20,19,16,0.5)', hair: 'rgba(20,19,16,0.2)',
-               disp: "'Hepta Slab', serif", mono: "'Space Mono', ui-monospace, monospace",
-               gf: 'Hepta+Slab:wght@800;900', spec: 'stockroom — eight bays, mind the stock',
-               card: '#ffffff', line: 'rgba(20,19,16,0.3)', mac: '#D8341F',
-               conf: '#D8341F,#00934D,#141310,#ffffff' }
-        };
-        var IDS = [1, 2, 3, 4, 5, 6, 8]; /* id LIST, never 1..count — there is no 7 */
-        var last = 0;
-        try { last = parseInt(sessionStorage.getItem('mv:lab-skin') || '0', 10) || 0; } catch (e) {}
-        var pool = IDS.filter(function (n) { return n !== last; });
-        var id = pool[Math.floor(Math.random() * pool.length)];
-        try { sessionStorage.setItem('mv:lab-skin', String(id)); } catch (e) {}
-        var k = SKINS[id];
-        var r = document.documentElement;
-        r.dataset.skin = String(id);
-        r.style.background = k.paper; /* before-paint guarantee */
-        var P = {
-          '--paper': k.paper, '--ink': k.ink, '--accent': k.ac,
-          '--soft': k.soft, '--hair': k.hair, '--disp': k.disp, '--mono': k.mono,
-          '--mvt-card': k.card, '--mvt-ink': k.ink, '--mvt-line': k.line,
-          '--mvt-label': k.soft, '--mvt-accent': k.mac, '--mvt-confetti': k.conf
-        };
-        for (var p in P) r.style.setProperty(p, P[p]);
-        var tc = document.querySelector('meta[name="theme-color"]');
-        if (tc) tc.setAttribute('content', k.paper);
-        var l = document.createElement('link');
-        l.rel = 'stylesheet';
-        l.href = 'https://fonts.googleapis.com/css2?family=' + k.gf + '&family=Space+Mono:wght@400;700&display=swap';
-        document.head.appendChild(l);
-        window.__LAB = { id: id, ink: k.ink, spec: k.spec };
-      })();
-    </script>
   </head>
   <body>
     <a class="back" id="back" href="/">← back</a>
 
-    <header class="strip" aria-hidden="true">
-      <span class="tri">⚠</span>
-      <span>LAB — SHARED FACILITY · ALL UNIVERSES</span>
-    </header>
-
     <main id="content">
       <header class="hero">
-        <p class="spec" id="specline">eight doors, one shared room</p>
+        <p class="spec">eight doors, one quiet room</p>
         <h1 class="mark">LAB<span class="dot">.</span></h1>
-        <button class="reroll" id="reroll" type="button">skin — · reload to reroll</button>
       </header>
 
       <nav class="hall" aria-label="Experiments">
@@ -284,14 +199,14 @@ import { MV_CLIENT } from '../lib/multiverse';
           </span>
           <span class="plate">
             <span class="name">Alternates</span>
-            <span class="tag">seven doors, one front door</span>
+            <span class="tag">the multiverse, as it hung</span>
             <span class="keeper">the space between</span>
           </span>
         </a>
 
       </nav>
 
-      <footer id="mv-info" class="info">
+      <footer class="info">
         <div class="i-cols">
           <div class="i-col">
             <span class="lbl">Location</span>
@@ -305,10 +220,10 @@ import { MV_CLIENT } from '../lib/multiverse';
           </div>
           <div class="i-col">
             <span class="lbl">Sections</span>
-            <a data-uni href="/1/work">Work</a><br />
-            <a data-uni href="/1/archive">Archive</a><br />
+            <a href="/work">Work</a><br />
+            <a href="/archive">Archive</a><br />
             <a href="/lab">Lab</a><br />
-            <a data-uni href="/1/about">About</a><br />
+            <a href="/about">About</a><br />
             <a href="/resume.pdf">Resume</a><br />
             <a href="/portfolio.pdf">Portfolio</a><br />
             <span class="soon">Plugins — soon</span>
@@ -322,28 +237,18 @@ import { MV_CLIENT } from '../lib/multiverse';
       </footer>
     </main>
 
-    <div class="marquee" aria-hidden="true">
-      <div class="m-in">LAB — TRES CARTER — LAB — TRES CARTER — LAB — TRES CARTER — LAB — TRES CARTER — LAB — TRES CARTER — LAB — TRES CARTER — </div>
-    </div>
-
     <style is:inline>
       :root {
-        /* no-JS fallback = a calm neutral skin; the head script overrides all of it */
+        /* the site's brand — the multiverse's skin 02, now permanent */
         --paper: #FAFAF7; --ink: #101010; --accent: #9A9A9A;
         --soft: rgba(16,16,16,0.5); --hair: rgba(16,16,16,0.16);
-        --disp: system-ui, sans-serif; --mono: 'Space Mono', ui-monospace, monospace;
-        /* structure — retuned per skin below */
-        --bw: 1px; --rule: solid; --arch: 0px; --door-bg: var(--paper);
-        --wt: 800; --tt-name: none; --tt-mono: uppercase; --mark-ls: -0.02em;
+        --disp: 'Hanken Grotesk', system-ui, sans-serif; --mono: 'Space Mono', ui-monospace, monospace;
+        --bw: 1px; --rule: solid; --arch: 999px; --door-bg: var(--paper);
+        --wt: 800; --tt-name: none; --tt-mono: uppercase; --mark-ls: -0.01em;
+        /* ticker skin */
+        --mvt-card: #ffffff; --mvt-ink: #101010; --mvt-line: rgba(0,0,0,0.25);
+        --mvt-label: rgba(16,16,16,0.5); --mvt-accent: #101010; --mvt-confetti: #101010,#9A9A9A,#ffffff;
       }
-      /* skin flavor — the small rules that make each roll read as ITS universe */
-      html[data-skin="1"] { --arch: 999px; --wt: 600; --tt-name: uppercase; }
-      html[data-skin="2"] { --arch: 999px; --wt: 800; --mark-ls: -0.01em; }
-      html[data-skin="3"] { --rule: dashed; --wt: 600; --tt-name: lowercase; --tt-mono: lowercase; --mark-ls: 0; }
-      html[data-skin="4"] { --bw: 2px; --wt: 900; --tt-name: uppercase; --door-bg: #E8DCC6; --mark-ls: -0.04em; }
-      html[data-skin="5"] { --bw: 3px; --wt: 400; --tt-name: uppercase; --mark-ls: 0.01em; }
-      html[data-skin="6"] { --wt: 500; --mark-ls: -0.01em; }
-      html[data-skin="8"] { --bw: 2px; --wt: 900; --mark-ls: -0.02em; }
 
       * { margin: 0; box-sizing: border-box; }
       html { background: var(--paper); }
@@ -362,16 +267,6 @@ import { MV_CLIENT } from '../lib/multiverse';
         .back:hover { text-decoration: underline; text-underline-offset: 4px; }
       }
 
-      /* skin 4 only: the warning strip rides along */
-      .strip {
-        display: none; position: fixed; inset: 0 0 auto 0; z-index: 9;
-        align-items: center; gap: 10px; justify-content: center; padding: 12px 16px;
-        font-family: var(--mono); font-size: 10px; letter-spacing: 0.18em;
-        border-bottom: var(--bw) solid var(--ink); background: var(--paper);
-      }
-      html[data-skin="4"] .strip { display: flex; }
-      .tri { font-size: 12px; letter-spacing: 0; }
-
       .hero {
         min-height: 62svh; display: grid; place-content: center; justify-items: center;
         text-align: center; padding: clamp(90px, 16svh, 180px) 5vw 6svh; gap: 14px;
@@ -385,16 +280,6 @@ import { MV_CLIENT } from '../lib/multiverse';
         letter-spacing: var(--mark-ls); text-transform: var(--tt-name);
       }
       .dot { color: var(--accent); }
-      .reroll {
-        font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; text-transform: var(--tt-mono);
-        color: var(--soft); background: none; border: none; cursor: pointer;
-        padding: 16px 12px; /* >=44px target */
-        transition: transform 140ms cubic-bezier(0.23,1,0.32,1);
-      }
-      .reroll:active { transform: scale(0.96); }
-      @media (hover: hover) and (pointer: fine) {
-        .reroll:hover { text-decoration: underline; text-underline-offset: 4px; color: var(--ink); }
-      }
 
       /* ── the hall of doors ─────────────────────────────────────────────── */
       .hall {
@@ -433,7 +318,7 @@ import { MV_CLIENT } from '../lib/multiverse';
         font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em; line-height: 1.5;
         text-transform: var(--tt-mono); color: var(--soft);
       }
-      /* the keeper row — which universe holds this piece */
+      /* the keeper row — which universe held this piece in the multiverse */
       .keeper {
         display: flex; align-items: center; justify-content: center; gap: 6px;
         font-family: var(--mono); font-size: 9px; letter-spacing: 0.14em;
@@ -480,7 +365,6 @@ import { MV_CLIENT } from '../lib/multiverse';
       .f2 { animation: fly 10s linear infinite; animation-delay: -3s; }
       @keyframes fly { from { transform: translateX(-110px); } to { transform: translateX(310px); } }
 
-      .rotor { animation: spin 26s linear infinite; transform-box: view-box; transform-origin: 50% 50%; }
       .orbit { animation: spin 36s linear infinite; transform-box: view-box; transform-origin: 50% 50%; }
       .orbit2 { animation: spinrev 20s linear infinite; transform-box: view-box; transform-origin: 50% 50%; }
       @keyframes spin { to { transform: rotate(360deg); } }
@@ -542,8 +426,7 @@ import { MV_CLIENT } from '../lib/multiverse';
       }
       .i-cols {
         display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px;
-        /* 320px cap: room for the six-dot map at desktop (2026-07-03) */
-        padding-right: clamp(100px, 24vw, 320px);
+        padding-right: clamp(100px, 24vw, 240px);
         font-family: var(--mono); font-size: 12px; letter-spacing: 0.05em;
         text-transform: var(--tt-mono); line-height: 1.9;
       }
@@ -558,85 +441,19 @@ import { MV_CLIENT } from '../lib/multiverse';
       @media (hover: hover) and (pointer: fine) {
         .info a:hover { text-decoration: underline; text-underline-offset: 4px; }
       }
-      @media (max-width: 700px) {
-        /* the six-dot map drops to bottom:104px on phones (ring.js narrow
-           mode) — the meta row clears its strip (measured over the © line
-           and the ticker at 390px, 2026-07-03) */
-        .info { padding-bottom: 168px; }
-      }
-
-      /* skin 5 only: the marquee rides the floor */
-      .marquee {
-        display: none; position: fixed; left: 0; right: 0; bottom: 0; z-index: 8;
-        overflow: hidden; border-top: var(--bw) solid var(--ink);
-        background: var(--paper); padding: 9px 0;
-      }
-      html[data-skin="5"] .marquee { display: block; }
-      html[data-skin="5"] .info { padding-bottom: 110px; }
-      .m-in {
-        white-space: nowrap; width: max-content;
-        font-family: var(--disp); font-size: 15px; letter-spacing: 0.06em;
-        animation: slide 26s linear infinite;
-      }
-      @keyframes slide { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 
       /* reduced motion: everything rests, composed and legible */
       @media (prefers-reduced-motion: reduce) {
         .win svg * { animation: none !important; }
         .win svg { opacity: 0.6; }
-        .m-in { animation: none; }
       }
     </style>
-
-    <script is:inline>
-      /* Voice + wayfinding for the rolled skin (runs before first paint —
-         parser hasn't yielded yet). */
-      (function () {
-        'use strict';
-        var L = window.__LAB || { id: 1, ink: '#0A0806', spec: '' };
-        var s = document.getElementById('specline');
-        if (s && L.spec) s.textContent = L.spec;
-        var rr = document.getElementById('reroll');
-        if (rr) {
-          rr.textContent = 'skin 0' + L.id + ' · reload to reroll';
-          rr.addEventListener('click', function () { location.reload(); });
-        }
-        /* footer sections point into the rolled skin's universe */
-        var unis = document.querySelectorAll('a[data-uni]');
-        for (var i = 0; i < unis.length; i++) {
-          unis[i].setAttribute('href', unis[i].getAttribute('href').replace('/1/', '/' + L.id + '/'));
-        }
-        /* back: to the universe that sent you (referrer), else this tab's
-           universe (mv:u — covers arriving from '/', where the referrer path
-           carries no number), else the front door. Validated against the
-           registry's id LIST, never a count — there is no 7. */
-        var back = document.getElementById('back');
-        try {
-          if (back) {
-            var b = 0;
-            if (document.referrer) {
-              var u = new URL(document.referrer);
-              if (u.origin === location.origin) {
-                var m = u.pathname.match(/^\/(\d+)(\/|$)/);
-                if (m) b = +m[1];
-              }
-            }
-            if (!b) b = parseInt(sessionStorage.getItem('mv:u'), 10) || 0;
-            var ids = [];
-            if (window.MV && window.MV.sites) for (var j = 0; j < window.MV.sites.length; j++) ids.push(window.MV.sites[j].id);
-            if (!ids.length) ids = [1, 2, 3, 4, 5, 6, 8];
-            if (ids.indexOf(b) !== -1) back.setAttribute('href', '/' + b + '/');
-          }
-        } catch (e) {}
-      })();
-    </script>
 
     <script is:inline type="module">
       import { autoReveal, cover } from '/mv/curtain.js';
       autoReveal();
-      import('/mv/ring.js');
 
-      /* doors open through the curtain, in the rolled skin's ink */
+      /* doors open through the curtain */
       let reduce = false;
       try { reduce = matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
       let leaving = false;
@@ -655,16 +472,16 @@ import { MV_CLIENT } from '../lib/multiverse';
           const r = a.getBoundingClientRect();
           const x = e.clientX || r.left + r.width / 2;
           const y = e.clientY || r.top + r.height / 2;
-          await cover({ x, y, color: (window.__LAB && window.__LAB.ink) || '#0A0806' });
+          await cover({ x, y, color: '#101010' });
           /* the experiments are self-contained pages with no autoReveal —
-             clear the flag so the NEXT multiverse page doesn't peel a ghost */
+             clear the flag so the NEXT site page doesn't peel a ghost */
           try { sessionStorage.removeItem('mv:covered'); } catch (err) {}
           location.href = a.getAttribute('href');
         });
       });
     </script>
     <script is:inline>
-      /* back link rides the cursor — the site-wide pattern (from 3/work) */
+      /* back link rides the cursor — the site-wide pattern */
       (function () {
         'use strict';
         var reduce = false, fine = false;
