@@ -13,14 +13,15 @@
 
 // Percent-based homes recompute from viewport size. x/y = wide screens,
 // xn/yn = narrow (<=640px). s = glyph scale factor.
-// V3.0: homes re-organized to read T R E S . left-to-right on a gently
-// bouncing baseline (was a full scatter) — floaty, but legible at rest.
+// Arrangement per Tres's sketch (2026-07-20): a two-row bounce — T up,
+// R dropped low beneath it, E up, S dropped low, the period trailing at
+// S's lower right. Still reads T R E S . left-to-right.
 const LETTERS = [
-  { g: 'T', x: 15, y: 30, xn: 16, yn: 20, s: 1.0 },
-  { g: 'R', x: 35, y: 24, xn: 38, yn: 16, s: 0.78 },
-  { g: 'E', x: 55, y: 32, xn: 60, yn: 22, s: 0.9 },
-  { g: 'S', x: 74, y: 26, xn: 81, yn: 18, s: 1.22 },
-  { g: '.', x: 87, y: 38, xn: 90, yn: 28, s: 1.12 },
+  { g: 'T', x: 26, y: 33, xn: 22, yn: 18, s: 1.0 },
+  { g: 'R', x: 31, y: 72, xn: 30, yn: 38, s: 0.78 },
+  { g: 'E', x: 55, y: 33, xn: 58, yn: 18, s: 0.9 },
+  { g: 'S', x: 65, y: 68, xn: 68, yn: 34, s: 1.22 },
+  { g: '.', x: 76, y: 82, xn: 84, yn: 44, s: 1.12 },
 ];
 const MENU = [
   { label: 'Work', href: '/work', y: 20 },
