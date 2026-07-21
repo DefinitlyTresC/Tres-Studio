@@ -199,7 +199,7 @@ const bakeNarrow = draw({
       (function () {
         var reduce = false;
         try { reduce = matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
-        if (!reduce && 'IntersectionObserver' in window) document.documentElement.classList.add('js');
+        if (!reduce) document.documentElement.classList.add('js');
       })();
     </script>
   </head>
@@ -358,17 +358,36 @@ const bakeNarrow = draw({
     <script is:inline>
       (function () {
         if (!document.documentElement.classList.contains('js')) return;
-        var io = new IntersectionObserver(function (entries) {
-          for (var i = 0; i < entries.length; i++) {
-            if (!entries[i].isIntersecting) continue;
-            entries[i].target.classList.add('on');
-            io.unobserve(entries[i].target);
-          }
-        }, { threshold: 0.2, rootMargin: '0px 0px -8% 0px' });
-        /* both bakes are observed; the display:none one never intersects
-           until a resize swaps it in, then it draws on scroll like normal */
+        /* Draw-on-scroll WITHOUT IntersectionObserver: the segs are SVG <g>
+           elements, and iOS Safari never fires IO for those (empty target
+           rects — a 0.2 threshold that can't be crossed — a timeline that
+           stays invisible). getBoundingClientRect works everywhere, and its
+           failure mode is the right way round: an empty rect reveals the
+           seg immediately instead of never. The display:none bake's segs
+           read as 0-rects and reveal "instantly" — so a mid-session
+           viewport swap shows a fully drawn timeline, which beats a blank. */
+        var left = [];
         var segs = document.querySelectorAll('.seg');
-        for (var i = 0; i < segs.length; i++) io.observe(segs[i]);
+        for (var i = 0; i < segs.length; i++) left.push(segs[i]);
+        var raf = null;
+        function check() {
+          raf = null;
+          var limit = innerHeight * 0.92;
+          for (var i = left.length - 1; i >= 0; i--) {
+            if (left[i].getBoundingClientRect().top < limit) {
+              left[i].classList.add('on');
+              left.splice(i, 1);
+            }
+          }
+          if (!left.length) {
+            removeEventListener('scroll', queue);
+            removeEventListener('resize', queue);
+          }
+        }
+        function queue() { if (!raf) raf = requestAnimationFrame(check); }
+        addEventListener('scroll', queue, { passive: true });
+        addEventListener('resize', queue, { passive: true });
+        check();
       })();
     </script>
     <script is:inline>
