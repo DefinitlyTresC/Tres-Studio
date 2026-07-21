@@ -2390,15 +2390,92 @@ async function importSavBuffer(buf, fileName) {
     <p style="margin-top:8px"><button class="ibtn" style="width:auto;padding:7px 18px" onclick="downloadAchvCopy()">⭳ DOWNLOAD ACHIEVEMENTS-CLEARED COPY</button></p>` : ""}
   `);
 }
-function downloadAchvCopy() {
+/* MD5 (compact, public-domain construction) — save header integrity hash */
+function md5Bytes(u8){
+  const K=new Int32Array(64),S=[7,12,17,22,5,9,14,20,4,11,16,23,6,10,15,21];
+  for(let i=0;i<64;i++)K[i]=Math.floor(Math.abs(Math.sin(i+1))*4294967296);
+  const n=u8.length,m=new Uint8Array(((n+8>>6)+1)<<6);m.set(u8);m[n]=0x80;
+  new DataView(m.buffer).setUint32(m.length-8,n<<3,true);
+  new DataView(m.buffer).setUint32(m.length-4,Math.floor(n/536870912),true);
+  let a0=0x67452301,b0=0xefcdab89,c0=0x98badcfe,d0=0x10325476;
+  const dv=new DataView(m.buffer);
+  for(let i=0;i<m.length;i+=64){
+    let a=a0,b=b0,c=c0,d=d0;
+    for(let j=0;j<64;j++){
+      let f,g;
+      if(j<16){f=(b&c)|(~b&d);g=j;}
+      else if(j<32){f=(d&b)|(~d&c);g=(5*j+1)%16;}
+      else if(j<48){f=b^c^d;g=(3*j+5)%16;}
+      else{f=c^(b|~d);g=(7*j)%16;}
+      const t=d;d=c;c=b;
+      const x=(a+f+K[j]+dv.getUint32(i+g*4,true))|0,s=S[(j>>4)*4+(j%4)];
+      b=(b+((x<<s)|(x>>>32-s)))|0;a=t;
+    }
+    a0=(a0+a)|0;b0=(b0+b)|0;c0=(c0+c)|0;d0=(d0+d)|0;
+  }
+  const out=new Uint8Array(16),ov=new DataView(out.buffer);
+  ov.setInt32(0,a0,true);ov.setInt32(4,b0,true);ov.setInt32(8,c0,true);ov.setInt32(12,d0,true);
+  return out;
+}
+function findBytes(hay, needle, from){
+  outer: for(let i=from||0;i<=hay.length-needle.length;i++){
+    for(let j=0;j<needle.length;j++) if(hay[i+j]!==needle[j]) continue outer;
+    return i;
+  }
+  return -1;
+}
+const latin = s => Uint8Array.from(s, c => c.charCodeAt(0) & 0xff);
+/* full body patch: zero mIsCreativeModeEnabled, rechunk, refresh hash + header flag */
+async function patchAchvBuffer(buf, hdr){
+  const dv=new DataView(buf);
+  let bs=0; for(let i=300;i<4000;i++) if(dv.getUint32(i,true)===0x9E2A83C1){bs=i;break;}
+  if(!bs) throw new Error("no chunk table");
+  const body=await SAV.inflateChunks(buf);
+  let flipped=0;
+  const nm=findBytes(body, latin("\x17\x00\x00\x00mIsCreativeModeEnabled\x00"));
+  if(nm>=0){
+    const tp=findBytes(body, latin("\x0d\x00\x00\x00BoolProperty\x00"), nm);
+    if(tp>=0){
+      const tail=tp+17;
+      const noneAt=findBytes(body, latin("\x05\x00\x00\x00None\x00"), tail);
+      if(noneAt>tail && noneAt-tail<24)
+        for(let k=tail;k<noneAt;k++) if(body[k]){ body[k]=0; flipped++; }
+    }
+  }
+  const CH=131072, parts=[];
+  for(let p=0;p<body.length;p+=CH){
+    const raw=body.subarray(p,Math.min(p+CH,body.length));
+    const comp=new Uint8Array(await new Response(new Blob([raw]).stream().pipeThrough(new CompressionStream("deflate"))).arrayBuffer());
+    const h=new Uint8Array(49), hd=new DataView(h.buffer);
+    hd.setUint32(0,0x9E2A83C1,true); hd.setUint32(4,0x22222222,true);
+    hd.setBigInt64(8,BigInt(CH),true); h[16]=3;
+    hd.setBigInt64(17,BigInt(comp.length),true); hd.setBigInt64(25,BigInt(raw.length),true);
+    hd.setBigInt64(33,BigInt(comp.length),true); hd.setBigInt64(41,BigInt(raw.length),true);
+    parts.push(h,comp);
+  }
+  let tot=0; for(const p of parts) tot+=p.length;
+  const nb=new Uint8Array(tot); let off=0; for(const p of parts){ nb.set(p,off); off+=p.length; }
+  const header=new Uint8Array(buf.slice(0,bs));
+  const hv=new DataView(header.buffer);
+  if(hdr.creativeFlagOffset){
+    hv.setInt32(hdr.creativeFlagOffset,0,true);
+    header.set(md5Bytes(nb), hdr.creativeFlagOffset-16); // hash = md5 of compressed body
+  }
+  const out=new Uint8Array(header.length+nb.length);
+  out.set(header,0); out.set(nb,header.length);
+  return { bytes: out, flipped };
+}
+async function downloadAchvCopy() {
   const d = window.__lastSavBuf; if (!d) return;
-  const b = new Uint8Array(d.buf.slice(0));
-  new DataView(b.buffer).setInt32(d.hdr.creativeFlagOffset, 0, true);
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(new Blob([b]));
-  a.download = (d.fileName || "save").replace(/\.sav$/i, "") + "_ACHV.sav";
-  a.click(); URL.revokeObjectURL(a.href);
-  toast("SAVED — LOAD IT IN GAME TO TEST");
+  toast("PATCHING SAVE…");
+  try {
+    const r = await patchAchvBuffer(d.buf, d.hdr);
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([r.bytes]));
+    a.download = (d.fileName || "save").replace(/\.sav$/i, "") + "_ACHV.sav";
+    a.click(); URL.revokeObjectURL(a.href);
+    toast(r.flipped ? "PATCHED — CREATIVE FLAG REMOVED" : "SAVED — NO BODY FLAG FOUND (HEADER CLEARED)");
+  } catch (e) { toast("PATCH FAILED: " + e.message); }
 }
 $("btnSave").onclick = () => {
   if (!confirm("Import a .sav file? Current sheet will be replaced (CTRL+Z restores it; export first if unsure).")) return;
