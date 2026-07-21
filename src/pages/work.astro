@@ -169,9 +169,6 @@ const meta = (parts) => parts.filter(Boolean).join(' · ');
         .entry:nth-child(even) { grid-template-columns: minmax(0, 10fr) minmax(0, 15fr); }
         .entry:nth-child(even) .frame { order: 2; }
         .entry:nth-child(even) .e-tx { order: 1; justify-items: end; text-align: right; }
-        /* the display name crosses the gutter and rides onto the image edge */
-        .entry .e-name { margin-left: calc(-1 * clamp(0px, 6vw, 84px)); }
-        .entry:nth-child(even) .e-name { margin-left: 0; margin-right: calc(-1 * clamp(0px, 6vw, 84px)); }
       }
 
       /* PAST — the absorbed archive: thumb rows on hairline shelves.
