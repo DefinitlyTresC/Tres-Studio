@@ -12,6 +12,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;700;800&family=Space+Mono&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/cursor.css" />
     <!-- tracking: one bootstrap for the whole site (Umami + Clarity + visitor id + self-exclusion) - public/ts.js -->
     <script is:inline defer src="/ts.js"></script>
   </head>
@@ -21,6 +22,7 @@
     <main class="about" data-zg-room>
       <h1 class="name"><span data-zg data-zg-slim>T r e s</span><span class="shift" data-zg data-zg-slim>C a r t e r</span></h1>
       <p class="lede" data-zg data-zg-slim>Architectural designer — 30A, Florida.</p>
+      <p class="hey" data-zg data-zg-slim>hey, im tres. i design houses, buildings, websites, tools, pretty much anything. reach out below!</p>
       <div class="acts">
         <a href="mailto:tres@tres.studio" data-zg data-zg-slim>tres@tres.studio</a>
         <a href="https://instagram.com/tres.studio" target="_blank" rel="noopener" data-zg data-zg-slim>IG</a>
@@ -46,6 +48,16 @@
       .name span { display: block; width: fit-content; }
       .name .shift { margin-left: clamp(30px, 12vw, 220px); }
       .lede { font-family: 'Space Mono', monospace; font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(16,16,16,0.5); margin-top: 26px; width: fit-content; }
+      /* type-on: the full line ships in markup and keeps holding the box
+         (visibility:hidden) while an overlay inside types over it — the element
+         never changes size, and the zero-g engine keeps the outer transform */
+      .hey { position: relative; font-size: 15px; line-height: 1.65; color: rgba(16,16,16,0.72); max-width: 44ch; margin-top: 18px; width: fit-content; }
+      .hey-hold { visibility: hidden; }
+      .hey-live { position: absolute; inset: 0; } /* same box, same font: identical line wraps */
+      .hey-caret { display: inline-block; width: 2px; height: 1.05em; margin-left: 2px; vertical-align: text-bottom; background: #101010; animation: hey-blink 0.9s step-end infinite; transition: opacity 400ms ease; }
+      .hey-caret.is-done { animation: none; opacity: 0; }
+      .hey-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; } /* the full line for AT while the overlay types */
+      @keyframes hey-blink { 50% { opacity: 0; } }
       .acts { display: flex; gap: 28px; margin-top: 44px; font-family: 'Space Mono', monospace; font-size: 13px; }
       /* 44px hit areas without moving anything: pad out, pull back in */
       .acts a { display: inline-block; padding: 14px; margin: -14px; }
@@ -57,6 +69,9 @@
       @media (prefers-reduced-motion: reduce) {
         .back { transition: none; }
         .back:active { transform: none; }
+        /* mid-session PRM flip: the full line, at rest, no caret */
+        .hey-hold { visibility: visible; }
+        .hey-live { display: none; }
       }
     </style>
 
@@ -83,6 +98,52 @@
           if (cur === null) cur = target;
           if (!raf) raf = requestAnimationFrame(frame);
         }, { passive: true });
+      })();
+    </script>
+    <script is:inline>
+      /* type-on for .hey — the markup already carries the full line (no-JS and
+         PRM read it complete at rest). This only rearranges children INSIDE the
+         element; the zero-g engine owns the outer transform, untouched here. */
+      (function () {
+        var reduce = false;
+        try { reduce = matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+        if (reduce) return;
+        var p = document.querySelector('.hey');
+        if (!p) return;
+        var full = p.textContent;
+        p.textContent = '';
+        var hold = document.createElement('span');
+        hold.className = 'hey-hold';
+        hold.setAttribute('aria-hidden', 'true');
+        hold.textContent = full; /* width-holder: the box never changes size */
+        var live = document.createElement('span');
+        live.className = 'hey-live';
+        live.setAttribute('aria-hidden', 'true');
+        var out = document.createTextNode('');
+        var caret = document.createElement('span');
+        caret.className = 'hey-caret';
+        live.appendChild(out);
+        live.appendChild(caret);
+        var sr = document.createElement('span');
+        sr.className = 'hey-sr';
+        sr.textContent = full;
+        p.appendChild(hold);
+        p.appendChild(live);
+        p.appendChild(sr);
+        var i = 0;
+        function done() {
+          setTimeout(function () {
+            caret.classList.add('is-done');
+            /* after the fade: back to a plain paragraph, same box */
+            setTimeout(function () { p.textContent = full; }, 500);
+          }, 1200);
+        }
+        function tick() {
+          i += 1;
+          out.data = full.slice(0, i);
+          if (i < full.length) setTimeout(tick, 28); else done();
+        }
+        setTimeout(tick, 500);
       })();
     </script>
     <script is:inline defer src="/mv/zerog.js"></script>

@@ -1,5 +1,45 @@
 # tres.studio — the living log
 
+## ✅ V3.1 — BLOB PORTALS, THE WORK MERGE, THE CUSTOM MOUSE — 2026-07-20 (Tres: "Top Project pops in as a bubble… amorphous blob hole in the white background… third click opens the Work folder, which condenses the Archive")
+
+- **The Work choreography (landing):** menu is Work · Lab · About now.
+  First click on the menu's Work word pops **EE-13** out as an amorphous
+  blob portal — a hole in the paper wearing the project's hero, morphing
+  border-radius, drifting around the viewport under the type (z-1).
+  Second click pops **Drome** (both keep floating). Third click opens
+  `/work`. Clicking a blob swallows the viewport and drops you into the
+  project. Counter in sessionStorage (`mv:work-pops`); blobs respawn on
+  landing visits that session; PRM/no-JS = Work is a plain link.
+- **/work, overhauled — the archive is dead:** Selected Work (EE-13,
+  Z-07, The Pointe at Tucker Landing, Drome, Thesis) as five big
+  hero-image entries, alternating left/right; then "Past work (reverse
+  chronological)" — every remaining architecture project with its hero
+  thumb, then a quiet `personal` divider holding the personal pieces.
+  Every project shows its image before you click. Scroll reveals (IO,
+  PRM-complete), past rows still throwable. `archive.astro` deleted;
+  `/archive` and every legacy archive URL 301 → `/work`; project pages'
+  back link is always `← work`.
+- **About:** under the lede, a typed-on-load line (its own zero-g body,
+  no layout shift, PRM/no-JS get it instantly): "hey, im tres. i design
+  houses, buildings, websites, tools, pretty much anything. reach out
+  below!"
+- **The custom mouse:** `public/cursor.css` — data-URI SVG ink dot
+  (12px), ring+dot over interactives; fine-pointer only; native I-beam
+  and the zero-g grab hands preserved. Linked on every living page
+  (sims/exhibits/satisfactory keep their own worlds).
+- **iOS letters:** narrow homes spread taller (T 22/12 · R 32/38 ·
+  E 58/22 · S 70/52 · . 84/64) and the glyphs grew (21vw clamp, 78px
+  floor).
+- **Roadmap wiped down:** notes gone except the first site, the
+  multiverse, and the collapse; the word "superseded" removed everywhere
+  (the quiet opacity stays); satisfactory dock recorded as SHIPPED
+  (Tres wired the full visualizer from another chat, `fb2ea8e`);
+  V1/V2/V3 hover chips beside the trunk give the high-level story.
+- **Verified:** 5-agent build; browser pass confirmed the full 3-click
+  choreography, blob structure (hero + morph + swallow), work page order
+  + 16 hero images + no overflow, typed line mid-flight, era tooltips,
+  zero console errors, custom cursor active. 33 pages, build green.
+
 ## ✅ LAB V3 — SIX FLOATING DOORS + THE MUSEUM — 2026-07-20, SHIPPED with the collapse (Tres: "clean up the lab… all these silly mini games into slot 1… each of these smoothed out rounded boxes should be able to float around… keep it clean and sophisticated, but playful")
 
 **The lab went zero-g.** `/lab` is now SIX draggable door-cards (the site's

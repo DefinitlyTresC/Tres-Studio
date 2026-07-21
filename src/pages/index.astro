@@ -10,25 +10,42 @@
 // The dice roll, the refresh-roll, and the dot map are gone; the quirks stay
 // (color cycle on click, reshuffle on scroll re-entry, ink curtain into /lab,
 // the ticker).
+//
+// V3.1 (2026-07-20): the menu drops Archive (folded into /work) — three words
+// now. And the Work word plays hard to get: clicks one and two pop drifting
+// project portals (EE-13, then Drome) instead of navigating; click three is a
+// plain link again. Session-scoped — see WORK POP PORTALS (CSS + script) below.
+import { getCollection } from 'astro:content';
+import { heroUrl } from '../lib/cloudinary';
 
 // Percent-based homes recompute from viewport size. x/y = wide screens,
 // xn/yn = narrow (<=640px). s = glyph scale factor.
 // Arrangement per Tres's sketch (2026-07-20): a two-row bounce — T up,
 // R dropped low beneath it, E up, S dropped low, the period trailing at
 // S's lower right. Still reads T R E S . left-to-right.
+// Narrow (V3.1): glyphs sized up (21vw clamp in the <=640px block) and homes
+// spread down the full screen — the bounce steepens into a waterfall so the
+// mark carries a phone; same left-to-right read.
 const LETTERS = [
-  { g: 'T', x: 26, y: 33, xn: 22, yn: 18, s: 1.0 },
-  { g: 'R', x: 31, y: 72, xn: 30, yn: 38, s: 0.78 },
-  { g: 'E', x: 55, y: 33, xn: 58, yn: 18, s: 0.9 },
-  { g: 'S', x: 65, y: 68, xn: 68, yn: 34, s: 1.22 },
-  { g: '.', x: 76, y: 82, xn: 84, yn: 44, s: 1.12 },
+  { g: 'T', x: 26, y: 33, xn: 22, yn: 12, s: 1.0 },
+  { g: 'R', x: 31, y: 72, xn: 32, yn: 38, s: 0.78 },
+  { g: 'E', x: 55, y: 33, xn: 58, yn: 22, s: 0.9 },
+  { g: 'S', x: 65, y: 68, xn: 70, yn: 52, s: 1.22 },
+  { g: '.', x: 76, y: 82, xn: 84, yn: 64, s: 1.12 },
 ];
 const MENU = [
-  { label: 'Work', href: '/work', y: 20 },
-  { label: 'Archive', href: '/archive', y: 40 },
-  { label: 'Lab', href: '/lab', y: 60 },
-  { label: 'About', href: '/about', y: 80 },
+  { label: 'Work', href: '/work', y: 25 },
+  { label: 'Lab', href: '/lab', y: 50 },
+  { label: 'About', href: '/about', y: 75 },
 ];
+
+// Pop portal payload — hero URLs resolve at build time; the client gets only
+// what it needs (slug, name, hero) as JSON in an inline script below.
+const all = (await getCollection('projects')).map((e) => e.data);
+const POPS = ['ee13', 'drome']
+  .map((s) => all.find((p) => p.slug === s))
+  .filter(Boolean)
+  .map((p) => ({ slug: p.slug, name: p.name, hero: heroUrl(p) }));
 ---
 
 <html lang="en">
@@ -42,6 +59,7 @@ const MENU = [
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;700;800&family=Space+Mono&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/cursor.css" />
     <!-- tracking: one bootstrap for the whole site (Umami + Clarity + visitor id + self-exclusion) - public/ts.js -->
     <script is:inline defer src="/ts.js"></script>
   </head>
@@ -65,7 +83,7 @@ const MENU = [
 
     <nav class="menu" id="menuField" aria-label="Sections" data-zg-room>
       {MENU.map((m) => (
-        <a class="body mword" href={m.href} draggable="false" data-zg data-home-x="50" data-home-y={m.y} style={`--hx:50; --hy:${m.y};`}>
+        <a class="body mword" id={m.href === '/work' ? 'menuWork' : null} href={m.href} draggable="false" data-zg data-home-x="50" data-home-y={m.y} style={`--hx:50; --hy:${m.y};`}>
           <span class="tx">{m.label}</span>
         </a>
       ))}
@@ -86,7 +104,6 @@ const MENU = [
         <div class="i-col">
           <span class="lbl">Sections</span>
           <a href="/work">Work</a><br />
-          <a href="/archive">Archive</a><br />
           <a href="/lab">Lab</a><br />
           <a href="/about">About</a><br />
           <a href="/resume.pdf">Resume</a><br />
@@ -113,13 +130,16 @@ const MENU = [
       .menu { position: relative; height: 100svh; }
 
       /* Physics bodies. Static fallback: parked at percent homes, centered.
-         When the sim boots (.sim), JS owns position via transform only. */
+         When the sim boots (.sim), JS owns position via transform only.
+         z-index 2: type must paint over the pop portals (z 1) — the holes sit
+         between the paper and every text layer. */
       .body {
         position: absolute;
         left: calc(var(--hx) * 1%); top: calc(var(--hy) * 1%);
         translate: -50% -50%;
         display: inline-grid; place-items: center;
         min-width: 44px; min-height: 44px;
+        z-index: 2;
         user-select: none; -webkit-user-select: none;
         -webkit-touch-callout: none;
         touch-action: none;
@@ -131,7 +151,10 @@ const MENU = [
         font-size: calc(clamp(64px, 12vw, 176px) * var(--s));
       }
       @media (max-width: 640px) {
-        .glyph { left: calc(var(--hxn) * 1%); top: calc(var(--hyn) * 1%); }
+        .glyph {
+          font-size: calc(clamp(78px, 21vw, 130px) * var(--s));
+          left: calc(var(--hxn) * 1%); top: calc(var(--hyn) * 1%);
+        }
       }
 
       .mword {
@@ -151,13 +174,14 @@ const MENU = [
       .menu:not(.sim) .mword:active .tx { transform: scale(0.96); }
 
       .cue {
-        position: absolute; bottom: 6svh; left: 50%; translate: -50% 0;
+        position: absolute; bottom: 6svh; left: 50%; translate: -50% 0; z-index: 2;
         font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase;
         color: rgba(16, 16, 16, 0.45);
       }
 
       .info { min-height: 70svh; display: grid; align-content: end; gap: 7svh; position: relative; padding: 10svh 6vw 4svh; }
       .i-cols {
+        position: relative; z-index: 2; /* above the pop portals (z 1) */
         display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px;
         padding-right: clamp(100px, 24vw, 240px);
         font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: 0.05em;
@@ -166,6 +190,7 @@ const MENU = [
       @media (max-width: 640px) { .i-cols { grid-template-columns: 1fr; } }
       .lbl { display: block; color: rgba(16,16,16,0.45); margin-bottom: 6px; }
       .i-meta {
+        position: relative; z-index: 2; /* above the pop portals (z 1) */
         display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap;
         border-top: 1px solid rgba(0,0,0,0.14); padding-top: 16px;
         font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase;
@@ -174,8 +199,61 @@ const MENU = [
         .info a:hover { text-decoration: underline; text-underline-offset: 4px; }
       }
 
+      /* WORK POP PORTALS — drifting blob-holes the menu Work word spawns (the
+         script below builds them; nothing here is server-rendered). z-index 1
+         = a hole in the paper: every text layer sits at z 2, so type paints
+         over the heroes. NOT [data-zg] — the zero-g engine never owns these;
+         the drift is our own rAF loop, so transforms on .pop are safe. */
+      .pop {
+        position: fixed; left: 0; top: 0; z-index: 1;
+        width: clamp(150px, 24vw, 280px); height: clamp(150px, 24vw, 280px);
+        display: block; border: none; will-change: transform;
+      }
+      .pop:focus-visible { outline: 2px solid #101010; outline-offset: 3px; }
+      /* springy pop-in; the 1.56 overshoot supplies the 1.04 bump */
+      .pin { display: block; width: 100%; height: 100%; animation: pop-in 600ms cubic-bezier(0.34, 1.56, 0.64, 1); }
+      .pskin {
+        display: block; width: 100%; height: 100%;
+        background-size: cover; background-position: center;
+        border-radius: 58% 42% 39% 61% / 53% 44% 56% 47%;
+        animation: pop-morph 9s ease-in-out infinite;
+        /* inset hairline keeps the edge crisp on light heroes */
+        box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+      }
+      .pname {
+        position: absolute; left: 50%; top: 50%; translate: -50% -50%;
+        font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.12em;
+        text-transform: uppercase; white-space: nowrap;
+        color: #101010; background: #FAFAF7;
+        border: 1px solid rgba(0, 0, 0, 0.14); border-radius: 999px; padding: 6px 10px;
+        opacity: 0; pointer-events: none; transition: opacity 200ms ease;
+      }
+      .pop:focus-visible .pname { opacity: 1; }
+      @keyframes pop-in { from { transform: scale(0.2); } to { transform: scale(1); } }
+      @keyframes pop-morph {
+        0%, 100% { border-radius: 58% 42% 39% 61% / 53% 44% 56% 47%; }
+        33% { border-radius: 39% 61% 55% 45% / 46% 59% 41% 54%; }
+        66% { border-radius: 55% 45% 62% 38% / 58% 43% 47% 60%; }
+      }
+      @media (hover: hover) and (pointer: fine) {
+        .pin { transition: transform 260ms cubic-bezier(0.22, 1, 0.36, 1); }
+        .pop:hover .pin { transform: scale(1.04); }
+        .pop:hover .pname { opacity: 1; }
+      }
+      /* the swallow: .go freezes the drift (JS inlines the current box),
+         grows the hole to the viewport, and lifts above everything. Must sit
+         after the hover block — .go's transform:none has equal specificity
+         and wins on source order. */
+      .pop.go { z-index: 999; pointer-events: none; transition: left 700ms cubic-bezier(0.22, 1, 0.36, 1), top 700ms cubic-bezier(0.22, 1, 0.36, 1), width 700ms cubic-bezier(0.22, 1, 0.36, 1), height 700ms cubic-bezier(0.22, 1, 0.36, 1); }
+      .pop.go .pin { animation: none; transform: none; }
+      .pop.go .pskin { animation: none; transition: border-radius 340ms ease-in-out; }
+      .pop.go .pname { opacity: 0; }
+
       @media (prefers-reduced-motion: reduce) {
         .mword .tx { transition-duration: 1ms; }
+        /* pop portals never spawn under PRM (the script bails first) —
+           these kills are belt-and-suspenders */
+        .pin, .pskin, .pname { animation: none; transition: none; }
       }
     </style>
 
@@ -183,6 +261,188 @@ const MENU = [
       import { autoReveal } from '/mv/curtain.js';
       autoReveal();
       import('/mv/lab-takeover.js');
+    </script>
+
+    <script is:inline set:html={`const POPS = ${JSON.stringify(POPS)};`}></script>
+    <script is:inline>
+      /* WORK POP PORTALS — the menu Work word plays hard to get. Click one:
+         EE-13 pops in as a drifting blob-hole. Click two: Drome joins it.
+         Click three: the link is a link again. Session-scoped (mv:work-pops,
+         0..2) — blobs respawn on every landing visit until the tab closes.
+         Constraints: intercept at DOCUMENT level and bail on defaultPrevented
+         (zero-g preventDefaults drag-release clicks at element level, and its
+         listener must run first); only #menuWork — the footer Work link stays
+         plain. The pops are NOT [data-zg]: they run their own drift loop, the
+         engine never touches them. PRM: no choreography, Work is a plain
+         link. Entering a blob does NOT set mv:covered — the arrival hero
+         carries the continuity, not the curtain. */
+      (function () {
+        var reduce = false;
+        try { reduce = matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+        if (reduce || typeof POPS === 'undefined' || !POPS.length) return;
+
+        var KEY = 'mv:work-pops';
+        function getCount() {
+          var n = 0;
+          try { n = parseInt(sessionStorage.getItem(KEY) || '0', 10); } catch (e) {}
+          if (isNaN(n) || n < 0) n = 0;
+          return Math.min(n, POPS.length);
+        }
+        function setCount(n) { try { sessionStorage.setItem(KEY, String(n)); } catch (e) {} }
+
+        var pops = [], raf = null, last = 0, leaving = false;
+
+        function place(s) { s.el.style.transform = 'translate3d(' + s.x.toFixed(1) + 'px,' + s.y.toFixed(1) + 'px,0)'; }
+
+        function spawn(data, i) {
+          var a = document.createElement('a');
+          a.className = 'pop';
+          a.href = '/project/' + data.slug;
+          a.setAttribute('aria-label', data.name + ' — open project');
+          var pin = document.createElement('span');
+          pin.className = 'pin';
+          var skin = document.createElement('span');
+          skin.className = 'pskin';
+          if (data.hero) skin.style.backgroundImage = 'url("' + data.hero + '")';
+          /* desync the morphs: siblings never share duration or phase */
+          skin.style.animationDuration = (8.6 + i * 2.7).toFixed(1) + 's';
+          skin.style.animationDelay = (-0.6 - i * 3.1).toFixed(1) + 's';
+          var chip = document.createElement('span');
+          chip.className = 'pname';
+          chip.textContent = data.name;
+          pin.appendChild(skin);
+          a.appendChild(pin);
+          a.appendChild(chip);
+          document.body.appendChild(a);
+
+          /* random on-screen spawn point, 12vw/12vh in from the edges */
+          var r = a.getBoundingClientRect();
+          var padX = innerWidth * 0.12, padY = innerHeight * 0.12;
+          var s = {
+            el: a, skin: skin,
+            w: r.width, h: r.height,
+            x: padX + Math.random() * Math.max(1, innerWidth - r.width - padX * 2),
+            y: padY + Math.random() * Math.max(1, innerHeight - r.height - padY * 2),
+            ang: Math.random() * Math.PI * 2,
+            speed: 14 + Math.random() * 10,
+            phase: Math.random() * Math.PI * 2,
+            freq: 0.25 + Math.random() * 0.3
+          };
+          place(s);
+          /* true click (not a suppressed drag-release) = enter through the
+             dot; Enter on the focused anchor lands here too */
+          a.addEventListener('click', function (e) {
+            if (e.defaultPrevented) return;
+            if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button > 0) return;
+            e.preventDefault();
+            swallow(s);
+          });
+          pops.push(s);
+          start();
+        }
+
+        /* drift: slow wander, direction steered by a sinusoid, soft edge
+           bounces keeping the blob fully on-screen minus 8px. dt-clamped so
+           a background tab never teleports a blob. */
+        function tick(now) {
+          raf = null;
+          var dt = Math.min(0.05, (now - last) / 1000);
+          last = now;
+          var t = now / 1000;
+          for (var i = 0; i < pops.length; i++) {
+            var s = pops[i];
+            s.ang += Math.sin(t * s.freq * 6.283 + s.phase) * 0.5 * dt;
+            s.x += Math.cos(s.ang) * s.speed * dt;
+            s.y += Math.sin(s.ang) * s.speed * dt;
+            var maxX = Math.max(8, innerWidth - s.w - 8);
+            var maxY = Math.max(8, innerHeight - s.h - 8);
+            if (s.x < 8) { s.x = 8; s.ang = Math.PI - s.ang; }
+            else if (s.x > maxX) { s.x = maxX; s.ang = Math.PI - s.ang; }
+            if (s.y < 8) { s.y = 8; s.ang = -s.ang; }
+            else if (s.y > maxY) { s.y = maxY; s.ang = -s.ang; }
+            place(s);
+          }
+          if (pops.length) raf = requestAnimationFrame(tick);
+        }
+        function start() {
+          if (raf || document.hidden || !pops.length) return;
+          last = performance.now();
+          raf = requestAnimationFrame(tick);
+        }
+        document.addEventListener('visibilitychange', function () {
+          if (document.hidden) { if (raf) { cancelAnimationFrame(raf); raf = null; } }
+          else start();
+        });
+        addEventListener('resize', function () {
+          for (var i = 0; i < pops.length; i++) {
+            var s = pops[i], r = s.el.getBoundingClientRect();
+            s.w = r.width; s.h = r.height;
+            s.x = Math.min(Math.max(8, s.x), Math.max(8, innerWidth - s.w - 8));
+            s.y = Math.min(Math.max(8, s.y), Math.max(8, innerHeight - s.h - 8));
+            place(s);
+          }
+        });
+
+        /* enter through the dot: freeze the drift, grow the hole to the
+           viewport (left/top/width/height stay smooth — no transform fight),
+           radius 24% then 0, and go. NOT the curtain: mv:covered stays
+           unset — the arrival hero carries the continuity. */
+        function swallow(s) {
+          if (leaving) return;
+          leaving = true;
+          var i = pops.indexOf(s);
+          if (i > -1) pops.splice(i, 1);
+          var r = s.el.getBoundingClientRect();
+          s.el.style.transform = 'none';
+          s.el.style.left = r.left + 'px';
+          s.el.style.top = r.top + 'px';
+          s.el.style.width = r.width + 'px';
+          s.el.style.height = r.height + 'px';
+          void s.el.offsetWidth; /* commit the frozen box before transitioning */
+          s.el.classList.add('go');
+          s.el.style.left = '0px';
+          s.el.style.top = '0px';
+          s.el.style.width = innerWidth + 'px';
+          s.el.style.height = innerHeight + 'px';
+          s.skin.style.animation = 'none';
+          s.skin.style.borderRadius = '24%';
+          setTimeout(function () { s.skin.style.borderRadius = '0%'; }, 340);
+          var href = s.el.getAttribute('href');
+          setTimeout(function () { location.href = href; }, 700);
+        }
+
+        document.addEventListener('click', function (e) {
+          var a = e.target && e.target.closest && e.target.closest('#menuWork');
+          if (!a) return;
+          if (e.defaultPrevented) return; /* zero-g suppressed a drag's trailing click */
+          /* modified/aux clicks keep their native meaning (new tab etc.) */
+          if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button > 0) return;
+          if (leaving) { e.preventDefault(); return; }
+          var n = getCount();
+          if (n >= POPS.length) return; /* click three: a link again */
+          e.preventDefault();
+          spawn(POPS[n], n);
+          setCount(n + 1);
+        });
+
+        /* the counter's blobs persist across landing visits this session */
+        function respawn() {
+          for (var i = 0, n = getCount(); i < n; i++) spawn(POPS[i], i);
+        }
+        addEventListener('pageshow', function (e) {
+          if (!e.persisted) return;
+          /* bfcache return (possibly mid-swallow): tear down and re-pop */
+          leaving = false;
+          if (raf) { cancelAnimationFrame(raf); raf = null; }
+          pops.length = 0;
+          var strays = document.querySelectorAll('a.pop');
+          for (var i = strays.length - 1; i >= 0; i--) {
+            if (strays[i].parentNode) strays[i].parentNode.removeChild(strays[i]);
+          }
+          respawn();
+        });
+        respawn();
+      })();
     </script>
 
     <script is:inline defer src="/mv/zerog.js"></script>

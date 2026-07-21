@@ -1,28 +1,38 @@
 ---
 // Roadmap — the site's history + future as one growing, branching drawing.
 // Everything below is baked at build time from the ROADMAP array; the client
-// gets hand-tuned SVG and one small reveal script, no data fetch, no libraries.
+// gets hand-tuned SVG and two small scripts (reveal + era chips), no data
+// fetch, no libraries.
 
 // — append here; the drawing grows with the data
-// { date: 'YYYY-MM-DD' | 'ahead', title, note (one line), branch?, status }
+// { date: 'YYYY-MM-DD' | 'ahead', title, note ('' = the title carries the row), branch?, status }
 // status: 'era' | 'shipped' | 'superseded' | 'live' | 'next'
 // Trunk = no branch. Branches stem from the nearest trunk node by date.
 // Dates are grounded in REBRAND.md + git history — never invented.
 const ROADMAP = [
   { date: '2026-05-15', title: 'the first site', note: 'hand-built html/css/js — no framework, no build', status: 'era' },
-  { date: '2026-05-31', title: 'the react rebuild', note: 'react three fiber — built, judged, shelved', branch: 'react', status: 'superseded' },
-  { date: '2026-05-31', title: 'the dot cloud', note: 'one cloud of dots re-forms the site on scroll', branch: 'particles', status: 'superseded' },
-  { date: '2026-06-01', title: 'the 80k proto', note: 'three.js — now hangs at /alternates/dot/', branch: 'particles', status: 'superseded' },
+  { date: '2026-05-31', title: 'the react rebuild', note: '', branch: 'react', status: 'superseded' },
+  { date: '2026-05-31', title: 'the dot cloud', note: '', branch: 'particles', status: 'superseded' },
+  { date: '2026-06-01', title: 'the 80k proto', note: '', branch: 'particles', status: 'superseded' },
   { date: '2026-07-03', title: 'astro + the multiverse', note: 'sheet baked at build; one random front door', status: 'era' },
-  { date: '2026-07-03', title: 'seven universes', note: 'six at the cutover — the drop makes seven', branch: 'universes', status: 'superseded' },
-  { date: '2026-07-11', title: 'universe 08 + epoch 2', note: 'the drop joins the roll; the counter resets', status: 'shipped' },
-  { date: '2026-07-12', title: 'lab, multiverse edition', note: 'every experiment adopted by a universe', status: 'shipped' },
-  { date: '2026-07-12', title: 'seven sims, rebuilt', note: "ground-up, in the adopted universe's brand", branch: 'lab', status: 'shipped' },
+  { date: '2026-07-03', title: 'seven universes', note: '', branch: 'universes', status: 'superseded' },
+  { date: '2026-07-11', title: 'universe 08 + epoch 2', note: '', status: 'shipped' },
+  { date: '2026-07-12', title: 'lab, multiverse edition', note: '', status: 'shipped' },
+  { date: '2026-07-12', title: 'seven sims, rebuilt', note: '', branch: 'lab', status: 'shipped' },
   { date: '2026-07-20', title: 'v3.0 — the collapse', note: 'one site — zero gravity', status: 'live' },
-  { date: '2026-07-20', title: 'lab v3 — six doors', note: 'the hall goes zero-g; every door floats', branch: 'lab', status: 'shipped' },
-  { date: 'ahead', title: 'the plugin shelf, stocked', note: 'pyrevit extensions, listed from a folder', status: 'next' },
-  { date: 'ahead', title: 'the satisfactory dock', note: 'the factory, visualized', status: 'next' },
-  { date: 'ahead', title: 'slot six — unnamed', note: 'a door with no name on it yet', status: 'next' },
+  { date: '2026-07-20', title: 'lab v3 — six doors', note: '', branch: 'lab', status: 'shipped' },
+  { date: '2026-07-20', title: 'the satisfactory dock', note: '', branch: 'lab', status: 'shipped' },
+  { date: 'ahead', title: 'the plugin shelf, stocked', note: '', status: 'next' },
+  { date: 'ahead', title: 'slot six — unnamed', note: '', status: 'next' },
+];
+
+// The three eras, one chip each, anchored to the trunk node that opened the
+// era. Chips are HTML riding the svg, so the copy stays selectable and the
+// card can be a real tooltip.
+const ERAS = [
+  { id: 'V1', at: 'the first site', text: 'the hand-built site — one page, no framework, content from a sheet.' },
+  { id: 'V2', at: 'astro + the multiverse', text: 'the astro rebuild — seven complete sites behind one randomizing front door.' },
+  { id: 'V3', at: 'v3.0 — the collapse', text: 'one zero-g site. the universes retire to the lab as exhibits and toys.' },
 ];
 
 // A branch that returns: its strand folds back into the trunk node at this date.
@@ -57,13 +67,14 @@ function draw(cfg) {
   const lastRow = {};
   for (const n of nodes) if (n.branch) lastRow[n.branch] = n.row;
 
+  // Superseded rows keep the reduced-opacity hierarchy (.sup) — no tag line;
+  // an empty note emits nothing, never an empty <text>.
   const label = (n, x, anchor) => {
     const sup = n.status === 'superseded';
     let t = `<g class="lb${sup ? ' sup' : ''}">`;
     t += `<text class="l-date" x="${x}" y="${r1(n.y - 16)}" text-anchor="${anchor}">${n.date === 'ahead' ? 'ahead' : n.date}</text>`;
     t += `<text class="l-title" x="${x}" y="${r1(n.y + 5)}" text-anchor="${anchor}">${esc(n.title)}</text>`;
-    t += `<text class="l-note" x="${x}" y="${r1(n.y + 23)}" text-anchor="${anchor}">${esc(n.note)}</text>`;
-    if (sup) t += `<text class="l-tag" x="${x}" y="${r1(n.y + 40)}" text-anchor="${anchor}">superseded</text>`;
+    if (n.note) t += `<text class="l-note" x="${x}" y="${r1(n.y + 23)}" text-anchor="${anchor}">${esc(n.note)}</text>`;
     return t + '</g>';
   };
   // Monochrome everywhere; the one color on the page is the live node's ring.
@@ -76,7 +87,7 @@ function draw(cfg) {
   };
 
   const labelSideAt = (r) => (narrow ? 1 : trunkAtRow[r].ti % 2 === 0 ? 1 : -1);
-  const band = narrow ? 50 : 48; // label block: date top ≈ y-26 … tag foot ≈ y+44
+  const band = narrow ? 50 : 48; // clears a full label block: date top ≈ y-26 … note foot ≈ y+27, with margin
   // Thread a strand from → to, pulling in beside the trunk (|offset| < |gapT|)
   // at every trunk row crossed. Rows whose label sits on the strand's side get
   // a straight vertical run past the whole label band; the run is clamped to
@@ -134,13 +145,23 @@ function draw(cfg) {
       units.push(`<g class="seg"><path class="ln long${sup ? ' sup' : ''}" d="${d2}" pathLength="1"/></g>`);
     }
   }
-  return `<svg class="tl ${narrow ? 'n' : 'w'}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMin meet">${units.join('')}</svg>`;
+  // Era chip anchors as % of the viewBox — the svg scales proportionally, so
+  // percentage-positioned HTML tracks its node at any container width.
+  // side = where the CHIP sits: always opposite the node's label side.
+  const eras = ERAS.map((e) => {
+    const t = trunk.find((n) => n.title === e.at);
+    return { ...e, x: r1((t.x / W) * 100), y: r1((t.y / H) * 100), side: -labelSideAt(t.row) };
+  });
+  return {
+    svg: `<svg class="tl ${narrow ? 'n' : 'w'}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMin meet">${units.join('')}</svg>`,
+    eras,
+  };
 }
 
 // Two bakes of the same data: wide alternates label sides around a center
-// rail; narrow is a single left rail, every label to the right. CSS swaps
-// them at 640px.
-const svgWide = draw({
+// rail; narrow is a single left rail, every label to the right (so every
+// chip hangs left). CSS swaps the bakes at 640px.
+const bakeWide = draw({
   W: 1000, railX: 500,
   sway: [16, -26, 24, -18, 26, -22, 12, -24],
   lane: 150,
@@ -149,7 +170,7 @@ const svgWide = draw({
   pull: 16, hug: 16, rowH: 100, top: 54, pad: 66, gapT: 26, gapB: 14,
   narrow: false,
 });
-const svgNarrow = draw({
+const bakeNarrow = draw({
   W: 420, railX: 52,
   sway: [8, -6, 10, -8, 6, -10, 8, -6],
   lane: 70,
@@ -170,6 +191,7 @@ const svgNarrow = draw({
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/cursor.css" />
     <!-- tracking: one bootstrap for the whole site (Umami + Clarity + visitor id + self-exclusion) - public/ts.js -->
     <script is:inline defer src="/ts.js"></script>
     <script is:inline>
@@ -190,8 +212,28 @@ const svgNarrow = draw({
         <h1 class="name">ROADMAP<span class="ad">.</span></h1>
       </header>
       <div class="map">
-        <Fragment set:html={svgWide} />
-        <Fragment set:html={svgNarrow} />
+        <div class="bake w">
+          <Fragment set:html={bakeWide.svg} />
+          {bakeWide.eras.map((e) => (
+            <div class={`era-w ${e.side < 0 ? 'l' : 'r'}`} style={`left:${e.x}%; top:${e.y}%`}>
+              <button class="era" type="button" aria-expanded="false" aria-describedby={`era-w-${e.id}`}>
+                <span class="e-pill">{e.id}</span>
+              </button>
+              <div class="e-card" role="tooltip" id={`era-w-${e.id}`}>{e.text}</div>
+            </div>
+          ))}
+        </div>
+        <div class="bake n">
+          <Fragment set:html={bakeNarrow.svg} />
+          {bakeNarrow.eras.map((e) => (
+            <div class={`era-w ${e.side < 0 ? 'l' : 'r'}`} style={`left:${e.x}%; top:${e.y}%`}>
+              <button class="era" type="button" aria-expanded="false" aria-describedby={`era-n-${e.id}`}>
+                <span class="e-pill">{e.id}</span>
+              </button>
+              <div class="e-card" role="tooltip" id={`era-n-${e.id}`}>{e.text}</div>
+            </div>
+          ))}
+        </div>
       </div>
     </main>
 
@@ -218,9 +260,12 @@ const svgNarrow = draw({
       .ad { color: #FF4D00; }
 
       .map { max-width: 1000px; margin: 0 auto; padding-top: 2svh; }
+      /* each bake hugs its svg, so the era chips' % coords resolve against
+         the same box the viewBox scales into */
+      .bake { position: relative; }
+      .bake.n { display: none; }
+      @media (max-width: 640px) { .bake.w { display: none; } .bake.n { display: block; } }
       .tl { display: block; width: 100%; height: auto; }
-      .tl.n { display: none; }
-      @media (max-width: 640px) { .tl.w { display: none; } .tl.n { display: block; } }
 
       .tl .ln { fill: none; stroke: #101010; stroke-width: 1.5; stroke-linecap: round; }
       .tl.n .ln { stroke-width: 1.4; }
@@ -232,12 +277,36 @@ const svgNarrow = draw({
       .tl .l-date { font-family: 'Space Mono', monospace; font-size: 10.5px; letter-spacing: 0.12em; fill: rgba(16,16,16,0.45); }
       .tl .l-title { font-size: 15px; font-weight: 800; fill: #101010; }
       .tl .l-note { font-size: 12.5px; fill: rgba(16,16,16,0.55); }
-      .tl .l-tag { font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: 0.14em; fill: rgba(16,16,16,0.45); }
       .tl.n .l-date { font-size: 10px; }
       .tl.n .l-title { font-size: 14px; }
       .tl.n .l-note { font-size: 11.5px; }
-      .tl.n .l-tag { font-size: 8.5px; }
       .tl .sup { opacity: 0.55; --lo: 0.55; }
+
+      /* era chips — HTML riding the svg. The wrapper is a 0×0 anchor pinned
+         to the trunk node; chip and card hang off it on the side opposite
+         that node's label */
+      .era-w { position: absolute; width: 0; height: 0; z-index: 5; font-family: 'Space Mono', monospace; }
+      /* transparent padding lifts the 24px pill to a 44px hit target */
+      .era { position: absolute; top: 0; translate: 0 -50%; display: block; background: none; border: 0; margin: 0; padding: 10px 8px; cursor: pointer; color: inherit; font: inherit; }
+      .era-w.l .era { right: 10px; }
+      .era-w.r .era { left: 10px; }
+      .e-pill { display: block; font-family: 'Space Mono', monospace; font-size: 10px; font-weight: 700; letter-spacing: 0.08em; line-height: 1; padding: 6px 10px; border: 1px solid #101010; border-radius: 999px; background: #FAFAF7; transition: background 120ms ease, color 120ms ease; }
+      .era[aria-expanded="true"] .e-pill { background: #101010; color: #FAFAF7; }
+      @media (hover: hover) and (pointer: fine) { .era:hover .e-pill { background: #101010; color: #FAFAF7; } }
+      .era:focus-visible { outline: none; }
+      .era:focus-visible .e-pill { outline: 2px solid #101010; outline-offset: 3px; }
+      .e-card { position: absolute; top: 22px; width: max-content; max-width: 30ch; font-size: 11px; line-height: 1.6; background: #FAFAF7; border: 1px solid #101010; border-radius: 10px; padding: 10px 12px; opacity: 0; visibility: hidden; transition: opacity 120ms ease, visibility 120ms; z-index: 6; }
+      /* the card opens below the chip, extending AWAY from the drawing —
+         both bakes keep >60px of slack to the viewport edge at every width
+         their media query serves */
+      .era-w.l .e-card { right: 10px; }
+      .era-w.r .e-card { left: 10px; }
+      /* narrow: every chip hangs left of the rail, so the card must open
+         rightward below the chip or it leaves the viewport */
+      .bake.n .e-card { left: -4px; right: auto; }
+      .era:focus-visible + .e-card,
+      .era[aria-expanded="true"] + .e-card { opacity: 1; visibility: visible; }
+      @media (hover: hover) { .era-w:hover .e-card { opacity: 1; visibility: visible; } }
 
       .foot { display: flex; justify-content: space-between; padding: 3svh 6vw 4svh; border-top: 1px solid rgba(0,0,0,0.14); font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; }
     </style>
@@ -257,6 +326,7 @@ const svgNarrow = draw({
       @media (prefers-reduced-motion: reduce) {
         .back { transition: none; }
         .back:active { transform: none; }
+        .e-pill, .e-card { transition: none; } /* era cards show/hide instantly */
       }
     </style>
 
@@ -299,6 +369,30 @@ const svgNarrow = draw({
            until a resize swaps it in, then it draws on scroll like normal */
         var segs = document.querySelectorAll('.seg');
         for (var i = 0; i < segs.length; i++) io.observe(segs[i]);
+      })();
+    </script>
+    <script is:inline>
+      (function () {
+        /* touch has no hover: a tap toggles the chip's card (aria-expanded
+           drives the CSS); outside click or Escape closes whatever is open */
+        var chips = document.querySelectorAll('.era');
+        function closeAll(except) {
+          for (var i = 0; i < chips.length; i++) if (chips[i] !== except) chips[i].setAttribute('aria-expanded', 'false');
+        }
+        for (var i = 0; i < chips.length; i++) {
+          chips[i].addEventListener('click', function () {
+            var open = this.getAttribute('aria-expanded') === 'true';
+            closeAll(this);
+            this.setAttribute('aria-expanded', open ? 'false' : 'true');
+          });
+        }
+        document.addEventListener('click', function (e) {
+          if (e.target.closest && e.target.closest('.era-w')) return;
+          closeAll(null);
+        });
+        document.addEventListener('keydown', function (e) {
+          if (e.key === 'Escape') closeAll(null);
+        });
       })();
     </script>
   </body>

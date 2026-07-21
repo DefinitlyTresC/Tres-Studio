@@ -16,10 +16,7 @@ export async function getStaticPaths() {
   });
 }
 
-const WORK = ['z07', 'ee13', 'flatwood', 'tucker', 'thesis'];
 const { p, prev, next } = Astro.props;
-const backHref = WORK.includes(p.slug) ? '/work' : '/archive';
-const backLabel = WORK.includes(p.slug) ? 'work' : 'archive';
 const spec = [`No. ${String(p.id ?? '').padStart(2, '0')}`, p.year, p.location, p.status].filter(Boolean).join(' · ');
 const paragraphs = (p.description || '').split(/\n\s*\n/).map((s) => s.trim()).filter(Boolean);
 // image ordinal must match the lightbox counter, which counts images only
@@ -37,11 +34,12 @@ let imgOrdinal = 0;
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;700;800&family=Space+Mono&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/cursor.css" />
     <!-- tracking: one bootstrap for the whole site (Umami + Clarity + visitor id + self-exclusion) - public/ts.js -->
     <script is:inline defer src="/ts.js"></script>
   </head>
   <body>
-    <a class="back" id="back" href={backHref}>← {backLabel}</a>
+    <a class="back" id="back" href="/work">← work</a>
 
     <main class="proj">
       <header class="head">

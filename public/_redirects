@@ -31,43 +31,46 @@
 
 # Old clean-URL category pages (retired in V3.0).
 /architecture                     /work           301!
-/personal                         /archive        301!
+/personal                         /work           301!
+
+# The archive folded into /work (Lab V3.1, 2026-07-20).
+/archive                          /work           301!
 
 # ── Era 2: the multiverse (2026-07-03 → 2026-07-20) ──────────
 # Seven universes lived at /1/../6/ and /8/; V3.0 collapsed them into the
 # one site (the old universe 2). Same page, no matter which door you knew.
 /1/work        /work            301!
-/1/archive     /archive         301!
+/1/archive     /work            301!
 /1/about       /about           301!
 /1/project/*   /project/:splat  301!
 /1/*           /                301!
 /2/work        /work            301!
-/2/archive     /archive         301!
+/2/archive     /work            301!
 /2/about       /about           301!
 /2/project/*   /project/:splat  301!
 /2/*           /                301!
 /3/work        /work            301!
-/3/archive     /archive         301!
+/3/archive     /work            301!
 /3/about       /about           301!
 /3/project/*   /project/:splat  301!
 /3/*           /                301!
 /4/work        /work            301!
-/4/archive     /archive         301!
+/4/archive     /work            301!
 /4/about       /about           301!
 /4/project/*   /project/:splat  301!
 /4/*           /                301!
 /5/work        /work            301!
-/5/archive     /archive         301!
+/5/archive     /work            301!
 /5/about       /about           301!
 /5/project/*   /project/:splat  301!
 /5/*           /                301!
 /6/work        /work            301!
-/6/archive     /archive         301!
+/6/archive     /work            301!
 /6/about       /about           301!
 /6/project/*   /project/:splat  301!
 /6/*           /                301!
 /8/work        /work            301!
-/8/archive     /archive         301!
+/8/archive     /work            301!
 /8/about       /about           301!
 /8/project/*   /project/:splat  301!
 /8/*           /                301!

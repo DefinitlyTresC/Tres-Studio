@@ -1,10 +1,40 @@
 ---
-// Work — the dense index, weightless skin.
+// Work — the gallery index. V3.1: /work absorbs the retired archive, so every
+// project carries its hero image here and is legible before the click.
+// Five SELECTED entries are composed (no physics — they are the gallery);
+// the PAST rows stay throwable ([data-zg]). The zero-g engine owns the outer
+// element's inline transform, so the scroll-reveal + hover transforms on past
+// rows live on the inner .rin wrapper, never on the [data-zg] element.
 import { getCollection } from 'astro:content';
+import { joinUrl } from '../lib/cloudinary';
 
-const WORK = ['z07', 'ee13', 'flatwood', 'tucker', 'thesis'];
 const all = (await getCollection('projects')).map((e) => e.data);
-const rows = WORK.map((s) => all.find((p) => p.slug === s)).filter(Boolean);
+
+// Curated order — fixed by hand, not by sheet order.
+const SELECTED = ['ee13', 'z07', 'tucker', 'drome', 'thesis'];
+const selected = SELECTED.map((s) => all.find((p) => p.slug === s)).filter(Boolean);
+
+// Past = every remaining project except the Lab index row. Architecture runs
+// reverse-chronologically (first 4-digit number in the year string; sheet
+// order breaks ties), then the personal pieces follow in sheet order.
+const chosen = new Set(SELECTED);
+const past = all.filter((p) => p.category !== 'lab' && !chosen.has(p.slug));
+const yearOf = (p) => {
+  const m = /\d{4}/.exec(p.year || '');
+  return m ? parseInt(m[0], 10) : 0;
+};
+const arch = past
+  .filter((p) => p.category === 'architecture')
+  .sort((a, b) => yearOf(b) - yearOf(a) || a.order - b.order);
+const personal = past
+  .filter((p) => p.category !== 'architecture')
+  .sort((a, b) => a.order - b.order);
+
+// Heroes: w_900 covers the large tiles (~740px column at 1x), w_500 the thumbs.
+const big = (p) => joinUrl(p.heroImage, 'w_900', 'image');
+const thumb = (p) => joinUrl(p.heroImage, 'w_500', 'image');
+const pad2 = (n) => String(n).padStart(2, '0');
+const meta = (parts) => parts.filter(Boolean).join(' · ');
 ---
 
 <html lang="en">
@@ -17,26 +47,90 @@ const rows = WORK.map((s) => all.find((p) => p.slug === s)).filter(Boolean);
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;700;800&family=Space+Mono&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/cursor.css" />
     <!-- tracking: one bootstrap for the whole site (Umami + Clarity + visitor id + self-exclusion) - public/ts.js -->
     <script is:inline defer src="/ts.js"></script>
+    <script is:inline>
+      /* html.js gates the hidden-at-rest styles: no JS (or PRM) = fully drawn */
+      (function () {
+        var reduce = false;
+        try { reduce = matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+        if (!reduce && 'IntersectionObserver' in window) document.documentElement.classList.add('js');
+      })();
+    </script>
   </head>
   <body>
     <a class="back" id="back" href="/">← index</a>
 
     <main class="arch">
       <header class="head">
-        <p class="spec">work · 05</p>
+        <p class="spec">selected · {pad2(selected.length)} — past · {pad2(past.length)}</p>
         <h1 class="name">W o r k</h1>
       </header>
-      <div class="list" data-zg-room>
-        {rows.map((p, i) => (
-          <a class="row" data-zg data-zg-slim href={`/project/${p.slug}`} style={`--off:${(i % 3) * 4}vw`}>
-            <span class="r-no">{String(i + 1).padStart(2, '0')}</span>
-            <span class="r-name">{p.name}</span>
-            <span class="r-meta">{p.year}</span>
+
+      <section class="sel" aria-label="Selected work">
+        {selected.map((p, i) => (
+          <a class="entry rev" href={`/project/${p.slug}`} style={`--d:${(i % 4) * 70}ms`}>
+            <span class="frame">
+              <img
+                src={big(p)}
+                alt=""
+                width="900"
+                height="600"
+                decoding="async"
+                loading={i === 0 ? undefined : 'lazy'}
+                fetchpriority={i === 0 ? 'high' : undefined}
+                draggable="false"
+              />
+            </span>
+            <span class="e-tx">
+              <span class="e-no">{pad2(i + 1)}</span>
+              <span class="e-name">{p.name}</span>
+              <span class="e-meta">{meta([p.year, p.location])}</span>
+            </span>
           </a>
         ))}
-      </div>
+      </section>
+
+      <section class="past" aria-label="Past work">
+        <header class="p-head rev">
+          <h2 class="p-title">Past work</h2>
+          <p class="p-note">(reverse chronological)</p>
+        </header>
+        <div class="p-list" data-zg-room>
+          {arch.map((p, i) => (
+            <div class="shelf">
+              <a class="prow" data-zg data-zg-slim href={`/project/${p.slug}`}>
+                <span class="rin rev" style={`--d:${(i % 6) * 45}ms`}>
+                  <span class="th">
+                    <img src={thumb(p)} alt="" width="500" height="375" loading="lazy" decoding="async" draggable="false" />
+                  </span>
+                  <span class="p-tx">
+                    <span class="p-name">{p.name}</span>
+                    <span class="p-meta">{meta([p.subcategory, p.year])}</span>
+                  </span>
+                </span>
+              </a>
+            </div>
+          ))}
+          <p class="p-div rev">personal</p>
+          {personal.map((p, i) => (
+            <div class="shelf">
+              <a class="prow" data-zg data-zg-slim href={`/project/${p.slug}`}>
+                <span class="rin rev" style={`--d:${(i % 6) * 45}ms`}>
+                  <span class="th">
+                    <img src={thumb(p)} alt="" width="500" height="375" loading="lazy" decoding="async" draggable="false" />
+                  </span>
+                  <span class="p-tx">
+                    <span class="p-name">{p.name}</span>
+                    <span class="p-meta">{meta([p.subcategory, p.year])}</span>
+                  </span>
+                </span>
+              </a>
+            </div>
+          ))}
+        </div>
+      </section>
     </main>
 
     <footer class="foot">
@@ -50,6 +144,7 @@ const rows = WORK.map((s) => all.find((p) => p.slug === s)).filter(Boolean);
       body { font-family: 'Hanken Grotesk', system-ui, sans-serif; color: #101010; -webkit-font-smoothing: antialiased; }
       ::selection { background: #101010; color: #FAFAF7; }
       a { color: inherit; text-decoration: none; }
+      img { max-width: 100%; }
       .back { position: fixed; z-index: 10; top: var(--y, 14px); left: 6vw; font-family: 'Space Mono', monospace; font-size: 12px; padding: 12px 0; transition: transform 140ms cubic-bezier(0.23,1,0.32,1); }
       .back:active { transform: scale(0.96); }
       @media (hover: hover) and (pointer: fine) { .back:hover { text-decoration: underline; text-underline-offset: 4px; } }
@@ -60,26 +155,72 @@ const rows = WORK.map((s) => all.find((p) => p.slug === s)).filter(Boolean);
       .spec { font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(16,16,16,0.45); }
       .name { font-weight: 800; font-size: clamp(44px, 9vw, 110px); line-height: 1; margin-top: 10px; }
 
-      .list { display: grid; gap: 6svh; padding-top: 2svh; }
-      /* fit-content: rows hug their text so the zero-g engine gets horizontal
-         room to throw them in — visually identical at rest (left-packed flex) */
-      .row { display: flex; align-items: baseline; gap: 18px; margin-left: var(--off, 0); width: fit-content; }
-      .r-no, .r-meta { font-family: 'Space Mono', monospace; font-size: 12px; color: rgba(16,16,16,0.45); }
-      .r-name { font-weight: 700; font-size: clamp(28px, 5.4vw, 60px); line-height: 1; letter-spacing: -0.01em; }
-      @media (max-width: 640px) { .row { margin-left: calc(var(--off, 0) * 0.4); } }
+      /* SELECTED — image-led, one entry per scroll beat, alternating sides */
+      .sel { display: grid; gap: clamp(90px, 16svh, 200px); max-width: 1240px; margin: 0 auto; padding-top: 2svh; }
+      .entry { display: grid; gap: 16px; }
+      .frame { display: block; aspect-ratio: 3 / 2; overflow: hidden; border: 1px solid rgba(0,0,0,0.14); background: rgba(16,16,16,0.03); }
+      .frame img { display: block; width: 100%; height: 100%; object-fit: cover; }
+      .e-tx { position: relative; z-index: 1; display: grid; gap: 10px; justify-items: start; padding-bottom: 4px; }
+      .e-no { font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 0.2em; color: rgba(16,16,16,0.45); }
+      .e-name { font-weight: 800; font-size: clamp(28px, 4.6vw, 56px); line-height: 0.98; letter-spacing: -0.01em; }
+      .e-meta { font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(16,16,16,0.45); }
+      @media (min-width: 861px) {
+        .entry { grid-template-columns: minmax(0, 15fr) minmax(0, 10fr); gap: clamp(18px, 3vw, 44px); align-items: end; }
+        .entry:nth-child(even) { grid-template-columns: minmax(0, 10fr) minmax(0, 15fr); }
+        .entry:nth-child(even) .frame { order: 2; }
+        .entry:nth-child(even) .e-tx { order: 1; justify-items: end; text-align: right; }
+        /* the display name crosses the gutter and rides onto the image edge */
+        .entry .e-name { margin-left: calc(-1 * clamp(0px, 6vw, 84px)); }
+        .entry:nth-child(even) .e-name { margin-left: 0; margin-right: calc(-1 * clamp(0px, 6vw, 84px)); }
+      }
+
+      /* PAST — the absorbed archive: thumb rows on hairline shelves.
+         The hairlines live on the static .shelf wrappers, so a thrown row
+         leaves its shelf behind and the list keeps its bones. */
+      .past { max-width: 1240px; margin: 0 auto; padding-top: clamp(70px, 14svh, 160px); }
+      .p-head { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; padding-bottom: 3svh; }
+      .p-title { font-weight: 800; font-size: clamp(24px, 3.6vw, 40px); line-height: 1; }
+      .p-note { font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 0.12em; color: rgba(16,16,16,0.45); }
+      .p-list { position: relative; border-top: 1px solid rgba(0,0,0,0.14); border-bottom: 1px solid rgba(0,0,0,0.14); }
+      .p-list > * + * { border-top: 1px solid rgba(0,0,0,0.14); }
+      .shelf { padding: clamp(16px, 2.8svh, 28px) 0; }
+      /* fit-content: rows hug their content so the zero-g engine gets
+         horizontal room to throw them in — visually identical at rest */
+      .prow { display: block; width: fit-content; max-width: 100%; }
+      .prow:focus-visible, .entry:focus-visible { outline: 2px solid #101010; outline-offset: 3px; }
+      .rin { display: flex; align-items: center; gap: clamp(14px, 2.4vw, 26px); }
+      .th { flex: 0 0 clamp(88px, 12vw, 140px); width: clamp(88px, 12vw, 140px); aspect-ratio: 4 / 3; overflow: hidden; border: 1px solid rgba(0,0,0,0.14); background: rgba(16,16,16,0.03); }
+      .th img { display: block; width: 100%; height: 100%; object-fit: cover; }
+      .p-tx { min-width: 0; display: grid; gap: 7px; }
+      .p-name { font-weight: 700; font-size: clamp(17px, 2.2vw, 22px); line-height: 1.15; letter-spacing: -0.01em; }
+      .p-meta { font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(16,16,16,0.45); }
+      .p-div { font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 0.18em; color: rgba(16,16,16,0.45); padding: clamp(18px, 3svh, 30px) 0 clamp(8px, 1.4svh, 14px); }
+
       @media (hover: hover) and (pointer: fine) {
-        .r-name { transition: letter-spacing 300ms cubic-bezier(0.23,1,0.32,1); }
-        .row:hover .r-name { letter-spacing: 0.03em; }
-        .sim .row { cursor: grab; }
-        .sim .row:active { cursor: grabbing; }
+        .frame img, .th img { transition: transform 500ms cubic-bezier(0.23,1,0.32,1); }
+        .e-name, .p-name { transition: letter-spacing 300ms cubic-bezier(0.23,1,0.32,1); }
+        .entry:hover .frame img { transform: scale(1.02); }
+        .entry:hover .e-name { letter-spacing: 0.03em; }
+        .prow:hover .th img { transform: scale(1.015); }
+        .prow:hover .p-name { letter-spacing: 0.02em; }
+        .sim .prow { cursor: grab; }
+        .sim .prow:active { cursor: grabbing; }
       }
 
       .foot { display: flex; justify-content: space-between; padding: 3svh 6vw 4svh; border-top: 1px solid rgba(0,0,0,0.14); font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; }
     </style>
 
     <style is:inline>
+      /* Scroll reveal: hidden-at-rest lives ONLY under html.js + no-preference
+         — PRM and no-JS both land on the complete page with zero motion.
+         Past rows carry .rev on the inner .rin: the engine owns the outer
+         [data-zg] transform. */
+      @media (prefers-reduced-motion: no-preference) {
+        html.js .rev { opacity: 0; transform: translateY(14px); transition: opacity 600ms ease var(--d, 0ms), transform 600ms cubic-bezier(0.23,1,0.32,1) var(--d, 0ms); }
+        html.js .rev.on { opacity: 1; transform: none; }
+      }
       @media (prefers-reduced-motion: reduce) {
-        .back, .r-name { transition: none; }
+        .back, .e-name, .p-name, .frame img, .th img { transition: none; }
         .back:active { transform: none; }
       }
     </style>
@@ -107,6 +248,20 @@ const rows = WORK.map((s) => all.find((p) => p.slug === s)).filter(Boolean);
           if (cur === null) cur = target;
           if (!raf) raf = requestAnimationFrame(frame);
         }, { passive: true });
+      })();
+    </script>
+    <script is:inline>
+      (function () {
+        if (!document.documentElement.classList.contains('js')) return;
+        var io = new IntersectionObserver(function (entries) {
+          for (var i = 0; i < entries.length; i++) {
+            if (!entries[i].isIntersecting) continue;
+            entries[i].target.classList.add('on');
+            io.unobserve(entries[i].target);
+          }
+        }, { threshold: 0.12, rootMargin: '0px 0px -6% 0px' });
+        var els = document.querySelectorAll('.rev');
+        for (var i = 0; i < els.length; i++) io.observe(els[i]);
       })();
     </script>
     <script is:inline defer src="/mv/zerog.js"></script>
