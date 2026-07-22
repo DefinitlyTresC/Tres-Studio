@@ -144,6 +144,15 @@ const ICONS = [
         /* the icon row parks beneath the acts — the room grows to hold it */
         .about { padding-bottom: 260px; }
         .icon { left: calc(var(--hxn) * 1%); top: calc(var(--hyn) * 1%); }
+        /* mono is wide: size the name so "C a r t e r" NEVER breaks — two
+           lines of name, exactly (11 spaced glyphs × 0.6em + the indent
+           must clear the 6vw gutters at 320px) */
+        .name { font-size: clamp(38px, 12.4vw, 48px); }
+        .name span { white-space: nowrap; }
+        .name .shift { margin-left: 14px; }
+        .lede { font-size: 11.5px; letter-spacing: 0.06em; } /* one line */
+        .hey { font-size: 14px; }
+        .acts { gap: 18px; font-size: 12px; } /* one row, all four */
       }
 
       @media (hover: hover) and (pointer: fine) {
