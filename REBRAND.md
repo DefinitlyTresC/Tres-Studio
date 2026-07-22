@@ -1,5 +1,26 @@
 # tres.studio — the living log
 
+## ✅ V3.2.2 — COLORS BACK, DOTTED GLASS, SOLID LOADS, REAL RUBBERBAND — 2026-07-21 (Tres: "bring back the colors… more of a dot… load black solid, letters float in… rubber banding isn't built?")
+
+- **Colors restored THROUGH the glass:** the hatch became a DOT grid, and
+  the glyph fill now follows each letter's live color (glass.js copies
+  the parent's computed color into the clipped background every frame) —
+  click-cycling and the scroll-down-and-back reshuffle read exactly as
+  before, through dotted windows pinned to the viewport. Fresh loads are
+  always plain ink.
+- **Invert classic on theme change:** every palette-colored letter flips
+  to its RGB complement when the theme toggles (verified live: #FF4D00
+  → rgb(0,178,255)); toggling back restores. Red mode's enter/exit
+  double-inverts to net zero.
+- **Loads are SOLID:** the reload pour ritual is gone (mv:seen retired).
+  The landing letters FLOAT IN off the left instead, staggered T→R→E→S→.
+  (880ms each, 110ms apart), cue fades in last. bfcache restores skip it.
+  The liquid belongs to the toggle and red mode only.
+- **Rubberband, actually:** tight bodies were gliding FREE for 0.5s
+  before the spring engaged — that read as "not built." Released (and
+  knocked, and pointer-cancelled) tight bodies now snap STRAIGHT into
+  the stiff return spring.
+
 ## ✅ V3.2.1 — THE POUR, PERFECTED + GLASS LETTERS — 2026-07-21 (Tres: "slow it down… don't hide the text… one wavelength… letters are windows… red mode lasts")
 
 - **The pour rebuilt on the View Transitions API:** the theme now flips

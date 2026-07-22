@@ -37,22 +37,9 @@
     try { localStorage.setItem('mv:theme', t); } catch (e) {}
   }
 
-  var real = stored();
-
-  /* the ritual decision — reload, or the session's first page */
-  var ritual = false;
-  if (!reduce) {
-    var nav = 'navigate';
-    try {
-      var en = performance.getEntriesByType && performance.getEntriesByType('navigation')[0];
-      nav = en ? en.type : (performance.navigation && performance.navigation.type === 1 ? 'reload' : 'navigate');
-    } catch (e) {}
-    var seen = false;
-    try { seen = sessionStorage.getItem('mv:seen') === '1'; } catch (e) {}
-    ritual = nav === 'reload' || (!seen && nav !== 'back_forward');
-    try { sessionStorage.setItem('mv:seen', '1'); } catch (e) {}
-  }
-  apply(ritual ? (real === 'dark' ? 'light' : 'dark') : real);
+  /* loads are SOLID — stored theme, painted immediately, no pour. The
+     liquid belongs to the toggle and to red mode only. */
+  apply(stored());
 
   /* ── the liquid ──────────────────────────────────────────────────────────
      Preferred path: the View Transitions API. The theme flips UNDERNEATH
@@ -200,11 +187,4 @@
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mount);
   else mount();
-
-  /* the load ritual: pour the real theme over the inverse start */
-  if (ritual) {
-    var go = function () { setTimeout(function () { pour(real); }, 50); };
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', go);
-    else go();
-  }
 })();

@@ -58,7 +58,7 @@ const MENU = [
   </head>
   <body>
     <header class="space" id="field" aria-label="Tres" data-zg-room>
-      {LETTERS.map((l) => (
+      {LETTERS.map((l, li) => (
         <span
           class="body glyph"
           data-zg
@@ -67,7 +67,7 @@ const MENU = [
           data-home-y={l.y}
           data-home-xn={l.xn}
           data-home-yn={l.yn}
-          style={`--hx:${l.x}; --hy:${l.y}; --hxn:${l.xn}; --hyn:${l.yn}; --s:${l.s};`}
+          style={`--hx:${l.x}; --hy:${l.y}; --hxn:${l.xn}; --hyn:${l.yn}; --s:${l.s}; --li:${li};`}
           aria-hidden="true"
         ><span class="tx glass">{l.g}</span></span>
       ))}
@@ -220,6 +220,22 @@ const MENU = [
       }
       .swipe.in { transform: translateX(0); }
 
+      /* the load: solid paper, then the letters float in off the left,
+         one after another. Inner .tx only — the engine owns the outer
+         transform. bfcache restores skip it (animations don't re-run). */
+      @media (prefers-reduced-motion: no-preference) {
+        .glyph .tx {
+          animation: drift-in 880ms cubic-bezier(0.22, 1, 0.36, 1) both;
+          animation-delay: calc(120ms + var(--li, 0) * 110ms);
+        }
+        @keyframes drift-in {
+          from { transform: translateX(-75vw); opacity: 0; }
+          38% { opacity: 1; }
+          to { transform: none; opacity: 1; }
+        }
+        .cue { opacity: 0; animation: cue-in 500ms ease 1400ms both; }
+        @keyframes cue-in { to { opacity: 1; } }
+      }
       @media (prefers-reduced-motion: reduce) {
         .mword .tx { transition-duration: 1ms; }
         /* the swipe never spawns under PRM (the script bails first) —

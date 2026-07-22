@@ -172,8 +172,8 @@
           squash(a, ang, -van); squash(b, ang, -van);
         }
         /* a hard hit knocks a floating body loose — it bounces, then springs home */
-        if (a.state === FLOAT && a.vx * a.vx + a.vy * a.vy > 62500) { a.state = FREE; a.restT = 0; }
-        if (b.state === FLOAT && b.vx * b.vx + b.vy * b.vy > 62500) { b.state = FREE; b.restT = 0; }
+        if (a.state === FLOAT && a.vx * a.vx + a.vy * a.vy > 62500) { a.state = a.tight ? RETURN : FREE; a.restT = 0; }
+        if (b.state === FLOAT && b.vx * b.vx + b.vy * b.vy > 62500) { b.state = b.tight ? RETURN : FREE; b.restT = 0; }
       }
       var corr = Math.max(rs - d - 0.5, 0) / sum * 0.25;
       a.x -= ia * corr * nx; a.y -= ia * corr * ny;
@@ -357,7 +357,9 @@
       if (sp > cap) { vx *= cap / sp; vy *= cap / sp; sp = cap; }
       if (sp < 50) { vx = 0; vy = 0; }
       b.vx = vx; b.vy = vy;
-      b.state = FREE; b.restT = 0;
+      /* tight = rubberband: the spring engages the instant you let go */
+      b.state = b.tight ? RETURN : FREE;
+      b.restT = 0;
       if (b.suppress) setTimeout(function () { b.suppress = false; }, 400);
     }
 
@@ -379,7 +381,7 @@
       b.el.addEventListener('pointerup', function (e) { release(b, e); });
       b.el.addEventListener('pointercancel', function (e) {
         if (b.state === HELD && e.pointerId === b.pid) {
-          b.pid = -1; b.state = FREE; b.vx = 0; b.vy = 0; b.restT = 0;
+          b.pid = -1; b.state = b.tight ? RETURN : FREE; b.vx = 0; b.vy = 0; b.restT = 0;
         }
       });
       if (!b.cyc) {
@@ -410,7 +412,7 @@
         if (b.state === HELD) continue;
         b.vx -= dx * 5.5;
         b.vy -= dy * 5.5;
-        if (b.state === FLOAT && (dx * dx + dy * dy > 36)) { b.state = FREE; b.restT = 0; }
+        if (b.state === FLOAT && (dx * dx + dy * dy > 36)) { b.state = b.tight ? RETURN : FREE; b.restT = 0; }
       }
     }
 
