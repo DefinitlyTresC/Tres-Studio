@@ -2,17 +2,14 @@
    Theme — dark is home. (V3.2, design: docs/specs/2026-07-21-v32-design.md)
 
    Loaded SYNCHRONOUSLY in <head> on every themed page: sets
-   html[data-theme] before first paint, owns the liquid pour (toggle, the
-   reload ritual, red mode), rewrites the theme-color meta, and mounts the
-   toggle button. Pages only define the var block and consume vars.
+   html[data-theme] before first paint, owns the liquid pour (the toggle
+   and red mode — loads are SOLID, no pour), rewrites the theme-color
+   meta, and mounts the toggle button. Pages only define the var block
+   and consume vars.
 
    Themes: 'dark' (default) · 'light' · 'red' (the ticker's stunt — never
-   persisted). localStorage mv:theme holds only 'dark' | 'light'.
-
-   The load ritual: a manual reload — or the session's first page — paints
-   in the INVERSE theme for a beat, then the real theme pours in bottom-up:
-   a quick liquid load-in. In-site navigation and back/forward skip it
-   (sessionStorage mv:seen). PRM: every change is an instant swap.
+   persisted, so any refresh or navigation exits it). localStorage
+   mv:theme holds only 'dark' | 'light'. PRM: instant swaps, no liquids.
    ──────────────────────────────────────────────────────────────────────── */
 (function () {
   'use strict';
