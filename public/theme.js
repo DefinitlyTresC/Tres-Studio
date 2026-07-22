@@ -54,28 +54,88 @@
   }
   apply(ritual ? (real === 'dark' ? 'light' : 'dark') : real);
 
-  /* ── the liquid ──────────────────────────────────────────────────────── */
+  /* ── the liquid ──────────────────────────────────────────────────────────
+     Preferred path: the View Transitions API. The theme flips UNDERNEATH
+     and the new page is revealed through a rising wavy clip — text never
+     disappears, it inverts as the waterline passes it. The wave is ONE
+     wavelength spanning the screen, traveling a full period sideways as it
+     rises (~1.3s). No-VT browsers get the overlay pour at the same pace. */
+  var DUR = 1300;
+
+  /* clip-path keyframes: 25 surface points on a one-period sine; base rises
+     with an eased t, phase runs a full period linearly — the crest travels
+     across the screen exactly once per pour */
+  function waveFrames() {
+    var A = 5.5, STEPS = 12, N = 24;
+    var out = '';
+    for (var s = 0; s <= STEPS; s++) {
+      var t = s / STEPS;
+      var e = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; /* easeInOutQuad */
+      var base = (100 + A) - e * (100 + 2 * A);
+      var phase = t * 6.28318;
+      var pts = ['0% 110%'];
+      for (var i = 0; i <= N; i++) {
+        var x = i / N * 100;
+        var y = base + A * Math.sin(6.28318 * x / 100 + phase);
+        pts.push(x.toFixed(1) + '% ' + y.toFixed(2) + '%');
+      }
+      pts.push('100% 110%');
+      out += (t * 100).toFixed(1) + '% { clip-path: polygon(' + pts.join(',') + '); }\n';
+    }
+    return out;
+  }
+
+  var vtReady = false;
+  function vtStyle() {
+    if (vtReady) return;
+    vtReady = true;
+    var st = document.createElement('style');
+    st.textContent =
+      '::view-transition-old(root), ::view-transition-new(root) { animation: none; mix-blend-mode: normal; }\n' +
+      '::view-transition-old(root) { z-index: 1; }\n' +
+      '::view-transition-new(root) { z-index: 2; animation: mv-pour ' + DUR + 'ms linear both; }\n' +
+      '@keyframes mv-pour {\n' + waveFrames() + '}';
+    document.head.appendChild(st);
+  }
+
   var pouring = false;
   function pour(target, done) {
     if (reduce || !document.body) { apply(target); if (done) done(); return; }
     if (pouring) { if (done) done(); return; }
     pouring = true;
+
+    if (document.startViewTransition) {
+      vtStyle();
+      var vt = document.startViewTransition(function () { apply(target); });
+      var fin0 = false;
+      var settle = function () {
+        if (fin0) return;
+        fin0 = true;
+        pouring = false;
+        if (done) done();
+      };
+      vt.finished.then(settle, settle);
+      setTimeout(settle, DUR + 700); /* starved animations must never latch the theme */
+      return;
+    }
+
+    /* fallback pour (no View Transitions): an opaque sheet with a one-
+       wavelength surface, same duration */
     var color = PAPER[target] || PAPER.dark;
     var wrap = document.createElement('div');
     wrap.setAttribute('aria-hidden', 'true');
     wrap.style.cssText = 'position:fixed;inset:0;z-index:2147482000;pointer-events:none;overflow:hidden';
     var liq = document.createElement('div');
     liq.style.cssText = 'position:absolute;left:0;right:0;bottom:0;height:0;background:' + color +
-      ';transition:height 620ms cubic-bezier(0.34, 1.14, 0.42, 1)'; /* slight overshoot = the jello */
-    /* the surface: a low two-crest wave lapping sideways as the body rises */
+      ';transition:height ' + DUR + 'ms cubic-bezier(0.45, 0, 0.2, 1)';
     var wave = document.createElement('div');
-    wave.style.cssText = 'position:absolute;left:-120px;right:-120px;top:-22px;height:23px;' +
+    wave.style.cssText = 'position:absolute;left:-100vw;right:0;top:-5.4svh;height:5.5svh;width:300vw;' +
       'background:url("data:image/svg+xml,' + encodeURIComponent(
-        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 23" preserveAspectRatio="none">' +
-        '<path d="M0 23 L0 12 Q 15 1 30 12 T 60 12 T 90 12 T 120 12 L120 23 Z" fill="' + color + '"/></svg>'
-      ) + '") repeat-x bottom / 120px 23px;animation:mv-lap 1.05s linear infinite';
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 20" preserveAspectRatio="none">' +
+        '<path d="M0 20 L0 10 Q 25 0 50 10 T 100 10 L100 20 Z" fill="' + color + '"/></svg>'
+      ) + '") repeat-x bottom / 100vw 100%;animation:mv-lap ' + DUR + 'ms linear both';
     var kf = document.createElement('style');
-    kf.textContent = '@keyframes mv-lap { from { transform: translateX(0); } to { transform: translateX(120px); } }';
+    kf.textContent = '@keyframes mv-lap { from { transform: translateX(0); } to { transform: translateX(100vw); } }';
     liq.appendChild(wave);
     wrap.appendChild(kf);
     wrap.appendChild(liq);
@@ -85,9 +145,8 @@
       if (fin) return;
       fin = true;
       apply(target);
-      /* the risen liquid IS the new paper — drop it a beat later, no seam.
-         Timers, not rAF: rAF starves in hidden tabs and would latch
-         `pouring` forever, eating the next toggle. */
+      /* timers, not rAF: rAF starves in hidden tabs and would latch
+         `pouring`, eating the next toggle */
       setTimeout(function () {
         if (wrap.parentNode) wrap.parentNode.removeChild(wrap);
         pouring = false;
@@ -95,39 +154,25 @@
       }, 40);
     }
     liq.addEventListener('transitionend', finish);
-    setTimeout(finish, 950); /* a starved transition must never hang a theme */
-    function commit() { liq.style.height = 'calc(100% + 22px)'; }
+    setTimeout(finish, DUR + 400);
+    function commit() { liq.style.height = 'calc(100% + 5.4svh)'; }
     requestAnimationFrame(function () { requestAnimationFrame(commit); });
-    setTimeout(commit, 80); /* hidden-tab guard — setting height twice is harmless */
+    setTimeout(commit, 80);
   }
 
   var api = {
     current: function () { return doc.getAttribute('data-theme') || 'dark'; },
     liquidTo: function (t) { return new Promise(function (res) { pour(t, res); }); },
     toggle: function () {
-      var t = api.current() === 'dark' ? 'light' : 'dark';
+      /* from red, the toggle rescues you back to your stored theme */
+      var cur = api.current();
+      var t = cur === 'red' ? stored() : (cur === 'dark' ? 'light' : 'dark');
       persist(t);
       return api.liquidTo(t);
     },
-    redMode: function () {
-      var back = stored();
-      return api.liquidTo('red').then(function () {
-        return new Promise(function (res) { setTimeout(res, 2000); });
-      }).then(function () {
-        if (reduce) { apply(back); return; }
-        /* vars can't transition; the painted properties can — briefly */
-        var st = document.createElement('style');
-        st.textContent = 'html.mv-fade, html.mv-fade body, html.mv-fade *, html.mv-fade *::before, html.mv-fade *::after' +
-          '{ transition: background-color 560ms ease, color 560ms ease, border-color 560ms ease, fill 560ms ease, stroke 560ms ease !important }';
-        document.head.appendChild(st);
-        doc.classList.add('mv-fade');
-        apply(back);
-        setTimeout(function () {
-          doc.classList.remove('mv-fade');
-          if (st.parentNode) st.parentNode.removeChild(st);
-        }, 640);
-      });
-    },
+    /* red STAYS — it was never persisted, so any refresh or navigation
+       comes back in the stored theme. The toggle is the other way out. */
+    redMode: function () { return api.liquidTo('red'); },
   };
   window.MVTHEME = api;
 

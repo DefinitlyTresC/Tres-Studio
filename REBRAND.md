@@ -1,5 +1,26 @@
 # tres.studio — the living log
 
+## ✅ V3.2.1 — THE POUR, PERFECTED + GLASS LETTERS — 2026-07-21 (Tres: "slow it down… don't hide the text… one wavelength… letters are windows… red mode lasts")
+
+- **The pour rebuilt on the View Transitions API:** the theme now flips
+  UNDERNEATH and the new page is revealed through a rising clip — text
+  never disappears, it inverts as the waterline passes it. The surface is
+  ONE sine wavelength spanning the screen, traveling exactly one period
+  sideways as it rises. 1.3s. Firefox (no VT) keeps the opaque pour at
+  the same pace. PRM: instant, as ever.
+- **Glass letters:** the TRES glyphs, the menu words, and the about name
+  are WINDOWS now — their fill is architectural poché (fine 45° hatch
+  over a soft ink gradient, theme-aware via `public/glass.css`) pinned to
+  the VIEWPORT: drag a letter and it slides across the texture.
+  Mechanics in `public/mv/glass.js`: per-frame background-position
+  counter-offset — `background-attachment: fixed` is dead inside
+  transformed elements and on iOS, so we measure instead. Offsets
+  verified to cancel each glyph's viewport position exactly (the texture
+  is continuous across letters).
+- **Red mode persists:** the tenth ticker click leaves the site red until
+  a refresh or navigation restores the stored theme (red was never
+  persisted — that was already the exit). The toggle also rescues you.
+
 ## ✅ V3.2 — DARK WATER — 2026-07-21 (Tres's across-the-board pass: "take your time, brainstorm… full focus and effort")
 
 **Dark is home now.** A full theme system, grounded physics, a TV-row work

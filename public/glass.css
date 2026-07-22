@@ -1,0 +1,42 @@
+/* ─────────────────────────────────────────────────────────────────────────
+   Glass letters — display glyphs are WINDOWS. Their fill is a texture that
+   belongs to the viewport, not the letter: drag a glyph and it slides
+   across the texture like a cut-out. The texture is architectural poché —
+   a fine 45° hatch over a soft ink gradient, per theme.
+
+   Mechanics: background-clip:text + a per-frame background-position
+   counter-offset from /mv/glass.js. (background-attachment:fixed is dead
+   inside transformed elements and on iOS — never use it here.) Layer 1 is
+   the hatch (tiles, phase-corrected); layer 2 is a viewport-sized gradient.
+   The .glass color only goes transparent inside @supports, so unsupporting
+   browsers keep solid ink.
+   ──────────────────────────────────────────────────────────────────────── */
+:root {
+  --tex-hi: #1d1d1a;  /* gradient light end   */
+  --tex-lo: #070707;  /* gradient dark end    */
+  --tex-line: rgba(250, 250, 247, 0.11); /* hatch, paper through ink */
+}
+html[data-theme="dark"] {
+  --tex-hi: #fffdf6;
+  --tex-lo: #e9e9e2;
+  --tex-line: rgba(16, 16, 16, 0.13);
+}
+html[data-theme="red"] {
+  --tex-hi: #191512;
+  --tex-lo: #050505;
+  --tex-line: rgba(224, 48, 31, 0.22);
+}
+
+@supports ((-webkit-background-clip: text) or (background-clip: text)) {
+  .glass {
+    color: transparent;
+    -webkit-background-clip: text;
+    background-clip: text;
+    background-image:
+      repeating-linear-gradient(45deg, var(--tex-line) 0 1.5px, transparent 1.5px 8px),
+      linear-gradient(135deg, var(--tex-hi), var(--tex-lo));
+    background-size: auto, 100vw 100vh;
+    background-repeat: repeat, no-repeat;
+  }
+  .glass::selection { color: var(--paper); }
+}

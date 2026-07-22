@@ -52,6 +52,7 @@ const MENU = [
     <script is:inline src="/theme.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;700;800&family=Space+Mono&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/cursor.css" />
+    <link rel="stylesheet" href="/glass.css" />
     <!-- tracking: one bootstrap for the whole site (Umami + Clarity + visitor id + self-exclusion) - public/ts.js -->
     <script is:inline defer src="/ts.js"></script>
   </head>
@@ -68,7 +69,7 @@ const MENU = [
           data-home-yn={l.yn}
           style={`--hx:${l.x}; --hy:${l.y}; --hxn:${l.xn}; --hyn:${l.yn}; --s:${l.s};`}
           aria-hidden="true"
-        ><span class="tx">{l.g}</span></span>
+        ><span class="tx glass">{l.g}</span></span>
       ))}
       <p class="cue">scroll</p>
     </header>
@@ -76,7 +77,7 @@ const MENU = [
     <nav class="menu" id="menuField" aria-label="Sections" data-zg-room>
       {MENU.map((m) => (
         <a class="body mword" href={m.href} draggable="false" data-zg data-zg-tight data-home-x="50" data-home-y={m.y} style={`--hx:50; --hy:${m.y};`}>
-          <span class="tx">{m.label}</span>
+          <span class="tx glass">{m.label}</span>
         </a>
       ))}
     </nav>
@@ -287,6 +288,7 @@ const MENU = [
     </script>
 
     <script is:inline defer src="/mv/zerog.js"></script>
+    <script is:inline defer src="/mv/glass.js"></script>
     <script is:inline defer src="/mv/ticker.js"></script>
   </body>
 </html>
