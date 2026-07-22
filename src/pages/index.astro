@@ -44,7 +44,7 @@ const MENU = [
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="description" content="Tres Carter — architecture, art, and code from 30A, Florida." />
     <meta name="robots" content="noindex" />
-    <meta name="theme-color" content="#FAFAF7" />
+    <meta name="theme-color" content="#101010" />
     <title>T R E S .</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -113,22 +113,22 @@ const MENU = [
     <style is:inline>
       :root {
         --paper: #FAFAF7; --ink: #101010;
-        --soft: rgba(16,16,16,0.5);      /* secondary text */
-        --faint: rgba(16,16,16,0.45);    /* labels, meta   */
+        --soft: rgba(16,16,16,0.66);      /* secondary text */
+        --faint: rgba(16,16,16,0.62);    /* labels, meta   */
         --hair: rgba(0,0,0,0.14);        /* hairlines      */
         --tint: rgba(16,16,16,0.04);     /* image wells    */
       }
       html[data-theme="dark"] {
         --paper: #101010; --ink: #FAFAF7;
-        --soft: rgba(250,250,247,0.55);
-        --faint: rgba(250,250,247,0.45);
+        --soft: rgba(250,250,247,0.62);
+        --faint: rgba(250,250,247,0.55);
         --hair: rgba(255,255,255,0.16);
         --tint: rgba(250,250,247,0.05);
       }
       html[data-theme="red"] {
         --paper: #E0301F; --ink: #0A0A0A;
-        --soft: rgba(10,10,10,0.6);
-        --faint: rgba(10,10,10,0.5);
+        --soft: rgba(10,10,10,0.78);
+        --faint: rgba(10,10,10,0.72);
         --hair: rgba(0,0,0,0.25);
         --tint: rgba(0,0,0,0.06);
       }
@@ -152,11 +152,15 @@ const MENU = [
         translate: -50% -50%;
         display: inline-grid; place-items: center;
         min-width: 44px; min-height: 44px;
+      }
+      /* interaction blockers only once the sim owns the bodies — the static
+         fallback (PRM / no-JS) must scroll and select like plain text */
+      .sim .body {
+        left: 0; top: 0; translate: none; will-change: transform;
         user-select: none; -webkit-user-select: none;
         -webkit-touch-callout: none;
         touch-action: none;
       }
-      .sim .body { left: 0; top: 0; translate: none; will-change: transform; }
 
       .glyph {
         font-weight: 800; line-height: 1;
@@ -290,8 +294,20 @@ const MENU = [
           function go() {
             if (gone) return;
             gone = true;
-            try { sessionStorage.setItem('mv:swipe', '1'); } catch (err) {}
+            try {
+              sessionStorage.setItem('mv:swipe', '1');
+              /* a raced lab cover must not ghost-peel /work */
+              sessionStorage.removeItem('mv:covered');
+            } catch (err) {}
             location.href = a.getAttribute('href');
+            /* an aborted navigation must not strand the page under the
+               panel — sweep it and unlatch if we are still here */
+            setTimeout(function () {
+              if (document.hidden) return;
+              leaving = false;
+              try { sessionStorage.removeItem('mv:swipe'); } catch (err) {}
+              if (p.parentNode) p.parentNode.removeChild(p);
+            }, 3500);
           }
           p.addEventListener('transitionend', go);
           setTimeout(go, 520); /* a starved transition must never strand the exit */

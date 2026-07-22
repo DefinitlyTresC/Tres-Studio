@@ -297,6 +297,7 @@
       if (b.state === HELD) return;
       b.pid = e.pointerId;
       b.suppress = false; /* a stale flag must never eat this gesture's click */
+      if (b.supT) { clearTimeout(b.supT); b.supT = null; } /* nor a stale timer un-eat it */
       try { b.el.setPointerCapture(e.pointerId); } catch (err) {}
       var g = b.g;
       g.rect = g.el.getBoundingClientRect();
@@ -360,7 +361,7 @@
       /* tight = rubberband: the spring engages the instant you let go */
       b.state = b.tight ? RETURN : FREE;
       b.restT = 0;
-      if (b.suppress) setTimeout(function () { b.suppress = false; }, 400);
+      if (b.suppress) b.supT = setTimeout(function () { b.suppress = false; b.supT = null; }, 400);
     }
 
     function bind(b) {

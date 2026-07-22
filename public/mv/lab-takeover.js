@@ -10,7 +10,7 @@
 
    Boot: import on any page that links to /lab, after curtain.js is loadable.
    ──────────────────────────────────────────────────────────────────────── */
-import { cover } from '/mv/curtain.js';
+import { cover, autoReveal } from '/mv/curtain.js';
 
 (function () {
   'use strict';
@@ -41,5 +41,12 @@ import { cover } from '/mv/curtain.js';
     try { const v = getComputedStyle(document.documentElement).getPropertyValue('--ink').trim(); if (v) ink = v; } catch (err) {}
     await cover({ x: kb ? ra.left + ra.width / 2 : e.clientX, y: kb ? ra.top + ra.height / 2 : e.clientY, color: ink });
     location.href = a.getAttribute('href');
+    /* an aborted navigation (Esc on a slow link) must not strand the page
+       under the ink — peel and unlatch if we are still here */
+    setTimeout(() => {
+      if (document.hidden) return;
+      leaving = false;
+      autoReveal();
+    }, 3500);
   });
 })();

@@ -25,7 +25,9 @@
     return t === 'light' ? 'light' : 'dark';
   }
   function apply(t) {
-    doc.setAttribute('data-theme', t);
+    /* same-value sets still queue MutationObserver records (glass.js
+       inverts on them) — never touch the attribute without a real change */
+    if (doc.getAttribute('data-theme') !== t) doc.setAttribute('data-theme', t);
     var m = document.querySelector('meta[name="theme-color"]');
     if (m) m.setAttribute('content', PAPER[t] || PAPER.dark);
   }
@@ -83,9 +85,17 @@
   }
 
   var pouring = false;
+  var queued = null; /* a toggle mid-pour queues; the settle drains it */
+  function drain() {
+    if (queued === null) return;
+    var q = queued;
+    queued = null;
+    if (q !== (doc.getAttribute('data-theme') || 'dark')) pour(q);
+  }
   function pour(target, done) {
     if (reduce || !document.body) { apply(target); if (done) done(); return; }
-    if (pouring) { if (done) done(); return; }
+    if (pouring) { queued = target; if (done) done(); return; }
+    if (target === (doc.getAttribute('data-theme') || 'dark')) { if (done) done(); return; }
     pouring = true;
 
     if (document.startViewTransition) {
@@ -97,6 +107,7 @@
         fin0 = true;
         pouring = false;
         if (done) done();
+        drain();
       };
       vt.finished.then(settle, settle);
       setTimeout(settle, DUR + 700); /* starved animations must never latch the theme */
@@ -135,6 +146,7 @@
         if (wrap.parentNode) wrap.parentNode.removeChild(wrap);
         pouring = false;
         if (done) done();
+        drain();
       }, 40);
     }
     liq.addEventListener('transitionend', finish);
@@ -174,12 +186,20 @@
       'border:1.5px solid var(--ink, currentColor);' +
       'background:linear-gradient(90deg, var(--ink, currentColor) 50%, transparent 50%);' +
       'transition:transform 320ms cubic-bezier(0.22, 1, 0.36, 1)';
-    if (api.current() === 'light') dot.style.transform = 'rotate(180deg)';
+    /* the dot + aria-pressed always derive from the LIVE theme — red-mode
+       rescues and queued pours land here through the observer, so the icon
+       can never point at the wrong pole */
+    function sync() {
+      var cur = api.current();
+      dot.style.transform = cur === 'light' ? 'rotate(180deg)' : 'rotate(0deg)';
+      b.setAttribute('aria-pressed', cur === 'dark' ? 'true' : 'false');
+    }
+    sync();
+    try {
+      new MutationObserver(sync).observe(doc, { attributes: true, attributeFilter: ['data-theme'] });
+    } catch (e) {}
     b.appendChild(dot);
-    b.addEventListener('click', function () {
-      dot.style.transform = api.current() === 'dark' ? 'rotate(180deg)' : 'rotate(0deg)';
-      api.toggle();
-    });
+    b.addEventListener('click', function () { api.toggle(); });
     document.body.appendChild(b);
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mount);

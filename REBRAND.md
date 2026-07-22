@@ -1,5 +1,51 @@
 # tres.studio — the living log
 
+## ✅ V3.2.3 — THE FULL AUDIT — 2026-07-21 (Tres: "fully audit, check and bug check and clean up, stress test")
+
+**41-agent audit (6 finder lenses, every finding adversarially verified:
+35 confirmed / 0 refuted) + hands-on browser stress (toggle spam, 25-click
+ticker abuse, navigation loops — zero leaks found in stress, three latent
+latches found by reasoning). Everything fixed:**
+
+- **theme.js:** toggles mid-pour now QUEUE and drain (spam can no longer
+  desync localStorage from the displayed theme); apply() skips same-value
+  attribute writes (kills the spurious MutationObserver invert);
+  the toggle dot + new `aria-pressed` derive from the LIVE theme via
+  observer (red-mode rescues can't leave the icon backwards).
+- **glass.js:** bails on browsers without background-clip:text (no solid
+  slabs); inverts only on REAL theme changes; re-pins the texture when
+  web fonts land.
+- **ticker.js:** confetti gets a hidden-tab kill-switch (no more
+  permanently latched busy flag); pre-reveal it is visibility:hidden +
+  tabindex -1 (no invisible unnamed tab stop); the 10-click finale only
+  resets once red actually engaged; header now tells the truth about
+  persistent red.
+- **zerog.js:** the 400ms suppress-clear timer is owned per body and
+  cancelled on re-grab — a quick tug-tug on a nav word can no longer let
+  a throw's trailing click navigate.
+- **Abort recovery:** a cancelled navigation no longer strands the page
+  under the swipe panel (index) or the ink (lab-takeover) — both sweep
+  and unlatch after 3.5s if the page is still visible.
+- **Landing:** static-fallback letters no longer block touch scrolling
+  (interaction blockers moved under .sim); the swipe clears mv:covered
+  so a raced lab cover can't ghost-peel /work.
+- **Contrast:** --soft/--faint alphas raised sitewide toward AA for the
+  small mono text (light 0.66/0.62 · dark 0.62/0.55 · red 0.78/0.72).
+- **A real 404** (`src/pages/404.astro`, themed, points home).
+- **_redirects:** /resume.pdf → /resume and /portfolio.pdf → /work (the
+  exhibits' footer PDFs finally land somewhere); the category chain
+  /category.html→/archive→/work flattened to one hop.
+- **Sweep:** project hero reserves its box (aspect 3/2 — no more layout
+  jumps); me.astro hover guarded for touch; roadmap + plugins back links
+  at 44px; games doors PRM-quiet like lab's; WIP span sheds its inert
+  aria attrs; plugins download links get per-file labels; privacy
+  declares itself deliberately untracked; resume's plugins line now
+  matches reality; theme-color metas agree on #101010.
+- **Accepted, not fixed:** /project/lab stays an orphan (era-1 redirect
+  target — hide the sheet row to retire it); after a theme flip, clicking
+  one letter dresses it from the raw palette while its neighbors stay
+  inverted (two owners of one color — reads as play, kept).
+
 ## ✅ V3.2.2 — COLORS BACK, DOTTED GLASS, SOLID LOADS, REAL RUBBERBAND — 2026-07-21 (Tres: "bring back the colors… more of a dot… load black solid, letters float in… rubber banding isn't built?")
 
 - **Colors restored THROUGH the glass:** the hatch became a DOT grid, and

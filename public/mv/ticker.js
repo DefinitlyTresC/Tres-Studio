@@ -5,8 +5,9 @@
    Clicking it is a different matter. Each true click plays one event from
    a pool (never the same one twice running): confetti · space-out-and-
    snap-back · scramble-to-"hi" · "please stop" · digit slot-spin · a full
-   flip. The tenth click calls MVTHEME.redMode() — red pours up the page,
-   holds two seconds, fades home — and the count of sins resets.
+   flip. The tenth click calls MVTHEME.redMode() — red pours up and STAYS
+   until a reload, a navigation, or the theme toggle rescues you — and the
+   count of sins resets (only once red actually engaged).
 
    Counting rules unchanged from edition two: /.netlify/functions/pulse,
    one session id per tab, excluded browsers (localStorage ts_off, set on
@@ -38,11 +39,14 @@
   if (!reduce) {
     el.type = 'button';
     el.style.cursor = 'pointer';
+    /* pre-reveal it must not be an invisible unnamed tab stop */
+    el.tabIndex = -1;
+    el.setAttribute('aria-hidden', 'true');
   }
   el.id = 'mv-tkr';
   el.style.cssText += ';font:10px/1 "Space Mono", ui-monospace, monospace;letter-spacing:0.14em;' +
     'text-transform:uppercase;color:var(--faint, rgba(16,16,16,0.45));background:none;border:none;' +
-    'padding:12px;margin:-12px;opacity:0;transition:opacity 300ms ease;white-space:nowrap;display:inline-block';
+    'padding:12px;margin:-12px;opacity:0;visibility:hidden;transition:opacity 300ms ease;white-space:nowrap;display:inline-block';
   slot.appendChild(el);
 
   var real = 0;
@@ -69,7 +73,12 @@
   function reveal(n) {
     real = n;
     render(labelFor(n));
-    if (!revealed) { revealed = true; el.style.opacity = '1'; }
+    if (!revealed) {
+      revealed = true;
+      el.style.visibility = 'visible';
+      el.style.opacity = '1';
+      if (!reduce) { el.tabIndex = 0; el.removeAttribute('aria-hidden'); }
+    }
   }
 
   var stallT = setTimeout(function () {
@@ -101,10 +110,18 @@
   }
 
   function evConfetti(done) {
+    if (document.hidden) { done(); return; } /* no audience, no confetti */
     var cv = document.createElement('canvas');
     cv.style.cssText = 'position:fixed;inset:0;z-index:95;pointer-events:none';
     cv.setAttribute('aria-hidden', 'true');
     document.body.appendChild(cv);
+    /* rAF starves if the tab hides mid-burst — never latch busy forever */
+    var killed = false;
+    var kill = setTimeout(function () {
+      killed = true;
+      if (cv.parentNode) cv.parentNode.removeChild(cv);
+      done();
+    }, 2600);
     var dpr = Math.min(2, devicePixelRatio || 1);
     cv.width = innerWidth * dpr; cv.height = innerHeight * dpr;
     var ctx = cv.getContext('2d');
@@ -138,8 +155,9 @@
         ctx.fillRect(-b.w / 2 * dpr, -b.h / 2 * dpr, b.w * dpr, b.h * dpr);
         ctx.restore();
       }
+      if (killed) return;
       if (bits.length) requestAnimationFrame(fall);
-      else { cv.remove(); done(); }
+      else { clearTimeout(kill); cv.remove(); done(); }
     }
     requestAnimationFrame(fall);
   }
@@ -212,9 +230,13 @@
     if (busy) return;
     clicks++;
     if (clicks >= 10 && window.MVTHEME && window.MVTHEME.redMode) {
-      clicks = 0;
       busy = true;
-      window.MVTHEME.redMode().then(function () { busy = false; });
+      window.MVTHEME.redMode().then(function () {
+        /* the finale only counts once red actually engaged (a pour in
+           flight can queue it) — otherwise the ten clicks stay banked */
+        if (window.MVTHEME.current() === 'red') clicks = 0;
+        busy = false;
+      });
       return;
     }
     var i;

@@ -87,7 +87,7 @@ try {
               <span class="r-name">{f.name}</span>
               <span class="r-meta">{f.size}</span>
               <span class="r-meta r-date">{f.date}</span>
-              <a class="dl" href={`/plugins/${encodeURIComponent(f.name)}`} download>[ download ]</a>
+              <a class="dl" href={`/plugins/${encodeURIComponent(f.name)}`} aria-label={`download ${f.name}`} download>[ download ]</a>
             </div>
           ))}
         </div>
@@ -106,22 +106,22 @@ try {
     <style is:inline>
       :root {
         --paper: #FAFAF7; --ink: #101010;
-        --soft: rgba(16,16,16,0.5);      /* secondary text */
-        --faint: rgba(16,16,16,0.45);    /* labels, meta   */
+        --soft: rgba(16,16,16,0.66);      /* secondary text */
+        --faint: rgba(16,16,16,0.62);    /* labels, meta   */
         --hair: rgba(0,0,0,0.14);        /* hairlines      */
         --tint: rgba(16,16,16,0.04);     /* image wells    */
       }
       html[data-theme="dark"] {
         --paper: #101010; --ink: #FAFAF7;
-        --soft: rgba(250,250,247,0.55);
-        --faint: rgba(250,250,247,0.45);
+        --soft: rgba(250,250,247,0.62);
+        --faint: rgba(250,250,247,0.55);
         --hair: rgba(255,255,255,0.16);
         --tint: rgba(250,250,247,0.05);
       }
       html[data-theme="red"] {
         --paper: #E0301F; --ink: #0A0A0A;
-        --soft: rgba(10,10,10,0.6);
-        --faint: rgba(10,10,10,0.5);
+        --soft: rgba(10,10,10,0.78);
+        --faint: rgba(10,10,10,0.72);
         --hair: rgba(0,0,0,0.25);
         --tint: rgba(0,0,0,0.06);
       }
@@ -133,7 +133,7 @@ try {
       body { font-family: 'Hanken Grotesk', system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
       a { color: inherit; text-decoration: none; }
       a:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
-      .back { position: fixed; z-index: 10; top: var(--y, 14px); left: 6vw; font-family: 'Space Mono', monospace; font-size: 12px; padding: 12px 0; transition: transform 140ms cubic-bezier(0.23,1,0.32,1); }
+      .back { position: fixed; z-index: 10; top: var(--y, 14px); left: 6vw; font-family: 'Space Mono', monospace; font-size: 12px; padding: 14px 8px 14px 0; transition: transform 140ms cubic-bezier(0.23,1,0.32,1); }
       .back:active { transform: scale(0.96); }
       @media (hover: hover) and (pointer: fine) { .back:hover { text-decoration: underline; text-underline-offset: 4px; } }
 

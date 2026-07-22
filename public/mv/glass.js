@@ -19,6 +19,11 @@
   'use strict';
   var els = document.querySelectorAll('.glass');
   if (!els.length) return;
+  /* mirror the CSS @supports gate: without background-clip:text the
+     background paints as a solid slab behind same-colored text */
+  try {
+    if (!(CSS.supports('-webkit-background-clip', 'text') || CSS.supports('background-clip', 'text'))) return;
+  } catch (e) { return; }
 
   function setAll() {
     for (var i = 0; i < els.length; i++) {
@@ -56,13 +61,24 @@
     }
     setAll();
   }
+  /* invert only on a REAL value change — same-value attribute writes still
+     queue observer records, and a spurious invert breaks palette parity */
+  var lastTheme = document.documentElement.getAttribute('data-theme');
   try {
     new MutationObserver(function (muts) {
       for (var i = 0; i < muts.length; i++) {
-        if (muts[i].attributeName === 'data-theme') { invertPalette(); return; }
+        if (muts[i].attributeName !== 'data-theme') continue;
+        var now = document.documentElement.getAttribute('data-theme');
+        if (now === lastTheme) return;
+        lastTheme = now;
+        invertPalette();
+        return;
       }
     }).observe(document.documentElement, { attributes: true });
   } catch (e) {}
+  /* web-font swap reshapes the glyph boxes — re-pin the texture when the
+     real faces land (harmless if already aligned) */
+  try { if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { setAll(); }); } catch (e) {}
 
   var reduce = false;
   try { reduce = matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}

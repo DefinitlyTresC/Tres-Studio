@@ -98,24 +98,24 @@ let imgOrdinal = 0;
     <style is:inline>
       :root {
         --paper: #FAFAF7; --ink: #101010;
-        --soft: rgba(16,16,16,0.5);      /* secondary text */
-        --faint: rgba(16,16,16,0.45);    /* labels, meta   */
+        --soft: rgba(16,16,16,0.66);      /* secondary text */
+        --faint: rgba(16,16,16,0.62);    /* labels, meta   */
         --hair: rgba(0,0,0,0.14);        /* hairlines      */
         --tint: rgba(16,16,16,0.04);     /* image wells    */
         --veil: rgba(250,250,247,0.97);  /* lightbox wash  */
       }
       html[data-theme="dark"] {
         --paper: #101010; --ink: #FAFAF7;
-        --soft: rgba(250,250,247,0.55);
-        --faint: rgba(250,250,247,0.45);
+        --soft: rgba(250,250,247,0.62);
+        --faint: rgba(250,250,247,0.55);
         --hair: rgba(255,255,255,0.16);
         --tint: rgba(250,250,247,0.05);
         --veil: rgba(16,16,16,0.96);
       }
       html[data-theme="red"] {
         --paper: #E0301F; --ink: #0A0A0A;
-        --soft: rgba(10,10,10,0.6);
-        --faint: rgba(10,10,10,0.5);
+        --soft: rgba(10,10,10,0.78);
+        --faint: rgba(10,10,10,0.72);
         --hair: rgba(0,0,0,0.25);
         --tint: rgba(0,0,0,0.06);
         --veil: rgba(224,48,31,0.96);
@@ -141,7 +141,7 @@ let imgOrdinal = 0;
       .at { margin-top: 14px; }
       .at a { text-decoration: underline; text-underline-offset: 3px; }
 
-      .hero { display: block; width: 100%; height: auto; outline: 1px solid var(--hair); outline-offset: -1px; }
+      .hero { display: block; width: 100%; height: auto; aspect-ratio: 3 / 2; object-fit: cover; outline: 1px solid var(--hair); outline-offset: -1px; }
       .desc { max-width: 62ch; padding: 6svh 0 2svh; }
       .desc p { font-size: 17px; line-height: 1.6; text-wrap: pretty; }
       .desc p + p { margin-top: 1em; }

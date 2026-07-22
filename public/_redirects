@@ -18,7 +18,7 @@
 # Category listing: architecture lives in /work, everything else in /archive.
 /category.html  cat=lab           /lab            301!
 /category.html  cat=architecture  /work           301!
-/category.html  cat=:cat          /archive        301!
+/category.html  cat=:cat          /work           301!
 
 # Bare (paramless) fallbacks — must follow the param rules above.
 /project.html                     /               301!
@@ -26,6 +26,8 @@
 
 # Static page renames.
 /about.html                       /about          301!
+/resume.pdf                       /resume         301!
+/portfolio.pdf                    /work           301!
 /lab.html                         /lab            301!
 /privacy.html                     /privacy        301!
 
