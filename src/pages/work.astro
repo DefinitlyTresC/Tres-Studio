@@ -33,6 +33,9 @@ const rows = [
 
 // Card heroes: w_700 covers the ≤360px tiles at 2x.
 const hero = (p) => joinUrl(p.heroImage, 'w_700', 'image');
+// Per-hero crop anchors. Default (50% 70%, in CSS) favors the lower band
+// where the renders live; portrait covers with the subject up top override.
+const CROP = { thesis: '50% 0%' };
 ---
 
 <html lang="en">
@@ -112,6 +115,7 @@ const hero = (p) => joinUrl(p.heroImage, 'w_700', 'image');
                       loading={ri === 0 && i === 0 ? undefined : 'lazy'}
                       fetchpriority={ri === 0 && i === 0 ? 'high' : undefined}
                       draggable="false"
+                      style={CROP[p.slug] ? `object-position:${CROP[p.slug]}` : undefined}
                     />
                   </span>
                   <span class="c-tx">

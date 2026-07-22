@@ -56,7 +56,7 @@ let imgOrdinal = 0;
         )}
       </header>
 
-      {heroUrl(p) && <img class="hero" src={heroUrl(p)} alt={p.name} fetchpriority="high" decoding="async" />}
+      {heroUrl(p) && <img class="hero" src={heroUrl(p)} alt={p.name} fetchpriority="high" decoding="async" style={p.slug === 'thesis' ? 'object-position:50% 0%' : undefined} />}
 
       {paragraphs.length > 0 && (
         <div class="desc">{paragraphs.map((t) => <p>{t}</p>)}</div>
