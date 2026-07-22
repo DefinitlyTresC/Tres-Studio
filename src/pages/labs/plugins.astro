@@ -47,7 +47,7 @@ try {
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <!-- sync, pre-paint: sets data-theme before any stylesheet lands -->
     <script is:inline src="/theme.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/cursor.css" />
     <!-- tracking: one bootstrap for the whole site (Umami + Clarity + visitor id + self-exclusion) - public/ts.js -->
     <script is:inline defer src="/ts.js"></script>
@@ -130,7 +130,7 @@ try {
       ::selection { background: var(--ink); color: var(--paper); }
 
       * { margin: 0; box-sizing: border-box; }
-      body { font-family: 'Hanken Grotesk', system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+      body { font-family: 'Space Mono', ui-monospace, monospace; -webkit-font-smoothing: antialiased; }
       a { color: inherit; text-decoration: none; }
       a:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
       .back { position: fixed; z-index: 10; top: var(--y, 14px); left: 6vw; font-family: 'Space Mono', monospace; font-size: 12px; padding: 14px 8px 14px 0; transition: transform 140ms cubic-bezier(0.23,1,0.32,1); }
@@ -140,7 +140,7 @@ try {
       .arch { max-width: 1100px; margin: 0 auto; padding: 0 6vw 12svh; }
       .head { padding: clamp(110px, 22vh, 260px) 0 7svh; }
       .spec { font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--faint); }
-      .name { font-weight: 800; font-size: clamp(44px, 9vw, 96px); line-height: 1; margin-top: 10px; }
+      .name { font-weight: 700; font-size: clamp(44px, 9vw, 96px); line-height: 1; margin-top: 10px; }
       .dot { color: var(--soft); }
 
       .note { max-width: 640px; display: grid; gap: 14px; padding: 0 0 7svh; }

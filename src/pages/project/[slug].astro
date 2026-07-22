@@ -35,7 +35,7 @@ let imgOrdinal = 0;
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <!-- sync, pre-paint: sets data-theme before any stylesheet lands -->
     <script is:inline src="/theme.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;700;800&family=Space+Mono&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/cursor.css" />
     <!-- tracking: one bootstrap for the whole site (Umami + Clarity + visitor id + self-exclusion) - public/ts.js -->
     <script is:inline defer src="/ts.js"></script>
@@ -125,7 +125,7 @@ let imgOrdinal = 0;
       ::selection { background: var(--ink); color: var(--paper); }
 
       * { margin: 0; box-sizing: border-box; }
-      body { font-family: 'Hanken Grotesk', system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+      body { font-family: 'Space Mono', ui-monospace, monospace; -webkit-font-smoothing: antialiased; }
       a { color: inherit; text-decoration: none; }
       button { font: inherit; color: inherit; background: none; border: none; padding: 0; cursor: pointer; }
 
@@ -137,7 +137,7 @@ let imgOrdinal = 0;
       .proj { max-width: 1100px; margin: 0 auto; padding: 0 6vw 6svh; }
       .head { padding: clamp(110px, 20vh, 220px) 0 5svh; }
       .spec { font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--faint); }
-      .name { font-weight: 800; font-size: clamp(38px, 7.8vw, 92px); line-height: 1; letter-spacing: -0.015em; text-wrap: balance; margin-top: 12px; }
+      .name { font-weight: 700; font-size: clamp(38px, 7.8vw, 92px); line-height: 1; letter-spacing: -0.015em; text-wrap: balance; margin-top: 12px; }
       .at { margin-top: 14px; }
       .at a { text-decoration: underline; text-underline-offset: 3px; }
 

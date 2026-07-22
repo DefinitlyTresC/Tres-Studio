@@ -20,7 +20,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <!-- theme.js runs sync BEFORE any stylesheet: data-theme lands pre-paint -->
     <script is:inline src="/theme.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/cursor.css" />
     <!-- tracking: one bootstrap for the whole site (Umami + Clarity + visitor id + self-exclusion) - public/ts.js -->
     <script is:inline defer src="/ts.js"></script>
@@ -221,7 +221,7 @@
         --hair: rgba(0,0,0,0.14);        /* hairlines      */
         --tint: rgba(16,16,16,0.04);     /* image wells    */
         --accent: #9A9A9A;
-        --disp: 'Hanken Grotesk', system-ui, sans-serif;
+        --disp: 'Space Mono', ui-monospace, monospace;
         --mono: 'Space Mono', ui-monospace, monospace;
       }
       html[data-theme="dark"] {
@@ -269,7 +269,7 @@
         text-transform: uppercase; color: var(--soft);
       }
       .mark {
-        font-weight: 800; font-size: clamp(72px, 18vw, 240px); line-height: 0.9;
+        font-weight: 700; font-size: clamp(72px, 18vw, 240px); line-height: 0.9;
         letter-spacing: -0.01em;
       }
       .dot { color: var(--accent); }
@@ -323,7 +323,7 @@
         background: var(--paper);
         border-top: 1px solid var(--hair);
       }
-      .name { font-weight: 800; font-size: 19px; line-height: 1.1; }
+      .name { font-weight: 700; font-size: 19px; line-height: 1.1; }
       .tag {
         font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em; line-height: 1.5;
         text-transform: uppercase; color: var(--soft);
