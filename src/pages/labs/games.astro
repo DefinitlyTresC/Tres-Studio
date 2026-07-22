@@ -1,10 +1,12 @@
 ---
-// GAMES — the sims' shelf. When the lab went zero-g (V3, 2026-07-20) the
-// seven experiments moved out of /lab and into this one room, as floating
-// doorways. The doors keep their multiverse heritage: each plate carries
-// the keeper's swatch + number from the universe that adopted it — the lab
-// is where the other universes live on. Bodies are draggable (/mv/zerog.js);
-// the percent homes below park them whenever physics is off.
+// GAMES — the sims' shelf: seven experiments as floating doorways. Each
+// plate keeps its keeper's swatch + number from the universe that adopted
+// it — content colors, not theme colors, so they stay literal. V3.2
+// (2026-07-21): themed (dark is home — /theme.js sets data-theme pre-paint;
+// the var block below carries every paper) and grounded — each door is
+// data-zg-tight: zero wander, a tug that rubberbands home. Bodies are
+// draggable (/mv/zerog.js); the percent homes below park them whenever
+// physics is off.
 ---
 
 <html lang="en">
@@ -12,10 +14,12 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="robots" content="noindex" />
-    <meta name="theme-color" content="#FAFAF7" />
+    <meta name="theme-color" content="#101010" />
     <title>GAMES — TRES.</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- theme.js runs sync BEFORE any stylesheet: data-theme lands pre-paint -->
+    <script is:inline src="/theme.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/cursor.css" />
     <!-- tracking: one bootstrap for the whole site (Umami + Clarity + visitor id + self-exclusion) - public/ts.js -->
@@ -32,7 +36,7 @@
 
       <nav class="hall" data-zg-room aria-label="Games">
 
-        <a class="door" href="/labs/plan.html" data-zg data-zg-slim
+        <a class="door" href="/labs/plan.html" data-zg data-zg-slim data-zg-tight
            data-home-x="18" data-home-y="17" data-home-xn="50" data-home-yn="8"
            style="--hx:18; --hy:17; --hxn:50; --hyn:8; --i:0">
           <span class="din">
@@ -55,7 +59,7 @@
           </span>
         </a>
 
-        <a class="door" href="/labs/birds.html" data-zg data-zg-slim
+        <a class="door" href="/labs/birds.html" data-zg data-zg-slim data-zg-tight
            data-home-x="50" data-home-y="20" data-home-xn="50" data-home-yn="22"
            style="--hx:50; --hy:20; --hxn:50; --hyn:22; --i:1">
           <span class="din">
@@ -84,7 +88,7 @@
           </span>
         </a>
 
-        <a class="door" href="/labs/pulse.html" data-zg data-zg-slim
+        <a class="door" href="/labs/pulse.html" data-zg data-zg-slim data-zg-tight
            data-home-x="82" data-home-y="16" data-home-xn="50" data-home-yn="36"
            style="--hx:82; --hy:16; --hxn:50; --hyn:36; --i:2">
           <span class="din">
@@ -107,7 +111,7 @@
           </span>
         </a>
 
-        <a class="door" href="/labs/field.html" data-zg data-zg-slim
+        <a class="door" href="/labs/field.html" data-zg data-zg-slim data-zg-tight
            data-home-x="32" data-home-y="50" data-home-xn="50" data-home-yn="50"
            style="--hx:32; --hy:50; --hxn:50; --hyn:50; --i:3">
           <span class="din">
@@ -130,7 +134,7 @@
           </span>
         </a>
 
-        <a class="door" href="/labs/echo.html" data-zg data-zg-slim
+        <a class="door" href="/labs/echo.html" data-zg data-zg-slim data-zg-tight
            data-home-x="68" data-home-y="50" data-home-xn="50" data-home-yn="64"
            style="--hx:68; --hy:50; --hxn:50; --hyn:64; --i:4">
           <span class="din">
@@ -151,7 +155,7 @@
           </span>
         </a>
 
-        <a class="door" href="/labs/drift.html" data-zg data-zg-slim
+        <a class="door" href="/labs/drift.html" data-zg data-zg-slim data-zg-tight
            data-home-x="32" data-home-y="84" data-home-xn="50" data-home-yn="78"
            style="--hx:32; --hy:84; --hxn:50; --hyn:78; --i:5">
           <span class="din">
@@ -172,7 +176,7 @@
           </span>
         </a>
 
-        <a class="door" href="/labs/stock.html" data-zg data-zg-slim
+        <a class="door" href="/labs/stock.html" data-zg data-zg-slim data-zg-tight
            data-home-x="68" data-home-y="82" data-home-xn="50" data-home-yn="92"
            style="--hx:68; --hy:82; --hxn:50; --hyn:92; --i:6">
           <span class="din">
@@ -207,24 +211,46 @@
     </footer>
 
     <style is:inline>
+      /* the V3.2 theme block — the ONLY place literal color may live (the
+         keeper swatches in the HTML are content, not theme). --accent is
+         the door patterns' second voice, tuned per paper. */
       :root {
-        /* the site's brand — the multiverse's skin 02, now permanent */
-        --paper: #FAFAF7; --ink: #101010; --accent: #9A9A9A;
-        --soft: rgba(16,16,16,0.5); --hair: rgba(16,16,16,0.16);
-        --disp: 'Hanken Grotesk', system-ui, sans-serif; --mono: 'Space Mono', ui-monospace, monospace;
-        --bw: 1px; --rule: solid; --arch: 999px; --door-bg: var(--paper);
-        --wt: 800; --tt-name: none; --tt-mono: uppercase; --mark-ls: -0.01em;
+        --paper: #FAFAF7; --ink: #101010;
+        --soft: rgba(16,16,16,0.5);      /* secondary text */
+        --faint: rgba(16,16,16,0.45);    /* labels, meta   */
+        --hair: rgba(0,0,0,0.14);        /* hairlines      */
+        --tint: rgba(16,16,16,0.04);     /* image wells    */
+        --accent: #9A9A9A;
+        --disp: 'Hanken Grotesk', system-ui, sans-serif;
+        --mono: 'Space Mono', ui-monospace, monospace;
       }
+      html[data-theme="dark"] {
+        --paper: #101010; --ink: #FAFAF7;
+        --soft: rgba(250,250,247,0.55);
+        --faint: rgba(250,250,247,0.45);
+        --hair: rgba(255,255,255,0.16);
+        --tint: rgba(250,250,247,0.05);
+        --accent: rgba(250,250,247,0.45);
+      }
+      html[data-theme="red"] {
+        --paper: #E0301F; --ink: #0A0A0A;
+        --soft: rgba(10,10,10,0.6);
+        --faint: rgba(10,10,10,0.5);
+        --hair: rgba(0,0,0,0.25);
+        --tint: rgba(0,0,0,0.06);
+        --accent: rgba(10,10,10,0.5);
+      }
+      html { background: var(--paper); }
+      body { color: var(--ink); }
+      ::selection { background: var(--ink); color: var(--paper); }
 
       * { margin: 0; box-sizing: border-box; }
-      html { background: var(--paper); }
-      body { font-family: var(--disp); color: var(--ink); -webkit-font-smoothing: antialiased; }
-      ::selection { background: var(--ink); color: var(--paper); }
+      body { font-family: var(--disp); -webkit-font-smoothing: antialiased; }
       a { color: inherit; text-decoration: none; }
 
       .back {
         position: fixed; z-index: 10; top: var(--y, 14px); left: 5vw;
-        font-family: var(--mono); font-size: 12px; letter-spacing: 0.1em; text-transform: var(--tt-mono);
+        font-family: var(--mono); font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase;
         padding: 14px 8px 14px 0;
         transition: transform 140ms cubic-bezier(0.23,1,0.32,1);
       }
@@ -240,11 +266,11 @@
       }
       .spec {
         font-family: var(--mono); font-size: 12px; letter-spacing: 0.12em;
-        text-transform: var(--tt-mono); color: var(--soft);
+        text-transform: uppercase; color: var(--soft);
       }
       .mark {
-        font-weight: var(--wt); font-size: clamp(72px, 18vw, 240px); line-height: 0.9;
-        letter-spacing: var(--mark-ls); text-transform: var(--tt-name);
+        font-weight: 800; font-size: clamp(72px, 18vw, 240px); line-height: 0.9;
+        letter-spacing: -0.01em;
       }
       .dot { color: var(--accent); }
 
@@ -278,9 +304,9 @@
       .din {
         position: relative; width: 100%; height: 100%;
         display: flex; flex-direction: column; justify-content: flex-end;
-        border: var(--bw) var(--rule) var(--ink);
-        border-radius: var(--arch) var(--arch) 0 0;
-        background: var(--door-bg);
+        border: 1px solid var(--ink);
+        border-radius: 18px; /* V3.2 rounded rect — the arch is retired */
+        background: var(--paper);
         overflow: hidden;
         transition: transform 260ms cubic-bezier(0.23,1,0.32,1);
       }
@@ -294,22 +320,19 @@
       .plate {
         position: relative; display: grid; gap: 5px;
         padding: 14px 14px 18px; text-align: center;
-        background: var(--door-bg);
-        border-top: var(--bw) var(--rule) var(--hair);
+        background: var(--paper);
+        border-top: 1px solid var(--hair);
       }
-      .name {
-        font-weight: var(--wt); font-size: 19px; line-height: 1.1;
-        text-transform: var(--tt-name);
-      }
+      .name { font-weight: 800; font-size: 19px; line-height: 1.1; }
       .tag {
         font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em; line-height: 1.5;
-        text-transform: var(--tt-mono); color: var(--soft);
+        text-transform: uppercase; color: var(--soft);
       }
       /* the keeper row — which universe held this piece in the multiverse */
       .keeper {
         display: flex; align-items: center; justify-content: center; gap: 6px;
         font-family: var(--mono); font-size: 9px; letter-spacing: 0.14em;
-        text-transform: var(--tt-mono); color: var(--soft);
+        text-transform: uppercase; color: var(--soft);
       }
       .sw {
         width: 7px; height: 7px; border-radius: 50%;
@@ -404,8 +427,8 @@
 
       .foot {
         display: flex; justify-content: space-between; padding: 3svh 5vw 4svh;
-        border-top: var(--bw) var(--rule) var(--hair);
-        font-family: var(--mono); font-size: 10px; letter-spacing: 0.06em; text-transform: var(--tt-mono);
+        border-top: 1px solid var(--hair);
+        font-family: var(--mono); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase;
       }
       @media (hover: hover) and (pointer: fine) {
         .foot a:hover { text-decoration: underline; text-underline-offset: 4px; }
@@ -446,7 +469,9 @@
         e.preventDefault();
         leaving = true;
         const r = a.getBoundingClientRect();
-        await cover({ x: e.clientX || r.left + r.width / 2, y: e.clientY || r.top + r.height / 2, color: '#101010' });
+        /* flood with the LIVE ink — a fixed dark cover vanishes on dark paper */
+        const ink = getComputedStyle(document.documentElement).getPropertyValue('--ink').trim() || '#101010';
+        await cover({ x: e.clientX || r.left + r.width / 2, y: e.clientY || r.top + r.height / 2, color: ink });
         /* all seven sims are self-contained pages with no autoReveal —
            clear the flag so the NEXT site page doesn't peel a ghost */
         try { sessionStorage.removeItem('mv:covered'); } catch (err) {}

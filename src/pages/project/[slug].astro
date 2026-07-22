@@ -1,5 +1,5 @@
 ---
-// Project page — weightless skin.
+// Project page — color through theme vars only; theme.js owns data-theme.
 import { getCollection } from 'astro:content';
 import { heroUrl, gridUrl, mediaUrl } from '../../lib/cloudinary';
 
@@ -28,11 +28,13 @@ let imgOrdinal = 0;
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="robots" content="noindex" />
-    <meta name="theme-color" content="#FAFAF7" />
+    <meta name="theme-color" content="#101010" />
     <title>{p.name} — T R E S .</title>
     <link rel="preconnect" href="https://res.cloudinary.com" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- sync, pre-paint: sets data-theme before any stylesheet lands -->
+    <script is:inline src="/theme.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;700;800&family=Space+Mono&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/cursor.css" />
     <!-- tracking: one bootstrap for the whole site (Umami + Clarity + visitor id + self-exclusion) - public/ts.js -->
@@ -94,53 +96,81 @@ let imgOrdinal = 0;
     </div>
 
     <style is:inline>
+      :root {
+        --paper: #FAFAF7; --ink: #101010;
+        --soft: rgba(16,16,16,0.5);      /* secondary text */
+        --faint: rgba(16,16,16,0.45);    /* labels, meta   */
+        --hair: rgba(0,0,0,0.14);        /* hairlines      */
+        --tint: rgba(16,16,16,0.04);     /* image wells    */
+        --veil: rgba(250,250,247,0.97);  /* lightbox wash  */
+      }
+      html[data-theme="dark"] {
+        --paper: #101010; --ink: #FAFAF7;
+        --soft: rgba(250,250,247,0.55);
+        --faint: rgba(250,250,247,0.45);
+        --hair: rgba(255,255,255,0.16);
+        --tint: rgba(250,250,247,0.05);
+        --veil: rgba(16,16,16,0.96);
+      }
+      html[data-theme="red"] {
+        --paper: #E0301F; --ink: #0A0A0A;
+        --soft: rgba(10,10,10,0.6);
+        --faint: rgba(10,10,10,0.5);
+        --hair: rgba(0,0,0,0.25);
+        --tint: rgba(0,0,0,0.06);
+        --veil: rgba(224,48,31,0.96);
+      }
+      html { background: var(--paper); }
+      body { color: var(--ink); }
+      ::selection { background: var(--ink); color: var(--paper); }
+
       * { margin: 0; box-sizing: border-box; }
-      html { background: #FAFAF7; }
-      body { font-family: 'Hanken Grotesk', system-ui, sans-serif; color: #101010; -webkit-font-smoothing: antialiased; }
-      ::selection { background: #101010; color: #FAFAF7; }
+      body { font-family: 'Hanken Grotesk', system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
       a { color: inherit; text-decoration: none; }
       button { font: inherit; color: inherit; background: none; border: none; padding: 0; cursor: pointer; }
 
       .back { position: fixed; z-index: 10; top: var(--y, 14px); left: 6vw; font-family: 'Space Mono', monospace; font-size: 12px; padding: 12px 0; transition: transform 140ms cubic-bezier(0.23,1,0.32,1); }
       .back:active { transform: scale(0.96); }
       @media (hover: hover) and (pointer: fine) { .back:hover { text-decoration: underline; text-underline-offset: 4px; } }
-      .back:focus-visible { outline: 2px solid #101010; outline-offset: 3px; }
+      .back:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
 
       .proj { max-width: 1100px; margin: 0 auto; padding: 0 6vw 6svh; }
       .head { padding: clamp(110px, 20vh, 220px) 0 5svh; }
-      .spec { font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(16,16,16,0.45); }
+      .spec { font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--faint); }
       .name { font-weight: 800; font-size: clamp(38px, 7.8vw, 92px); line-height: 1; letter-spacing: -0.015em; text-wrap: balance; margin-top: 12px; }
       .at { margin-top: 14px; }
       .at a { text-decoration: underline; text-underline-offset: 3px; }
 
-      .hero { display: block; width: 100%; height: auto; outline: 1px solid rgba(0,0,0,0.1); outline-offset: -1px; }
+      .hero { display: block; width: 100%; height: auto; outline: 1px solid var(--hair); outline-offset: -1px; }
       .desc { max-width: 62ch; padding: 6svh 0 2svh; }
       .desc p { font-size: 17px; line-height: 1.6; text-wrap: pretty; }
       .desc p + p { margin-top: 1em; }
 
       .gallery { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(10px, 1.6vw, 20px); padding-top: 5svh; }
       @media (max-width: 640px) { .gallery { grid-template-columns: 1fr; } }
-      .gallery img, .gallery video { display: block; width: 100%; height: auto; outline: 1px solid rgba(0,0,0,0.1); outline-offset: -1px; }
+      .gallery img, .gallery video { display: block; width: 100%; height: auto; outline: 1px solid var(--hair); outline-offset: -1px; }
       .cell { display: block; transition: transform 140ms cubic-bezier(0.23,1,0.32,1); }
       .cell:active { transform: scale(0.99); }
-      .cell:focus-visible { outline: 2px solid #101010; outline-offset: 3px; }
+      .cell:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
 
       .pn { display: flex; justify-content: space-between; gap: 18px; padding: 8svh 0 0; font-family: 'Space Mono', monospace; font-size: 13px; }
       .pn-next { text-align: right; }
       @media (hover: hover) and (pointer: fine) { .pn a:hover { text-decoration: underline; text-underline-offset: 4px; } }
 
-      .foot { display: flex; justify-content: space-between; max-width: 1100px; margin: 0 auto; padding: 3svh 6vw 4svh; border-top: 1px solid rgba(0,0,0,0.14); font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; }
+      .foot { display: flex; justify-content: space-between; max-width: 1100px; margin: 0 auto; padding: 3svh 6vw 4svh; border-top: 1px solid var(--hair); font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; }
 
-      .lb { position: fixed; inset: 0; z-index: 100; background: rgba(250, 250, 247, 0.97); display: grid; place-items: center; }
+      /* z 100 — over the theme toggle (fixed top-right, z 90); the veil covers it while open */
+      .lb { position: fixed; inset: 0; z-index: 100; background: var(--veil); display: grid; place-items: center; }
       .lb[hidden] { display: none; }
-      .lb img { max-width: 92vw; max-height: 86svh; outline: 1px solid rgba(0,0,0,0.1); outline-offset: -1px; }
-      .lb-n { position: fixed; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); left: 50%; translate: -50% 0; font-family: 'Space Mono', monospace; font-size: 11px; color: rgba(16,16,16,0.5); }
-      .lb-x { position: fixed; top: calc(10px + env(safe-area-inset-top, 0px)); right: 6vw; font-family: 'Space Mono', monospace; font-size: 12px; padding: 14px 0 14px 14px; min-height: 44px; }
+      .lb img { max-width: 92vw; max-height: 86svh; outline: 1px solid var(--hair); outline-offset: -1px; }
+      .lb-n { position: fixed; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); left: 50%; translate: -50% 0; font-family: 'Space Mono', monospace; font-size: 11px; color: var(--soft); }
+      /* top 56px — clear of the toggle's ghost under the veil */
+      .lb-x { position: fixed; top: calc(56px + env(safe-area-inset-top, 0px)); right: 6vw; font-family: 'Space Mono', monospace; font-size: 12px; padding: 14px 0 14px 14px; min-height: 44px; }
       .lb-prev, .lb-next { position: fixed; top: 50%; translate: 0 -50%; font-family: 'Space Mono', monospace; font-size: 18px; padding: 14px; min-width: 44px; min-height: 44px; }
       .lb-prev { left: calc(3vw + env(safe-area-inset-left, 0px)); }
       .lb-next { right: calc(3vw + env(safe-area-inset-right, 0px)); }
       @media (hover: hover) and (pointer: fine) { .lb button:hover { text-decoration: underline; text-underline-offset: 4px; } }
-      .lb button:focus-visible { outline: 2px solid #101010; outline-offset: 3px; }
+      .lb button:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
 
       @media (prefers-reduced-motion: reduce) {
         .back, .cell { transition: none; }

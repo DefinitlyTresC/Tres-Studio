@@ -1,5 +1,58 @@
 # tres.studio — the living log
 
+## ✅ V3.2 — DARK WATER — 2026-07-21 (Tres's across-the-board pass: "take your time, brainstorm… full focus and effort")
+
+**Dark is home now.** A full theme system, grounded physics, a TV-row work
+page, a rebuilt ticker with a temper, and a real resume. Design contract:
+`docs/specs/2026-07-21-v32-design.md`. Built from the C: working clone
+(`C:/Users/carte/dev/tres-studio`) — the E: drive was offline; `git pull`
+there syncs it when it returns.
+
+- **Theme system (`public/theme.js`):** dark default, light on toggle,
+  persisted. The change is a LIQUID — the new paper pours up from the
+  bottom with a lapping wave and a jello overshoot; the risen liquid IS
+  the new background, no seam. A manual reload (or the session's first
+  page) paints inverse for a beat and pours in — the loading ritual;
+  in-site navigation never re-pours. Half-moon toggle mounts itself
+  top-right on every living page. Every living page converted to theme
+  vars (--paper/--ink/--soft/--faint/--hair/--tint); cursor, curtain ink,
+  ticker, lightbox veil all theme-aware. Sims/exhibits/satisfactory keep
+  their own worlds. PRM: instant swaps, no liquids.
+- **Bubbles scrapped:** Work is a plain link again; a var(--ink) panel
+  side-swipes into /work instead (sessionStorage mv:swipe), rhyming with
+  the new lateral rows.
+- **Grounded physics:** new `data-zg-tight` engine flag — zero wander,
+  hard fast rubberband (~0.5s settle), throws capped to a tug. Applied to
+  the menu words (hardest), lab + games doors, the about icons. The work
+  page is fully static; about text is pinned. ONLY the landing TRES
+  letters keep the full float.
+- **Work = TV rows:** three snap shelves (selected · past · personal) of
+  hero cards (16/10, radius 14, name+year below), hidden scrollbars, edge
+  fades + hover chevrons on desktop, native momentum on touch. Personal
+  row is lightboard + mystuff — photography and art moved to /about as
+  floating rubberbanded icon-cards ("art — drawings & sketches, early
+  high school"); the about text below the name is pinned and the acts
+  gained a resume link.
+- **Doors:** rounded rectangles now (radius 18) — the arch is retired.
+- **Ticker, third edition:** "0342 visits" in quiet mono, nothing else.
+  Clicking it: confetti · space-out-snap-back · scramble-to-"hi" ·
+  "please stop" · digit slot-spin · a full flip (random, no back-to-back
+  repeats). The tenth click pours the site RED (#E0301F, ink text), holds
+  two seconds, fades home. Counting rules unchanged.
+- **Resume:** /resume — typographic, print-fits-one-page, built from the
+  sheet's own facts (chancey architecture citations included); three
+  `TRES: verify` flags in source (education years, plugin-published line,
+  projection mapping). Footer Resume links point here; the dead
+  resume.pdf and Portfolio links are gone (/work is the portfolio for
+  now).
+- **Slop pass** across every living page; ASSETS-NEEDED rewritten (drop
+  pyRevit zips in `public/plugins/`; print /resume for the PDF).
+- **Verified (local preview):** dark default + toggle cycling (hardened a
+  rAF-starvation latch found in testing), red mode peak + fade, work rows
+  snap/scroll with 14 cards and zero physics, about pinned text + two
+  tight icons + resume act, doors 18px + tight, resume content grounded,
+  ticker reveal + events, zero console errors, 34 pages green.
+
 ## ✅ V3.1 — BLOB PORTALS, THE WORK MERGE, THE CUSTOM MOUSE — 2026-07-20 (Tres: "Top Project pops in as a bubble… amorphous blob hole in the white background… third click opens the Work folder, which condenses the Archive")
 
 - **The Work choreography (landing):** menu is Work · Lab · About now.

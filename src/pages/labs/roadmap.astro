@@ -38,10 +38,6 @@ const ERAS = [
 // A branch that returns: its strand folds back into the trunk node at this date.
 const MERGES = { universes: '2026-07-20' };
 
-const ZG = ['#FF4D00', '#2431FF', '#00934D', '#E62E8A', '#7A1FE0', '#F0A400'];
-const INK = '#101010';
-const PAPER = '#FAFAF7';
-
 const r1 = (v) => Math.round(v * 10) / 10;
 const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 // Every joint keeps vertical tangents, so chained segments stay C1-smooth —
@@ -78,12 +74,14 @@ function draw(cfg) {
     return t + '</g>';
   };
   // Monochrome everywhere; the one color on the page is the live node's ring.
+  // No fills baked in — the CSS classes carry every color, so the drawing
+  // rethemes with the vars.
   const dot = (n, x) => {
-    if (n.status === 'live') return `<circle class="nd" cx="${x}" cy="${n.y}" r="10" fill="none" stroke="${ZG[0]}" stroke-width="2"/><circle class="nd" cx="${x}" cy="${n.y}" r="5.5" fill="${INK}"/>`;
-    if (n.status === 'next') return `<circle class="nd" cx="${x}" cy="${n.y}" r="5" fill="${PAPER}" stroke="${INK}" stroke-width="1.5"/>`;
-    if (n.status === 'era') return `<circle class="nd" cx="${x}" cy="${n.y}" r="6" fill="${INK}"/>`;
-    if (n.status === 'superseded') return `<circle class="nd sup" cx="${x}" cy="${n.y}" r="4" fill="${INK}"/>`;
-    return `<circle class="nd" cx="${x}" cy="${n.y}" r="4.5" fill="${INK}"/>`;
+    if (n.status === 'live') return `<circle class="nd ring" cx="${x}" cy="${n.y}" r="10"/><circle class="nd" cx="${x}" cy="${n.y}" r="5.5"/>`;
+    if (n.status === 'next') return `<circle class="nd hollow" cx="${x}" cy="${n.y}" r="5"/>`;
+    if (n.status === 'era') return `<circle class="nd" cx="${x}" cy="${n.y}" r="6"/>`;
+    if (n.status === 'superseded') return `<circle class="nd sup" cx="${x}" cy="${n.y}" r="4"/>`;
+    return `<circle class="nd" cx="${x}" cy="${n.y}" r="4.5"/>`;
   };
 
   const labelSideAt = (r) => (narrow ? 1 : trunkAtRow[r].ti % 2 === 0 ? 1 : -1);
@@ -186,10 +184,12 @@ const bakeNarrow = draw({
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="robots" content="noindex" />
-    <meta name="theme-color" content="#FAFAF7" />
+    <meta name="theme-color" content="#101010" />
     <title>Roadmap — T R E S .</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- sync, pre-paint: sets data-theme before any stylesheet lands -->
+    <script is:inline src="/theme.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/cursor.css" />
     <!-- tracking: one bootstrap for the whole site (Umami + Clarity + visitor id + self-exclusion) - public/ts.js -->
@@ -243,19 +243,42 @@ const bakeNarrow = draw({
     </footer>
 
     <style is:inline>
+      :root {
+        --paper: #FAFAF7; --ink: #101010;
+        --soft: rgba(16,16,16,0.5);      /* secondary text */
+        --faint: rgba(16,16,16,0.45);    /* labels, meta   */
+        --hair: rgba(0,0,0,0.14);        /* hairlines      */
+        --tint: rgba(16,16,16,0.04);     /* image wells    */
+      }
+      html[data-theme="dark"] {
+        --paper: #101010; --ink: #FAFAF7;
+        --soft: rgba(250,250,247,0.55);
+        --faint: rgba(250,250,247,0.45);
+        --hair: rgba(255,255,255,0.16);
+        --tint: rgba(250,250,247,0.05);
+      }
+      html[data-theme="red"] {
+        --paper: #E0301F; --ink: #0A0A0A;
+        --soft: rgba(10,10,10,0.6);
+        --faint: rgba(10,10,10,0.5);
+        --hair: rgba(0,0,0,0.25);
+        --tint: rgba(0,0,0,0.06);
+      }
+      html { background: var(--paper); }
+      body { color: var(--ink); }
+      ::selection { background: var(--ink); color: var(--paper); }
+
       * { margin: 0; box-sizing: border-box; }
-      html { background: #FAFAF7; }
-      body { font-family: 'Hanken Grotesk', system-ui, sans-serif; color: #101010; -webkit-font-smoothing: antialiased; }
-      ::selection { background: #101010; color: #FAFAF7; }
+      body { font-family: 'Hanken Grotesk', system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
       a { color: inherit; text-decoration: none; }
       .back { position: fixed; z-index: 10; top: var(--y, 14px); left: 6vw; font-family: 'Space Mono', monospace; font-size: 12px; padding: 12px 0; transition: transform 140ms cubic-bezier(0.23,1,0.32,1); }
       .back:active { transform: scale(0.96); }
       @media (hover: hover) and (pointer: fine) { .back:hover { text-decoration: underline; text-underline-offset: 4px; } }
-      .back:focus-visible { outline: 2px solid #101010; outline-offset: 3px; }
+      .back:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
 
       .arch { padding: 0 6vw 12svh; }
       .head { padding: clamp(110px, 22vh, 260px) 0 8svh; }
-      .spec { font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(16,16,16,0.45); }
+      .spec { font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--faint); }
       .name { font-weight: 800; font-size: clamp(44px, 9vw, 110px); line-height: 1; margin-top: 10px; }
       .ad { color: #FF4D00; }
 
@@ -267,16 +290,20 @@ const bakeNarrow = draw({
       @media (max-width: 640px) { .bake.w { display: none; } .bake.n { display: block; } }
       .tl { display: block; width: 100%; height: auto; }
 
-      .tl .ln { fill: none; stroke: #101010; stroke-width: 1.5; stroke-linecap: round; }
+      .tl .ln { fill: none; stroke: var(--ink); stroke-width: 1.5; stroke-linecap: round; }
       .tl.n .ln { stroke-width: 1.4; }
       /* pathLength="1" on every stroke: dash math is normalized, so neither
          the dashed future segments nor the draw-on reveal ever needs a
          measured length */
       .tl .ln.dash { stroke-dasharray: 0.045 0.038; }
+      /* the drawing's colors live here, not in the baked markup — vars retheme it */
+      .tl .nd { fill: var(--ink); }
+      .tl .nd.ring { fill: none; stroke: #FF4D00; stroke-width: 2; } /* the page's one color — reads on both papers */
+      .tl .nd.hollow { fill: var(--paper); stroke: var(--ink); stroke-width: 1.5; }
       .tl text { font-family: 'Hanken Grotesk', system-ui, sans-serif; }
-      .tl .l-date { font-family: 'Space Mono', monospace; font-size: 10.5px; letter-spacing: 0.12em; fill: rgba(16,16,16,0.45); }
-      .tl .l-title { font-size: 15px; font-weight: 800; fill: #101010; }
-      .tl .l-note { font-size: 12.5px; fill: rgba(16,16,16,0.55); }
+      .tl .l-date { font-family: 'Space Mono', monospace; font-size: 10.5px; letter-spacing: 0.12em; fill: var(--faint); }
+      .tl .l-title { font-size: 15px; font-weight: 800; fill: var(--ink); }
+      .tl .l-note { font-size: 12.5px; fill: var(--soft); }
       .tl.n .l-date { font-size: 10px; }
       .tl.n .l-title { font-size: 14px; }
       .tl.n .l-note { font-size: 11.5px; }
@@ -290,12 +317,12 @@ const bakeNarrow = draw({
       .era { position: absolute; top: 0; translate: 0 -50%; display: block; background: none; border: 0; margin: 0; padding: 10px 8px; cursor: pointer; color: inherit; font: inherit; }
       .era-w.l .era { right: 10px; }
       .era-w.r .era { left: 10px; }
-      .e-pill { display: block; font-family: 'Space Mono', monospace; font-size: 10px; font-weight: 700; letter-spacing: 0.08em; line-height: 1; padding: 6px 10px; border: 1px solid #101010; border-radius: 999px; background: #FAFAF7; transition: background 120ms ease, color 120ms ease; }
-      .era[aria-expanded="true"] .e-pill { background: #101010; color: #FAFAF7; }
-      @media (hover: hover) and (pointer: fine) { .era:hover .e-pill { background: #101010; color: #FAFAF7; } }
+      .e-pill { display: block; font-family: 'Space Mono', monospace; font-size: 10px; font-weight: 700; letter-spacing: 0.08em; line-height: 1; padding: 6px 10px; border: 1px solid var(--ink); border-radius: 999px; background: var(--paper); transition: background 120ms ease, color 120ms ease; }
+      .era[aria-expanded="true"] .e-pill { background: var(--ink); color: var(--paper); }
+      @media (hover: hover) and (pointer: fine) { .era:hover .e-pill { background: var(--ink); color: var(--paper); } }
       .era:focus-visible { outline: none; }
-      .era:focus-visible .e-pill { outline: 2px solid #101010; outline-offset: 3px; }
-      .e-card { position: absolute; top: 22px; width: max-content; max-width: 30ch; font-size: 11px; line-height: 1.6; background: #FAFAF7; border: 1px solid #101010; border-radius: 10px; padding: 10px 12px; opacity: 0; visibility: hidden; transition: opacity 120ms ease, visibility 120ms; z-index: 6; }
+      .era:focus-visible .e-pill { outline: 2px solid var(--ink); outline-offset: 3px; }
+      .e-card { position: absolute; top: 22px; width: max-content; max-width: 30ch; font-size: 11px; line-height: 1.6; background: var(--paper); border: 1px solid var(--ink); border-radius: 10px; padding: 10px 12px; opacity: 0; visibility: hidden; transition: opacity 120ms ease, visibility 120ms; z-index: 6; }
       /* the card opens below the chip, extending AWAY from the drawing —
          both bakes keep >60px of slack to the viewport edge at every width
          their media query serves */
@@ -308,7 +335,7 @@ const bakeNarrow = draw({
       .era[aria-expanded="true"] + .e-card { opacity: 1; visibility: visible; }
       @media (hover: hover) { .era-w:hover .e-card { opacity: 1; visibility: visible; } }
 
-      .foot { display: flex; justify-content: space-between; padding: 3svh 6vw 4svh; border-top: 1px solid rgba(0,0,0,0.14); font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; }
+      .foot { display: flex; justify-content: space-between; padding: 3svh 6vw 4svh; border-top: 1px solid var(--hair); font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; }
     </style>
 
     <style is:inline>

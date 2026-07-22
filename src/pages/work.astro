@@ -1,40 +1,38 @@
 ---
-// Work — the gallery index. V3.1: /work absorbs the retired archive, so every
-// project carries its hero image here and is legible before the click.
-// Five SELECTED entries are composed (no physics — they are the gallery);
-// the PAST rows stay throwable ([data-zg]). The zero-g engine owns the outer
-// element's inline transform, so the scroll-reveal + hover transforms on past
-// rows live on the inner .rin wrapper, never on the [data-zg] element.
+// Work — TV rows (V3.2, docs/specs/2026-07-21-v32-design.md §3). Three
+// horizontal snap shelves: selected / past / personal. The page is fully
+// STATIC — no [data-zg], no zerog.js. Personal = lightboard + mystuff only;
+// photography + personalart live on /about now. Theme via /theme.js + the
+// var block — vars only, no literal colors below the block.
 import { getCollection } from 'astro:content';
 import { joinUrl } from '../lib/cloudinary';
 
 const all = (await getCollection('projects')).map((e) => e.data);
 
-// Curated order — fixed by hand, not by sheet order.
+// Curated orders — fixed by hand, not by sheet order.
 const SELECTED = ['ee13', 'z07', 'tucker', 'drome', 'thesis'];
-const selected = SELECTED.map((s) => all.find((p) => p.slug === s)).filter(Boolean);
+const PERSONAL = ['lightboard', 'mystuff'];
+const pick = (slugs) => slugs.map((s) => all.find((p) => p.slug === s)).filter(Boolean);
 
-// Past = every remaining project except the Lab index row. Architecture runs
-// reverse-chronologically (first 4-digit number in the year string; sheet
-// order breaks ties), then the personal pieces follow in sheet order.
+// Past = the architecture run, reverse-chronological (first 4-digit number
+// in the year string; sheet order breaks ties).
 const chosen = new Set(SELECTED);
-const past = all.filter((p) => p.category !== 'lab' && !chosen.has(p.slug));
 const yearOf = (p) => {
   const m = /\d{4}/.exec(p.year || '');
   return m ? parseInt(m[0], 10) : 0;
 };
-const arch = past
-  .filter((p) => p.category === 'architecture')
+const arch = all
+  .filter((p) => p.category === 'architecture' && !chosen.has(p.slug))
   .sort((a, b) => yearOf(b) - yearOf(a) || a.order - b.order);
-const personal = past
-  .filter((p) => p.category !== 'architecture')
-  .sort((a, b) => a.order - b.order);
 
-// Heroes: w_900 covers the large tiles (~740px column at 1x), w_500 the thumbs.
-const big = (p) => joinUrl(p.heroImage, 'w_900', 'image');
-const thumb = (p) => joinUrl(p.heroImage, 'w_500', 'image');
-const pad2 = (n) => String(n).padStart(2, '0');
-const meta = (parts) => parts.filter(Boolean).join(' · ');
+const rows = [
+  { label: 'selected', items: pick(SELECTED) },
+  { label: 'past', items: arch },
+  { label: 'personal', items: pick(PERSONAL) },
+];
+
+// Card heroes: w_700 covers the ≤360px tiles at 2x.
+const hero = (p) => joinUrl(p.heroImage, 'w_700', 'image');
 ---
 
 <html lang="en">
@@ -46,6 +44,8 @@ const meta = (parts) => parts.filter(Boolean).join(' · ');
     <title>Work — T R E S .</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- theme.js must run before any stylesheet: data-theme lands pre-paint -->
+    <script is:inline src="/theme.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;700;800&family=Space+Mono&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/cursor.css" />
     <!-- tracking: one bootstrap for the whole site (Umami + Clarity + visitor id + self-exclusion) - public/ts.js -->
@@ -55,82 +55,77 @@ const meta = (parts) => parts.filter(Boolean).join(' · ');
       (function () {
         var reduce = false;
         try { reduce = matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
-        if (!reduce && 'IntersectionObserver' in window) document.documentElement.classList.add('js');
+        if (!reduce) document.documentElement.classList.add('js');
       })();
     </script>
   </head>
   <body>
+    <script is:inline>
+      /* Arrival swipe: the landing menu covered its exit with an ink panel
+         sliding in from the right; this page starts covered and slides the
+         panel out LEFT. JS-created only — a direct visit (no flag) or PRM
+         never sees a panel, and the flag dies on read either way. */
+      (function () {
+        var go = false;
+        try {
+          go = sessionStorage.getItem('mv:swipe') === '1';
+          sessionStorage.removeItem('mv:swipe');
+        } catch (e) {}
+        var reduce = false;
+        try { reduce = matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+        if (!go || reduce) return;
+        var p = document.createElement('div');
+        p.setAttribute('aria-hidden', 'true');
+        p.style.cssText = 'position:fixed;inset:0;z-index:1200;pointer-events:none;background:var(--ink);' +
+          'transform:translateX(0);transition:transform 380ms cubic-bezier(0.23,1,0.32,1)';
+        document.body.appendChild(p);
+        function gone() { if (p.parentNode) p.parentNode.removeChild(p); }
+        p.addEventListener('transitionend', gone);
+        setTimeout(gone, 700); /* a starved transition must never hold the cover */
+        requestAnimationFrame(function () {
+          requestAnimationFrame(function () { p.style.transform = 'translateX(-101%)'; });
+        });
+      })();
+    </script>
+
     <a class="back" id="back" href="/">← index</a>
 
     <main class="arch">
       <header class="head">
-        <p class="spec">selected · {pad2(selected.length)} — past · {pad2(past.length)}</p>
         <h1 class="name">W o r k</h1>
       </header>
 
-      <section class="sel" aria-label="Selected work">
-        {selected.map((p, i) => (
-          <a class="entry rev" href={`/project/${p.slug}`} style={`--d:${(i % 4) * 70}ms`}>
-            <span class="frame">
-              <img
-                src={big(p)}
-                alt=""
-                width="900"
-                height="600"
-                decoding="async"
-                loading={i === 0 ? undefined : 'lazy'}
-                fetchpriority={i === 0 ? 'high' : undefined}
-                draggable="false"
-              />
-            </span>
-            <span class="e-tx">
-              <span class="e-no">{pad2(i + 1)}</span>
-              <span class="e-name">{p.name}</span>
-              <span class="e-meta">{meta([p.year, p.location])}</span>
-            </span>
-          </a>
-        ))}
-      </section>
-
-      <section class="past" aria-label="Past work">
-        <header class="p-head rev">
-          <h2 class="p-title">Past work</h2>
-          <p class="p-note">(reverse chronological)</p>
-        </header>
-        <div class="p-list" data-zg-room>
-          {arch.map((p, i) => (
-            <div class="shelf">
-              <a class="prow" data-zg data-zg-slim href={`/project/${p.slug}`}>
-                <span class="rin rev" style={`--d:${(i % 6) * 45}ms`}>
-                  <span class="th">
-                    <img src={thumb(p)} alt="" width="500" height="375" loading="lazy" decoding="async" draggable="false" />
+      {rows.map((r, ri) => (
+        <section class={ri === 0 ? 'row big' : 'row'}>
+          <h2 class="r-lab rev">{r.label}</h2>
+          <div class="shelf">
+            <div class="strip">
+              {r.items.map((p, i) => (
+                <a class="card rev" href={`/project/${p.slug}`} style={`--d:${(i % 8) * 50}ms`}>
+                  <span class="ph">
+                    <img
+                      src={hero(p)}
+                      alt=""
+                      width="700"
+                      height="438"
+                      decoding="async"
+                      loading={ri === 0 && i === 0 ? undefined : 'lazy'}
+                      fetchpriority={ri === 0 && i === 0 ? 'high' : undefined}
+                      draggable="false"
+                    />
                   </span>
-                  <span class="p-tx">
-                    <span class="p-name">{p.name}</span>
-                    <span class="p-meta">{meta([p.subcategory, p.year])}</span>
+                  <span class="c-tx">
+                    <span class="c-name">{p.name}</span>
+                    {p.year && <span class="c-year">{p.year}</span>}
                   </span>
-                </span>
-              </a>
+                </a>
+              ))}
             </div>
-          ))}
-          <p class="p-div rev">personal</p>
-          {personal.map((p, i) => (
-            <div class="shelf">
-              <a class="prow" data-zg data-zg-slim href={`/project/${p.slug}`}>
-                <span class="rin rev" style={`--d:${(i % 6) * 45}ms`}>
-                  <span class="th">
-                    <img src={thumb(p)} alt="" width="500" height="375" loading="lazy" decoding="async" draggable="false" />
-                  </span>
-                  <span class="p-tx">
-                    <span class="p-name">{p.name}</span>
-                    <span class="p-meta">{meta([p.subcategory, p.year])}</span>
-                  </span>
-                </span>
-              </a>
-            </div>
-          ))}
-        </div>
-      </section>
+            <button class="nud l" type="button" aria-label={`${r.label} — back`}>‹</button>
+            <button class="nud r" type="button" aria-label={`${r.label} — forward`}>›</button>
+          </div>
+        </section>
+      ))}
     </main>
 
     <footer class="foot">
@@ -139,86 +134,115 @@ const meta = (parts) => parts.filter(Boolean).join(' · ');
     </footer>
 
     <style is:inline>
+      :root {
+        --paper: #FAFAF7; --ink: #101010;
+        --soft: rgba(16,16,16,0.5);      /* secondary text */
+        --faint: rgba(16,16,16,0.45);    /* labels, meta   */
+        --hair: rgba(0,0,0,0.14);        /* hairlines      */
+        --tint: rgba(16,16,16,0.04);     /* image wells    */
+      }
+      html[data-theme="dark"] {
+        --paper: #101010; --ink: #FAFAF7;
+        --soft: rgba(250,250,247,0.55);
+        --faint: rgba(250,250,247,0.45);
+        --hair: rgba(255,255,255,0.16);
+        --tint: rgba(250,250,247,0.05);
+      }
+      html[data-theme="red"] {
+        --paper: #E0301F; --ink: #0A0A0A;
+        --soft: rgba(10,10,10,0.6);
+        --faint: rgba(10,10,10,0.5);
+        --hair: rgba(0,0,0,0.25);
+        --tint: rgba(0,0,0,0.06);
+      }
+      html { background: var(--paper); }
+      body { color: var(--ink); }
+      ::selection { background: var(--ink); color: var(--paper); }
+
       * { margin: 0; box-sizing: border-box; }
-      html { background: #FAFAF7; }
-      body { font-family: 'Hanken Grotesk', system-ui, sans-serif; color: #101010; -webkit-font-smoothing: antialiased; }
-      ::selection { background: #101010; color: #FAFAF7; }
+      body { font-family: 'Hanken Grotesk', system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
       a { color: inherit; text-decoration: none; }
       img { max-width: 100%; }
       .back { position: fixed; z-index: 10; top: var(--y, 14px); left: 6vw; font-family: 'Space Mono', monospace; font-size: 12px; padding: 12px 0; transition: transform 140ms cubic-bezier(0.23,1,0.32,1); }
       .back:active { transform: scale(0.96); }
       @media (hover: hover) and (pointer: fine) { .back:hover { text-decoration: underline; text-underline-offset: 4px; } }
-      .back:focus-visible { outline: 2px solid #101010; outline-offset: 3px; }
+      .back:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
 
       .arch { padding: 0 6vw 12svh; }
-      .head { padding: clamp(110px, 22vh, 260px) 0 8svh; }
-      .spec { font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(16,16,16,0.45); }
-      .name { font-weight: 800; font-size: clamp(44px, 9vw, 110px); line-height: 1; margin-top: 10px; }
+      .head { padding: clamp(110px, 22vh, 260px) 0 clamp(48px, 8svh, 110px); }
+      .name { font-weight: 800; font-size: clamp(44px, 9vw, 110px); line-height: 1; }
 
-      /* SELECTED — image-led, one entry per scroll beat, alternating sides */
-      .sel { display: grid; gap: clamp(90px, 16svh, 200px); max-width: 1240px; margin: 0 auto; padding-top: 2svh; }
-      .entry { display: grid; gap: 16px; }
-      .frame { display: block; aspect-ratio: 3 / 2; overflow: hidden; border: 1px solid rgba(0,0,0,0.14); background: rgba(16,16,16,0.03); }
-      .frame img { display: block; width: 100%; height: 100%; object-fit: cover; }
-      .e-tx { position: relative; z-index: 1; display: grid; gap: 10px; justify-items: start; padding-bottom: 4px; }
-      .e-no { font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 0.2em; color: rgba(16,16,16,0.45); }
-      .e-name { font-weight: 800; font-size: clamp(28px, 4.6vw, 56px); line-height: 0.98; letter-spacing: -0.01em; }
-      .e-meta { font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(16,16,16,0.45); }
-      @media (min-width: 861px) {
-        .entry { grid-template-columns: minmax(0, 15fr) minmax(0, 10fr); gap: clamp(18px, 3vw, 44px); align-items: end; }
-        .entry:nth-child(even) { grid-template-columns: minmax(0, 10fr) minmax(0, 15fr); }
-        .entry:nth-child(even) .frame { order: 2; }
-        .entry:nth-child(even) .e-tx { order: 1; justify-items: end; text-align: right; }
+      /* TV rows: the page scrolls down, each shelf side-scrolls. Shelves run
+         full-bleed (negative gutter margins) so cards slide under the page
+         edge — .strip's own overflow contains them, the body never grows
+         sideways. Vertical wheel is never touched. */
+      .row + .row { margin-top: clamp(60px, 11svh, 140px); }
+      .r-lab { font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 400; letter-spacing: 0.2em; text-transform: uppercase; color: var(--faint); padding-bottom: 16px; }
+      .shelf { position: relative; margin: 0 -6vw; }
+      .strip {
+        display: flex; gap: clamp(14px, 2.2vw, 24px);
+        overflow-x: auto; overscroll-behavior-x: contain;
+        scroll-snap-type: x mandatory; scroll-padding-inline: 6vw;
+        padding: 6px 6vw; /* the 6px gives focus outlines room inside the clip */
+        scrollbar-width: none;
       }
+      .strip::-webkit-scrollbar { display: none; }
 
-      /* PAST — the absorbed archive: thumb rows on hairline shelves.
-         The hairlines live on the static .shelf wrappers, so a thrown row
-         leaves its shelf behind and the list keeps its bones. */
-      .past { max-width: 1240px; margin: 0 auto; padding-top: clamp(70px, 14svh, 160px); }
-      .p-head { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; padding-bottom: 3svh; }
-      .p-title { font-weight: 800; font-size: clamp(24px, 3.6vw, 40px); line-height: 1; }
-      .p-note { font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 0.12em; color: rgba(16,16,16,0.45); }
-      .p-list { position: relative; border-top: 1px solid rgba(0,0,0,0.14); border-bottom: 1px solid rgba(0,0,0,0.14); }
-      .p-list > * + * { border-top: 1px solid rgba(0,0,0,0.14); }
-      .shelf { padding: clamp(16px, 2.8svh, 28px) 0; }
-      /* fit-content: rows hug their content so the zero-g engine gets
-         horizontal room to throw them in — visually identical at rest */
-      .prow { display: block; width: fit-content; max-width: 100%; }
-      .prow:focus-visible, .entry:focus-visible { outline: 2px solid #101010; outline-offset: 3px; }
-      .rin { display: flex; align-items: center; gap: clamp(14px, 2.4vw, 26px); }
-      .th { flex: 0 0 clamp(88px, 12vw, 140px); width: clamp(88px, 12vw, 140px); aspect-ratio: 4 / 3; overflow: hidden; border: 1px solid rgba(0,0,0,0.14); background: rgba(16,16,16,0.03); }
-      .th img { display: block; width: 100%; height: 100%; object-fit: cover; }
-      .p-tx { min-width: 0; display: grid; gap: 7px; }
-      .p-name { font-weight: 700; font-size: clamp(17px, 2.2vw, 22px); line-height: 1.15; letter-spacing: -0.01em; }
-      .p-meta { font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(16,16,16,0.45); }
-      .p-div { font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 0.18em; color: rgba(16,16,16,0.45); padding: clamp(18px, 3svh, 30px) 0 clamp(8px, 1.4svh, 14px); }
+      .card { flex: 0 0 clamp(200px, 34vw, 320px); scroll-snap-align: start; display: grid; gap: 10px; align-content: start; }
+      .row.big .card { flex-basis: clamp(220px, 38vw, 360px); }
+      .ph { display: block; aspect-ratio: 16 / 10; overflow: hidden; border-radius: 14px; border: 1px solid var(--hair); background: var(--tint); }
+      .ph img { display: block; width: 100%; height: 100%; object-fit: cover; }
+      .c-tx { display: grid; gap: 4px; padding: 0 2px; }
+      .c-name { font-weight: 700; font-size: clamp(15px, 1.8vw, 18px); line-height: 1.2; letter-spacing: -0.01em; }
+      .row.big .c-name { font-size: clamp(16px, 2vw, 20px); }
+      .c-year { font-family: 'Space Mono', monospace; font-size: 10.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--faint); }
+      .card:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
 
+      /* Desktop affordances only: edge fades + hover chevrons. Coarse
+         pointers keep bare native scroll — the chevrons stay display:none
+         and unwired. */
+      .nud { display: none; }
       @media (hover: hover) and (pointer: fine) {
-        .frame img, .th img { transition: transform 500ms cubic-bezier(0.23,1,0.32,1); }
-        .e-name, .p-name { transition: letter-spacing 300ms cubic-bezier(0.23,1,0.32,1); }
-        .entry:hover .frame img { transform: scale(1.02); }
-        .entry:hover .e-name { letter-spacing: 0.03em; }
-        .prow:hover .th img { transform: scale(1.015); }
-        .prow:hover .p-name { letter-spacing: 0.02em; }
-        .sim .prow { cursor: grab; }
-        .sim .prow:active { cursor: grabbing; }
+        .strip {
+          mask-image: linear-gradient(90deg, transparent 0, #000 5vw, #000 calc(100% - 5vw), transparent 100%);
+          -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 5vw, #000 calc(100% - 5vw), transparent 100%);
+        }
+        .nud {
+          position: absolute; z-index: 2; top: calc(50% - 42px); /* centers on the image band, not the text */
+          display: grid; place-items: center; width: 40px; height: 40px; padding: 0;
+          border: 1px solid var(--hair); border-radius: 999px;
+          background: var(--paper); color: var(--ink);
+          font: 700 18px/1 'Hanken Grotesk', system-ui, sans-serif;
+          cursor: pointer; opacity: 0;
+          transition: opacity 160ms ease, transform 140ms cubic-bezier(0.23,1,0.32,1);
+        }
+        .nud.l { left: clamp(8px, 2vw, 26px); }
+        .nud.r { right: clamp(8px, 2vw, 26px); }
+        .shelf:hover .nud:not(.off), .nud:focus-visible:not(.off) { opacity: 1; }
+        .nud:hover { transform: scale(1.06); }
+        .nud:active { transform: scale(0.94); }
+        .nud.off { pointer-events: none; }
+        .nud:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+
+        .ph img { transition: transform 500ms cubic-bezier(0.23,1,0.32,1); }
+        .c-name { transition: letter-spacing 300ms cubic-bezier(0.23,1,0.32,1); }
+        .card:hover .ph img { transform: scale(1.02); }
+        .card:hover .c-name { letter-spacing: 0.02em; }
       }
 
-      .foot { display: flex; justify-content: space-between; padding: 3svh 6vw 4svh; border-top: 1px solid rgba(0,0,0,0.14); font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; }
+      .foot { display: flex; justify-content: space-between; padding: 3svh 6vw 4svh; border-top: 1px solid var(--hair); font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; }
     </style>
 
     <style is:inline>
       /* Scroll reveal: hidden-at-rest lives ONLY under html.js + no-preference
-         — PRM and no-JS both land on the complete page with zero motion.
-         Past rows carry .rev on the inner .rin: the engine owns the outer
-         [data-zg] transform. */
+         — PRM and no-JS both land on the complete page with zero motion. */
       @media (prefers-reduced-motion: no-preference) {
         html.js .rev { opacity: 0; transform: translateY(14px); transition: opacity 600ms ease var(--d, 0ms), transform 600ms cubic-bezier(0.23,1,0.32,1) var(--d, 0ms); }
         html.js .rev.on { opacity: 1; transform: none; }
       }
       @media (prefers-reduced-motion: reduce) {
-        .back, .e-name, .p-name, .frame img, .th img { transition: none; }
-        .back:active { transform: none; }
+        .back, .ph img, .c-name, .nud { transition: none; }
+        .back:active, .nud:hover, .nud:active { transform: none; }
       }
     </style>
 
@@ -250,17 +274,64 @@ const meta = (parts) => parts.filter(Boolean).join(' · ');
     <script is:inline>
       (function () {
         if (!document.documentElement.classList.contains('js')) return;
-        var io = new IntersectionObserver(function (entries) {
-          for (var i = 0; i < entries.length; i++) {
-            if (!entries[i].isIntersecting) continue;
-            entries[i].target.classList.add('on');
-            io.unobserve(entries[i].target);
-          }
-        }, { threshold: 0.12, rootMargin: '0px 0px -6% 0px' });
+        /* Rect-check, not IntersectionObserver — the failure mode reveals
+           immediately instead of never (roadmap.astro carries the full why).
+           Horizontal strip scroll never moves an element's top, so window
+           scroll + resize are the only triggers needed. */
+        var left = [];
         var els = document.querySelectorAll('.rev');
-        for (var i = 0; i < els.length; i++) io.observe(els[i]);
+        for (var i = 0; i < els.length; i++) left.push(els[i]);
+        var raf = null;
+        function check() {
+          raf = null;
+          var limit = innerHeight * 0.92;
+          for (var i = left.length - 1; i >= 0; i--) {
+            if (left[i].getBoundingClientRect().top < limit) {
+              left[i].classList.add('on');
+              left.splice(i, 1);
+            }
+          }
+          if (!left.length) {
+            removeEventListener('scroll', queue);
+            removeEventListener('resize', queue);
+          }
+        }
+        function queue() { if (!raf) raf = requestAnimationFrame(check); }
+        addEventListener('scroll', queue, { passive: true });
+        addEventListener('resize', queue, { passive: true });
+        check();
       })();
     </script>
-    <script is:inline defer src="/mv/zerog.js"></script>
+    <script is:inline>
+      (function () {
+        /* Chevron nudges — fine pointers only (coarse: display:none, no
+           wiring). One card per click; .off marks a spent edge. Wheel and
+           touch stay native. */
+        var fine = false, reduce = false;
+        try { fine = matchMedia('(hover: hover) and (pointer: fine)').matches; reduce = matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+        if (!fine) return;
+        var shelves = document.querySelectorAll('.shelf');
+        for (var i = 0; i < shelves.length; i++) (function (shelf) {
+          var strip = shelf.querySelector('.strip');
+          var l = shelf.querySelector('.nud.l'), r = shelf.querySelector('.nud.r');
+          function step() {
+            var c = strip.querySelector('.card');
+            var g = parseFloat(getComputedStyle(strip).columnGap) || 0;
+            return c ? c.getBoundingClientRect().width + g : strip.clientWidth * 0.8;
+          }
+          function go(dir) { strip.scrollBy({ left: dir * step(), behavior: reduce ? 'auto' : 'smooth' }); }
+          function sync() {
+            var max = strip.scrollWidth - strip.clientWidth;
+            l.classList.toggle('off', strip.scrollLeft < 4);
+            r.classList.toggle('off', strip.scrollLeft > max - 4);
+          }
+          l.addEventListener('click', function () { go(-1); });
+          r.addEventListener('click', function () { go(1); });
+          strip.addEventListener('scroll', sync, { passive: true });
+          addEventListener('resize', sync, { passive: true });
+          sync();
+        })(shelves[i]);
+      })();
+    </script>
   </body>
 </html>

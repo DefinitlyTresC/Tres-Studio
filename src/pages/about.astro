@@ -1,5 +1,21 @@
 ---
-// About — weightless voice, same facts.
+// About — the personal page. V3.2: every line of text is pinned; only the
+// name (display art, rubberbanded) and the two icon-cards float. Photography
+// + art live here now, not on /work.
+import { getCollection } from 'astro:content';
+import { joinUrl } from '../lib/cloudinary';
+
+// Icon-card homes: percents of the room. x/y = wide screens; xn/yn = narrow
+// (<=640px), a row parked beneath the acts (the room's narrow bottom padding
+// reserves the band).
+const all = (await getCollection('projects')).map((e) => e.data);
+const ICONS = [
+  { slug: 'photography', cap: 'photography', x: 80, y: 30, xn: 32, yn: 82 },
+  { slug: 'personalart', cap: 'art — drawings & sketches, early high school', x: 84, y: 58, xn: 68, yn: 85 },
+].map((i) => {
+  const p = all.find((q) => q.slug === i.slug);
+  return { ...i, hero: p ? joinUrl(p.heroImage, 'w_500', 'image') : null };
+});
 ---
 
 <html lang="en">
@@ -11,6 +27,8 @@
     <title>About — T R E S .</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- theme.js sets data-theme pre-paint — it must precede every stylesheet -->
+    <script is:inline src="/theme.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;700;800&family=Space+Mono&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/cursor.css" />
     <!-- tracking: one bootstrap for the whole site (Umami + Clarity + visitor id + self-exclusion) - public/ts.js -->
@@ -20,55 +38,125 @@
     <a class="back" id="back" href="/">← index</a>
 
     <main class="about" data-zg-room>
-      <h1 class="name"><span data-zg data-zg-slim>T r e s</span><span class="shift" data-zg data-zg-slim>C a r t e r</span></h1>
-      <p class="lede" data-zg data-zg-slim>Architectural designer — 30A, Florida.</p>
-      <p class="hey" data-zg data-zg-slim>hey, im tres. i design houses, buildings, websites, tools, pretty much anything. reach out below!</p>
+      <h1 class="name"><span data-zg data-zg-slim data-zg-tight>T r e s</span><span class="shift" data-zg data-zg-slim data-zg-tight>C a r t e r</span></h1>
+      <p class="lede">Architectural designer — 30A, Florida.</p>
+      <p class="hey">hey, im tres. i design houses, buildings, websites, tools, pretty much anything. reach out below!</p>
       <div class="acts">
-        <a href="mailto:tres@tres.studio" data-zg data-zg-slim>tres@tres.studio</a>
-        <a href="https://instagram.com/tres.studio" target="_blank" rel="noopener" data-zg data-zg-slim>IG</a>
-        <a href="https://www.linkedin.com/in/tres-carter" target="_blank" rel="noopener" data-zg data-zg-slim>LinkedIn</a>
+        <a href="mailto:tres@tres.studio">tres@tres.studio</a>
+        <a href="/resume">resume</a>
+        <a href="https://instagram.com/tres.studio" target="_blank" rel="noopener">IG</a>
+        <a href="https://www.linkedin.com/in/tres-carter" target="_blank" rel="noopener">LinkedIn</a>
       </div>
+
+      {ICONS.map((i) => (
+        <a
+          class="icon"
+          href={'/project/' + i.slug}
+          draggable="false"
+          data-zg
+          data-zg-slim
+          data-zg-tight
+          data-home-x={i.x}
+          data-home-y={i.y}
+          data-home-xn={i.xn}
+          data-home-yn={i.yn}
+          style={`--hx:${i.x}; --hy:${i.y}; --hxn:${i.xn}; --hyn:${i.yn};`}
+        >
+          <span class="icon-in">
+            {i.hero && <img src={i.hero} alt="" loading="lazy" decoding="async" />}
+            <span class="cap">{i.cap}</span>
+          </span>
+        </a>
+      ))}
     </main>
 
     <style is:inline>
+      :root {
+        --paper: #FAFAF7; --ink: #101010;
+        --soft: rgba(16,16,16,0.5);      /* secondary text */
+        --faint: rgba(16,16,16,0.45);    /* labels, meta   */
+        --hair: rgba(0,0,0,0.14);        /* hairlines      */
+        --tint: rgba(16,16,16,0.04);     /* image wells    */
+      }
+      html[data-theme="dark"] {
+        --paper: #101010; --ink: #FAFAF7;
+        --soft: rgba(250,250,247,0.55);
+        --faint: rgba(250,250,247,0.45);
+        --hair: rgba(255,255,255,0.16);
+        --tint: rgba(250,250,247,0.05);
+      }
+      html[data-theme="red"] {
+        --paper: #E0301F; --ink: #0A0A0A;
+        --soft: rgba(10,10,10,0.6);
+        --faint: rgba(10,10,10,0.5);
+        --hair: rgba(0,0,0,0.25);
+        --tint: rgba(0,0,0,0.06);
+      }
+      html { background: var(--paper); }
+      body { color: var(--ink); }
+      ::selection { background: var(--ink); color: var(--paper); }
+
       * { margin: 0; box-sizing: border-box; }
-      html { background: #FAFAF7; }
-      body { font-family: 'Hanken Grotesk', system-ui, sans-serif; color: #101010; -webkit-font-smoothing: antialiased; }
-      ::selection { background: #101010; color: #FAFAF7; }
+      body { font-family: 'Hanken Grotesk', system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
       a { color: inherit; text-decoration: none; }
+      a:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
       .back { position: fixed; z-index: 10; top: var(--y, 14px); left: 6vw; font-family: 'Space Mono', monospace; font-size: 12px; padding: 12px 0; transition: transform 140ms cubic-bezier(0.23,1,0.32,1); }
       .back:active { transform: scale(0.96); }
       @media (hover: hover) and (pointer: fine) { .back:hover { text-decoration: underline; text-underline-offset: 4px; } }
-      .back:focus-visible { outline: 2px solid #101010; outline-offset: 3px; }
 
-      .about { padding: clamp(140px, 28vh, 340px) 6vw 16svh; }
+      .about { position: relative; padding: clamp(140px, 28vh, 340px) 6vw 16svh; }
       .name { font-weight: 800; font-size: clamp(52px, 10vw, 130px); line-height: 1.02; }
       /* fit-content: lines hug their text so the zero-g engine gets horizontal
          room to throw them in — visually identical at rest (left-aligned) */
       .name span { display: block; width: fit-content; }
       .name .shift { margin-left: clamp(30px, 12vw, 220px); }
-      .lede { font-family: 'Space Mono', monospace; font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(16,16,16,0.5); margin-top: 26px; width: fit-content; }
+      .lede { font-family: 'Space Mono', monospace; font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--soft); margin-top: 26px; }
       /* type-on: the full line ships in markup and keeps holding the box
-         (visibility:hidden) while an overlay inside types over it — the element
-         never changes size, and the zero-g engine keeps the outer transform */
-      .hey { position: relative; font-size: 15px; line-height: 1.65; color: rgba(16,16,16,0.72); max-width: 44ch; margin-top: 18px; width: fit-content; }
+         (visibility:hidden) while an overlay inside types over it — the
+         element never changes size mid-type */
+      .hey { position: relative; font-size: 15px; line-height: 1.65; max-width: 44ch; margin-top: 18px; }
       .hey-hold { visibility: hidden; }
       .hey-live { position: absolute; inset: 0; } /* same box, same font: identical line wraps */
-      .hey-caret { display: inline-block; width: 2px; height: 1.05em; margin-left: 2px; vertical-align: text-bottom; background: #101010; animation: hey-blink 0.9s step-end infinite; transition: opacity 400ms ease; }
+      .hey-caret { display: inline-block; width: 2px; height: 1.05em; margin-left: 2px; vertical-align: text-bottom; background: var(--ink); animation: hey-blink 0.9s step-end infinite; transition: opacity 400ms ease; }
       .hey-caret.is-done { animation: none; opacity: 0; }
       .hey-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; } /* the full line for AT while the overlay types */
       @keyframes hey-blink { 50% { opacity: 0; } }
-      .acts { display: flex; gap: 28px; margin-top: 44px; font-family: 'Space Mono', monospace; font-size: 13px; }
+      .acts { display: flex; flex-wrap: wrap; gap: 28px; margin-top: 44px; font-family: 'Space Mono', monospace; font-size: 13px; }
       /* 44px hit areas without moving anything: pad out, pull back in */
       .acts a { display: inline-block; padding: 14px; margin: -14px; }
+
+      /* Floating icon-cards. Parked at percent homes (same percents the
+         engine reads); when the sim boots (.sim) zero-g owns the outer
+         transform — cosmetics stay on .icon-in. */
+      .icon {
+        position: absolute; z-index: 2;
+        left: calc(var(--hx) * 1%); top: calc(var(--hy) * 1%);
+        translate: -50% -50%;
+        width: clamp(96px, 12vw, 150px);
+      }
+      .sim .icon { left: 0; top: 0; translate: none; will-change: transform; }
+      .icon-in { display: block; }
+      .icon img { display: block; width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 14px; border: 1px solid var(--hair); background: var(--tint); }
+      .cap { display: block; margin-top: 7px; font-family: 'Space Mono', monospace; font-size: 9.5px; letter-spacing: 0.06em; line-height: 1.5; color: var(--faint); }
+
+      @media (max-width: 640px) {
+        /* the icon row parks beneath the acts — the room grows to hold it */
+        .about { padding-bottom: 260px; }
+        .icon { left: calc(var(--hxn) * 1%); top: calc(var(--hyn) * 1%); }
+      }
+
       @media (hover: hover) and (pointer: fine) {
         a:hover { text-decoration: underline; text-underline-offset: 4px; }
+        .icon:hover { text-decoration: none; }
+        .icon-in { transition: transform 260ms cubic-bezier(0.22, 1, 0.36, 1); }
+        .icon:hover .icon-in { transform: scale(1.04); }
         .sim [data-zg] { cursor: grab; }
         .sim [data-zg]:active { cursor: grabbing; }
       }
       @media (prefers-reduced-motion: reduce) {
         .back { transition: none; }
         .back:active { transform: none; }
+        .icon-in { transition-duration: 1ms; }
         /* mid-session PRM flip: the full line, at rest, no caret */
         .hey-hold { visibility: visible; }
         .hey-live { display: none; }
@@ -102,8 +190,8 @@
     </script>
     <script is:inline>
       /* type-on for .hey — the markup already carries the full line (no-JS and
-         PRM read it complete at rest). This only rearranges children INSIDE the
-         element; the zero-g engine owns the outer transform, untouched here. */
+         PRM read it complete at rest). Only children INSIDE the element are
+         rearranged; the box never changes size. */
       (function () {
         var reduce = false;
         try { reduce = matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}

@@ -29,6 +29,9 @@
      data-zg-slim    wide flat bodies (index rows): collision radius scales
                      from element height, not the (w+h)/4 blob radius, so
                      stacked rows rest without jostling.
+     data-zg-tight   rubberbanded utility bodies (nav words, doors): zero
+                     ambient wander, stiff fast spring home (~0.5s settle),
+                     throw speed capped — a tug, not a toss.
 
    Reduced motion: fully static — no listeners, no loop, text selectable.
    ──────────────────────────────────────────────────────────────────────── */
@@ -78,6 +81,7 @@
           el: el, g: g,
           cyc: el.hasAttribute('data-zg-color'),
           slim: el.hasAttribute('data-zg-slim'),
+          tight: el.hasAttribute('data-zg-tight'),
           pct: el.hasAttribute('data-home-x') || el.hasAttribute('data-home-y'),
           x: 0, y: 0, px: 0, py: 0, vx: 0, vy: 0,
           hx: 0, hy: 0, hw: 22, hh: 22, ax: 22, ay: 22, r: 30, m: 1, im: 1,
@@ -109,8 +113,8 @@
           b.m = Math.max(0.6, (b.r * b.r) / 6000);
           b.im = 1 / b.m;
           if (b.pct) {
-            /* percent home — wanders like the index letters */
-            b.wa = 10 + b.r * 0.12;
+            /* percent home — wanders like the index letters (tight: pinned) */
+            b.wa = b.tight ? 0 : 10 + b.r * 0.12;
             var useN = narrow && narrow.matches;
             var hxRaw = (useN && b.el.getAttribute('data-home-xn')) || b.el.getAttribute('data-home-x');
             var hyRaw = (useN && b.el.getAttribute('data-home-yn')) || b.el.getAttribute('data-home-y');
@@ -214,14 +218,20 @@
           } else {
             var ax = 0, ay = 0;
             if (b.state === FLOAT) {
-              ax = -5 * (b.x - tgx(b, t)) - 4.4 * b.vx;
-              ay = -5 * (b.y - tgy(b, t)) - 4.4 * b.vy;
+              /* tight bodies hold home on the hard spring even at rest */
+              var kf = b.tight ? 320 : 5, cf = b.tight ? 26 : 4.4;
+              ax = -kf * (b.x - tgx(b, t)) - cf * b.vx;
+              ay = -kf * (b.y - tgy(b, t)) - cf * b.vy;
             } else if (b.state === RETURN) {
-              ax = -180 * (b.x - tgx(b, t)) - 13 * b.vx;
-              ay = -180 * (b.y - tgy(b, t)) - 13 * b.vy;
+              var kr = b.tight ? 320 : 180, cr = b.tight ? 26 : 13;
+              ax = -kr * (b.x - tgx(b, t)) - cr * b.vx;
+              ay = -kr * (b.y - tgy(b, t)) - cr * b.vy;
             }
             b.vx += ax * H; b.vy += ay * H;
-            if (b.state === FREE) { b.vx *= 0.994; b.vy *= 0.994; }
+            if (b.state === FREE) {
+              var dmp = b.tight ? 0.985 : 0.994;
+              b.vx *= dmp; b.vy *= dmp;
+            }
             var sp2 = b.vx * b.vx + b.vy * b.vy;
             if (sp2 > 16000000) {
               var sc = 4000 / Math.sqrt(sp2);
@@ -241,7 +251,7 @@
           if (b.state === FREE) {
             var sp = Math.sqrt(b.vx * b.vx + b.vy * b.vy);
             if (sp < 40) b.restT += H; else b.restT = 0;
-            if (b.restT > 2.5) { b.state = RETURN; b.restT = 0; }
+            if (b.restT > (b.tight ? 0.5 : 2.5)) { b.state = RETURN; b.restT = 0; }
           } else if (b.state === RETURN) {
             var dx = b.x - tgx(b, t), dy = b.y - tgy(b, t);
             if (dx * dx + dy * dy < 4 && b.vx * b.vx + b.vy * b.vy < 100) b.state = FLOAT;
@@ -343,7 +353,8 @@
         }
       }
       var sp = Math.sqrt(vx * vx + vy * vy);
-      if (sp > 3500) { vx *= 3500 / sp; vy *= 3500 / sp; sp = 3500; }
+      var cap = b.tight ? 1200 : 3500; /* tight: a tug, not a toss */
+      if (sp > cap) { vx *= cap / sp; vy *= cap / sp; sp = cap; }
       if (sp < 50) { vx = 0; vy = 0; }
       b.vx = vx; b.vy = vy;
       b.state = FREE; b.restT = 0;
@@ -500,26 +511,6 @@
       render(1);
       for (var gi = 0; gi < groups.length; gi++) groups[gi].el.classList.add('sim');
       watchColorRooms();
-      /* V3.1: the landing's pop portals bump the words — a minimal
-         read/kick surface. Viewport-space circles out, impulses in; held
-         bodies are untouchable. (index.astro's blob loop is the consumer.) */
-      window.__zg = {
-        each: function (fn) {
-          for (var i = 0; i < bodies.length; i++) {
-            var b = bodies[i];
-            if (b.state === HELD) continue;
-            var rc = b.el.getBoundingClientRect();
-            fn(i, rc.left + rc.width / 2, rc.top + rc.height / 2, b.r);
-          }
-        },
-        kick: function (i, vx, vy) {
-          var b = bodies[i];
-          if (!b || b.state === HELD) return;
-          b.vx += vx; b.vy += vy;
-          /* a real shove knocks a floating body loose; it springs home after */
-          if (b.state === FLOAT && b.vx * b.vx + b.vy * b.vy > 22500) { b.state = FREE; b.restT = 0; }
-        },
-      };
       var rT = 0;
       addEventListener('resize', function () {
         clearTimeout(rT);

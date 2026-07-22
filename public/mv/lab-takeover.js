@@ -36,7 +36,10 @@ import { cover } from '/mv/curtain.js';
     /* keyboard activation clicks at (0,0) — flood from the link instead */
     const kb = !e.clientX && !e.clientY;
     const ra = kb ? a.getBoundingClientRect() : null;
-    await cover({ x: kb ? ra.left + ra.width / 2 : e.clientX, y: kb ? ra.top + ra.height / 2 : e.clientY, color: '#0A0806' });
+    /* the ink follows the theme — a dusk-black flood is invisible on dark paper */
+    let ink = '#0A0806';
+    try { const v = getComputedStyle(document.documentElement).getPropertyValue('--ink').trim(); if (v) ink = v; } catch (err) {}
+    await cover({ x: kb ? ra.left + ra.width / 2 : e.clientX, y: kb ? ra.top + ra.height / 2 : e.clientY, color: ink });
     location.href = a.getAttribute('href');
   });
 })();
