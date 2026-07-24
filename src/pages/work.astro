@@ -1,17 +1,21 @@
 ---
 // Work — TV rows (V3.2, docs/specs/2026-07-21-v32-design.md §3). Three
 // horizontal snap shelves: selected / past / personal. The page is fully
-// STATIC — no [data-zg], no zerog.js. Personal = lightboard + mystuff only;
-// photography + personalart live on /about now. Theme via /theme.js + the
-// var block — vars only, no literal colors below the block.
+// STATIC — no [data-zg], no zerog.js. Personal = photography + personalart
+// + lightboard + mystuff (photography/personalart also stay on /about).
+// Theme via /theme.js + the var block — vars only, no literal colors below
+// the block. V3.2.1: shelves loop seamlessly (whole-cycle clones + a
+// band-wrapped scrollLeft, hairline seam at each joint) and drift slowly
+// when idle on fine pointers — persistent pause toggle bottom right
+// (WCAG 2.2.2). PRM / no-JS keep the finite static shelves.
 import { getCollection } from 'astro:content';
 import { joinUrl } from '../lib/cloudinary';
 
 const all = (await getCollection('projects')).map((e) => e.data);
 
 // Curated orders — fixed by hand, not by sheet order.
-const SELECTED = ['ee13', 'z07', 'tucker', 'drome', 'thesis'];
-const PERSONAL = ['lightboard', 'mystuff'];
+const SELECTED = ['ee13', 'z07', 'tucker', 'flatwood', 'drome', 'thesis'];
+const PERSONAL = ['photography', 'personalart', 'lightboard', 'mystuff'];
 const pick = (slugs) => slugs.map((s) => all.find((p) => p.slug === s)).filter(Boolean);
 
 // Past = the architecture run, reverse-chronological (first 4-digit number
@@ -137,6 +141,8 @@ const CROP = { thesis: '50% 0%' };
       <a href="/privacy">Privacy</a>
     </footer>
 
+    <button class="drift-toggle" id="drift-toggle" type="button" aria-label="Pause automatic scrolling">pause</button>
+
     <style is:inline>
       :root {
         --paper: #FAFAF7; --ink: #101010;
@@ -235,6 +241,20 @@ const CROP = { thesis: '50% 0%' };
       }
 
       .foot { display: flex; justify-content: space-between; padding: 3svh 6vw 4svh; border-top: 1px solid var(--hair); font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; }
+
+      /* Loop seam — the line at the joint of each shelf's cycle. JS-created,
+         so PRM / no-JS strips never carry one. */
+      .loop-seam { flex: 0 0 1px; align-self: stretch; background: var(--hair); }
+
+      /* Persistent pause for the auto-drift (WCAG 2.2.2) — shown only while
+         the drift exists (html.drift = fine pointer + motion allowed). */
+      .drift-toggle { display: none; }
+      html.drift .drift-toggle { display: block; position: fixed; z-index: 10; right: 6vw; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); padding: 15px 0 15px 15px; background: var(--paper); border: none; cursor: pointer; font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--faint); transition: color 140ms cubic-bezier(0.23,1,0.32,1), transform 140ms cubic-bezier(0.23,1,0.32,1); }
+      html.drift .drift-toggle:active { transform: scale(0.96); }
+      @media (hover: hover) and (pointer: fine) {
+        html.drift .drift-toggle:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 4px; }
+      }
+      .drift-toggle:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
     </style>
 
     <style is:inline>
@@ -245,8 +265,8 @@ const CROP = { thesis: '50% 0%' };
         html.js .rev.on { opacity: 1; transform: none; }
       }
       @media (prefers-reduced-motion: reduce) {
-        .back, .ph img, .c-name, .nud { transition: none; }
-        .back:active, .nud:hover, .nud:active { transform: none; }
+        .back, .ph img, .c-name, .nud, .drift-toggle { transition: none; }
+        .back:active, .nud:hover, .nud:active, .drift-toggle:active { transform: none; }
       }
     </style>
 
@@ -335,6 +355,197 @@ const CROP = { thesis: '50% 0%' };
           addEventListener('resize', sync, { passive: true });
           sync();
         })(shelves[i]);
+      })();
+    </script>
+    <script is:inline>
+      /* Shelf loop + drift (V3.2.1). Each strip gets a hairline seam
+         appended, then whole-cycle clones until the wrap band always has
+         content; scrollLeft teleports ±W (one cycle) at the band edges —
+         the copies are pixel-identical, so the joint is invisible and every
+         shelf is endless in both directions. The backward wrap arms only
+         after a shelf first crosses half a cycle, so the natural left edge
+         holds until you've actually looped. On idle (fine pointers) a slow
+         drift (~24 px/s) eases in and carries each shelf; real input stops
+         it dead, hovering a shelf holds just that shelf, and the
+         bottom-right toggle pauses everything persistently (WCAG 2.2.2).
+         Scroll-snap is parked while a shelf drifts and handed back the
+         moment the visitor takes over. Gate: html.js = motion allowed, so
+         PRM / no-JS keep the finite static shelves; flipping Reduce Motion
+         on mid-session tears the whole thing down. */
+      (function () {
+        var doc = document.documentElement;
+        if (!doc.classList.contains('js')) return;
+
+        var coarse = false, fine = false;
+        try {
+          coarse = matchMedia('(pointer: coarse)').matches;
+          fine = matchMedia('(hover: hover) and (pointer: fine)').matches;
+        } catch (e) {}
+
+        var dead = false, rafId = null, shelves = [];
+
+        function buildShelf(el) {
+          var strip = el.querySelector('.strip');
+          if (!strip || !strip.querySelector('.card')) return null;
+          var st = { el: el, strip: strip, W: 0, copies: 1, added: [], armed: false, hovered: false, v: 0, pos: null, snapOff: false, ro: null };
+
+          var seam = document.createElement('div');
+          seam.className = 'loop-seam';
+          seam.setAttribute('aria-hidden', 'true');
+          strip.appendChild(seam);
+          st.added.push(seam);
+          var unit = Array.prototype.slice.call(strip.children); /* cards + seam = one cycle */
+
+          function addCopy() {
+            for (var i = 0; i < unit.length; i++) {
+              var c = unit[i].cloneNode(true);
+              c.setAttribute('aria-hidden', 'true'); /* SR + keyboard get one copy; mouse can still click */
+              c.classList.add('on'); /* the reveal rect-check ran before us */
+              if (c.tagName === 'A') c.setAttribute('tabindex', '-1');
+              strip.appendChild(c);
+              st.added.push(c);
+            }
+            st.copies++;
+          }
+          addCopy();
+
+          function measure() {
+            st.W = strip.children[unit.length].offsetLeft - strip.children[0].offsetLeft;
+            /* the wrap band plus a viewport must always be covered */
+            var guard = 0;
+            while (st.W > 0 && st.copies * st.W < 1.5 * st.W + strip.clientWidth && guard++ < 8) addCopy();
+          }
+          measure();
+          if ('ResizeObserver' in window) { st.ro = new ResizeObserver(measure); st.ro.observe(strip); }
+
+          function kbIn() {
+            /* teleporting while a focus ring is visible in this shelf would
+               strand it offscreen (clone links are tabindex=-1) */
+            var ae = document.activeElement;
+            if (!ae || !el.contains(ae)) return false;
+            try { return ae.matches(':focus-visible'); } catch (e) { return true; }
+          }
+          st.wrap = function () {
+            if (dead || !st.W) return;
+            var x = strip.scrollLeft;
+            if (x >= 0.5 * st.W) st.armed = true;
+            if (kbIn()) return;
+            if (x > 1.25 * st.W) strip.scrollLeft = x - st.W;
+            else if (st.armed && x < 0.25 * st.W) strip.scrollLeft = x + st.W;
+          };
+
+          /* touch momentum dies if we teleport mid-fling — wrap on settle,
+             plus an emergency wrap only near the strip's true edges */
+          if (coarse && 'onscrollend' in window) {
+            strip.addEventListener('scrollend', st.wrap, { passive: true });
+            strip.addEventListener('scroll', function () {
+              if (dead || !st.W) return;
+              var x = strip.scrollLeft, max = strip.scrollWidth - strip.clientWidth;
+              if (x < 60 || x > max - 60) st.wrap();
+            }, { passive: true });
+          } else {
+            strip.addEventListener('scroll', st.wrap, { passive: true });
+          }
+
+          el.addEventListener('pointerenter', function (e) { if (e.pointerType !== 'touch') st.hovered = true; });
+          el.addEventListener('pointerleave', function () { st.hovered = false; });
+          return st;
+        }
+
+        var els = document.querySelectorAll('.shelf');
+        for (var i = 0; i < els.length; i++) {
+          var st = buildShelf(els[i]);
+          if (st) shelves.push(st);
+        }
+        if (!shelves.length) return;
+
+        /* mid-session Reduce Motion must actually stop everything */
+        function teardown() {
+          if (dead) return;
+          dead = true;
+          if (rafId) cancelAnimationFrame(rafId);
+          doc.classList.remove('drift');
+          for (var i = 0; i < shelves.length; i++) {
+            var s = shelves[i];
+            if (s.ro) s.ro.disconnect();
+            if (s.W) s.strip.scrollLeft = s.strip.scrollLeft % s.W;
+            for (var j = 0; j < s.added.length; j++) {
+              if (s.added[j].parentNode) s.added[j].parentNode.removeChild(s.added[j]);
+            }
+            s.strip.style.scrollSnapType = '';
+          }
+        }
+        try {
+          var prmq = matchMedia('(prefers-reduced-motion: reduce)');
+          if (prmq.addEventListener) prmq.addEventListener('change', function (ev) { if (ev.matches) teardown(); });
+        } catch (e) {}
+
+        if (!fine) return; /* drift is a spectator-mode desktop luxury */
+
+        var SPEED = 24; /* px/s cruise — about one card per ~14s */
+        var paused = false;
+        try { paused = sessionStorage.getItem('workDriftPaused') === '1'; } catch (e) {}
+        var resumeAt = performance.now() + 3500, last = null;
+        function hold(ms) { resumeAt = Math.max(resumeAt, performance.now() + ms); }
+        /* real input takes over instantly — no coast-out fighting the user */
+        function interrupt(e) {
+          hold(3000);
+          for (var i = 0; i < shelves.length; i++) {
+            var s = shelves[i];
+            s.v = 0; s.pos = null;
+            if (s.snapOff && e && e.target && s.el.contains(e.target)) {
+              s.strip.style.scrollSnapType = '';
+              s.snapOff = false;
+            }
+          }
+        }
+        addEventListener('wheel', interrupt, { passive: true });
+        addEventListener('touchstart', interrupt, { passive: true });
+        addEventListener('pointerdown', interrupt, { passive: true });
+        addEventListener('keydown', interrupt);
+        addEventListener('blur', function () {
+          for (var i = 0; i < shelves.length; i++) shelves[i].hovered = false;
+        });
+
+        /* WCAG 2.2.2: a persistent, keyboard-reachable stop for the motion */
+        var toggle = document.getElementById('drift-toggle');
+        function paint() {
+          if (!toggle) return;
+          toggle.textContent = paused ? 'drift' : 'pause';
+          toggle.setAttribute('aria-label', paused ? 'Resume automatic scrolling' : 'Pause automatic scrolling');
+        }
+        if (toggle) {
+          toggle.addEventListener('click', function () {
+            paused = !paused;
+            try { sessionStorage.setItem('workDriftPaused', paused ? '1' : '0'); } catch (e) {}
+            if (!paused) resumeAt = performance.now() + 800;
+            paint();
+          });
+        }
+        paint();
+        doc.classList.add('drift');
+
+        function frame(t) {
+          if (dead) return;
+          rafId = requestAnimationFrame(frame);
+          if (last === null) { last = t; return; }
+          var dt = Math.min((t - last) / 1000, 0.05);
+          last = t;
+          for (var i = 0; i < shelves.length; i++) {
+            var s = shelves[i];
+            var want = (!paused && !s.hovered && t >= resumeAt) ? SPEED : 0;
+            s.v += (want - s.v) * Math.min(1, dt * 1.6); /* gentle ease-in on resume */
+            if (s.v < 0.5) { s.pos = null; continue; }
+            if (!s.snapOff) { s.strip.style.scrollSnapType = 'none'; s.snapOff = true; }
+            if (s.pos === null) s.pos = s.strip.scrollLeft;
+            s.pos += s.v * dt;
+            s.strip.scrollLeft = s.pos;
+            s.wrap();
+            /* wrap teleported us, or the visitor scrolled: follow reality */
+            if (Math.abs(s.strip.scrollLeft - s.pos) > 2) s.pos = s.strip.scrollLeft;
+          }
+        }
+        rafId = requestAnimationFrame(frame);
       })();
     </script>
   </body>
